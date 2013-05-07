@@ -93,6 +93,10 @@ public interface Service {
 	 *            the command name.
 	 * @param params
 	 *            the command parameters.
+	 * @param timeout
+	 * 				execution timeout.
+	 * @param unit
+	 * 			timeout time unit.
 	 * @return The invocation results.
 	 * @throws TimeoutException
 	 *             if invocation time exceeds the defined timeout.
@@ -100,7 +104,7 @@ public interface Service {
 	 *             if any of the invocations failed. The thrown exception is the exception thrown by the failed
 	 *             invocation.
 	 */
-	Object[] invoke(final String commandName, final Object[] params, long timeout, TimeUnit unit)
+	Object[] invoke(final String commandName, final Object[] params, final long timeout, final TimeUnit unit)
 			throws Exception;
 
 }

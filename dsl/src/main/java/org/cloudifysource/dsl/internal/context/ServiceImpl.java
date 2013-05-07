@@ -145,10 +145,11 @@ public class ServiceImpl implements Service {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.cloudifysource.dsl.context.IService#invoke(java.lang.String, java.lang.Object[], long, java.util.concurrent.TimeUnit)
+	 * @see org.cloudifysource.dsl.context.IService#invoke(java.lang.String, java.lang.Object[],
+	 *  long, java.util.concurrent.TimeUnit)
 	 */
 	@Override
-	public Object[] invoke(final String commandName, final Object[] params, long timeout, TimeUnit unit)
+	public Object[] invoke(final String commandName, final Object[] params, final long timeout, final TimeUnit unit)
 			throws Exception {
 		final ServiceInstanceImpl[] instances = this.getInstances();
 

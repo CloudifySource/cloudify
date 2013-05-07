@@ -14,6 +14,7 @@
 package org.cloudifysource.dsl.context;
 
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /*********************
@@ -88,4 +89,21 @@ public interface ServiceInstance {
 	Object invoke(final String commandName, final Object[] params)
 			throws InterruptedException, ExecutionException, TimeoutException;
 
+	/**
+	 * Invokes a custom command on this service instance, returning when the invocation finishes executing.
+	 * @param commandName
+	 * 			the command name.
+	 * @param params
+	 * 			the command parameters.
+	 * @param timeout
+	 * 			execution timeout.
+	 * @param unit
+	 * 			timeout time units.
+	 * @return The invocation result.
+	 * @throws InterruptedException .
+	 * @throws ExecutionException .
+	 * @throws TimeoutException .
+	 */
+	Object invoke(final String commandName, final Object[] params, final long timeout, final TimeUnit unit)
+			throws InterruptedException, ExecutionException, TimeoutException;
 }

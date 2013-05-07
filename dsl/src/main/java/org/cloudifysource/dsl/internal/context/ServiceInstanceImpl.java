@@ -41,6 +41,7 @@ import org.openspaces.pu.service.ServiceMonitors;
  */
 public class ServiceInstanceImpl implements ServiceInstance {
 
+	private static final int DEFAULT_TIMEOUT_IN_MINUTES = 1;
 	private static java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(ServiceInstanceImpl.class.getName());
 	private final ProcessingUnitInstance pui;
@@ -187,11 +188,16 @@ public class ServiceInstanceImpl implements ServiceInstance {
 	@Override
 	public Object invoke(final String commandName, final Object[] params) throws InterruptedException,
 			ExecutionException, TimeoutException {
-
-		final Future<Object> future = invokeAsync(commandName, params);
-		final Object result = future.get(1, TimeUnit.MINUTES);
-		return result;
-
+		return invoke(commandName, params, DEFAULT_TIMEOUT_IN_MINUTES, TimeUnit.MINUTES);
+	
 	}
 
+	@Override
+	public Object invoke(final String commandName, final Object[] params, final long timeout,
+			final TimeUnit unit) throws InterruptedException, ExecutionException,
+			TimeoutException {
+		final Future<Object> future = invokeAsync(commandName, params);
+		final Object result = future.get(timeout, unit);
+		return result;
+	}
 }
