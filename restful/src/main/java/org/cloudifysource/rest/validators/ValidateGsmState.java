@@ -16,6 +16,7 @@
 package org.cloudifysource.rest.validators;
 
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.rest.ResponseConstants;
@@ -26,6 +27,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ValidateGsmState implements InstallServiceValidator {
+
+	Logger logger = Logger.getLogger(ValidateGsmState.class.getName());
 
 
 	@Autowired(required = true)

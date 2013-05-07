@@ -20,6 +20,7 @@ import java.io.File;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
+import org.openspaces.admin.Admin;
 
 /**
  * A POJO for holding install-service validator's parameters.
@@ -31,6 +32,7 @@ public class InstallServiceValidationContext {
 	private String absolutePuName;
 	private String templateName;
 	private Cloud cloud;
+	private Admin admin;
 	private Service service;
 	private InstallServiceRequest request;
 	private File cloudConfiguration;
@@ -56,6 +58,14 @@ public class InstallServiceValidationContext {
 	public void setCloud(final Cloud cloud) {
 		this.cloud = cloud;
 	}
+	
+	public Admin getAdmin() {
+		return admin;
+	}
+
+	public void setAdmin(final Admin admin) {
+		this.admin = admin;
+	}
 
 	public Service getService() {
 		return service;
@@ -77,7 +87,7 @@ public class InstallServiceValidationContext {
 		return cloudConfiguration;
 	}
 
-	public void setCloudConfiguration(File cloudConfiguration) {
+	public void setCloudConfiguration(final File cloudConfiguration) {
 		this.cloudConfiguration = cloudConfiguration;
 	}
 

@@ -15,8 +15,6 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
-import java.util.logging.Logger;
-
 import org.cloudifysource.rest.controllers.RestErrorException;
 
 /**
@@ -26,12 +24,6 @@ import org.cloudifysource.rest.controllers.RestErrorException;
  * 
  */
 public interface InstallServiceValidator {
-
-	/**
-	 * 
-	 */
-	Logger logger = Logger.getLogger(InstallServiceValidator.class.getName());
-
 	/**
 	 * 
 	 * @param validationContext .
