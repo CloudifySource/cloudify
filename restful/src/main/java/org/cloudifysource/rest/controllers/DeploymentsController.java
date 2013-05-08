@@ -393,7 +393,7 @@ public class DeploymentsController extends BaseRestContoller {
 		// deploy
 		final DeploymentConfig deployConfig = new DeploymentConfig();
 		final UUID deploymentID = UUID.randomUUID();
-		deployConfig.setDeploymentID(deploymentID);
+		deployConfig.setDeploymentId(deploymentID.toString());
 		deployConfig.setAbsolutePUName(absolutePuName);
 		deployConfig.setApplicationName(appName);
 		deployConfig.setAuthGroups(effectiveAuthGroups);
