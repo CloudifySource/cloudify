@@ -308,6 +308,7 @@
 
     <target name="copy-bootstrap-script-to-cloud">
 
+        <echo message="current cloud is ${current.cloud}"/>
         <copy todir="@{installation.dir}/clouds/${current.cloud}/upload" overwrite="true">
             <file name="${esc.local.copy}/src/main/resources/general/bootstrap-management.sh"/>
         </copy>
