@@ -640,6 +640,58 @@ public class Service {
 
 		DSLUtils.validateRecipeName(name);
 	}
+	
+	@DSLValidation
+	void validateInstanceSize(final DSLValidationContext validationContext)
+			throws DSLValidationException {
+		if (minAllowedInstances <= 0) {
+			throw new DSLValidationException("Minimum number of instances ("
+					+ getMinAllowedInstances()
+					+ ") must be 1 or higher.");
+		}
+		if (minAllowedInstances > maxAllowedInstances) {
+			throw new DSLValidationException(
+					"maximum number of instances ("
+							+ maxAllowedInstances
+							+ ") must be equal or greater than the minimum number of instances ("
+							+ minAllowedInstances + ")");
+		}
+		
+		if (minAllowedInstances > numInstances) {
+			throw new DSLValidationException(
+					"number of instances ("
+							+ numInstances
+							+ ") must be equal or greater than the minimum number of instances ("
+							+ minAllowedInstances + ")");
+		}
+		if (numInstances > maxAllowedInstances) {
+			throw new DSLValidationException(
+					"number of instances ("
+							+ numInstances
+							+ ") must be equal or less than the maximum number of instances ("
+							+ maxAllowedInstances + ")");
+		}
+		if (numInstances <= 0) {
+			throw new DSLValidationException(
+					"number of instances must be set to a positive integer");
+		}
+	}
+	
+	@DSLValidation
+	void validateScalingRules(final DSLValidationContext validationContext) 
+			throws DSLValidationException {
+		if (scalingRules != null) {
+			for (final ScalingRuleDetails scalingRule : scalingRules) {
+				final Object serviceStatisticsObject = scalingRule
+						.getServiceStatistics();
+				if (serviceStatisticsObject == null) {
+					throw new DSLValidationException(
+							"scalingRule must specify serviceStatistics (either a closure or " 
+									+ "reference a predefined serviceStatistics name).");
+				}
+			}
+		}
+	}
 
 	public ExecutableEntriesMap getCustomCommands() {
 		return customCommands;
