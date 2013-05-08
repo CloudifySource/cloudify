@@ -18,10 +18,14 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
+import java.util.UUID;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import net.jini.core.discovery.LookupLocator;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -54,15 +58,25 @@ import org.cloudifysource.dsl.rest.response.ServiceInstanceMetricsResponse;
 import org.cloudifysource.dsl.rest.response.ServiceMetricsResponse;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.rest.RestConfiguration;
+import org.cloudifysource.rest.deploy.DeploymentConfig;
+import org.cloudifysource.rest.deploy.ElasticProcessingUnitDeploymentFactory;
+import org.cloudifysource.rest.deploy.ElasticProcessingUnitDeploymentFactoryImpl;
 import org.cloudifysource.rest.interceptors.ApiVersionValidationAndRestResponseBuilderInterceptor;
 import org.cloudifysource.rest.repo.UploadRepo;
 import org.cloudifysource.rest.security.CustomPermissionEvaluator;
 import org.cloudifysource.rest.util.IsolationUtils;
+import org.cloudifysource.rest.util.LifecycleEventsContainer;
+import org.cloudifysource.rest.util.RestPollingRunnable;
 import org.cloudifysource.rest.validators.InstallServiceValidationContext;
 import org.cloudifysource.rest.validators.InstallServiceValidator;
+import org.openspaces.admin.Admin;
+import org.openspaces.admin.AdminException;
 import org.openspaces.admin.application.Application;
+import org.openspaces.admin.gsm.GridServiceManager;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
+import org.openspaces.admin.pu.elastic.topology.ElasticDeploymentTopology;
+import org.openspaces.admin.space.ElasticSpaceDeployment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -77,11 +91,9 @@ import com.sun.mail.iap.Response;
  * services and application. <br>
  * <br>
  * The response body will always return in a JSON representation of the {@link Response} Object. <br>
- * A controller method may return the {@link Response} Object directly. 
- * in this case this return value will be used as the response body. 
- * Otherwise, an implicit wrapping will occur. 
- * the return value will be inserted into {@code Response#setResponse(Object)}. 
- * other fields of the {@link Response} object will be filled with default values. <br>
+ * A controller method may return the {@link Response} Object directly. in this case this return value will be used as
+ * the response body. Otherwise, an implicit wrapping will occur. the return value will be inserted into
+ * {@code Response#setResponse(Object)}. other fields of the {@link Response} object will be filled with default values. <br>
  * <h1>Important</h1> {@code @ResponseBody} annotations are not permitted. <br>
  * <br>
  * <h1>Possible return values</h1> 200 - OK<br>
@@ -150,7 +162,7 @@ public class DeploymentsController extends BaseRestContoller {
 		serviceDetails.setName(serviceName);
 		serviceDetails.setApplicationName(appName);
 		serviceDetails
-		.setNumberOfInstances(processingUnit.getInstances().length);
+				.setNumberOfInstances(processingUnit.getInstances().length);
 
 		final List<String> instanceNaems = new ArrayList<String>();
 		for (final ProcessingUnitInstance instance : processingUnit.getInstances()) {
@@ -176,7 +188,7 @@ public class DeploymentsController extends BaseRestContoller {
 	@RequestMapping(value = "/{appName}/attributes", method = RequestMethod.POST)
 	public void setApplicationAttributes(@PathVariable final String appName,
 			@RequestBody final SetApplicationAttributesRequest attributesRequest)
-					throws RestErrorException {
+			throws RestErrorException {
 
 		// valid application
 		getApplication(appName);
@@ -252,7 +264,7 @@ public class DeploymentsController extends BaseRestContoller {
 	 * @throws RestErrorException
 	 *             when application , service or service instance not exist
 	 */
-	@RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/metadata", 
+	@RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/metadata",
 			method = RequestMethod.GET)
 	public ServiceInstanceDetails getServiceInstanceDetails(
 			@PathVariable final String appName,
@@ -338,80 +350,31 @@ public class DeploymentsController extends BaseRestContoller {
 
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(appName, serviceName);
 
-		// get the uploaded srcFile
-		final File srcFile = repo.get(request.getUploadKey());
-		if (srcFile == null) {
-			throw new RestErrorException(CloudifyMessageKeys.WRONG_UPLOAD_KEY.getName(), request.getUploadKey());
-		}
-		File serviceDir = null;
-		try {
-			// unzip srcFile into a new directory named absolutePuName under baseDir.
-			File baseDir = new File(restConfig.getTemporaryFolderPath(), "extracted");
-			baseDir.mkdirs();
-			baseDir.deleteOnExit();
-			serviceDir = ServiceReader.extractProjectFileToDir(srcFile, absolutePuName, baseDir);
-		} catch (final IOException e1) {
-			throw new RestErrorException(CloudifyMessageKeys.FAILED_TO_EXTRACT_PROJECT_FILE.getName(), absolutePuName);
-		}
+		// get and extract service folder
+		final File packedFile = getFromRepo(request.getUploadKey(), "service packed file", absolutePuName);
+		final File serviceDir = extractServiceDir(packedFile, absolutePuName);
 
-		// merge service properties, application properties and service overrides file into one properties file.
-		File workingProjectDir = new File(serviceDir, "ext");
-		File updatedSrcFile = updatePropertiesFile(request, serviceDir, absolutePuName, srcFile, workingProjectDir);
+		// update service properties file (and re-zip packedFile if needed).
+		final File serviceOverridesFile = getFromRepo(request.getServiceOverridesUploadKey(),
+				CloudifyMessageKeys.WRONG_SERVICE_OVERRIDES_UPLOAD_KEY.getName(), absolutePuName);
+		final File workingProjectDir = new File(serviceDir, "ext");
+		final File updatedPackedFile = updatePropertiesFile(request, serviceOverridesFile, serviceDir, absolutePuName,
+				workingProjectDir, packedFile);
 
-		// Use service reader to read the service
-		String serviceFileName = request.getServiceFileName();
-		DSLServiceCompilationResult result;
-		try {
-			if (serviceFileName != null) {
-				result = ServiceReader.getServiceFromFile(new File(
-						workingProjectDir , serviceFileName), workingProjectDir);
-			} else {
-				result = ServiceReader.getServiceFromDirectory(workingProjectDir);
-			}
-		} catch (final Exception e) {
-			throw new RestErrorException(CloudifyMessageKeys.FAILED_TO_READ_SERVICE.getName(), absolutePuName);
-		}
-		Service service = result.getService();
+		// Read the service
+		final Service service = readService(workingProjectDir, request.getServiceFileName(), absolutePuName);
 
 		// update template name
-		String templateName = getTempalteNameFromService(service);
+		final String templateName = getTempalteNameFromService(service);
 
-		// use repo to get serviceCloudConfiguration
-		String cloudConfigurationUploadKey = request.getCloudConfigurationUploadKey();
-		byte[] serviceCloudConfigurationContents = null;
-		File serviceCloudConfigurationFile = null;
-		if (cloudConfigurationUploadKey != null) {
-			serviceCloudConfigurationFile = repo.get(cloudConfigurationUploadKey);
-			if (serviceCloudConfigurationFile == null) {
-				throw new RestErrorException(
-						CloudifyMessageKeys.WRONG_SERVICE_CLOUD_CONFIGURATION_UPLOAD_KEY.getName(), absolutePuName);
-			}
-			try {
-				serviceCloudConfigurationContents = FileUtils.readFileToByteArray(serviceCloudConfigurationFile);
-			} catch (IOException e) {
-				throw new RestErrorException(CloudifyMessageKeys.FAILED_TO_READ_SERVICE_CLOUD_CONFIGURATION.getName(), 
-						absolutePuName);
-			}
-		}
+		// get cloud configuration file and content
+		final File cloudConfigurationFile = getFromRepo(request.getCloudConfigurationUploadKey(),
+				CloudifyMessageKeys.WRONG_CLOUD_CONFIGURATION_UPLOAD_KEY.getName(), absolutePuName);
+		final byte[] cloudConfigurationContents = getCloudConfigurationContent(cloudConfigurationFile, absolutePuName);
 
-		// use repo to get cloud overrides file
-		String cloudOverridesUploadKey = request.getCloudOverridesUploadKey();
-		File cloudOverridesFile = null;
-		if (StringUtils.isBlank(cloudOverridesUploadKey)) {
-			cloudOverridesFile = repo.get(cloudOverridesUploadKey);
-			if (cloudOverridesFile == null) {
-				throw new RestErrorException(CloudifyMessageKeys.WRONG_CLOUD_OVERRIDES_UPLOAD_KEY.getName(), 
-						absolutePuName);
-			}
-		}
-
-		// validate
-		validateInstallService(absolutePuName, request, service, templateName, serviceCloudConfigurationFile);
-
-		// TODO update/create props file
-		Properties serviceContextProperties = createServiceContextProperties(service, request);
-		serviceContextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_TEMPLATE, templateName);
-
+		// get cloud overrides file
+		final File cloudOverridesFile = getFromRepo(request.getCloudOverridesUploadKey(),
+				CloudifyMessageKeys.WRONG_CLOUD_OVERRIDES_UPLOAD_KEY.getName(), absolutePuName);
 
 		// update effective authGroups
 		String effectiveAuthGroups = request.getAuthGroups();
@@ -423,116 +386,154 @@ public class DeploymentsController extends BaseRestContoller {
 			}
 		}
 
-		// deploy the service
-//		deployService(
-//				service, 
-//				serviceDir, 
-//				appName, 
-//				serviceName, 
-//				effectiveAuthGroups, 
-//				templateName,
-//				updatedSrcFile, 
-//				serviceContextProperties, 
-//				request.getSelfHealing(), 
-//				cloudOverridesFile, 
-//				serviceCloudConfigurationContents);
+		// validations
+		validateInstallService(absolutePuName, request, service, templateName,
+				cloudOverridesFile, serviceOverridesFile, cloudConfigurationFile);
 
-		InstallServiceResponse installServiceResponse = new InstallServiceResponse();
-		String deploymentID = "";
-		// TODO update deploymentID (lifecycleEventContainerID)
-		installServiceResponse.setDeploymentID(deploymentID);
+		// deploy
+		final DeploymentConfig deployConfig = new DeploymentConfig();
+		final UUID deploymentID = UUID.randomUUID();
+		deployConfig.setDeploymentID(deploymentID);
+		deployConfig.setAbsolutePUName(absolutePuName);
+		deployConfig.setApplicationName(appName);
+		deployConfig.setAuthGroups(effectiveAuthGroups);
+		deployConfig.setCloud(restConfig.getCloud());
+		deployConfig.setCloudConfig(cloudConfigurationContents);
+		deployConfig.setCloudOverrides(FileUtils.readFileToString(cloudOverridesFile));
+		deployConfig.setInstallRequest(request);
+		final String locators = extractLocators(restConfig.getAdmin());
+		deployConfig.setLocators(locators);
+		deployConfig.setPackedFile(updatedPackedFile);
+		deployConfig.setService(service);
+		deployConfig.setTemplateName(templateName);
+		final ElasticProcessingUnitDeploymentFactory fac = new ElasticProcessingUnitDeploymentFactoryImpl();
+		final ElasticDeploymentTopology deployment = fac.create(deployConfig);
+		// TODO get rid of casting
+		deployAndWait(serviceName, (ElasticSpaceDeployment) deployment);
+
+		// start polling
+		final InstallServiceResponse installServiceResponse = new InstallServiceResponse();
+		if (!request.isApplicationInstall()) {
+			startPollingForLifecycleEvents(deploymentID, service.getName(), appName,
+					service.getNumInstances(), true, request.getTimeout(), request.getTimeUnit());
+		}
+
+		installServiceResponse.setDeploymentID(deploymentID.toString());
 		return installServiceResponse;
 
 	}
 
-	private void deployService(final Service service, final File projectDir, final String applicationName, 
-			final String serviceName, final String effectiveAuthGroups,  final String templateName, 
-			final File editSrcFile, final Properties propsFile, final Boolean selfHealing, 
-			final File cloudOverrides, final byte[] serviceCloudConfigurationContents) {
-//		if (service == null) {
-//			doDeploy(applicationName, serviceName, effectiveAuthGroups, templateName, agentZones,
-//					editSrcFile, propsFile, selfHealing, cloudOverrides);
-//		} else if (service.getLifecycle() != null) {
-//			doDeploy(applicationName, serviceName, effectiveAuthGroups, templateName, agentZones,
-//					editSrcFile, propsFile, service,
-//					serviceCloudConfigurationContents, selfHealing, cloudOverrides);
-//		} else if (service.getDataGrid() != null) {
-//			deployDataGrid(applicationName, serviceName, effectiveAuthGroups, agentZones, editSrcFile,
-//					propsFile, service.getDataGrid(), templateName,
-//					service.isLocationAware(), cloudOverrides);
-//		} else if (service.getStatelessProcessingUnit() != null) {
-//			deployStatelessProcessingUnitAndWait(applicationName, serviceName, effectiveAuthGroups,
-//					agentZones, new File(projectDir, "ext"), propsFile,
-//					service.getStatelessProcessingUnit(), templateName,
-//					service.getNumInstances(), service.isLocationAware(), cloudOverrides);
-//		} else if (service.getMirrorProcessingUnit() != null) {
-//			deployStatelessProcessingUnitAndWait(applicationName, serviceName, effectiveAuthGroups,
-//					agentZones, new File(projectDir, "ext"), propsFile,
-//					service.getMirrorProcessingUnit(), templateName,
-//					service.getNumInstances(), service.isLocationAware(), cloudOverrides);
-//		} else if (service.getStatefulProcessingUnit() != null) {
-//			deployStatefulProcessingUnit(applicationName, serviceName, effectiveAuthGroups,
-//					agentZones, new File(projectDir, "ext"), propsFile,
-//					service.getStatefulProcessingUnit(), templateName,
-//					service.isLocationAware(), cloudOverrides);
-//		} else {
-//			throw new IllegalStateException("Unsupported service type");
-//		}
+	private static String extractLocators(final Admin admin) {
+
+		final LookupLocator[] locatorsArray = admin.getLocators();
+		final StringBuilder locators = new StringBuilder();
+
+		for (final LookupLocator locator : locatorsArray) {
+			locators.append(locator.getHost()).append(':').append(locator.getPort()).append(',');
+		}
+
+		if (locators.length() > 0) {
+			locators.setLength(locators.length() - 1);
+		}
+
+		return locators.toString();
 	}
 
-	private Properties createServiceContextProperties(final Service service, final InstallServiceRequest request) {
-		final Properties contextProperties = new Properties();
+	private void deployAndWait(final String serviceName,
+			final ElasticSpaceDeployment deployment) throws TimeoutException {
+		final ProcessingUnit pu = getGridServiceManager().deploy(deployment,
+				60, TimeUnit.SECONDS);
+		if (pu == null) {
+			throw new TimeoutException("Timed out waiting for Service "
+					+ serviceName + " deployment.");
+		}
+	}
 
-		// contextProperties.setProperty("com.gs.application.services",
-		// serviceNamesString);
-		if (service.getDependsOn() != null) {
-			contextProperties.setProperty(
-					CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON, service
-					.getDependsOn().toString());
+	private GridServiceManager getGridServiceManager() {
+		if (restConfig.getAdmin().getGridServiceManagers().isEmpty()) {
+			throw new AdminException("Cannot locate Grid Service Manager");
 		}
-		if (service.getType() != null) {
-			contextProperties.setProperty(
-					CloudifyConstants.CONTEXT_PROPERTY_SERVICE_TYPE,
-					service.getType());
+		return restConfig.getAdmin().getGridServiceManagers().iterator().next();
+	}
+
+	private void startPollingForLifecycleEvents(final UUID deploymentID, final String serviceName,
+			final String applicationName, final int plannedNumberOfInstances,
+			final boolean isServiceInstall, final int timeout,
+			final TimeUnit minutes) {
+		RestPollingRunnable restPollingRunnable;
+		logger.info("starting poll on service : " + serviceName + " app: "
+				+ applicationName);
+
+		final LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
+		lifecycleEventsContainer.setEventsSet(restConfig.getEventsSet());
+
+		restPollingRunnable = new RestPollingRunnable(applicationName, timeout,
+				minutes);
+		restPollingRunnable.addService(serviceName, plannedNumberOfInstances);
+		restPollingRunnable.setAdmin(restConfig.getAdmin());
+		restPollingRunnable.setIsServiceInstall(isServiceInstall);
+		restPollingRunnable.setLifecycleEventsContainer(lifecycleEventsContainer);
+		restPollingRunnable.setEndTime(timeout, TimeUnit.MINUTES);
+		restPollingRunnable.setIsSetInstances(true);
+		restConfig.getLifecyclePollingThreadContainer().put(deploymentID,
+				restPollingRunnable);
+		final ScheduledFuture<?> scheduleWithFixedDelay = restConfig.getScheduledExecutor()
+				.scheduleWithFixedDelay(restPollingRunnable, 0,
+						CloudifyConstants.LIFECYCLE_EVENT_POLLING_INTERVAL_SEC, TimeUnit.SECONDS);
+		restPollingRunnable.setFutureTask(scheduleWithFixedDelay);
+
+		logger.log(Level.INFO, "polling container UUID is "
+				+ deploymentID.toString());
+	}
+
+	private File extractServiceDir(final File srcFile, final String absolutePuName) throws RestErrorException {
+		File serviceDir = null;
+		try {
+			// unzip srcFile into a new directory named absolutePuName under baseDir.
+			final File baseDir =
+					new File(restConfig.getTemporaryFolderPath(), CloudifyConstants.EXTRACTED_FILES_FOLDER_NAME);
+			baseDir.mkdirs();
+			baseDir.deleteOnExit();
+			serviceDir = ServiceReader.extractProjectFileToDir(srcFile, absolutePuName, baseDir);
+		} catch (final IOException e1) {
+			throw new RestErrorException(CloudifyMessageKeys.FAILED_TO_EXTRACT_PROJECT_FILE.getName(), absolutePuName);
 		}
-		if (service.getIcon() != null) {
-			contextProperties.setProperty(
-					CloudifyConstants.CONTEXT_PROPERTY_SERVICE_ICON,
-					CloudifyConstants.SERVICE_EXTERNAL_FOLDER
-					+ service.getIcon());
+		return serviceDir;
+	}
+
+	private Service readService(final File workingProjectDir, final String serviceFileName, final String absolutePuName)
+			throws RestErrorException {
+		DSLServiceCompilationResult result;
+		try {
+			if (serviceFileName != null) {
+				result = ServiceReader.getServiceFromFile(new File(
+						workingProjectDir, serviceFileName), workingProjectDir);
+			} else {
+				result = ServiceReader.getServiceFromDirectory(workingProjectDir);
+			}
+		} catch (final Exception e) {
+			throw new RestErrorException(CloudifyMessageKeys.FAILED_TO_READ_SERVICE.getName(), absolutePuName);
 		}
-		if (service.getNetwork() != null) {
-			if (service.getNetwork().getProtocolDescription() != null) {
-				contextProperties
-				.setProperty(
-						CloudifyConstants.CONTEXT_PROPERTY_NETWORK_PROTOCOL_DESCRIPTION,
-						service.getNetwork().getProtocolDescription());
+		return result.getService();
+	}
+
+	private byte[] getCloudConfigurationContent(final File serviceCloudConfigurationFile, final String absolutePuName)
+			throws RestErrorException {
+		byte[] serviceCloudConfigurationContents = null;
+		if (serviceCloudConfigurationFile != null) {
+			try {
+				serviceCloudConfigurationContents = FileUtils.readFileToByteArray(serviceCloudConfigurationFile);
+			} catch (final IOException e) {
+				throw new RestErrorException(CloudifyMessageKeys.FAILED_TO_READ_SERVICE_CLOUD_CONFIGURATION.getName(),
+						absolutePuName);
 			}
 		}
-
-		contextProperties.setProperty(
-				CloudifyConstants.CONTEXT_PROPERTY_ELASTIC,
-				Boolean.toString(service.isElastic()));
-
-		boolean debugAll = request.isDebugAll();
-		String debugMode = request.getDebugMode();
-		if (debugAll) {
-			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_ALL, Boolean.TRUE.toString());
-			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_MODE, debugMode);
-		} else {
-			String debugEvents = request.getDebugEvents();
-			if (debugEvents != null) {
-				contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_EVENTS, debugEvents);
-				contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_MODE, debugMode);
-			}
-		}
-
-		return contextProperties;
+		return serviceCloudConfigurationContents;
 	}
 
 	private String getTempalteNameFromService(final Service service) {
 
-		Cloud cloud = restConfig.getCloud();
+		final Cloud cloud = restConfig.getCloud();
 		if (cloud == null) {
 			return null;
 		}
@@ -562,46 +563,78 @@ public class DeploymentsController extends BaseRestContoller {
 		return templateName;
 	}
 
-	private File updatePropertiesFile(final InstallServiceRequest request, final File serviceDir, 
-			final String absolutePuName, final File srcFile, File workingProjectDir) 
-					throws RestErrorException {
-		String serviceOverridesUploadKey = request.getServiceOverridesUploadKey();
-		File applicationProeprtiesFile = request.getApplicationPropertiesFile();
-		File editSrcFile = srcFile;
+	/**
+	 * Merge service properties file with application properties file and service overrides file. Merge all into the
+	 * service properties file (create one if doesn't exist).
+	 * 
+	 * @param request
+	 * @param serviceDir
+	 * @param absolutePuName
+	 * @param workingProjectDir
+	 * @param srcFile
+	 * @return The zip file with the updated properties file or the original zip file if no update needed.
+	 * @throws RestErrorException
+	 */
+	private File updatePropertiesFile(final InstallServiceRequest request, final File overridesFile,
+			final File serviceDir, final String absolutePuName, final File workingProjectDir, final File srcFile)
+			throws RestErrorException {
+		final String serviceOverridesUploadKey = request.getServiceOverridesUploadKey();
+		final File applicationProeprtiesFile = request.getApplicationPropertiesFile();
 		// check if merge is necessary
-		if (!StringUtils.isBlank(serviceOverridesUploadKey) || applicationProeprtiesFile != null) {
+		if (StringUtils.isBlank(serviceOverridesUploadKey) && applicationProeprtiesFile == null) {
+			return srcFile;
+		} else {
 			// get properties file from working directory
-			final String propertiesFileName = 
+			final String propertiesFileName =
 					DSLUtils.getPropertiesFileName(workingProjectDir, DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX);
 			final File servicePropertiesFile = new File(workingProjectDir, propertiesFileName);
-			LinkedHashMap<File, String> filesToAppend = new LinkedHashMap<File, String>();
+			final LinkedHashMap<File, String> filesToAppend = new LinkedHashMap<File, String>();
 			try {
 				// append application properties, service properties and overrides files
-				FileAppender appender = new FileAppender("finalPropertiesFile.properties");
+				final FileAppender appender = new FileAppender("finalPropertiesFile.properties");
 				filesToAppend.put(applicationProeprtiesFile, "application proeprties file");
 				filesToAppend.put(servicePropertiesFile, "service proeprties file");
-				File serviceOverridesFile = repo.get(serviceOverridesUploadKey);
-				filesToAppend.put(serviceOverridesFile, "service overrides file");
+				final File serviceOverridesFile = repo.get(serviceOverridesUploadKey);
+				if (serviceOverridesFile != null) {
+					if (serviceOverridesFile.length() > CloudifyConstants.SERVICE_OVERRIDES_FILE_LENGTH_LIMIT_BYTES) {
+						throw new RestErrorException(
+								CloudifyMessageKeys.SERVICE_OVERRIDES_SIZE_LIMIT_EXCEEDED.getName());
+					}
+					filesToAppend.put(serviceOverridesFile, "service overrides file");
+				}
 				appender.appendAll(servicePropertiesFile, filesToAppend);
-				// re-zip srcFile with updated properties file.
-				editSrcFile = Packager.createZipFile(absolutePuName, serviceDir);
-
-			} catch (IOException e) {
+				return Packager.createZipFile(absolutePuName, serviceDir);
+			} catch (final IOException e) {
 				throw new RestErrorException(CloudifyMessageKeys.FAILED_TO_MERGE_OVERRIDES.getName(), absolutePuName);
 			}
 		}
-		return editSrcFile;
+	}
+
+	private File getFromRepo(final String uploadKey, final String errorDesc, final String absolutePuName)
+			throws RestErrorException {
+		if (StringUtils.isBlank(uploadKey)) {
+			return null;
+		}
+		final File file = repo.get(uploadKey);
+		if (file == null) {
+			throw new RestErrorException(errorDesc, absolutePuName);
+		}
+		return file;
 	}
 
 	private void validateInstallService(final String absolutePuName, final InstallServiceRequest request,
-			final Service service, final String templateName, final File cloudConfiguration) throws RestErrorException {
+			final Service service, final String templateName, final File cloudOverridesFile,
+			final File serviceOverridesFile, final File cloudConfigurationFile)
+			throws RestErrorException {
 		final InstallServiceValidationContext validationContext = new InstallServiceValidationContext();
 		validationContext.setAbsolutePuName(absolutePuName);
 		validationContext.setCloud(restConfig.getCloud());
 		validationContext.setRequest(request);
 		validationContext.setService(service);
 		validationContext.setTemplateName(templateName);
-		validationContext.setCloudConfiguration(cloudConfiguration);
+		validationContext.setCloudOverridesFile(cloudOverridesFile);
+		validationContext.setServiceOverridesFile(serviceOverridesFile);
+		validationContext.setCloudConfigurationFile(cloudConfigurationFile);
 		for (final InstallServiceValidator validator : getInstallServiceValidators()) {
 			validator.validate(validationContext);
 		}
@@ -753,7 +786,7 @@ public class DeploymentsController extends BaseRestContoller {
 	public DeleteApplicationAttributeResponse deleteApplicationAttribute(
 			@PathVariable final String appName,
 			@PathVariable final String attributeName)
-					throws RestErrorException {
+			throws RestErrorException {
 
 		// valid application if exist
 		getApplication(appName);
@@ -830,7 +863,7 @@ public class DeploymentsController extends BaseRestContoller {
 	public void setServiceAttribute(@PathVariable final String appName,
 			@PathVariable final String serviceName,
 			@RequestBody final SetServiceAttributesRequest request)
-					throws RestErrorException {
+			throws RestErrorException {
 
 		// valid service
 		getService(appName, serviceName);
@@ -888,7 +921,7 @@ public class DeploymentsController extends BaseRestContoller {
 			@PathVariable final String appName,
 			@PathVariable final String serviceName,
 			@PathVariable final String attributeName)
-					throws RestErrorException {
+			throws RestErrorException {
 
 		// valid service
 		getService(appName, serviceName);
@@ -977,7 +1010,7 @@ public class DeploymentsController extends BaseRestContoller {
 			@PathVariable final String serviceName,
 			@PathVariable final Integer instanceId,
 			@RequestBody final SetServiceInstanceAttributesRequest request)
-					throws RestErrorException {
+			throws RestErrorException {
 
 		// valid service
 		getService(appName, serviceName);
@@ -1182,7 +1215,7 @@ public class DeploymentsController extends BaseRestContoller {
 		return installServiceValidators;
 	}
 
-	public void setInstallServiceValidators(InstallServiceValidator[] installServiceValidators) {
+	public void setInstallServiceValidators(final InstallServiceValidator[] installServiceValidators) {
 		this.installServiceValidators = installServiceValidators;
 	}
 

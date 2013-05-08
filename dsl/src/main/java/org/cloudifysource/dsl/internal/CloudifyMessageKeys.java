@@ -26,15 +26,17 @@ public enum CloudifyMessageKeys {
 	
 	UPLOAD_FAILED("failed_to_upload_file"),
 	
-	WRONG_UPLOAD_KEY("wrong_upload_key"),
+	WRONG_SERVICE_OVERRIDES_UPLOAD_KEY("wrong_upload_key"),
 	
 	UPLOAD_KEY_PARAMETER_MISSING("upload_key_is_missing"),
 	
 	ZONE_PARAMETER_MISSING("zone_parameter_is_missing"),
 	
-	SERVICE_OVERRIDES_LENGTH_LIMIT_EXCEEDED("service_overrides_string_length_limit_exceeded"),
+	SERVICE_OVERRIDES_SIZE_LIMIT_EXCEEDED("service_overrides_file_size_limit_exceeded"),
 
-	CLOUD_OVERRIDES_SIZE_LIMIT_EXCEEDED("cloud_overrides_size_limit_exceeded"),
+	CLOUD_OVERRIDES_SIZE_LIMIT_EXCEEDED("cloud_overrides_file_size_limit_exceeded"),
+
+	CLOUD_CONFIGURATION_SIZE_LIMIT_EXCEEDED("cloud_configuration_file_size_limit_exceeded"),
 
 	VALIDATOR_REQUEST_MISSING("validator_is_missing_install_service_request_instance"),
 	
@@ -60,7 +62,7 @@ public enum CloudifyMessageKeys {
 	
 	FAILED_TO_READ_SERVICE_CLOUD_CONFIGURATION("failed_to_read_service_cloud_configuration"), 
 	
-	WRONG_SERVICE_CLOUD_CONFIGURATION_UPLOAD_KEY("wrong_service_cloud_configuration_upload_key"),
+	WRONG_CLOUD_CONFIGURATION_UPLOAD_KEY("wrong_service_cloud_configuration_upload_key"),
 	
 	WRONG_CLOUD_OVERRIDES_UPLOAD_KEY("wrong_cloud_overrides_upload_key");
 	

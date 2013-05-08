@@ -25,9 +25,11 @@ import org.cloudifysource.dsl.internal.ComputeTemplatesReader;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.CloudConfigurationHolder;
+import org.openspaces.admin.Admin;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.context.GigaSpaceContext;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * 
@@ -43,6 +45,9 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
 
 	@GigaSpaceContext(name = "gigaSpace")
 	private GigaSpace gigaSpace;
+	
+	@Autowired(required = true)
+	protected Admin admin;
 	
 	@Override
 	public RestConfiguration getObject() throws Exception {
@@ -70,6 +75,7 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
 			String managementTemplateName = cloud.getConfiguration().getManagementMachineTemplate();
 			config.setManagementTemplateName(managementTemplateName);
 			config.setManagementTemplate(cloudCompute.getTemplates().get(managementTemplateName));
+			config.setAdmin(admin);
 			config.setCloud(cloud);
 			config.setTemporaryFolderPath(CloudifyConstants.REST_FOLDER);
 		} else {

@@ -13,6 +13,7 @@
 package org.cloudifysource.dsl.rest.request;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 
 import org.cloudifysource.dsl.internal.debug.DebugModes;
 
@@ -30,9 +31,12 @@ public class InstallServiceRequest {
 	private String cloudOverridesUploadKey;
 	private String serviceOverridesUploadKey;
 	private File applicationPropertiesFile;
+	private boolean isApplicationInstall;
 	private String serviceFileName;
 	private String authGroups;
 	private Boolean selfHealing = true;
+	private int timeout;
+	private TimeUnit timeUnit;
 	private boolean debugAll;
 	private String debugEvents;
 	private String debugMode = DebugModes.INSTEAD.getName();
@@ -77,6 +81,14 @@ public class InstallServiceRequest {
 		this.applicationPropertiesFile = applicationPropertiesFile;
 	}
 
+	public boolean isApplicationInstall() {
+		return isApplicationInstall;
+	}
+	
+	public void setApplicationInstall(boolean isApplicationInstall) {
+		this.isApplicationInstall = isApplicationInstall;
+	}
+	
 	public String getServiceFileName() {
 		return serviceFileName;
 	}
@@ -99,6 +111,22 @@ public class InstallServiceRequest {
 
 	public void setSelfHealing(final Boolean selfHealing) {
 		this.selfHealing = selfHealing;
+	}
+
+	public int getTimeout() {
+		return timeout;
+	}
+	
+	public void setTimeout(final int timeout) {
+		this.timeout = timeout;
+	}
+	
+	public TimeUnit getTimeUnit() {
+		return timeUnit;
+	}
+	
+	public void setTimeUnit(final TimeUnit timeUnit) {
+		this.timeUnit = timeUnit;
 	}
 
 	public boolean isDebugAll() {
@@ -124,4 +152,6 @@ public class InstallServiceRequest {
 	public void setDebugMode(final String debugMode) {
 		this.debugMode = debugMode;
 	}
+
+
 }

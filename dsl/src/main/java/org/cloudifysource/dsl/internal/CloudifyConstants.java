@@ -382,11 +382,13 @@ public final class CloudifyConstants {
 	public static final int DEFAULT_UPLOAD_SIZE_LIMIT_BYTES = 100 * 1000 * 1000;
 	
 	// install-service validators
-	public static final long SERVICE_OVERRIDES_FILE_LENGTH_LIMIT_KB = 20 * FileUtils.ONE_KB;
-	public static final long CLOUD_OVERRIDES_FILE_LENGTH_LIMIT_KB = 10 * FileUtils.ONE_KB;
-	
+	public static final long SERVICE_OVERRIDES_FILE_LENGTH_LIMIT_BYTES = 20 * FileUtils.ONE_KB;
+	public static final long CLOUD_OVERRIDES_FILE_LENGTH_LIMIT_BYTES = 10 * FileUtils.ONE_KB;
+	public static final long CLOUD_CONFIGURATION_FILE_LENGTH_LIMIT_BYTES = 10 * FileUtils.ONE_KB;
+
 	// install-service constants
-	public static final String EXTRACTED_FILES_FOLDER = "extracted";	
+	public static final String EXTRACTED_FILES_FOLDER_NAME = "extracted";	
+	public static final int LIFECYCLE_EVENT_POLLING_INTERVAL_SEC = 4;
 	
 	// CHECKSTYLE:ON
 }

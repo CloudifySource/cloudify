@@ -141,8 +141,8 @@ public class UploadControllerTest extends ControllerTest {
 	
 	private File assertUploadedFileExists(final File expectedFile, final String uploadKey) 
 			throws IOException {
-		File tempDir = new File(System.getProperty("java.io.tmpdir"));
-		File uploadsFolder = new File(tempDir, CloudifyConstants.UPLOADS_FOLDER_NAME);
+		File restTempDir = new File(CloudifyConstants.REST_FOLDER);
+		File uploadsFolder = new File(restTempDir, CloudifyConstants.UPLOADS_FOLDER_NAME);
 		Assert.assertNotNull(uploadsFolder);
 		File uploadedFileDir = new File(uploadsFolder, uploadKey);
 		Assert.assertNotNull(uploadedFileDir);
