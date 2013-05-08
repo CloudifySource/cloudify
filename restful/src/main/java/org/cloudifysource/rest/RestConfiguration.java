@@ -13,11 +13,21 @@
 package org.cloudifysource.rest;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.packaging.CloudConfigurationHolder;
+import org.cloudifysource.rest.util.RestPollingRunnable;
+import org.openspaces.admin.Admin;
 
 /**
  * 
@@ -26,6 +36,7 @@ import org.cloudifysource.dsl.internal.packaging.CloudConfigurationHolder;
  */
 public class RestConfiguration {
 
+	private Admin admin;
 	private Cloud cloud = null;
 	private CloudConfigurationHolder cloudConfigurationHolder;
 	private File cloudConfigurationDir;
@@ -34,6 +45,33 @@ public class RestConfiguration {
 	private String managementTemplateName;
 	private final AtomicInteger lastTemplateFileNum = new AtomicInteger(0);
 	private String temporaryFolderPath;
+	/**
+	 * A set containing all of the executed lifecycle events. used to avoid duplicate prints.
+	 */
+	private final Set<String> eventsSet = new HashSet<String>();
+	private final Map<UUID, RestPollingRunnable> lifecyclePollingThreadContainer =
+			new ConcurrentHashMap<UUID, RestPollingRunnable>();
+	private final ScheduledExecutorService scheduledExecutor = Executors
+			.newScheduledThreadPool(10, new ThreadFactory() {
+				private final AtomicInteger threadNumber = new AtomicInteger(1);
+
+				@Override
+				public Thread newThread(final Runnable r) {
+					final Thread thread = new Thread(r,
+							"LifecycleEventsPollingExecutor-"
+									+ threadNumber.getAndIncrement());
+					thread.setDaemon(true);
+					return thread;
+				}
+			});
+	
+	public Admin getAdmin() {
+		return admin;
+	}
+
+	public void setAdmin(final Admin admin) {
+		this.admin = admin;
+	}
 	
 	public Cloud getCloud() {
 		return cloud;
@@ -93,6 +131,18 @@ public class RestConfiguration {
 
 	public void setTemporaryFolderPath(final String temporaryFolderPath) {
 		this.temporaryFolderPath = temporaryFolderPath;
+	}
+
+	public Set<String> getEventsSet() {
+		return eventsSet;
+	}
+
+	public Map<UUID, RestPollingRunnable> getLifecyclePollingThreadContainer() {
+		return lifecyclePollingThreadContainer;
+	}
+
+	public ScheduledExecutorService getScheduledExecutor() {
+		return scheduledExecutor;
 	}
 
 }

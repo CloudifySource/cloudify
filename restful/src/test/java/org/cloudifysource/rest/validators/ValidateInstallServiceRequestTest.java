@@ -1,88 +1,82 @@
 /*******************************************************************************
  * Copyright (c) 2013 GigaSpaces Technologies Ltd. All rights reserved
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
-import org.junit.Before;
 import org.junit.Test;
 
 public class ValidateInstallServiceRequestTest extends InstallServiceValidatorTest {
 	
-	private ValidateInstallServiceRequest validator;
-	
 	private static final String UPLOAD_KEY = "key";
-	private static final String CLOUD_CONFIG_UPLOAD_KEY = "cloud_config_key";
-	private static final String AUTH_GROUP = "";
-	private static final boolean SELF_HEALING = true;
-	private static final String CLOUD_OVERRIDES = "";
-	private static final String SERVICE_OVERRIDES = "";
-	private static final Long OVERRIDES_MAX_LENGTH = new Long(3);
-	
-	@Before
-	public void initValidator() {
-		validator = new ValidateInstallServiceRequest();
-	}
 
+	private static final String WRONG_DEBUG_MODE = "no_such_mode";
+	private static final String DEBUG_EVENTS = "init,install";
+	private static final String DUPLICATE_DEBUG_EVENTS = DEBUG_EVENTS + ",init";
+	private static final String WRONG_DEBUG_EVENTS = DEBUG_EVENTS + ", EVENT_NOT_EXIST";
+
+	@Test
+	public void testMissingRequest() {
+		testValidator(null, CloudifyMessageKeys.VALIDATOR_REQUEST_MISSING.getName());
+	}
+	
 	@Test
 	public void testMissingUploadKey() {
-		final InstallServiceRequest request = buildRequest(
-				null /* uploadKey */, CLOUD_CONFIG_UPLOAD_KEY /* cloudConfigUploadKey */, 
-				AUTH_GROUP /* authGroups */, SELF_HEALING /* selfHealing */, 
-				CLOUD_OVERRIDES /* cloudOverrides */, SERVICE_OVERRIDES /* serviceOverrides */);
-		testValidator(request, CloudifyMessageKeys.UPLOAD_KEY_PARAMETER_MISSING);
-	}
-	
-	@Test
-	public void testCloudOverridesMaxLengthExceeded() {
-		final InstallServiceRequest request = buildRequest(
-				UPLOAD_KEY /* uploadKey */, CLOUD_CONFIG_UPLOAD_KEY /* cloudConfigUploadKey */, 
-				AUTH_GROUP /* authGroups */, SELF_HEALING /* selfHealing */, 
-				"a = b" /* cloudOverrides */, SERVICE_OVERRIDES /* serviceOverrides */);
-		validator.setOverrdiesMaxLength(OVERRIDES_MAX_LENGTH);
-		testValidator(request, CloudifyMessageKeys.SERVICE_OVERRIDES_LENGTH_LIMIT_EXCEEDED);
-	}
-	
-	@Test
-	public void testServiceOverridesMaxLengthExceeded() {
-		final InstallServiceRequest request = buildRequest(
-				UPLOAD_KEY /* uploadKey */, CLOUD_CONFIG_UPLOAD_KEY /* cloudConfigUploadKey */, 
-				AUTH_GROUP /* authGroups */, SELF_HEALING /* selfHealing */, 
-				CLOUD_OVERRIDES /* cloudOverrides */, "a = b" /* serviceOverrides */);
-		validator.setOverrdiesMaxLength(OVERRIDES_MAX_LENGTH);
-		testValidator(request, CloudifyMessageKeys.SERVICE_OVERRIDES_LENGTH_LIMIT_EXCEEDED);
-	}
-
-	private InstallServiceRequest buildRequest(
-			final String uploadKey, final String cloudConfigUploadKey, final String authGroups,
-			final boolean selfHealing, final String cloudOverrides,
-			final String serviceOverrides) {
 		final InstallServiceRequest request = new InstallServiceRequest();
-		request.setAuthGroups(authGroups);
-		request.setCloudOverridesUploadKey(cloudOverrides);
-		request.setSelfHealing(selfHealing);
-		request.setServiceOverridesUploadKey(serviceOverrides);
-		request.setUploadKey(uploadKey);
-		request.setCloudConfigurationUploadKey(cloudConfigUploadKey);
-		return request;
+		testValidator(request, CloudifyMessageKeys.UPLOAD_KEY_PARAMETER_MISSING.getName());
 	}
 
+
+	@Test
+	public void testWrongDebugEventsAndAll() {
+		final InstallServiceRequest request = new InstallServiceRequest();
+		request.setUploadKey(UPLOAD_KEY);
+		request.setDebugAll(true);
+		request.setDebugEvents(DEBUG_EVENTS);
+		testValidator(request, CloudifyErrorMessages.DEBUG_EVENTS_AND_ALL_SET.getName());
+	}
+	
+	@Test
+	public void testWrongDebugEvents() {
+		final InstallServiceRequest request = new InstallServiceRequest();
+		request.setUploadKey(UPLOAD_KEY);
+		request.setDebugAll(false);
+		request.setDebugEvents(WRONG_DEBUG_EVENTS);
+		testValidator(request, CloudifyErrorMessages.DEBUG_EVENT_UNKNOWN.getName());
+	}
+	
+	@Test
+	public void testDuplicateDebugEvents() {
+		final InstallServiceRequest request = new InstallServiceRequest();
+		request.setUploadKey(UPLOAD_KEY);
+		request.setDebugAll(false);
+		request.setDebugEvents(DUPLICATE_DEBUG_EVENTS);
+		testValidator(request, CloudifyErrorMessages.DEBUG_EVENT_REPEATS.getName());
+	}
+	
+	@Test
+	public void testWrongDebugMode() {
+		final InstallServiceRequest request = new InstallServiceRequest();
+		request.setUploadKey(UPLOAD_KEY);
+		request.setDebugAll(true);
+		request.setDebugMode(WRONG_DEBUG_MODE);
+		testValidator(request, CloudifyErrorMessages.DEBUG_UNKNOWN_MODE.getName());
+	}
+	
 	@Override
 	public InstallServiceValidator getValidatorInstance() {
-		return validator;
+		return new ValidateInstallServiceRequest();
 	}
 
 }

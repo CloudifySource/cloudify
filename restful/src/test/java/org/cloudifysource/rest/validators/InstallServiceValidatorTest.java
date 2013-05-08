@@ -19,7 +19,6 @@ import java.io.File;
 
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
 import org.cloudifysource.rest.controllers.RestErrorException;
 import org.junit.Assert;
@@ -34,55 +33,48 @@ public abstract class InstallServiceValidatorTest {
 	public abstract InstallServiceValidator getValidatorInstance();
 	
 	public void testValidator(final InstallServiceRequest request, final Cloud cloud, final Service service, 
-			final String templateName, final File cloudOverridesFile, 
-			final boolean shouldFail, final CloudifyMessageKeys exceptionCause) {
+			final String templateName, final File cloudOverridesFile, final File serviceOverridesFile,
+			final File cloudConfigurationFile, final String exceptionCause) {
 		
 		final InstallServiceValidator validator = getValidatorInstance();
 		InstallServiceValidationContext validationContext = new InstallServiceValidationContext();
 		validationContext.setRequest(request);
 		validationContext.setCloud(cloud);
 		validationContext.setService(service);
-		validationContext.setCloudConfiguration(cloudOverridesFile);
 		validationContext.setTemplateName(templateName);
+		validationContext.setCloudOverridesFile(cloudOverridesFile);
+		validationContext.setServiceOverridesFile(serviceOverridesFile);
+		validationContext.setCloudConfigurationFile(cloudConfigurationFile);
 		try {
 			validator.validate(validationContext);
-			if (shouldFail) {
+			if (exceptionCause != null) {
 				Assert.fail(exceptionCause + " didn't yield the expected RestErrorException.");
 			}
 		} catch (final RestErrorException e) {
-			if (!shouldFail) {
+			if (exceptionCause == null) {
 				e.printStackTrace();
 				Assert.fail();
 			}
-			Assert.assertEquals(exceptionCause.getName(), e.getMessage());
+			Assert.assertEquals(exceptionCause, e.getMessage());
 		}
 	}
-
-	public void testValidator(final InstallServiceRequest request, final Cloud cloud, final Service service,
-			final boolean shouldFail, final CloudifyMessageKeys exceptionCause) {
-		testValidator(request, cloud, service, null, null, shouldFail, exceptionCause);
+	
+	public void testValidator(final InstallServiceRequest request, final Cloud cloud, final Service service, 
+			final String exceptionCause) {
+		testValidator(request, cloud, service, null, null, null, null, exceptionCause);
 	}
 	
-	public void testValidator(final InstallServiceRequest request, final CloudifyMessageKeys exceptionCause) {
-		testValidator(request, null, null, null, null, true, exceptionCause);
-	}
-	
-	public void testValidator(final File cloudOverridesFile, final CloudifyMessageKeys exceptionCause) {
-		testValidator(null, null, null, null, cloudOverridesFile, true, exceptionCause);
+	public void testValidator(final InstallServiceRequest request, final String exceptionCause) {
+		testValidator(request, null, null, null, null, null, null, exceptionCause);
 	}
 
-	public void testValidator(final Cloud cloud, final Service service, final CloudifyMessageKeys exceptionCause) {
-		testValidator(null, cloud, service, null, null, true, exceptionCause);
+	public void testValidator(final Cloud cloud, final Service service, final String exceptionCause) {
+		testValidator(null, cloud, service, null, null, null, null, exceptionCause);
 	}
 	
 	public void testValidator(final Cloud cloud, final Service service, final String templateName, 
-			final CloudifyMessageKeys exceptionCause) {
-		testValidator(null, cloud, service, templateName, null, true, exceptionCause);
-	}
-	
-	public void testValidator(final Cloud cloud, final Service service, 
-			final boolean shouldFail, final CloudifyMessageKeys exceptionCause) {
-		testValidator(null, cloud, service, null, null, shouldFail, exceptionCause);
+			final String exceptionCause) {
+		testValidator(null, cloud, service, templateName, null, null, null, exceptionCause);
 	}
 	
 }

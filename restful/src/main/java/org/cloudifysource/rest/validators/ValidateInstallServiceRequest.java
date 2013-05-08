@@ -16,7 +16,6 @@
 package org.cloudifysource.rest.validators;
 
 import org.apache.commons.lang.StringUtils;
-import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.internal.DSLErrorMessageException;
 import org.cloudifysource.dsl.internal.debug.DebugUtils;
@@ -32,9 +31,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class ValidateInstallServiceRequest implements InstallServiceValidator {
 
-	private long overrdiesMaxLength = CloudifyConstants.SERVICE_OVERRIDES_FILE_LENGTH_LIMIT_KB;
-
-
 	@Override
 	public void validate(final InstallServiceValidationContext validationContext) throws RestErrorException {
 		String absolutePuName = validationContext.getAbsolutePuName();
@@ -43,19 +39,8 @@ public class ValidateInstallServiceRequest implements InstallServiceValidator {
 			throw new RestErrorException(CloudifyMessageKeys.VALIDATOR_REQUEST_MISSING.getName(), absolutePuName);
 		}
 		String uploadKey = request.getUploadKey();
-		if (!StringUtils.isBlank(uploadKey)) {
+		if (StringUtils.isBlank(uploadKey)) {
 			throw new RestErrorException(CloudifyMessageKeys.UPLOAD_KEY_PARAMETER_MISSING.getName(), absolutePuName);
-		}
-
-		String cloudOverrides = request.getCloudOverridesUploadKey();
-		if (cloudOverrides.length() > overrdiesMaxLength) {
-			throw new RestErrorException(CloudifyMessageKeys.SERVICE_OVERRIDES_LENGTH_LIMIT_EXCEEDED.getName(), 
-					absolutePuName);
-		}
-		String serviceOverrides = request.getServiceOverridesUploadKey();
-		if (serviceOverrides.length() > overrdiesMaxLength) {
-			throw new RestErrorException(CloudifyMessageKeys.SERVICE_OVERRIDES_LENGTH_LIMIT_EXCEEDED.getName(), 
-					absolutePuName);
 		}
 
 		boolean debugAll = request.isDebugAll();
@@ -65,11 +50,6 @@ public class ValidateInstallServiceRequest implements InstallServiceValidator {
 			} catch (DSLErrorMessageException e) {
 				throw new RestErrorException(e.getErrorMessage().getName(), e.getArgs());
 			}
-	}
-
-
-	public void setOverrdiesMaxLength(final long overrdiesMaxLength) {
-		this.overrdiesMaxLength = overrdiesMaxLength;
 	}
 
 }
