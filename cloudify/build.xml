@@ -311,7 +311,7 @@
         <echo message="current cloud is ${current.cloud}"/>
         <echo message="Script path is : ${esc.local.copy}/src/main/resources/general/bootstrap-management.sh"/>
         <copy todir="@{installation.dir}/clouds/${current.cloud}/upload" overwrite="true">
-            <file name="${esc.local.copy}/src/main/resources/general/bootstrap-management.sh"/>
+            <file name="bootstrap-management.sh" basedir="${esc.local.copy}/src/main/resources/general"/>
         </copy>
 
     </target>
