@@ -53,7 +53,7 @@ public class StatelessProcessingUnit extends ServiceProcessingUnit {
 		return springProfilesActive;
 	}
 
-	public void setSpringProfilesActive(String springProfiles) {
+	public void setSpringProfilesActive(final String springProfiles) {
 		this.springProfilesActive = springProfiles;
 	}
 

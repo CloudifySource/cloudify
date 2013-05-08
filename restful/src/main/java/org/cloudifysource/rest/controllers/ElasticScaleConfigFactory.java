@@ -100,37 +100,7 @@ public final class ElasticScaleConfigFactory {
 
 		final List<ScalingRuleDetails> scalingRules = service.getScalingRules();
 		if (scalingRules.isEmpty()) {
-			throw new DSLException("scalingRules cannot be empty");
-		}
-
-		if (service.getMinAllowedInstances() <= 0) {
-			throw new DSLException("Minimum number of instances ("
-					+ service.getMinAllowedInstances()
-					+ ") must be 1 or higher.");
-		}
-
-		if (service.getMinAllowedInstances() > service.getMaxAllowedInstances()) {
-			throw new DSLException(
-					"maximum number of instances ("
-							+ service.getMaxAllowedInstances()
-							+ ") must be equal or greater than the minimum number of instances ("
-							+ service.getMinAllowedInstances() + ")");
-		}
-
-		if (service.getMinAllowedInstances() > service.getNumInstances()) {
-			throw new DSLException(
-					"number of instances ("
-							+ service.getNumInstances()
-							+ ") must be equal or greater than the minimum number of instances ("
-							+ service.getMinAllowedInstances() + ")");
-		}
-
-		if (service.getNumInstances() > service.getMaxAllowedInstances()) {
-			throw new DSLException(
-					"number of instances ("
-							+ service.getNumInstances()
-							+ ") must be equal or less than the maximum number of instances ("
-							+ service.getMaxAllowedInstances() + ")");
+			throw new IllegalStateException("scalingRules cannot be empty");
 		}
 
 		double instanceCpuCores = IsolationUtils.getInstanceCpuCores(service);
@@ -213,10 +183,6 @@ public final class ElasticScaleConfigFactory {
 
 			final Object serviceStatisticsObject = scalingRule
 					.getServiceStatistics();
-			if (serviceStatisticsObject == null) {
-				throw new DSLException(
-						SCALING_RULE_MUST_SPECIFY_SERVICE_STATISTICS_ERROR_MSG);
-			}
 
 			ServiceStatisticsDetails serviceStatistics = null;
 
