@@ -11,7 +11,11 @@ import org.apache.commons.lang.StringUtils;
  */
 public enum BootstrapScriptErrors {
 
+    /**
+     * Script terminated unexpectedly
+     */
     UNEXPECTED_TERMINATION("Script terminated unexpectedly"),
+
 	/**
 	 * Cloudify environment file not found.
 	 */
@@ -121,8 +125,7 @@ public enum BootstrapScriptErrors {
 	}
 
     BootstrapScriptErrors(final String errorMessage) {
-        this.errorCode = 500;
-        this.errorMessage = errorMessage;
+        this(500, errorMessage);
     }
 
 	public int getErrorCode() {
