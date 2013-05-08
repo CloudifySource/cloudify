@@ -442,7 +442,12 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			logger.info(ExceptionUtils.getFullStackTrace(e));
 			handleExceptionAfterMachineCreated(machineIp, volumeId, machineDetails, end);
 			throw e;
-		}
+		} catch (final Throwable e) {
+            logger.info("Unexpected exception occurred, " + e.getMessage());
+            logger.info(ExceptionUtils.getFullStackTrace(e));
+            handleExceptionAfterMachineCreated(machineIp, volumeId, machineDetails, end);
+            throw new IllegalStateException("Unexpected exception during machine provisioning", e);
+        }
 	}
 
     private void validateMachineIp(MachineDetails machineDetails) throws CloudProvisioningException {
