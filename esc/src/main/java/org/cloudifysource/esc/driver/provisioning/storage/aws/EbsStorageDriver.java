@@ -125,6 +125,7 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 		
 		
 		StorageTemplate storageTemplate = cloud.getCloudStorage().getTemplates().get(templateName);
+
 		
 		final long end = System.currentTimeMillis() + timeUnit.toMillis(duration);
 		int size = storageTemplate.getSize();
@@ -134,7 +135,8 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 		}
 		Volume volume = null;
 		try {
-			logger.fine("Creating new volume in availability zone " + availabilityZone + " of size " + size);
+			logger.fine("Creating new volume in availability zone " + availabilityZone + " of size " + size
+                    + " with prefix " + cloud.getCloudStorage().getTemplates().get(templateName).getNamePrefix());
 			volume = this.ebsClient.createVolumeInAvailabilityZone(availabilityZone, size);
 
 			String volumeId = volume.getId();
@@ -230,7 +232,7 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 		} catch (final StorageProvisioningException e) {
 			// Volume was not found. Do nothing.
 		}
-		logger.fine("volume with id " + volumeId + " deleted successfully");
+		logger.fine("Volume with id " + volumeId + " deleted successfully");
 	}
 
 	private void deleteVolume(final String volumeId)
@@ -252,7 +254,7 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 		
 		Set<VolumeDetails> volumeDetailsSet = new HashSet<VolumeDetails>();
 		Set<String> machineVolumeIds = getMachineVolumeIds(ip);
-		logger.fine("listing all volumes on machine with ip " + ip);
+		logger.fine("Listing all volumes on machine with ip " + ip);
 		Set<VolumeDetails> allVolumes = listAllVolumes();
 		
 		for (VolumeDetails volume : allVolumes) {
@@ -304,7 +306,7 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 	public void setComputeContext(final Object computeContext)
 			throws StorageProvisioningException {
 		if (computeContext != null && !(computeContext instanceof AWSEC2ComputeServiceContext)) {
-			throw new StorageProvisioningException("jClouds context does not match storage driver. "
+			throw new StorageProvisioningException("JClouds context does not match storage driver. "
 					+ "expecting context of type: " + AWSEC2ComputeServiceContext.class.getName());
 		}
 		logger.fine("Setting compute context for storage driver");
@@ -420,7 +422,7 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 			if (volumeStatus.equals(status)) {
 				return;
 			} else {
-                logger.fine("volume[" + volumeId + "] is in status " + volume.getStatus());
+                logger.fine("Volume[" + volumeId + "] is in status " + volume.getStatus());
             }
 		}
 		throw new TimeoutException("Timed out waiting for storage status to become " + status.toString());
