@@ -309,6 +309,7 @@
     <target name="copy-bootstrap-script-to-cloud">
 
         <echo message="current cloud is ${current.cloud}"/>
+        <echo message="Installation directory is ${tmp.dir}/${cloudify.installation.dir}/clouds/${current.cloud}/upload"/>
         <copy todir="${tmp.dir}/${cloudify.installation.dir}/clouds/${current.cloud}/upload" overwrite="true">
             <file name="bootstrap-management.sh" basedir="${esc.local.copy}/src/main/resources/general"/>
         </copy>
