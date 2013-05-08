@@ -85,9 +85,6 @@ import java.util.logging.Logger;
  */
 public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachineProvisioning, Bean {
 
-	private static final long VOLUNE_DELETION_RETRY_BETWEEN_ATTEMPTS_TIMEOUT_MILLIS = 2 * 1000;
-	private static final long DELETE_VOLUME_TIMEOUT_MILLIS = 20 * 1000;
-
 	private static final String REMOTE_ADMIN_SHARE_CHAR = "$";
 
 	private static final String BACK_SLASH = "\\";
