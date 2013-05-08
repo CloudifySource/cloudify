@@ -311,7 +311,7 @@
         <echo message="current cloud is ${current.cloud}"/>
         <echo message="Installation directory is ${tmp.dir}/${cloudify.installation.dir}/clouds/${current.cloud}/upload"/>
         <copy todir="${tmp.dir}/${cloudify.installation.dir}/clouds/${current.cloud}/upload" overwrite="true">
-            <file file="bootstrap-management.sh" basedir="${esc.local.copy}/src/main/resources/general"/>
+            <file file="${esc.local.copy}/src/main/resources/general/bootstrap-management.sh"/>
         </copy>
 
     </target>
