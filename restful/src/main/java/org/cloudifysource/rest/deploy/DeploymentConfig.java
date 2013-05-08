@@ -49,14 +49,13 @@ public class DeploymentConfig {
 	
 	private String locators;
 	
-	//TODO: remove this field. this should be extracted from the service.
-	private ServiceProcessingUnit puConfig;
-	
 	private File packedFile;
 	
-	private File cloudConfigFile;
+	private byte[] cloudConfig;
 
 	private String cloudOverrides;
+	
+	private String deploymentId;
 	
 	public InstallServiceRequest getInstallRequest() {
 		return installRequest;
@@ -130,14 +129,6 @@ public class DeploymentConfig {
 		this.locators = locators;
 	}
 
-	public ServiceProcessingUnit getPuConfig() {
-		return puConfig;
-	}
-
-	public void setPuConfig(final ServiceProcessingUnit puConfig) {
-		this.puConfig = puConfig;
-	}
-
 	public File getPackedFile() {
 		return packedFile;
 	}
@@ -146,12 +137,12 @@ public class DeploymentConfig {
 		this.packedFile = packedFile;
 	}
 
-	public File getCloudConfigFile() {
-		return cloudConfigFile;
+	public byte[] getCloudConfig() {
+		return cloudConfig;
 	}
 
-	public void setCloudConfigFile(final File cloudConfigFile) {
-		this.cloudConfigFile = cloudConfigFile;
+	public void setCloudConfig(final byte[] cloudConfig) {
+		this.cloudConfig = cloudConfig;
 	}
 
 	public String getCloudOverrides() {
@@ -160,5 +151,13 @@ public class DeploymentConfig {
 
 	public void setCloudOverrides(final String cloudOverrides) {
 		this.cloudOverrides = cloudOverrides;
+	}
+
+	public String getDeploymentId() {
+		return deploymentId;
+	}
+
+	public void setDeploymentId(final String deploymentId) {
+		this.deploymentId = deploymentId;
 	}
 }

@@ -15,6 +15,7 @@
  *******************************************************************************/
 package org.cloudifysource.rest.deploy;
 
+import org.cloudifysource.dsl.internal.DSLException;
 import org.openspaces.admin.pu.elastic.topology.ElasticDeploymentTopology;
 
 /**
@@ -27,8 +28,9 @@ public interface ElasticProcessingUnitDeploymentFactory {
 	/**
 	 * Creates an elastic deployment topology 
 	 * @return
+	 * @throws DSLException 
 	 */
-	ElasticDeploymentTopology create();
+	ElasticDeploymentTopology create() throws DSLException;
 	
 	//OR ProcessingUnitDeploymentTopology what's better?
 }
