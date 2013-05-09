@@ -59,6 +59,7 @@ import org.cloudifysource.dsl.rest.response.ServiceMetricsResponse;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.rest.RestConfiguration;
 import org.cloudifysource.rest.deploy.DeploymentConfig;
+import org.cloudifysource.rest.deploy.ElasticDeploymentCreationException;
 import org.cloudifysource.rest.deploy.ElasticProcessingUnitDeploymentFactory;
 import org.cloudifysource.rest.deploy.ElasticProcessingUnitDeploymentFactoryImpl;
 import org.cloudifysource.rest.interceptors.ApiVersionValidationAndRestResponseBuilderInterceptor;
@@ -75,6 +76,9 @@ import org.openspaces.admin.application.Application;
 import org.openspaces.admin.gsm.GridServiceManager;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
+import org.openspaces.admin.pu.elastic.ElasticStatefulProcessingUnitDeployment;
+import org.openspaces.admin.pu.elastic.ElasticStatelessProcessingUnitDeployment;
+import org.openspaces.admin.pu.elastic.topology.ElasticDeploymentTopology;
 import org.openspaces.admin.space.ElasticSpaceDeployment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -83,7 +87,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.sun.mail.iap.Response;
+//import com.sun.mail.iap.Response;
 
 /**
  * This controller is responsible for retrieving information about deployments. It is also the entry point for deploying
@@ -389,6 +393,12 @@ public class DeploymentsController extends BaseRestContoller {
 		validateInstallService(absolutePuName, request, service, templateName,
 				cloudOverridesFile, serviceOverridesFile, cloudConfigurationFile);
 
+		String cloudOverrides;
+		try {
+			cloudOverrides = FileUtils.readFileToString(cloudOverridesFile);
+		} catch (IOException e) {
+			throw new RestErrorException("failed reading cloud overrides file.", e);
+		}
 		// deploy
 		final DeploymentConfig deployConfig = new DeploymentConfig();
 		final UUID deploymentID = UUID.randomUUID();
@@ -398,17 +408,26 @@ public class DeploymentsController extends BaseRestContoller {
 		deployConfig.setAuthGroups(effectiveAuthGroups);
 		deployConfig.setCloud(restConfig.getCloud());
 		deployConfig.setCloudConfig(cloudConfigurationContents);
-//		deployConfig.setCloudOverrides(FileUtils.readFileToString(cloudOverridesFile));
+		deployConfig.setCloudOverrides(cloudOverrides);
 		deployConfig.setInstallRequest(request);
 		final String locators = extractLocators(restConfig.getAdmin());
 		deployConfig.setLocators(locators);
 		deployConfig.setPackedFile(updatedPackedFile);
 		deployConfig.setService(service);
 		deployConfig.setTemplateName(templateName);
+		final ElasticDeploymentTopology deployment;
 		final ElasticProcessingUnitDeploymentFactory fac = new ElasticProcessingUnitDeploymentFactoryImpl();
-//		final ElasticDeploymentTopology deployment = fac.create(deployConfig);
-		// TODO get rid of casting
-//		deployAndWait(serviceName, (ElasticSpaceDeployment) deployment);
+		try {
+			deployment = fac.create(deployConfig);
+		} catch (ElasticDeploymentCreationException e) {
+			throw new RestErrorException("Failed creating deployment object.", e);
+		}
+		
+		try {
+			deployAndWait(serviceName, deployment);
+		} catch (final TimeoutException e) {
+			throw new RestErrorException("Timed out waiting for deployment.", e);
+		}
 
 		// start polling
 		final InstallServiceResponse installServiceResponse = new InstallServiceResponse();
@@ -439,9 +458,16 @@ public class DeploymentsController extends BaseRestContoller {
 	}
 
 	private void deployAndWait(final String serviceName,
-			final ElasticSpaceDeployment deployment) throws TimeoutException {
-		final ProcessingUnit pu = getGridServiceManager().deploy(deployment,
-				60, TimeUnit.SECONDS);
+			final ElasticDeploymentTopology deployment) throws TimeoutException {
+		GridServiceManager gsm = getGridServiceManager();
+		ProcessingUnit pu = null;
+		if (deployment instanceof ElasticStatelessProcessingUnitDeployment) {
+			pu = gsm.deploy((ElasticStatelessProcessingUnitDeployment) deployment, 60, TimeUnit.SECONDS);
+		} else if (deployment instanceof ElasticStatefulProcessingUnitDeployment) {
+			pu = gsm.deploy((ElasticStatefulProcessingUnitDeployment) deployment, 60, TimeUnit.SECONDS);
+		} else if (deployment instanceof ElasticSpaceDeployment) {
+			pu = gsm.deploy((ElasticSpaceDeployment) deployment, 60, TimeUnit.SECONDS);
+		}
 		if (pu == null) {
 			throw new TimeoutException("Timed out waiting for Service "
 					+ serviceName + " deployment.");
