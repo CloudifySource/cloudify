@@ -19,7 +19,6 @@ import java.io.File;
 import java.util.Properties;
 
 import org.cloudifysource.dsl.Service;
-import org.cloudifysource.dsl.ServiceProcessingUnit;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
 

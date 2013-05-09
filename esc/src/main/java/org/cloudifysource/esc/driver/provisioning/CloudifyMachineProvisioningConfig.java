@@ -191,6 +191,15 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	
 	/**
 	 * 
+	 * @param cloudOverrides 
+	 * 			a string representation of cloudify overrides.
+	 */
+	public final void setCloudOverridesPerService(final String cloudOverrides) {
+		properties.put(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_OVERRIDES_PER_SERVICE, cloudOverrides);
+	}
+	
+	/**
+	 * 
 	 * @param cloudOverrides .
 	 * @throws IOException 
 	 */
