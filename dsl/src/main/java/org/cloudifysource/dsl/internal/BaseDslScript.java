@@ -17,7 +17,6 @@ import groovy.lang.Script;
 
 import java.beans.PropertyDescriptor;
 import java.io.File;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -68,11 +67,9 @@ import org.cloudifysource.dsl.cloud.compute.CloudCompute;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.cloud.storage.CloudStorage;
 import org.cloudifysource.dsl.cloud.storage.StorageTemplate;
-import org.cloudifysource.dsl.context.ServiceContext;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntryFactory;
 import org.cloudifysource.dsl.entry.ExecutableEntriesMap;
-import org.cloudifysource.dsl.entry.StringExecutableEntry;
 import org.cloudifysource.dsl.scalingrules.HighThresholdDetails;
 import org.cloudifysource.dsl.scalingrules.LowThresholdDetails;
 import org.cloudifysource.dsl.scalingrules.ScalingRuleDetails;
@@ -109,6 +106,9 @@ public abstract class BaseDslScript extends Script {
 	private int propertyCounter;
 
 	private Set<String> usedProperties = new HashSet<String>();
+
+	// used by the 'print' groovy method. Entries are buffered until a println is called.
+	private final StringBuilder printBuilder = new StringBuilder();
 
 	/********
 	 * syntactic sigar for an empty list that process locator implementations can use to specify an empty process IDs
@@ -269,66 +269,6 @@ public abstract class BaseDslScript extends Script {
 
 		} else {
 			return value;
-		}
-	}
-
-	private void handleDebugEntry(final ExecutableDSLEntry entry) {
-		Object debugAll = Boolean.FALSE;
-		if (this.getBinding().hasVariable(DSLUtils.DSL_DEBUG_ALL)) {
-			debugAll = this.getBinding().getVariable(DSLUtils.DSL_DEBUG_ALL);
-		}
-
-		debugAll = Boolean.TRUE; // TODO - delete this!
-
-		if (debugAll != null && debugAll.equals(Boolean.TRUE)) {
-			StringExecutableEntry stringEntry = (StringExecutableEntry) entry;
-			ClassLoader loader = this.getClass().getClassLoader();
-			try {
-				Class<?> clazz = loader.loadClass("org.cloudifysource.debug.DebugHook");
-				Constructor<?>[] constructors = clazz.getConstructors();
-				Constructor<?> constructor = null;
-				for (Constructor<?> aconstructor : constructors) {
-					if (aconstructor.getParameterTypes().length == 2) {
-						constructor = aconstructor;
-						break;
-					}
-				}
-
-				if (constructor == null) {
-					throw new IllegalStateException("Could not find DebugHook with expected number of parameters");
-				}
-
-				ServiceContext context = (ServiceContext) this.getBinding().getProperty("context");
-				if (context == null) {
-					throw new IllegalStateException("No service context object found in binding");
-				}
-				final Object debugHookObject = constructor.newInstance(context, "instead");
-				final Method debugMethod = clazz.getMethod("debug", String.class);
-				final Object retval = debugMethod.invoke(debugHookObject, stringEntry.getCommand());
-				if (retval == null) {
-					throw new IllegalStateException("DebugHook returned null response");
-				}
-				final String modifiedCommand = (String) retval;
-
-				stringEntry.setCommand(modifiedCommand);
-
-			} catch (ClassNotFoundException e) {
-				throw new IllegalStateException("Could not find DebugHook class in classloader");
-
-			} catch (IllegalArgumentException e) {
-				throw new IllegalStateException("Failed to set up debug Hook: " + e.getMessage(), e);
-			} catch (InstantiationException e) {
-				throw new IllegalStateException("Failed to set up debug Hook: " + e.getMessage(), e);
-			} catch (IllegalAccessException e) {
-				throw new IllegalStateException("Failed to set up debug Hook: " + e.getMessage(), e);
-			} catch (InvocationTargetException e) {
-				throw new IllegalStateException("Failed to set up debug Hook: " + e.getMessage(), e);
-			} catch (SecurityException e) {
-				throw new IllegalStateException("Failed to set up debug Hook: " + e.getMessage(), e);
-			} catch (NoSuchMethodException e) {
-				throw new IllegalStateException("Failed to set up debug Hook: " + e.getMessage(), e);
-			}
-
 		}
 	}
 
@@ -810,10 +750,22 @@ public abstract class BaseDslScript extends Script {
 
 	@Override
 	public void println(final Object obj) {
-		if (obj == null) {
-			logger.info("null");
-		} else {
-			logger.info(obj.toString());
+		if (obj != null) {
+			printBuilder.append(obj.toString());
+		}
+		logger.info(printBuilder.toString());
+		// probably performs as well as allocating a new one
+		printBuilder.setLength(0);
+
+	}
+
+
+
+
+	@Override
+	public void print(final Object obj) {
+		if (obj != null) {
+			printBuilder.append(obj.toString());
 		}
 	}
 

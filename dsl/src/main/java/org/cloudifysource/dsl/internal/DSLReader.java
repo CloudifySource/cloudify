@@ -20,15 +20,16 @@ import groovy.lang.MissingPropertyException;
 import groovy.util.ConfigObject;
 import groovy.util.ConfigSlurper;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.SequenceInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,16 +44,9 @@ import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
 import org.cloudifysource.dsl.cloud.ScriptLanguages;
 import org.cloudifysource.dsl.internal.context.ServiceContextImpl;
 import org.cloudifysource.dsl.utils.ServiceUtils;
-import org.codehaus.groovy.ast.ASTNode;
-import org.codehaus.groovy.ast.ModuleNode;
-import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.control.CompilationFailedException;
-import org.codehaus.groovy.control.CompilePhase;
 import org.codehaus.groovy.control.CompilerConfiguration;
-import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
-import org.codehaus.groovy.transform.ASTTransformation;
-import org.codehaus.groovy.transform.GroovyASTTransformation;
 import org.openspaces.admin.Admin;
 import org.openspaces.core.cluster.ClusterInfo;
 import org.openspaces.ui.UserInterface;
@@ -66,7 +60,15 @@ import org.openspaces.ui.UserInterface;
 
 public class DSLReader {
 
+	// Groovy DSL prefix, used for handling print and println correctly
+	private static final String GROOVY_SERVICE_PREFIX =
+			"Object.metaClass.println = {x->this.println(x)}; Object.metaClass.print =  {x->this.print(x)};";
+	/*****
+	 * Name of the logger used to process dsl print/println statements.
+	 */
+	public static final String DSL_LOGGER_NAME = "dslLogger";
 	private static Logger logger = Logger.getLogger(DSLReader.class.getName());
+	private static Logger dslLogger = Logger.getLogger(DSL_LOGGER_NAME);
 
 	private boolean loadUsmLib = true;
 
@@ -434,6 +436,7 @@ public class DSLReader {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	private Object evaluateGroovyScript(final GroovyShell gs)
 			throws DSLValidationException {
 		// Evaluate class using a FileReader, as the *-service files create a
@@ -442,11 +445,18 @@ public class DSLReader {
 
 		if (this.dslContents == null) {
 
-			FileReader reader = null;
+			//FileReader reader = null;
+			SequenceInputStream sis = null;
 			try {
 
-				reader = new FileReader(dslFile);
-				result = gs.evaluate(reader, "dslEntity");
+				final FileInputStream fis = new FileInputStream(dslFile);
+				final ByteArrayInputStream bis =
+						new ByteArrayInputStream(GROOVY_SERVICE_PREFIX.getBytes());
+				sis = new SequenceInputStream(bis, fis);
+				//reader = new FileReader(dslFile);
+				// using a deprecated method here as we do not have a multireader in the dependencies
+				// and not really worth another jar just for this.
+				result = gs.evaluate(sis, "dslEntity");
 			} catch (final IOException e) {
 				throw new IllegalStateException("The file " + dslFile + " could not be read", e);
 			} catch (final MissingMethodException e) {
@@ -456,9 +466,9 @@ public class DSLReader {
 			} catch (final DSLValidationRuntimeException e) {
 				throw e.getDSLValidationException();
 			} finally {
-				if (reader != null) {
+				if (sis != null) {
 					try {
-						reader.close();
+						sis.close();
 					} catch (final IOException e) {
 						// ignore
 					}
@@ -590,40 +600,11 @@ public class DSLReader {
 		final Binding binding = createGroovyBinding(properties);
 
 		final GroovyShell gs = new GroovyShell(ServiceReader.class.getClassLoader(), binding, cc);
+
+
 		return gs;
 	}
 
-	@GroovyASTTransformation(phase=CompilePhase.SEMANTIC_ANALYSIS)
-	private static class DebugHookTransformar implements ASTTransformation {
-
-		private final Set<String> events = new HashSet<String>();
-
-		public DebugHookTransformar() {
-			// all events
-		}
-		public DebugHookTransformar(final String[] debugEvents) {
-			events.addAll(Arrays.asList(debugEvents));
-		}
-
-
-		@Override
-		public void visit(ASTNode[] nodes, SourceUnit source) {
-			ModuleNode ast = source.getAST();
-			BlockStatement block = ast.getStatementBlock();
-			block.getStatements();
-			if(nodes == null) {
-				return;
-			}
-
-			for (ASTNode astNode : nodes) {
-				if(events.contains(astNode.getText())) {
-					System.out.println("here");
-				}
-			}
-
-		}
-
-	}
 
 	private static CompilerConfiguration createCompilerConfiguration(final String baseClassName,
 			final List<String> extraJarFileNames) {
@@ -672,6 +653,11 @@ public class DSLReader {
 
 		binding.setVariable(DSLUtils.DSL_VALIDATE_OBJECTS_PROPERTY_NAME, validateObjects);
 		binding.setVariable(DSLUtils.DSL_FILE_PATH_PROPERTY_NAME, dslFile == null ? null : dslFile.getPath());
+		binding.setVariable(DSLReader.DSL_LOGGER_NAME, dslLogger);
+
+//		MethodClosure printlnClosure = new MethodClosure(this, "println");
+		//binding.setVariable("println", printlnClosure);
+
 		return binding;
 	}
 

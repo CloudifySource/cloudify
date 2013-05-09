@@ -18,12 +18,19 @@ import groovyx.net.http.RESTClient;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import org.cloudifysource.dsl.entry.ClosureExecutableEntry;
+import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntryType;
 import org.cloudifysource.dsl.entry.StringExecutableEntry;
+import org.cloudifysource.dsl.internal.BaseDslScript;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.scalingrules.HighThresholdDetails;
@@ -40,11 +47,39 @@ import org.junit.Test;
  */
 public class ServiceParsingTest {
 
+	private final class DSLLoggerHandler extends Handler {
+
+		private final Set<String> messages = new HashSet<String>();
+
+		@Override
+		public void publish(final LogRecord record) {
+			this.messages.add(record.getMessage());
+		}
+
+		@Override
+		public void flush() {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void close() throws SecurityException {
+			// TODO Auto-generated method stub
+
+		}
+
+		public Set<String> getMessages() {
+			return messages;
+		}
+
+	}
+
 	private static final String TEST_PARSING_RESOURCE_PATH = "testResources/testparsing/";
 	private static final String TEST_PARSING_RESOURCE_PATH2 = "src/test/resources/ExternalDSLFiles/";
 	private static final String TEST_PARSING_RESOURCE_PATH3 = "src/test/resources/groovyFileValidation/";
+	private static final String TEST_PARSING_RESOURCE_BASE = "src/test/resources/services/";
 	private static final String TEST_PARSING_AMP_MERGE_RESOURCE_PATH3 = "src/test/resources/inheritance/";
-	private static final String TEST_PARSING_DEBUG= "src/test/resources/debug/printContext";
+	private static final String TEST_PARSING_DEBUG = "src/test/resources/debug/printContext";
 
 	/**
 	 *
@@ -57,16 +92,16 @@ public class ServiceParsingTest {
 
 		final Service service = ServiceReader.getServiceFromDirectory(testDebugPath).getService();
 
-//		Assert.assertEquals("test features", service.getName());
-//		Assert.assertEquals("http://"
-//				+ InetAddress.getLocalHost().getHostName() + ":8080",
-//				service.getUrl());
-//		final ServiceLifecycle lifecycle = service.getLifecycle();
-//
-//		Assert.assertNotNull(lifecycle.getStart());
-//		Assert.assertNotNull(lifecycle.getPostStart());
-//		Assert.assertNotNull(lifecycle.getPreStop());
-	//	System.out.println(service);
+		// Assert.assertEquals("test features", service.getName());
+		// Assert.assertEquals("http://"
+		// + InetAddress.getLocalHost().getHostName() + ":8080",
+		// service.getUrl());
+		// final ServiceLifecycle lifecycle = service.getLifecycle();
+		//
+		// Assert.assertNotNull(lifecycle.getStart());
+		// Assert.assertNotNull(lifecycle.getPostStart());
+		// Assert.assertNotNull(lifecycle.getPreStop());
+		// System.out.println(service);
 	}
 
 	/**
@@ -525,6 +560,33 @@ public class ServiceParsingTest {
 		Assert.assertNotNull(service.getStorage());
 		Assert.assertNotNull(service.getStorage().getTemplate());
 		Assert.assertNotNull(service.getStorage().getTemplate().equals("SMALL_BLOCK"));
+
+	}
+
+	@Test
+	public void testServiceWithDSLLogger() throws Exception {
+		final Logger logger = Logger.getLogger(BaseDslScript.class.getName());
+		final DSLLoggerHandler handler = new DSLLoggerHandler();
+		logger.addHandler(handler);
+
+		final File dir = new File(TEST_PARSING_RESOURCE_BASE + "logger");
+		final Service service = ServiceReader.getServiceFromDirectory(dir).getService();
+		Assert.assertNotNull(service);
+
+		Assert.assertTrue("Println logger not found", handler.getMessages().contains("println logger call"));
+		Assert.assertTrue("Print logger not found", handler.getMessages().contains("print logger call"));
+		Assert.assertTrue("Class println not found", handler.getMessages().contains("Test Class println"));
+		Assert.assertTrue("Class print not found", handler.getMessages().contains("Test Class print"));
+
+		Assert.assertFalse("preInstall event message appeared before expected",
+				handler.getMessages().contains("This is the preInstall event"));
+
+		final ExecutableDSLEntry preInstall = service.getLifecycle().getPreInstall();
+		final ClosureExecutableEntry preInstallClosureEntry = (ClosureExecutableEntry) preInstall;
+		preInstallClosureEntry.getCommand().call();
+
+		Assert.assertTrue("preInstall event message not found",
+				handler.getMessages().contains("This is the preInstall event"));
 
 	}
 
