@@ -25,12 +25,8 @@ import org.openspaces.admin.pu.elastic.topology.ElasticDeploymentTopology;
  */
 public interface ElasticProcessingUnitDeploymentFactory {
 
-	/**
-	 * Creates an elastic deployment topology 
-	 * @return
-	 * @throws DSLException 
-	 */
-	ElasticDeploymentTopology create() throws DSLException;
+
+	ElasticDeploymentTopology create(DeploymentConfig deploymentConfig)
+			throws DSLException;
 	
-	//OR ProcessingUnitDeploymentTopology what's better?
 }
