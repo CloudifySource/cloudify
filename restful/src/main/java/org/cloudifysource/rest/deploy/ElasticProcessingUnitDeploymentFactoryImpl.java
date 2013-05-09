@@ -27,7 +27,6 @@ import org.cloudifysource.dsl.Sla;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.esc.driver.provisioning.CloudifyMachineProvisioningConfig;
 import org.cloudifysource.rest.controllers.ElasticScaleConfigFactory;
 import org.cloudifysource.rest.util.IsolationUtils;
@@ -52,20 +51,26 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 	private static final Logger logger = Logger
 			.getLogger(ElasticProcessingUnitDeploymentFactoryImpl.class.getName());
 
-	private final String LOCALCLOUD_ZONE = "localcloud";
+	private static final String LOCALCLOUD_ZONE = "localcloud";
 	
 	private DeploymentConfig deploymentConfig;
 	
 	@Override
 	public ElasticDeploymentTopology create(final DeploymentConfig deploymentConfig)
-				throws DSLException {
+				throws ElasticDeploymentCreationException {
 		final Service service = deploymentConfig.getService();
 		if (service.getLifecycle() != null) {
 			return createElasticStatelessUsmDeployment();
 		} else if (service.getStatefulProcessingUnit() != null) {
 			return createStatefulProcessingUnit();
-		} 
-		return null;
+		} else if (service.getStatelessProcessingUnit() != null
+					|| service.getMirrorProcessingUnit() != null) {
+			return createElasticStatelessPUDeployment();
+		} else if (service.getDataGrid() != null) {
+			return createElasticDatagridDeployment();
+		} else {
+			throw new ElasticDeploymentCreationException("Unsupported service type");
+		}
 	}
 	
 	private ElasticSpaceDeployment createElasticDatagridDeployment() {
@@ -180,7 +185,7 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 	}
 	
 	private ElasticStatelessProcessingUnitDeployment createElasticStatelessUsmDeployment() 
-			throws DSLException {
+			throws ElasticDeploymentCreationException {
 		final ElasticStatelessProcessingUnitDeployment deployment = 
 				new ElasticStatelessProcessingUnitDeployment(deploymentConfig.getPackedFile());
 		//Shared properties among all deployment types
@@ -204,13 +209,17 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 			}
 			deployment.memoryCapacityPerContainer((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
 			if (scalingRulesDefined) {
-				final AutomaticCapacityScaleConfig scaleConfig = ElasticScaleConfigFactory
-						.createAutomaticCapacityScaleConfig(deploymentConfig.getAbsolutePUName(),
-								service, 
-								(int) cloudExternalProcessMemoryInMB,
-								service.isLocationAware(), 
-								dedicated);
-				deployment.scale(scaleConfig);
+				try {
+					final AutomaticCapacityScaleConfig scaleConfig = ElasticScaleConfigFactory
+							.createAutomaticCapacityScaleConfig(deploymentConfig.getAbsolutePUName(),
+									service, 
+									(int) cloudExternalProcessMemoryInMB,
+									service.isLocationAware(), 
+									dedicated);
+					deployment.scale(scaleConfig);
+				} catch (final Exception e) {
+					throw new ElasticDeploymentCreationException("Failed creating scale config." , e);
+				}
 			} else {
 				final int totalMemoryInMB = (int) cloudExternalProcessMemoryInMB  * deploymentConfig.getService().getNumInstances();
 				final double totalCpuCores = calculateTotalCpuCores(service);
@@ -223,10 +232,14 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 			final int externalProcessMemoryInMB = 512;
 			deployment.memoryCapacityPerContainer(externalProcessMemoryInMB, MemoryUnit.MEGABYTES);
 			if (scalingRulesDefined) {
+				try {
 				final AutomaticCapacityScaleConfig scaleConfig = ElasticScaleConfigFactory
 						.createAutomaticCapacityScaleConfig(deploymentConfig.getAbsolutePUName(),
 								service, externalProcessMemoryInMB, false, false);
 				deployment.scale(scaleConfig);
+				}catch (final Exception e) {
+					throw new ElasticDeploymentCreationException("Failed creating scale config." , e);
+				}
 			} else {
 				final int containerMemoryInMB = 128;
 				// the processing unit scales out whenever the specified memory capacity is breached

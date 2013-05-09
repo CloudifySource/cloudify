@@ -86,16 +86,25 @@ public class Sla {
 	@DSLValidation
 	void validateMemoryValues(final DSLValidationContext validationContext) 
 			throws DSLValidationException {
+		final int minimumNumberOfContainers = highlyAvailable ? 2 : 1;
+		final int minMemoryCapacityRequired = minimumNumberOfContainers
+				* memoryCapacityPerContainer;
+		
 		if (maxMemoryCapacity != null
 				&& memoryCapacity != null
 				&& maxMemoryCapacity < memoryCapacity) {
 
 			throw new DSLValidationException(
-					"Max memory capacity is smaller than the memory capacity."
+					"Max memory capacity is smaller than the minimal memory capacity required."
 							+ maxMemoryCapacity + " < "
 							+ memoryCapacity);
 		}
 		if (memoryCapacityPerContainer == null) {
+			throw new DSLValidationException(
+					"Cannot determine memoryCapacityPerContainer SLA");
+		}
+		
+		if (memoryCapacityPerContainer < minMemoryCapacityRequired) {
 			throw new DSLValidationException(
 					"Cannot determine memoryCapacityPerContainer SLA");
 		}
