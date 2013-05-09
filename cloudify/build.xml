@@ -53,6 +53,8 @@
 	<property name="cli.local.copy" value="${basedir}/../CLI" />
 	<property name="restful.local.copy" value="${basedir}/../restful" />
 	<property name="esc-commands.local.copy" value="${basedir}/../esc-commands" />
+	<property name="security.local.copy" value="${basedir}/../security" />
+	<property name="security-ldap.local.copy" value="${basedir}/../security-ldap" />
     <property name="management-space.local.copy" value="${basedir}/../management-space" />
 	<property name="releases.dir" value="${basedir}/releases" />
 	<property name="build.prefix" value="build_" />
@@ -195,7 +197,6 @@
             match="${cloudify.milestone.field}=(.*)"
             replace="${cloudify.milestone.field}=${cloudify.milestone}"/>
 		
-		
 		<replaceregexp file="${build.properties.file}"
 	         match="${gs.version.field}=(.*)"
 	         replace="${gs.version.field}=${gs.version}"/>
@@ -256,7 +257,8 @@
 	    	<copy todir="@{installation.dir}/bin" overwrite="true">
 	            <fileset dir="${gigaspaces.related.folder}/bin" includes="cloudify.*" excludes=".svn"/>
 	        </copy>
-            <echo message="Copy management-space component"/>
+           
+    		<echo message="Copy management-space component"/>
             <mkdir dir="@{installation.dir}/tools/management-space/" />
             <copy todir="@{installation.dir}/tools/management-space/" overwrite="true">
                 <fileset dir="${management-space.local.copy}/target/" includes="management-space.jar" excludes=".svn"/>
@@ -267,6 +269,17 @@
 	            <fileset dir="${restful.local.copy}/target/" includes="rest.war" excludes=".svn"/>
 	        </copy>
     		
+	        <echo message="Copy security component"/>
+	        <copy todir="@{installation.dir}/lib/platform/cloudify" overwrite="true">
+	            <fileset dir="${security.local.copy}/target/" includes="security.jar" excludes=".svn"/>
+	        </copy>
+    		
+	        <echo message="Copy security-ldap component"/>
+	        <copy todir="@{installation.dir}/lib/platform/cloudify" overwrite="true">
+	            <fileset dir="${security-ldap.local.copy}/target/" includes="security-ldap.jar" excludes=".svn"/>
+	        </copy>
+    		
+    		<echo message="Copy spring-security.xml"/>
 	        <copy todir="@{installation.dir}/config/security/" overwrite="true">
 	            <fileset dir="${restful.local.copy}/src/main/webapp/WEB-INF" includes="spring-security.xml"/>
 	        </copy>
@@ -279,7 +292,7 @@
 	        <copy todir="@{installation.dir}/tools/cli/plugins/esc" overwrite="true">
 	            <fileset dir="${esc-commands.local.copy}/target" includes="esc-commands.jar" excludes=".svn"/>
 	        </copy>
-
+    		
             <echo message="Copy CLOUDIFY clouds to distribution"/>
             <mkdir dir="@{installation.dir}/clouds/"/>
 	        <copy todir="@{installation.dir}/clouds/" overwrite="true">
@@ -531,6 +544,24 @@
 			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/dsl/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.target=org/cloudifysource/dsl/${s3.cloudify.publish.folder}" />
+			<arg value="-Dput.container=${cloudify.maven.container}"/>
+		</exec>
+		
+		<exec executable="${mvn.executable}">
+			<arg value="s3client:deploy-native" />
+			<arg value="-Dput.user=${put.user}" />
+			<arg value="-Dput.key=${put.key}" />
+			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/security/${s3.cloudify.publish.folder}" />
+			<arg value="-Dput.target=org/cloudifysource/security/${s3.cloudify.publish.folder}" />
+			<arg value="-Dput.container=${cloudify.maven.container}"/>
+		</exec>
+		
+		<exec executable="${mvn.executable}">
+			<arg value="s3client:deploy-native" />
+			<arg value="-Dput.user=${put.user}" />
+			<arg value="-Dput.key=${put.key}" />
+			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/security-ldap/${s3.cloudify.publish.folder}" />
+			<arg value="-Dput.target=org/cloudifysource/security-ldap/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.container=${cloudify.maven.container}"/>
 		</exec>
 		

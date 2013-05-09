@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
+ * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.rest.security;
+package org.cloudifysource.security;
 
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -51,7 +52,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 	private static final String ROLE_APPMANAGER = "ROLE_APPMANAGERS";
 	private static final String ROLE_VIEWER = "ROLE_VIEWERS";
 	private static final String SPRING_SECURITY_PROFILE = 
-			System.getenv(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR);
+			System.getenv(SecurityConstants.SPRING_ACTIVE_PROFILE_ENV_VAR);
 	
 	private final Logger logger = java.util.logging.Logger.getLogger(CustomPermissionEvaluator.class.getName());
 
@@ -74,14 +75,23 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 	 * @param targetDomainObject The target object the user is attempting to access
 	 * @param permission The permission requested on the target object (e.g. view, deploy)
 	 * @return boolean value - true if permission is granted, false otherwise.
+	 * @throws IllegalArgumentException Indicates one or more of the passed arguments are null
 	 */
     public boolean hasPermission(final CloudifyAuthorizationDetails authDetails, final Object targetDomainObject, 
-    		final Object permission) {
+    		final Object permission) throws IllegalArgumentException {
 		
 		if (StringUtils.isBlank(SPRING_SECURITY_PROFILE) 
-				|| SPRING_SECURITY_PROFILE.contains(CloudifyConstants.SPRING_PROFILE_NON_SECURE)) {
+				|| SPRING_SECURITY_PROFILE.contains(SecurityConstants.SPRING_PROFILE_NON_SECURE)) {
 			//security is off
 			return true;
+		}
+		
+		if (authDetails == null) {
+			throw new IllegalArgumentException("Null is not a valid value for CloudifyAuthorizationDetails");
+		}
+		
+		if (permission == null) {
+			throw new IllegalArgumentException("Null is not a valid value for permission");
 		}
 		
 		if (logger.isLoggable(Level.FINE)) {
@@ -97,7 +107,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 				logger.fine("and with authGroups: " + collectionToDelimitedString(authDetails.getAuthGroups(), ","));
 			}
 			logger.fine("requested permission: " + permission.toString());
-			logger.fine("on target authGroups: " + targetDomainObject.toString());
+			logger.fine("on target authGroups: " + targetDomainObject == null ? "" : targetDomainObject.toString());
 		}		
 		
 		boolean permissionGranted = false;
@@ -238,8 +248,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 			}
 		}
 		
-    	Collection<String> targetAuthGroups = 
-    			org.cloudifysource.esc.util.StringUtils.splitAndTrimString(targetAuthGroupsStr, AUTH_GROUPS_DELIMITER);
+    	Collection<String> targetAuthGroups = splitAndTrimString(targetAuthGroupsStr, AUTH_GROUPS_DELIMITER);
     	
     	Collection<String> userAuthGroups = authDetails.getAuthGroups();
 		if (permissionName.equalsIgnoreCase(PERMISSION_TO_VIEW)) {
@@ -435,24 +444,6 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 		return userAuthGroups;
     }
     
-    
-    private static String collectionToDelimitedString(final Collection<String> collection, final String delimiter) {
-    	String delimitedString;
-    	StringBuilder builder = new StringBuilder();
-    	
-    	for (String item : collection) {
-    	    builder.append(item);
-    	    builder.append(delimiter);
-    	}
-
-    	delimitedString = builder.toString();
-    	if (delimitedString.endsWith(delimiter)) {
-    		delimitedString = delimitedString.substring(0, delimitedString.length() - delimiter.length());
-    	}
-    	
-    	return delimitedString;
-    }
-    
     private boolean isCloudAdmin(final Collection<String> roles) {
     	boolean hasAdminRole = false;
     	for (String role : roles) {
@@ -468,6 +459,39 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
     private boolean isLocalCloud() {
     	String isLocalCloudStr = System.getenv(CloudifyConstants.GIGASPACES_CLOUD_MACHINE_ID);
     	return LOCALCLOUD.equalsIgnoreCase(isLocalCloudStr);
+    }
+    
+	/**
+	 * Splits the string by the specified delimiter and trims the resulting tokens. 
+	 * @param stringOfTokens The string to split 
+	 * @param delimiter The delimiter to split by
+	 * @return A Collection of trimmed String tokens
+	 */
+	private static Collection<String> splitAndTrimString(final String stringOfTokens, final String delimiter) {
+    	Collection<String> values = new HashSet<String>();
+		StringTokenizer tokenizer = new StringTokenizer(stringOfTokens, delimiter);
+		while (tokenizer.hasMoreTokens()) {
+			values.add(tokenizer.nextToken().trim());
+		}
+		
+		return values;
+    }
+	
+    private static String collectionToDelimitedString(final Collection<String> collection, final String delimiter) {
+    	String delimitedString;
+    	StringBuilder builder = new StringBuilder();
+    	
+    	for (String item : collection) {
+    	    builder.append(item);
+    	    builder.append(delimiter);
+    	}
+
+    	delimitedString = builder.toString();
+    	if (delimitedString.endsWith(delimiter)) {
+    		delimitedString = delimitedString.substring(0, delimitedString.length() - delimiter.length());
+    	}
+    	
+    	return delimitedString;
     }
 
 }

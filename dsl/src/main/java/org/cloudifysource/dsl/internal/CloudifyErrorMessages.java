@@ -22,6 +22,11 @@ package org.cloudifysource.dsl.internal;
 public enum CloudifyErrorMessages {
 
 	/*********
+	 * Indicates the secured bootstrap command is missing parameters.
+	 */
+	SECURED_BOOTSTRAP_IS_PARTIAL("secured_bootstrap_command_is_partial", 0),
+
+	/*********
 	 * Indicates keystore file could not be validated.
 	 */
 	INVALID_KEYSTORE_FILE("invalid_keystore_file", 1),

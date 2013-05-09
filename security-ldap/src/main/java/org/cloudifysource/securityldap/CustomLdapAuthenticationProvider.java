@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.rest.security;
+package org.cloudifysource.securityldap;
 
 import java.util.Collection;
 import java.util.logging.Logger;
 
+import org.cloudifysource.security.CustomAuthenticationToken;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.ldap.NamingException;

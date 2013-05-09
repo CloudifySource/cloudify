@@ -36,6 +36,8 @@
 			<copy overwrite="yes" todir="@{target.dir}/tools/cli" file="../CLI/target/cli.jar" />
 			<copy overwrite="yes" todir="@{target.dir}/tools/rest" file="../restful/target/rest.war" />
 			<copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" />
+			<copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../security/target/security-${cloudify.version}-${cloudify.jars.suffix}.jar" />
+			<copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../security-ldap/target/security-ldap-${cloudify.version}-${cloudify.jars.suffix}.jar" />
 			<copy overwrite="yes" todir="@{target.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-${cloudify.version}-${cloudify.jars.suffix}.jar" />
 			<copy overwrite="yes" todir="@{target.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
 			<copy overwrite="yes" todir="@{target.dir}/tools/management-space" file="../management-space/target/management-space.jar" />

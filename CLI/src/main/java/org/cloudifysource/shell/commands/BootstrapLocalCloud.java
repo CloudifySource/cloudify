@@ -196,15 +196,14 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 
 		if (secured) {
 			// enable security
-			if (StringUtils.isNotBlank(keystoreFilePath) && StringUtils.isNotBlank(keystorePassword)) {
-				logger.info(getFormattedMessage(CloudifyErrorMessages.SETTING_SERVER_SECURITY_PROFILE.getName(),
-						CloudifyConstants.SPRING_PROFILE_SECURE));
-				securityProfile = CloudifyConstants.SPRING_PROFILE_SECURE;
-			} else {
-				logger.info(getFormattedMessage(CloudifyErrorMessages.SETTING_SERVER_SECURITY_PROFILE.getName(),
-						CloudifyConstants.SPRING_PROFILE_SECURE_NO_SSL));
-				securityProfile = CloudifyConstants.SPRING_PROFILE_SECURE_NO_SSL;
+			if (keystoreFilePath == null || keystorePassword == null || securityFilePath == null) {
+				throw new IllegalArgumentException(ShellUtils.getFormattedMessage(
+						CloudifyErrorMessages.SECURED_BOOTSTRAP_IS_PARTIAL.getName()));
 			}
+			
+			securityProfile = CloudifyConstants.SPRING_PROFILE_SECURE;
+			logger.info(getFormattedMessage(CloudifyErrorMessages.SETTING_SERVER_SECURITY_PROFILE.getName(),
+					CloudifyConstants.SPRING_PROFILE_SECURE));
 		} else {
 			// disable security
 			logger.info(getFormattedMessage(CloudifyErrorMessages.SETTING_SERVER_SECURITY_PROFILE.getName(),
@@ -234,6 +233,10 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 			}
 
 		} else {
+			if (StringUtils.isBlank(securityFilePath)) {
+				throw new IllegalArgumentException("Security file is missing or empty");
+			}
+			
 			if (StringUtils.isNotBlank(username) && StringUtils.isBlank(password)) {
 				throw new IllegalArgumentException("Password is missing or empty");
 			}
@@ -242,12 +245,12 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 				throw new IllegalArgumentException("Username is missing or empty");
 			}
 
-			if (StringUtils.isNotBlank(keystoreFilePath) && StringUtils.isBlank(keystorePassword)) {
-				throw new IllegalArgumentException("Keystore password is missing or empty");
-			}
-
-			if (StringUtils.isBlank(keystoreFilePath) && StringUtils.isNotBlank(keystorePassword)) {
+			if (StringUtils.isBlank(keystoreFilePath)) {
 				throw new IllegalArgumentException("Keystore is missing or empty");
+			}
+			
+			if (StringUtils.isBlank(keystorePassword)) {
+				throw new IllegalArgumentException("Keystore password is missing or empty");
 			}
 
 			if (StringUtils.isNotBlank(keystoreFilePath)) {

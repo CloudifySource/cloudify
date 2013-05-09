@@ -273,7 +273,6 @@ public final class CloudifyConstants {
 	public static final String KEYSTORE_PASSWORD_ENV_VAR = "KEYSTORE_KEY";
 	public static final String SPRING_ACTIVE_PROFILE_ENV_VAR = "SPRING_PROFILES_ACTIVE";
 	public static final String SPRING_PROFILE_NON_SECURE = "nonsecure";
-	public static final String SPRING_PROFILE_SECURE_NO_SSL = "secure_no_ssl";
 	public static final String SPRING_PROFILE_SECURE = "secure";
 
 	/*******************
@@ -346,6 +345,17 @@ public final class CloudifyConstants {
 	 */
 	public static final int DEFAULT_HTTP_CONNECTION_TIMEOUT = 60 * 1000; // one minute
 	public static final int DEFAULT_HTTP_READ_TIMEOUT = 60 * 1000 * 2; // two minutes per request
+	
+	
+	/**
+	 * Rest response formatting keywords
+	 */
+	public static final String STATUS_KEY = "status";
+	public static final String RESPONSE_KEY = "response";
+	public static final String ERROR_ARGS_KEY = "error_args";
+	public static final String ERROR_STATUS = "error";
+	public static final String SUCCESS_STATUS = "success";
+
 
 	/**
 	 * CLI Printouts

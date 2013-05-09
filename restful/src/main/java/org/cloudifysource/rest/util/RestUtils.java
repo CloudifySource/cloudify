@@ -42,31 +42,13 @@ import org.codehaus.jackson.type.JavaType;
  * @author uri
  */
 public final class RestUtils {
+	
 	private static final String VERBOSE = "verbose";
 
 	private static final Logger logger = Logger.getLogger(RestUtils.class.getName());
 
 	/**
-	 * 
-	 */
-	public static final String STATUS_KEY = "status";
-	/**
-	 * 
-	 */
-	public static final String ERROR = "error";
-	/**
-	 * 
-	 */
-	public static final String SUCCESS = "success";
-	/**
-	 * 
-	 */
-	public static final String RESPONSE_KEY = "response";
-
-	private static final String ERROR_ARGS = "error_args";
-
-	/**
-	 * 
+	 *
 	 */
 	public static final int TIMEOUT_IN_SECOND = 5;
 
@@ -81,7 +63,7 @@ public final class RestUtils {
 	 */
 	@SuppressWarnings("unchecked")
 	public static Map<String, Object> successStatus() {
-		return newHashMap(mapEntry(STATUS_KEY, (Object) SUCCESS));
+		return newHashMap(mapEntry(CloudifyConstants.STATUS_KEY, (Object) CloudifyConstants.SUCCESS_STATUS));
 	}
 
 	/**
@@ -92,7 +74,8 @@ public final class RestUtils {
 	 */
 	@SuppressWarnings("unchecked")
 	public static Map<String, Object> successStatus(final Object response) {
-		return newHashMap(mapEntry(STATUS_KEY, (Object) SUCCESS), mapEntry(RESPONSE_KEY, response));
+		return newHashMap(mapEntry(CloudifyConstants.STATUS_KEY, (Object) CloudifyConstants.SUCCESS_STATUS), 
+				mapEntry(CloudifyConstants.RESPONSE_KEY, response));
 	}
 
 	/**
@@ -105,7 +88,8 @@ public final class RestUtils {
 	 */
 	@SuppressWarnings("unchecked")
 	public static Map<String, Object> successStatus(final String responseKey, final Object response) {
-		return newHashMap(mapEntry(STATUS_KEY, (Object) SUCCESS), mapEntry(responseKey, response));
+		return newHashMap(mapEntry(CloudifyConstants.STATUS_KEY, (Object) CloudifyConstants.SUCCESS_STATUS), 
+				mapEntry(responseKey, response));
 	}
 
 	/**
@@ -116,7 +100,8 @@ public final class RestUtils {
 	 */
 	@SuppressWarnings("unchecked")
 	public static Map<String, Object> errorStatus(final String errorDesc) {
-		return newHashMap(mapEntry(STATUS_KEY, (Object) ERROR), mapEntry(ERROR, (Object) errorDesc));
+		return newHashMap(mapEntry(CloudifyConstants.STATUS_KEY, (Object) CloudifyConstants.ERROR_STATUS), 
+				mapEntry(CloudifyConstants.ERROR_STATUS, (Object) errorDesc));
 	}
 
 	/**
@@ -130,8 +115,9 @@ public final class RestUtils {
 	 */
 	@SuppressWarnings("unchecked")
 	public static Map<String, Object> errorStatus(final String errorDesc, final String... args) {
-		return newHashMap(mapEntry(STATUS_KEY, (Object) ERROR), mapEntry(ERROR, (Object) errorDesc),
-				mapEntry(ERROR_ARGS, (Object) args));
+		return newHashMap(mapEntry(CloudifyConstants.STATUS_KEY, (Object) CloudifyConstants.ERROR_STATUS), 
+				mapEntry(CloudifyConstants.ERROR_STATUS, (Object) errorDesc),
+				mapEntry(CloudifyConstants.ERROR_ARGS_KEY, (Object) args));
 	}
 
 	/************
@@ -144,8 +130,9 @@ public final class RestUtils {
 	@SuppressWarnings("unchecked")
 	public static Map<String, Object> verboseErrorStatus(final String errorDesc, final String verboseData,
 			final String... args) {
-		return newHashMap(mapEntry(STATUS_KEY, (Object) ERROR), mapEntry(ERROR, (Object) errorDesc),
-				mapEntry(ERROR_ARGS, (Object) args), mapEntry(VERBOSE, (Object) verboseData));
+		return newHashMap(mapEntry(CloudifyConstants.STATUS_KEY, (Object) CloudifyConstants.ERROR_STATUS), 
+				mapEntry(CloudifyConstants.ERROR_STATUS, (Object) errorDesc), 
+				mapEntry(CloudifyConstants.ERROR_ARGS_KEY, (Object) args), mapEntry(VERBOSE, (Object) verboseData));
 	}
 
 	/************
@@ -155,8 +142,9 @@ public final class RestUtils {
 	 * @return A map contains "status"="error", "error"=errorDesc, "error_args"=args.
 	 */
 	public static Map<String, Object> errorStatus(final String errorDesc, final Object... args) {
-		return newHashMap(mapEntry(STATUS_KEY, (Object) ERROR), mapEntry(ERROR, (Object) errorDesc),
-				mapEntry(ERROR_ARGS, (Object) args));
+		return newHashMap(mapEntry(CloudifyConstants.STATUS_KEY, (Object) CloudifyConstants.ERROR_STATUS), 
+				mapEntry(CloudifyConstants.ERROR_STATUS, (Object) errorDesc),
+				mapEntry(CloudifyConstants.ERROR_ARGS_KEY, (Object) args));
 	}
 
 	/**
@@ -234,11 +222,11 @@ public final class RestUtils {
 						+ ". responseBody: " + responseBody);
 				try {
 					final Map<String, Object> errorMap = jsonToMap(responseBody);
-					final String status = (String) errorMap.get(STATUS_KEY);
-					if (ERROR.equals(status)) {
-						final String reason = (String) errorMap.get(ERROR);
+					final String status = (String) errorMap.get(CloudifyConstants.STATUS_KEY);
+					if (CloudifyConstants.ERROR_STATUS.equals(status)) {
+						final String reason = (String) errorMap.get(CloudifyConstants.ERROR_STATUS);
 						@SuppressWarnings("unchecked")
-						final List<String> reasonsArgs = (List<String>) errorMap.get(ERROR_ARGS);
+						final List<String> reasonsArgs = (List<String>) errorMap.get(CloudifyConstants.ERROR_ARGS_KEY);
 						logger.log(Level.WARNING, "Failed to execute rest request to " + httpMethod.getURI()
 								+ ", error: " + reason + ", error args: " + reasonsArgs);
 						throw new RestErrorException(reason);
@@ -261,7 +249,7 @@ public final class RestUtils {
 				throw new RestErrorException("Failed to read response from "
 						+ httpMethod.getURI().toString() + ", got an IOException- " + e.getMessage());
 			}
-			return responseMap.get(RESPONSE_KEY);
+			return responseMap.get(CloudifyConstants.RESPONSE_KEY);
 
 		} catch (final ClientProtocolException e) {
 			logger.log(Level.WARNING, "Failed to execute rest request to " + httpMethod.getURI()

@@ -74,7 +74,7 @@ public class SshExecutor implements RemoteExecutor {
 					throw new InstallerException("SSH execution failed with exit code: " + ec, e);	
 				} else {
 					throw new InstallerException("SSH execution failed with exit code: " + ec + ", message: " 
-							+ BootstrapScriptErrors.getMessageByErrorCode(ec), e);					
+							+ BootstrapScriptErrors.getMessageByErrorCode(ec), e);
 				}
 			} else {
 				throw new InstallerException("SSH execution failed.", e);

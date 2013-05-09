@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
+ * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.rest.security;
+package org.cloudifysource.security;
 
 import java.io.IOException;
 
@@ -22,7 +22,6 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
-import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
 /**
@@ -36,9 +35,9 @@ public class BooleanDelegatingFilterProxy extends DelegatingFilterProxy {
 	@Override
 	public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain filterChain)
 				throws ServletException, IOException {
-		final String springSecurityProfile = System.getenv(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR);
+		final String springSecurityProfile = System.getenv(SecurityConstants.SPRING_ACTIVE_PROFILE_ENV_VAR);
 
-	    if (CloudifyConstants.SPRING_PROFILE_SECURE.contains(springSecurityProfile)) {
+	    if (SecurityConstants.SPRING_PROFILE_SECURE.contains(springSecurityProfile)) {
 	    	// Call the delegate
 		      super.doFilter(request, response, filterChain);
 	    } else {

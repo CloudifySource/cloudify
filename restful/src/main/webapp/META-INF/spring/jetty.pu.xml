@@ -105,7 +105,7 @@
 		</bean>
 	</beans>
 
-	<beans profile="nonsecure,secure_no_ssl,default">
+	<beans profile="nonsecure,default">
 		<bean id="jetty" class="org.eclipse.jetty.server.Server">
 
 			<property name="threadPool">

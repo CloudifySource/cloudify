@@ -42,6 +42,7 @@ import org.cloudifysource.esc.shell.installer.CloudGridAgentBootstrapper;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.KeystoreFileVerifier;
+import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.AbstractGSCommand;
 import org.cloudifysource.shell.commands.CLIStatusException;
 
@@ -294,15 +295,15 @@ public class BootstrapCloud extends AbstractGSCommand {
 
 		if (secured) {
 			// enable security
-			if (StringUtils.isNotBlank(keystore) && StringUtils.isNotBlank(keystorePassword)) {
-				logger.info(getFormattedMessage(CloudifyErrorMessages.SETTING_SERVER_SECURITY_PROFILE.getName(),
-						CloudifyConstants.SPRING_PROFILE_SECURE));
-				securityProfile = CloudifyConstants.SPRING_PROFILE_SECURE;
-			} else {
-				logger.info(getFormattedMessage(CloudifyErrorMessages.SETTING_SERVER_SECURITY_PROFILE.getName(),
-						CloudifyConstants.SPRING_PROFILE_SECURE_NO_SSL));
-				securityProfile = CloudifyConstants.SPRING_PROFILE_SECURE_NO_SSL;
+			if (keystore == null || keystorePassword == null || securityFilePath == null) {
+				throw new IllegalArgumentException(ShellUtils.getFormattedMessage(
+						CloudifyErrorMessages.SECURED_BOOTSTRAP_IS_PARTIAL.getName()));
 			}
+			
+			securityProfile = CloudifyConstants.SPRING_PROFILE_SECURE;
+			logger.info(getFormattedMessage(CloudifyErrorMessages.SETTING_SERVER_SECURITY_PROFILE.getName(),
+					CloudifyConstants.SPRING_PROFILE_SECURE));
+			
 		} else {
 			// disable security
 			logger.info(getFormattedMessage(CloudifyErrorMessages.SETTING_SERVER_SECURITY_PROFILE.getName(),
@@ -330,31 +331,33 @@ public class BootstrapCloud extends AbstractGSCommand {
 			if (StringUtils.isNotBlank(keystorePassword)) {
 				throw new IllegalArgumentException("'-keystore-password' is only valid when '-secured' is set");
 			}
-		}
+			
+		} else {
+			if (StringUtils.isBlank(securityFilePath)) {
+				throw new IllegalArgumentException("Security file is missing or empty");
+			}
 
-		if (StringUtils.isNotBlank(username) && StringUtils.isBlank(password)) {
-			throw new IllegalArgumentException("Password is missing or empty");
-		}
+			if (StringUtils.isNotBlank(username) && StringUtils.isBlank(password)) {
+				throw new IllegalArgumentException("Password is missing or empty");
+			}
 
-		if (StringUtils.isBlank(username) && StringUtils.isNotBlank(password)) {
-			throw new IllegalArgumentException("Username is missing or empty");
-		}
+			if (StringUtils.isBlank(username) && StringUtils.isNotBlank(password)) {
+				throw new IllegalArgumentException("Username is missing or empty");
+			}
 
-		if (StringUtils.isNotBlank(keystore) && StringUtils.isBlank(keystorePassword)) {
-			throw new IllegalArgumentException("Keystore password is missing or empty");
-		}
+			if (StringUtils.isBlank(keystore)) {
+				throw new IllegalArgumentException("Keystore is missing or empty");
+			}
+			
+			if (StringUtils.isBlank(keystorePassword)) {
+				throw new IllegalArgumentException("Keystore password is missing or empty");
+			}
 
-		if (StringUtils.isBlank(keystore) && StringUtils.isNotBlank(keystorePassword)) {
-			throw new IllegalArgumentException("Keystore is missing or empty");
+			if (StringUtils.isNotBlank(keystore)) {
+				new KeystoreFileVerifier().verifyKeystoreFile(new File(keystore), keystorePassword);
+			}
 		}
-
-		if (StringUtils.isNotBlank(keystore)) {
-			new KeystoreFileVerifier().verifyKeystoreFile(new File(keystore), keystorePassword);
-		}
-
-		if (StringUtils.isNotBlank(keystore)) {
-			new KeystoreFileVerifier().verifyKeystoreFile(new File(keystore), keystorePassword);
-		}
+		
 	}
 
 	private void copySecurityFiles(final String providerDirectory) throws Exception {
@@ -419,7 +422,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 		return useExistingManagers;
 	}
 
-	public void setUseExistingManagers(boolean useExistingManagers) {
+	public void setUseExistingManagers(final boolean useExistingManagers) {
 		this.useExistingManagers = useExistingManagers;
 	}
 
@@ -427,7 +430,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 		return existingManagersFile;
 	}
 
-	public void setExistingManagersFile(File existingManagersFile) {
+	public void setExistingManagersFile(final File existingManagersFile) {
 		this.existingManagersFile = existingManagersFile;
 	}
 }

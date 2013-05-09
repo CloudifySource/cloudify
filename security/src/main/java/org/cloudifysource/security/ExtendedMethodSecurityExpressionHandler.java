@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
+ * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.rest.security;
+package org.cloudifysource.security;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.aopalliance.intercept.MethodInvocation;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.rest.ApplicationDescription;
-import org.cloudifysource.rest.util.RestUtils;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.expression.EvaluationContext;
@@ -132,37 +130,39 @@ public class ExtendedMethodSecurityExpressionHandler extends
 			@SuppressWarnings("unchecked")
 			Map<String, Object> returnValue = (Map<String, Object>) filterTarget;
 
-			if (RestUtils.SUCCESS.equals(returnValue.get(RestUtils.STATUS_KEY))) {
-				Object responseObject = returnValue.get(RestUtils.RESPONSE_KEY);
+			if (CloudifyConstants.SUCCESS_STATUS.equals(returnValue.get(CloudifyConstants.STATUS_KEY))) {
+				Object responseObject = returnValue.get(CloudifyConstants.RESPONSE_KEY);
 				if (responseObject instanceof Map) {
 					@SuppressWarnings("unchecked")
 					Map<String, String> objectsMap = (Map<String, String>) responseObject;
-					Map<Object, String> retainMap = new HashMap<Object, String>();
+					//Map<Object, String> retainMap = new HashMap<Object, String>();
 					
 					for (Map.Entry<String, String> entry : objectsMap.entrySet()) {
 						String filterObject = entry.getValue();
 						rootObject.setFilterObject(filterObject);
-						if (ExpressionUtils.evaluateAsBoolean(filterExpression, ctx)) {
-							retainMap.put(entry.getKey(), entry.getValue());
+						if (!ExpressionUtils.evaluateAsBoolean(filterExpression, ctx)) {
+							objectsMap.remove(entry);
+							//retainMap.put(entry.getKey(), entry.getValue());
 						}
 					}
-					returnValue = RestUtils.successStatus(retainMap);
+					//returnValue = RestUtils.successStatus(retainMap);
 					
 				} else if (responseObject instanceof List) {
 					@SuppressWarnings("unchecked")
 					List<Object> objectsList = (List<Object>) responseObject;
-					List<Object> retainList = new ArrayList<Object>();
+					//List<Object> retainList = new ArrayList<Object>();
 					
 					for (Object object : objectsList) {
 						if (object instanceof ApplicationDescription) {
 							rootObject.setFilterObject(((ApplicationDescription) object).getAuthGroups());
-							if (ExpressionUtils.evaluateAsBoolean(filterExpression, ctx)) {
-								retainList.add(object);
+							if (!ExpressionUtils.evaluateAsBoolean(filterExpression, ctx)) {
+								objectsList.remove(object);
+								//retainList.add(object);
 							}
 						}
 						
 					}
-					returnValue = RestUtils.successStatus(retainList);
+					//returnValue = RestUtils.successStatus(retainList);
 				}
 			}
 			
@@ -173,4 +173,5 @@ public class ExtendedMethodSecurityExpressionHandler extends
 				"Filter target must be a collection or array type, but was "
 						+ filterTarget);
 	}
+
 }

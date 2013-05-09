@@ -4,10 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.StringTokenizer;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.type.TypeFactory;
@@ -53,22 +50,6 @@ public class StringUtils {
 		return new ObjectMapper().readValue(response, javaType);
 	}
 	
-	
-	/**
-	 * Splits the string by the specified delimiter and trims the resulting tokens. 
-	 * @param stringOfTokens The string to split 
-	 * @param delimiter The delimiter to split by
-	 * @return A Collection of trimmed String tokens
-	 */
-	public static Collection<String> splitAndTrimString(final String stringOfTokens, final String delimiter) {
-    	Collection<String> values = new HashSet<String>();
-		StringTokenizer tokenizer = new StringTokenizer(stringOfTokens, delimiter);
-		while (tokenizer.hasMoreTokens()) {
-			values.add(tokenizer.nextToken().trim());
-		}
-		
-		return values;
-    }
 	
 	/**
 	 * Converts a given array of String values to a single String of array items separated by a delimiter.
