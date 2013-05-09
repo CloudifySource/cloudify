@@ -75,7 +75,6 @@ import org.openspaces.admin.application.Application;
 import org.openspaces.admin.gsm.GridServiceManager;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
-import org.openspaces.admin.pu.elastic.topology.ElasticDeploymentTopology;
 import org.openspaces.admin.space.ElasticSpaceDeployment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -399,7 +398,7 @@ public class DeploymentsController extends BaseRestContoller {
 		deployConfig.setAuthGroups(effectiveAuthGroups);
 		deployConfig.setCloud(restConfig.getCloud());
 		deployConfig.setCloudConfig(cloudConfigurationContents);
-		deployConfig.setCloudOverrides(FileUtils.readFileToString(cloudOverridesFile));
+//		deployConfig.setCloudOverrides(FileUtils.readFileToString(cloudOverridesFile));
 		deployConfig.setInstallRequest(request);
 		final String locators = extractLocators(restConfig.getAdmin());
 		deployConfig.setLocators(locators);
@@ -407,9 +406,9 @@ public class DeploymentsController extends BaseRestContoller {
 		deployConfig.setService(service);
 		deployConfig.setTemplateName(templateName);
 		final ElasticProcessingUnitDeploymentFactory fac = new ElasticProcessingUnitDeploymentFactoryImpl();
-		final ElasticDeploymentTopology deployment = fac.create(deployConfig);
+//		final ElasticDeploymentTopology deployment = fac.create(deployConfig);
 		// TODO get rid of casting
-		deployAndWait(serviceName, (ElasticSpaceDeployment) deployment);
+//		deployAndWait(serviceName, (ElasticSpaceDeployment) deployment);
 
 		// start polling
 		final InstallServiceResponse installServiceResponse = new InstallServiceResponse();
