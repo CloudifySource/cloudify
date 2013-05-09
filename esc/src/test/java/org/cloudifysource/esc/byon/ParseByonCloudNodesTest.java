@@ -33,8 +33,10 @@ import org.cloudifysource.esc.driver.provisioning.byon.CustomNodeImpl;
 import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverClassContext;
 import org.cloudifysource.esc.util.IPUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 /**
  * This class tests the parsing of different ID/IP configurations in byoun-cloud.groovy.
  *
