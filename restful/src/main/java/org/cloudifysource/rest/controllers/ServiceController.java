@@ -80,7 +80,6 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.cloudifysource.dsl.ComputeDetails;
 import org.cloudifysource.dsl.DataGrid;
 import org.cloudifysource.dsl.Service;
-import org.cloudifysource.dsl.ServiceProcessingUnit;
 import org.cloudifysource.dsl.Sla;
 import org.cloudifysource.dsl.StatefulProcessingUnit;
 import org.cloudifysource.dsl.StatelessProcessingUnit;
@@ -2307,16 +2306,6 @@ public class ServiceController implements ServiceDetailsProvider {
 			locationAware = service.isLocationAware();
 			dedicated = IsolationUtils.isDedicated(service);
 		}
-		logger.info("applicationName: " + applicationName);
-		logger.info("absolutePUName: " + serviceName);
-		for (Map.Entry<Object,Object> property : contextProperties.entrySet()) {
-			logger.info("context prop key: " + property.getKey()+ " value " + property.getValue());
-		}
-		logger.info("template name: " + templateName);
-		logger.info("locationAware: " + locationAware);
-		if (cloudOverrides != null) {
-			logger.info("cloudOverrides: " + FileUtils.readFileToString(cloudOverrides));
-		}
 
 		final int externalProcessMemoryInMB = 512;
 		final int containerMemoryInMB = 128;
@@ -3275,18 +3264,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			final int numberOfInstances, final boolean locationAware,
 			final File cloudOverride)
 			throws IOException, AdminException, TimeoutException, DSLException, RestErrorException {
-		logger.info("applicationName: " + applicationName);
-		logger.info("absolutePUName: " + serviceName);
-		for (Map.Entry<Object,Object> property : contextProperties.entrySet()) {
-			logger.info("context prop key: " + property.getKey()+ " value " + property.getValue());
-		}
-		logStatelessPU(puConfig);
-		logger.info("template name: " + templateName);
-		logger.info("numberOfInstances: " + numberOfInstances);
-		logger.info("locationAware: " + locationAware);
-		if (cloudOverride != null) {
-			logger.info("cloudOverrides: " + FileUtils.readFileToString(cloudOverride));
-		}
+
 		final File jarFile = getJarFileFromDir(
 				new File(puConfig.getBinaries()), extractedServiceFolder,
 				serviceName);
@@ -3363,15 +3341,6 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	}
 
-	private void logStatelessPU(ServiceProcessingUnit puConfig) {
-//		logger.info("Spring profiles active: " + puConfig.getSpringProfilesActive());
-		logger.info("HighlyAvailable: " + puConfig.getSla().getHighlyAvailable());
-		logger.info("maxMemCapacity: " + puConfig.getSla().getMaxMemoryCapacity());
-		logger.info("memoryCapacity: " + puConfig.getSla().getMemoryCapacity());
-		logger.info("MemoryCapacityPerContainer: " + puConfig.getSla().getMemoryCapacityPerContainer());
-		
-	}
-
 	private void setSpringProfilesActive(final ElasticDeploymentTopology deployment, final String profiles) {
 		if (StringUtils.isNotBlank(profiles)) {
 			//note that cloudify uses the SPRING_PROFILES_ACTIVE env variable, but this 
@@ -3400,15 +3369,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			final boolean locationAware,
 			final File cloudOverrides) throws IOException, AdminException,
 			TimeoutException, DSLException {
-		logger.info("applicationName: " + applicationName);
-		logger.info("absolutePUName: " + serviceName);
-		for (Map.Entry<Object,Object> property : contextProperties.entrySet()) {
-			logger.info("context prop key: " + property.getKey()+ " value " + property.getValue());
-		}
-		logStatelessPU(puConfig);
-		logger.info("template name: " + templateName);
-		logger.info("numberOfInstances: ");
-		logger.info("locationAware: " + locationAware);
+		
 		if (cloudOverrides != null) {
 			logger.info("cloudOverrides: " + FileUtils.readFileToString(cloudOverrides));
 		}
