@@ -26,15 +26,6 @@ public interface ServiceInstance {
 
 	/***************
 	 * Returns the instance id. Note that instance IDs are 1-based. When not running in a GSC, defaults to 1.
-	 * Typo in this method name, so it is deprecated and will be deleted. use getInstanceId() instead.
-	 *
-	 * @return the instance id.
-	 */
-	@Deprecated
-	int getInstanceID();
-
-	/***************
-	 * Returns the instance id. Note that instance IDs are 1-based. When not running in a GSC, defaults to 1.
 	 *
 	 * @return the instance id.
 	 */

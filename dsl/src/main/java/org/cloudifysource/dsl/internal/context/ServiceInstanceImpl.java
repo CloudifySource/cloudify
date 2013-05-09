@@ -51,18 +51,6 @@ public class ServiceInstanceImpl implements ServiceInstance {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.cloudifysource.dsl.internal.context.ServiceInstance#getInstanceID()
-	 */
-	@Override
-	@Deprecated
-	public int getInstanceID() {
-		if (pui == null) {
-			return 1;
-		}
-		return pui.getInstanceId();
-	}
-
-	/* (non-Javadoc)
 	 * @see org.cloudifysource.dsl.internal.context.ServiceInstance#getInstanceId()
 	 */
 	@Override
@@ -189,7 +177,7 @@ public class ServiceInstanceImpl implements ServiceInstance {
 	public Object invoke(final String commandName, final Object[] params) throws InterruptedException,
 			ExecutionException, TimeoutException {
 		return invoke(commandName, params, DEFAULT_TIMEOUT_IN_MINUTES, TimeUnit.MINUTES);
-	
+
 	}
 
 	@Override
