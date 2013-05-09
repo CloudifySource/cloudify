@@ -58,6 +58,8 @@
 		<module>../esc</module>
 		<module>../esc-commands</module>
 		<module>../USM</module>
+		<module>../security</module>
+		<module>../security-ldap</module>
 		<module>../restful</module>
 		<module>../dsl</module>
 		<module>../rest-client</module>
