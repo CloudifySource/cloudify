@@ -12,7 +12,6 @@
  ******************************************************************************/
 package org.cloudifysource.esc.byon;
 
-import java.net.UnknownHostException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
