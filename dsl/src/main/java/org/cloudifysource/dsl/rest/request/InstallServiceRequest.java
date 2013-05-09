@@ -85,7 +85,7 @@ public class InstallServiceRequest {
 		return isApplicationInstall;
 	}
 	
-	public void setApplicationInstall(boolean isApplicationInstall) {
+	public void setApplicationInstall(final boolean isApplicationInstall) {
 		this.isApplicationInstall = isApplicationInstall;
 	}
 	

@@ -30,6 +30,7 @@ import org.openspaces.core.GigaSpace;
 import org.openspaces.core.context.GigaSpaceContext;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * 
@@ -37,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @since 2.6.0
  * 
  */
+@Component
 public class RestConfigurationFactoryBean implements FactoryBean<RestConfiguration> {
 
 	private static final Logger logger = Logger.getLogger(RestConfigurationFactoryBean.class.getName());

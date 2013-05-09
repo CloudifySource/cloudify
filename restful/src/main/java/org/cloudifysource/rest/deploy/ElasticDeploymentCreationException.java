@@ -14,24 +14,26 @@
  * limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.rest.deploy;
-
-import org.openspaces.admin.pu.elastic.topology.ElasticDeploymentTopology;
-
 /**
- * an interface for creating a new elastic deployment object.
+ * 
  * @author adaml
  * @since 2.6.0
  */
-public interface ElasticProcessingUnitDeploymentFactory {
-	
+public class ElasticDeploymentCreationException extends Exception {
+
 	/**
-	 * create a new elastic deployment object using deployment config object
-	 * @param deploymentConfig
-	 * 			the deployment configuration object.
-	 * @return
-	 * 			an elastic deployment object
-	 * @throws ElasticDeploymentCreationException .
+	 * 
 	 */
-	ElasticDeploymentTopology create(final DeploymentConfig deploymentConfig)
-			throws ElasticDeploymentCreationException;
+	private static final long serialVersionUID = 1L;
+	public ElasticDeploymentCreationException() {
+		
+	}
+	
+	public ElasticDeploymentCreationException(String message) {
+		super(message);
+	}
+	
+	public ElasticDeploymentCreationException(String message, Exception e) {
+		super(message, e);
+	}
 }
