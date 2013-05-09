@@ -14,7 +14,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 //Setup the configuration of the application context and the web mvc layer
 @ContextConfiguration({"classpath:META-INF/spring/applicationContext.xml",
 		"classpath:META-INF/spring/webmvc-config-test.xml" })
-public class TestSpringAutowired {
+public class SpringAutowiredTest {
 	@Autowired
 	protected ApplicationContext applicationContext;
 	
