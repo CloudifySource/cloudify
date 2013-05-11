@@ -31,7 +31,7 @@
 		<property name="password" value="secret"/>
 	</bean>
  
-	<bean id="CustomLdapUserDetailsMapper" class="org.cloudifysource.rest.security.CustomLdapUserDetailsMapper" >
+	<bean id="CustomLdapUserDetailsMapper" class="org.cloudifysource.securityldap.CustomLdapUserDetailsMapper" >
 		<property name="roleAttributes">
 			<list>
 				<value>description</value>
@@ -45,7 +45,7 @@
 		<constructor-arg index="2" ref="contextSource" />
 	</bean>
 	
-	<bean id="ldapAuthProvider" class="org.cloudifysource.rest.security.CustomLdapAuthenticationProvider">
+	<bean id="ldapAuthProvider" class="org.cloudifysource.securityldap.CustomLdapAuthenticationProvider">
 		<constructor-arg>
 			<bean class="org.springframework.security.ldap.authentication.BindAuthenticator">
 				<constructor-arg ref="contextSource"/>
@@ -54,7 +54,7 @@
 			</bean>
 		</constructor-arg>
 		<constructor-arg>
-			<bean class="org.cloudifysource.rest.security.CustomLdapAuthoritiesPopulator">
+			<bean class="org.cloudifysource.securityldap.CustomLdapAuthoritiesPopulator">
 			<constructor-arg name="roleAttributes">
 				<list>
 					<value>description</value>
@@ -63,7 +63,7 @@
 			</bean>
 		</constructor-arg>
 		<constructor-arg>
-			<bean class="org.cloudifysource.rest.security.CustomLdapAuthGroupsPopulator">
+			<bean class="org.cloudifysource.securityldap.CustomLdapAuthGroupsPopulator">
 				<constructor-arg ref="contextSource"/>
 				<constructor-arg value="ou=groups"/>
 			</bean>
