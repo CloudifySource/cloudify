@@ -246,7 +246,6 @@
 	        <echo message="Copy dsl component"/>
     		<mkdir dir="@{installation.dir}/lib/platform/cloudify"/>
 	        <copy todir="@{installation.dir}/lib/platform/cloudify" overwrite="true">
-	            <fileset dir="${dsl.local.copy}/target/" includes="dsl.jar" excludes=".svn"/>
 	        </copy>
 	
 	        <echo message="Copy CLOUDIFY CLI component"/>
@@ -271,12 +270,12 @@
     		
 	        <echo message="Copy security component"/>
 	        <copy todir="@{installation.dir}/lib/platform/cloudify" overwrite="true">
-	            <fileset dir="${security.local.copy}/target/" includes="security.jar" excludes=".svn"/>
+	            <fileset dir="${security.local.copy}/target/" includes="*.jar" excludes=".svn"/>
 	        </copy>
     		
 	        <echo message="Copy security-ldap component"/>
 	        <copy todir="@{installation.dir}/lib/platform/cloudify" overwrite="true">
-	            <fileset dir="${security-ldap.local.copy}/target/" includes="security-ldap.jar" excludes=".svn"/>
+	            <fileset dir="${security-ldap.local.copy}/target/" includes="*.jar" excludes=".svn"/>
 	        </copy>
     		
     		<echo message="Copy spring-security.xml"/>
