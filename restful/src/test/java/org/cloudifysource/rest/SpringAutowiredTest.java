@@ -9,7 +9,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-@Ignore
+
 //Swap the default JUnit4 with the spring specific SpringJUnit4ClassRunner.
 //This will allow spring to inject the application context
 @RunWith(SpringJUnit4ClassRunner.class)
