@@ -1,7 +1,6 @@
 package org.cloudifysource.rest;
 
 import org.cloudifysource.rest.controllers.AttributesController;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
