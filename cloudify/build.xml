@@ -232,7 +232,7 @@
     </target>
 
     <macrodef name="add.cloudify.modules">
-    	<attribute name="installation.dir" default="${tmp.dir}/${cloudify.installation.dir}"/>
+    	<attribute name="installation.dir" default="${tmp.dir}/${cloudify.installation.dir}" id="installation.dir"/>
     	<sequential>	
 	        <echo message="Copy USM component"/>
 	        <copy todir="@{installation.dir}/lib/platform/usm" overwrite="true">
@@ -306,8 +306,11 @@
             <script language="javascript">
 
                 var dirs = project.getReference("cloud.dirs").toString().split(";");
+            	var builddir = project.getReference("installation.dir").toString();
+            	
                 <![CDATA[
-
+						
+            			project.setProperty("build.dir", builddir);
                         for (var i = 0; i < dirs.length; i++) {
                             project.setProperty("current.cloud", dirs[i]);
                             project.executeTarget("copy-bootstrap-script-to-cloud");
@@ -323,7 +326,7 @@
 
         <echo message="current cloud is ${current.cloud}"/>
         <echo message="Installation directory is ${tmp.dir}/${cloudify.installation.dir}/clouds/${current.cloud}/upload"/>
-        <copy file="${esc.local.copy}/src/main/resources/general/bootstrap-management.sh" todir="${tmp.dir}/${cloudify.installation.dir}/clouds/${current.cloud}/upload" overwrite="true"/>
+        <copy file="${esc.local.copy}/src/main/resources/general/bootstrap-management.sh" todir="${build.dir}/clouds/${current.cloud}/upload" overwrite="true"/>
 
     </target>
 
