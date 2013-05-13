@@ -37,7 +37,7 @@
 	<bean id="CustomLdapUserDetailsMapper" class="org.cloudifysource.securityldap.CustomLdapUserDetailsMapper" >
 		<property name="roleAttributes">
 			<list>
-				<value>roles</value>
+				<value>cloudifyRole</value>
 			</list>
 		</property>
 	</bean>
