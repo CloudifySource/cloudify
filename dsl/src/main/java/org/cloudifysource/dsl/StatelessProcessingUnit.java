@@ -63,13 +63,16 @@ public class StatelessProcessingUnit extends ServiceProcessingUnit {
 	@DSLValidation
 	void validateStatelessSLA(final DSLValidationContext validationContext) 
 			throws DSLValidationException {
-		if (getSla().getMemoryCapacity() != null) {
-			throw new DSLValidationException(
-					"memoryCapacity SLA is not supported in this service");
-		}
-		if (getSla().getMaxMemoryCapacity() != null) {
-			throw new DSLValidationException(
-					"maxMemoryCapacity SLA is not supported in this service");
+		final Sla sla = getSla();
+		if (sla != null) {
+			if (sla.getMemoryCapacity() != null) {
+				throw new DSLValidationException(
+						"memoryCapacity SLA is not supported in this service");
+			}
+			if (sla.getMaxMemoryCapacity() != null) {
+				throw new DSLValidationException(
+						"maxMemoryCapacity SLA is not supported in this service");
+			}
 		}
 	}
 	
