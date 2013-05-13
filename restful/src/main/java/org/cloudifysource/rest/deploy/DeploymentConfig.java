@@ -51,6 +51,7 @@ public class DeploymentConfig {
 	
 	private String deploymentId;
 	
+	private String authGroups;
 	
 	public String getApplicationName() {
 		return applicationName;
@@ -138,5 +139,13 @@ public class DeploymentConfig {
 
 	public void setInstallRequest(final InstallServiceRequest installRequest) {
 		this.installRequest = installRequest;
+	}
+
+	public String getAuthGroups() {
+		return authGroups;
+	}
+
+	public void setAuthGroups(String authGroups) {
+		this.authGroups = authGroups;
 	}
 }
