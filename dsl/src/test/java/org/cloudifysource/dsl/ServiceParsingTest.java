@@ -40,7 +40,6 @@ import org.cloudifysource.dsl.statistics.PerInstanceStatisticsDetails;
 import org.cloudifysource.dsl.statistics.ServiceStatisticsDetails;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.Ignore;
 
 /**
  *
@@ -565,7 +564,6 @@ public class ServiceParsingTest {
 	}
 
 	@Test
-	@Ignore
 	public void testServiceWithDSLLogger() throws Exception {
 		final Logger logger = Logger.getLogger(BaseDslScript.class.getName());
 		final DSLLoggerHandler handler = new DSLLoggerHandler();
