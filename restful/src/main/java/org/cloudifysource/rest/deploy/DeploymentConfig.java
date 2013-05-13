@@ -16,7 +16,6 @@
 package org.cloudifysource.rest.deploy;
 
 import java.io.File;
-import java.util.Properties;
 
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.cloud.Cloud;
@@ -30,7 +29,7 @@ import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
  */
 public class DeploymentConfig {
 	
-	private InstallServiceRequest installRequest; 
+	private InstallServiceRequest installRequest;
 	
 	private String absolutePUName;
 	
@@ -39,10 +38,6 @@ public class DeploymentConfig {
 	private String templateName;
 	
 	private Cloud cloud;
-	
-	private String authGroups;
-	
-	private Properties contextProperties;
 	
 	private Service service;
 	
@@ -56,14 +51,7 @@ public class DeploymentConfig {
 	
 	private String deploymentId;
 	
-	public InstallServiceRequest getInstallRequest() {
-		return installRequest;
-	}
-
-	public void setInstallRequest(final InstallServiceRequest installRequest) {
-		this.installRequest = installRequest;
-	}
-
+	
 	public String getApplicationName() {
 		return applicationName;
 	}
@@ -94,22 +82,6 @@ public class DeploymentConfig {
 
 	public void setCloud(final Cloud cloud) {
 		this.cloud = cloud;
-	}
-
-	public String getAuthGroups() {
-		return authGroups;
-	}
-
-	public void setAuthGroups(final String authGroups) {
-		this.authGroups = authGroups;
-	}
-
-	public Properties getContextProperties() {
-		return contextProperties;
-	}
-
-	public void setContextProperties(final Properties contextProperties) {
-		this.contextProperties = contextProperties;
 	}
 
 	public Service getService() {
@@ -158,5 +130,13 @@ public class DeploymentConfig {
 
 	public void setDeploymentId(final String deploymentId) {
 		this.deploymentId = deploymentId;
+	}
+
+	public InstallServiceRequest getInstallRequest() {
+		return installRequest;
+	}
+
+	public void setInstallRequest(final InstallServiceRequest installRequest) {
+		this.installRequest = installRequest;
 	}
 }
