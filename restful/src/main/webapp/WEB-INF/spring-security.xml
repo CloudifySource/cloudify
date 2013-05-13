@@ -21,8 +21,6 @@
 		</sec:authentication-provider>
 	</sec:authentication-manager>
 	
-	<!--bean id="myAuthProvider" class="com.AuthProvider.MyAuthProvider"/-->
-	
 	<!-- LDAP connectivity configuration -->
 	<!-- sec:authentication-manager alias="authenticationManager">
 		<sec:authentication-provider ref="ldapAuthProvider"/>
