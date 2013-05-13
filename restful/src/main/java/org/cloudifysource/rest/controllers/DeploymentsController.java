@@ -405,12 +405,11 @@ public class DeploymentsController extends BaseRestContoller {
 		deployConfig.setDeploymentId(deploymentID.toString());
 		deployConfig.setAbsolutePUName(absolutePuName);
 		deployConfig.setApplicationName(appName);
-		deployConfig.setAuthGroups(effectiveAuthGroups);
 		deployConfig.setCloud(restConfig.getCloud());
 		deployConfig.setCloudConfig(cloudConfigurationContents);
 		deployConfig.setCloudOverrides(cloudOverrides);
-		deployConfig.setInstallRequest(request);
 		final String locators = extractLocators(restConfig.getAdmin());
+		deployConfig.setInstallRequest(request);
 		deployConfig.setLocators(locators);
 		deployConfig.setPackedFile(updatedPackedFile);
 		deployConfig.setService(service);
