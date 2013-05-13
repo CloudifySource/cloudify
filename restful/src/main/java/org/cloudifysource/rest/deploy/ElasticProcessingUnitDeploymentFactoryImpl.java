@@ -370,7 +370,7 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 		final CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(
 				cloud, serviceTemplate, serviceTemplateName, managementTemplate.getRemoteDirectory(),
 				storageTemplate);
-		config.setAuthGroups(deploymentConfig.getInstallRequest().getAuthGroups());
+		config.setAuthGroups(deploymentConfig.getAuthGroups());
 		
 		String cloudOverrides = deploymentConfig.getCloudOverrides();
 		if (cloudOverrides != null) {
@@ -434,7 +434,7 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 				// service instances can be deployed across all agents with the correct isolation id
 				deployment.sharedMachineProvisioning(applicationName, config);
 			} else if (IsolationUtils.isTenantShared(service)) {
-				String authGroups = deploymentConfig.getInstallRequest().getAuthGroups();
+				String authGroups = deploymentConfig.getAuthGroups();
 				if (authGroups == null) {
 					throw new IllegalStateException("authGroups cannot be null when using tenant shared isolation");
 				}
@@ -584,7 +584,7 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 		deployment.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME,
 														deploymentConfig.getApplicationName())
 				  .addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS,
-						  									deploymentConfig.getInstallRequest().getAuthGroups())
+						  									deploymentConfig.getAuthGroups())
 				  .name(deploymentConfig.getAbsolutePUName());
 		// add context properties
 		final Properties contextProperties = createServiceContextProperties();
