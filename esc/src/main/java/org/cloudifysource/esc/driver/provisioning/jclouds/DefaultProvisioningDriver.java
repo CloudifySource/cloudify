@@ -27,8 +27,11 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.net.util.SubnetUtils;
+import org.apache.commons.net.util.SubnetUtils.SubnetInfo;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
@@ -78,6 +81,10 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		ProvisioningDriver, ProvisioningDriverClassContextAware,
 		CustomServiceDataAware, ManagementLocator {
 
+	private static final String PUBLIC_IP_REGEX = "org.cloudifysource.default-cloud-driver.public-ip-regex";
+	private static final String PUBLIC_IP_CIDR = "org.cloudifysource.default-cloud-driver.public-ip-cidr";
+	private static final String PRIVATE_IP_REGEX = "org.cloudifysource.default-cloud-driver.private-ip-regex";
+	private static final String PRIVATE_IP_CIDR = "org.cloudifysource.default-cloud-driver.private-ip-cidr";
 	private static final int CLOUD_NODE_STATE_POLLING_INTERVAL = 2000;
 	private static final String DEFAULT_EC2_WINDOWS_USERNAME = "Administrator";
 	private static final String EC2_API = "aws-ec2";
@@ -86,10 +93,14 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	private static final String CLOUDSTACK = "cloudstack";
 	private static final String ENDPOINT_OVERRIDE = "jclouds.endpoint";
 
-	//TODO: should it be volatile?
+	// TODO: should it be volatile?
 	private static ResourceBundle defaultProvisioningDriverMessageBundle;
 
 	private JCloudsDeployer deployer;
+	private SubnetInfo privateSubnetInfo;
+	private Pattern privateIpPattern;
+	private SubnetInfo publicSubnetInfo;
+	private Pattern publicIpPattern;
 
 	@Override
 	protected void initDeployer(final Cloud cloud) {
@@ -119,12 +130,46 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			// return createDeplyer(cloud);
 			// }
 			// });
+
+			// Initialize IP CIDR blocks and Regex
+			initIPFilters(cloud);
+
 		} catch (final Exception e) {
 			publishEvent("connection_to_cloud_api_failed", cloud.getProvider()
 					.getProvider());
 			throw new IllegalStateException("Failed to create cloud Deployer",
 					e);
 		}
+	}
+
+	private void initIPFilters(final Cloud cloud) {
+		final ComputeTemplate template = cloud.getCloudCompute().getTemplates().get(
+				cloudTemplateName);
+
+		final String privateCidr =
+				(String) template.getCustom().get(PRIVATE_IP_CIDR);
+		if (!StringUtils.isBlank(privateCidr)) {
+			this.privateSubnetInfo = new SubnetUtils(privateCidr).getInfo();
+		}
+
+		final String privateRegex =
+				(String) template.getCustom().get(PRIVATE_IP_REGEX);
+		if (!StringUtils.isBlank(privateRegex)) {
+			this.privateIpPattern = Pattern.compile(privateRegex);
+		}
+
+		final String publicCidr =
+				(String) template.getCustom().get(PUBLIC_IP_CIDR);
+		if (!StringUtils.isBlank(publicCidr)) {
+			this.publicSubnetInfo = new SubnetUtils(publicCidr).getInfo();
+		}
+
+		final String publicRegex =
+				(String) template.getCustom().get(PUBLIC_IP_REGEX);
+		if (!StringUtils.isBlank(publicRegex)) {
+			this.publicIpPattern = Pattern.compile(publicRegex);
+		}
+
 	}
 
 	@Override
@@ -517,8 +562,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		int i = 0;
 		for (final NodeMetadata node : existingManagementServers) {
 			result[i] = createMachineDetailsFromNode(node);
-//			result[i].setAgentRunning(true);
-//			result[i].setCloudifyInstalled(true);
+			// result[i].setAgentRunning(true);
+			// result[i].setCloudifyInstalled(true);
 			i++;
 
 		}
@@ -552,6 +597,21 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 				firstCreationException);
 	}
 
+	private void populateIPs(final NodeMetadata node, final MachineDetails md, final ComputeTemplate template) {
+
+		CloudAddressResolver resolver = new CloudAddressResolver();
+		final String privateAddress =
+				resolver.getAddress(node.getPrivateAddresses(), node.getPublicAddresses(), privateSubnetInfo,
+						this.privateIpPattern);
+		final String publicAddress =
+				resolver.getAddress(node.getPublicAddresses(), node.getPrivateAddresses(), publicSubnetInfo,
+						this.publicIpPattern);
+
+		md.setPrivateAddress(privateAddress);
+		md.setPublicAddress(publicAddress);
+
+	}
+
 	private MachineDetails createMachineDetailsFromNode(final NodeMetadata node) {
 		final ComputeTemplate template = this.cloud.getCloudCompute().getTemplates().get(
 				this.cloudTemplateName);
@@ -561,12 +621,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		md.setCloudifyInstalled(false);
 		md.setInstallationDirectory(null);
 		md.setMachineId(node.getId());
-		if (node.getPrivateAddresses().size() > 0) {
-			md.setPrivateAddress(node.getPrivateAddresses().iterator().next());
-		}
-		if (node.getPublicAddresses().size() > 0) {
-			md.setPublicAddress(node.getPublicAddresses().iterator().next());
-		}
+
+		populateIPs(node, md, template);
 
 		final String username = createMachineUsername(node, template);
 		final String password = createMachinePassword(node, template);
@@ -682,7 +738,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		// 5. Location IDs
 		// 6. Security groups
 		// 7. Key-pair names (TODO: finger-print check)
-		// TODO : move the security groups to the Template section (instead of  custom map),
+		// TODO : move the security groups to the Template section (instead of custom map),
 		// it is now supported by jclouds.
 
 		String providerName = cloud.getProvider().getProvider();
@@ -697,7 +753,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			apiId = apiMetadata.getId();
 			validationContext.validationEventEnd(ValidationResultType.OK);
 		} catch (NoSuchElementException e) {
-			//there is no jclouds Provider by that name, this could be the name of an API used in a private cloud
+			// there is no jclouds Provider by that name, this could be the name of an API used in a private cloud
 			try {
 				ApiMetadata apiMetadata = Apis.withId(providerName);
 				apiId = apiMetadata.getId();
@@ -710,7 +766,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		}
 		validateComputeTemplates(endpointRequired, apiId, validationContext);
 	}
-
 
 	private void validateComputeTemplates(final boolean endpointRequired, final String apiId,
 			final ValidationContext validationContext) throws CloudProvisioningException {
@@ -764,7 +819,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 					validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
 							getFormattedMessage("validating_image_hardware_location_combination",
-								imageId == null ? "" : imageId, hardwareId == null ? "" : hardwareId,
+									imageId == null ? "" : imageId, hardwareId == null ? "" : hardwareId,
 									locationId == null ? "" : locationId));
 					// calling JCloudsDeployer.getTemplate effectively tests the above configuration through jclouds
 					deployer.getTemplate(locationId);
@@ -790,7 +845,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 	private void validateSecurityGroupsForTemplate(final ComputeTemplate template, final String apiId,
 			final ComputeServiceContext computeServiceContext, final ValidationContext validationContext)
-					throws CloudProvisioningException {
+			throws CloudProvisioningException {
 
 		String locationId = template.getLocationId();
 		if (StringUtils.isBlank(locationId) && apiId.equalsIgnoreCase(OPENSTACK_API)) {
@@ -817,9 +872,11 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 							validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
 									getFormattedMessage("validating_security_group", securityGroupsArr[0]));
 						} else {
-							validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
-								getFormattedMessage("validating_security_groups",
-									org.cloudifysource.esc.util.StringUtils.arrayToString(securityGroupsArr, ", ")));
+							validationContext.validationOngoingEvent(
+									ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+									getFormattedMessage("validating_security_groups",
+											org.cloudifysource.esc.util.StringUtils.arrayToString(securityGroupsArr,
+													", ")));
 						}
 
 						if (apiId.equalsIgnoreCase(EC2_API)) {
@@ -830,13 +887,15 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 							validateOpenstackSecurityGroups(unwrapped.getApi(), locationId,
 									securityGroupsArr);
 						} else if (apiId.equalsIgnoreCase(CLOUDSTACK)) {
-							/*RestContext<CloudStackClient, CloudStackAsyncClient> unwrapped =
+							/*
+							 * RestContext<CloudStackClient, CloudStackAsyncClient> unwrapped =
 							 * computeServiceContext.unwrap();
-							validateCloudstackSecurityGroups(unwrapped.getApi().getSecurityGroupClient(),
-									aggregateAllValues(securityGroupsByRegions));*/
+							 * validateCloudstackSecurityGroups(unwrapped.getApi().getSecurityGroupClient(),
+							 * aggregateAllValues(securityGroupsByRegions));
+							 */
 
 						} else if (apiId.equalsIgnoreCase(VCLOUD)) {
-							//security groups not supported
+							// security groups not supported
 						} else {
 							// api validations not supported yet
 						}
@@ -849,14 +908,14 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 					}
 				}
 			} else {
-				//TODO : Validation not supported
+				// TODO : Validation not supported
 			}
 		}
 	}
 
 	private void validateKeyPairForTemplate(final ComputeTemplate template, final String apiId,
 			final ComputeServiceContext computeServiceContext, final ValidationContext validationContext)
-					throws CloudProvisioningException {
+			throws CloudProvisioningException {
 
 		String locationId = template.getLocationId();
 		if (StringUtils.isBlank(locationId) && apiId.equalsIgnoreCase(OPENSTACK_API)) {
@@ -871,7 +930,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		if (keyPairObj == null) {
 			keyPairObj = template.getOptions().get("keyPair");
 		}
-
 
 		if (keyPairObj != null) {
 			if (!(keyPairObj instanceof String)) {
@@ -889,12 +947,14 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 					} else if (apiId.equalsIgnoreCase(OPENSTACK_API)) {
 						validateOpenstackKeyPair(computeServiceContext, locationId, keyPairString);
 					} else if (apiId.equalsIgnoreCase(CLOUDSTACK)) {
-						/*RestContext<CloudStackClient, CloudStackAsyncClient> unwrapped =
-						   computeServiceContext.unwrap();
-						validateCloudstackKeyPairs(unwrapped.getApi().getSSHKeyPairClient(),
-								aggregateAllValues(keyPairsByRegions));*/
+						/*
+						 * RestContext<CloudStackClient, CloudStackAsyncClient> unwrapped =
+						 * computeServiceContext.unwrap();
+						 * validateCloudstackKeyPairs(unwrapped.getApi().getSSHKeyPairClient(),
+						 * aggregateAllValues(keyPairsByRegions));
+						 */
 					} else if (apiId.equalsIgnoreCase(VCLOUD)) {
-						//security groups not supported
+						// security groups not supported
 					} else {
 						// api validations not supported yet
 					}
@@ -907,7 +967,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			}
 		}
 
-
 	}
 
 	private void validateEC2KeyPair(final ComputeServiceContext computeServiceContext, final String locationId,
@@ -919,7 +978,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		Set<KeyPair> foundKeyPairs = ec2KeyPairClient.describeKeyPairsInRegion(region, keyPairName);
 		if (foundKeyPairs == null || foundKeyPairs.size() == 0 || foundKeyPairs.iterator().next() == null) {
 			throw new CloudProvisioningException(
-				"Key pair \"" + keyPairName + "\" is invalid or in the wrong availability zone");
+					"Key pair \"" + keyPairName + "\" is invalid or in the wrong availability zone");
 		}
 	}
 
@@ -928,27 +987,25 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		RestContext<NovaApi, NovaAsyncApi> unwrapped = computeServiceContext.unwrap();
 		KeyPairApi keyPairApi = unwrapped.getApi().getKeyPairExtensionForZone(locationId).get();
 		Predicate<org.jclouds.openstack.nova.v2_0.domain.KeyPair> keyPairNamePredicate =
-			org.jclouds.openstack.nova.v2_0.predicates.KeyPairPredicates.nameEquals(keyPairName);
+				org.jclouds.openstack.nova.v2_0.predicates.KeyPairPredicates.nameEquals(keyPairName);
 		if (!keyPairApi.list().anyMatch(keyPairNamePredicate)) {
 			throw new CloudProvisioningException(
 					"Key pair \"" + keyPairName + "\" is invalid or in the wrong availability zone");
 		}
 	}
 
-
 	private boolean isKnownAPI(final String apiName) {
 		boolean supported = false;
 
 		if (apiName.equalsIgnoreCase(EC2_API)
 				|| apiName.equalsIgnoreCase(OPENSTACK_API)) {
-//				|| apiName.equalsIgnoreCase(VCLOUD)
-//				|| apiName.equalsIgnoreCase(CLOUDSTACK)) {
+			// || apiName.equalsIgnoreCase(VCLOUD)
+			// || apiName.equalsIgnoreCase(CLOUDSTACK)) {
 			supported = true;
 		}
 
 		return supported;
 	}
-
 
 	private void validateEc2SecurityGroups(final EC2Client ec2Client, final String locationId,
 			final String[] securityGroupsInRegion) throws CloudProvisioningException {
@@ -974,7 +1031,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		}
 	}
 
-
 	private void validateOpenstackSecurityGroups(final NovaApi novaApi, final String region,
 			final String[] securityGroupsInRegion) throws CloudProvisioningException {
 
@@ -983,7 +1039,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 		for (String securityGroupName : securityGroupsInRegion) {
 			Predicate<org.jclouds.openstack.nova.v2_0.domain.SecurityGroup> securityGroupNamePredicate =
-				org.jclouds.openstack.nova.v2_0.predicates.SecurityGroupPredicates.nameEquals(securityGroupName);
+					org.jclouds.openstack.nova.v2_0.predicates.SecurityGroupPredicates.nameEquals(securityGroupName);
 			if (!securityGroupApi.list().anyMatch(securityGroupNamePredicate)) {
 				missingSecurityGroups.add(securityGroupName);
 			}
@@ -998,7 +1054,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		}
 	}
 
-
 	private String getEndpoint(final ComputeTemplate template) {
 		String endpoint = null;
 
@@ -1010,7 +1065,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		return endpoint;
 	}
 
-
 	private void closeDeployer(final JCloudsDeployer jcloudsDeployer) {
 		if (jcloudsDeployer != null) {
 			logger.fine("Attempting to close cloud deployer");
@@ -1018,7 +1072,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			logger.fine("Cloud deployer closed");
 		}
 	}
-
 
 	private String getOpenstackLocationByHardwareId(final String hardwareId) {
 		String region = "";
@@ -1041,7 +1094,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		return region;
 	}
 
-
 	/**
 	 * returns the message as it appears in the DefaultProvisioningDriver message bundle.
 	 *
@@ -1055,9 +1107,9 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		return getFormattedMessage(getDefaultProvisioningDriverMessageBundle(), msgName, arguments);
 	}
 
-
 	/**
 	 * Returns the message bundle of this cloud driver.
+	 *
 	 * @return the message bundle of this cloud driver.
 	 */
 	protected static ResourceBundle getDefaultProvisioningDriverMessageBundle() {
