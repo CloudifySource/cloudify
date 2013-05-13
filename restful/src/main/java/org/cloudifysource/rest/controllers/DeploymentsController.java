@@ -414,6 +414,7 @@ public class DeploymentsController extends BaseRestContoller {
 		deployConfig.setPackedFile(updatedPackedFile);
 		deployConfig.setService(service);
 		deployConfig.setTemplateName(templateName);
+		deployConfig.setAuthGroups(effectiveAuthGroups);
 		final ElasticDeploymentTopology deployment;
 		final ElasticProcessingUnitDeploymentFactory fac = new ElasticProcessingUnitDeploymentFactoryImpl();
 		try {
