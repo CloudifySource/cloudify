@@ -110,7 +110,7 @@ cloud {
 						// Optional. Location ID.
 						locationId locationId
 						// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
-						localDirectory "/"
+						localDirectory "upload"
 	
 						username "ec2-user"
 						// Additional template options.
@@ -144,7 +144,7 @@ cloud {
 						// Optional. Location ID.
 						locationId locationId
 						// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
-						localDirectory "/"
+						localDirectory "upload"
 	
 						username "ubuntu"
 						// Additional template options.
@@ -179,7 +179,7 @@ cloud {
 						// Optional. Location ID.
 						locationId locationId
 						// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
-						localDirectory "/"
+						localDirectory "upload"
 	
 						username "ubuntu"
 						// Additional template options.
