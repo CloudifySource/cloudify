@@ -188,7 +188,6 @@ public class DeploymentFactoryTest {
 	private DeploymentConfig createDeploymentConfig(final boolean isLocalcloud, final Service service) {
 		DeploymentConfig deploymentConfig = new DeploymentConfig();
 		final InstallServiceRequest installRequest = new InstallServiceRequest();
-		installRequest.setAuthGroups("DUMMY_AUTHGROUPS");
 		installRequest.setSelfHealing(true);
 		installRequest.setDebugAll(true);
 		deploymentConfig.setInstallRequest(installRequest);
@@ -206,6 +205,7 @@ public class DeploymentFactoryTest {
 		deploymentConfig.setPackedFile(new File("DUMMY_FILE"));
 		deploymentConfig.setTemplateName("SMALL_LINUX");
 		deploymentConfig.setCloudOverrides("envVariable=DEFAULT_OVERRIDES_ENV_VARIABLE");
+		deploymentConfig.setAuthGroups("DUMMY_AUTHGROUPS");
 		return deploymentConfig;
 	}
 	

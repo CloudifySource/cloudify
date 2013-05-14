@@ -1,5 +1,3 @@
-package apps.USM.usm.staticstorage.faulty
-
 import java.util.concurrent.TimeUnit
 
 import org.hyperic.sigar.FileSystem;
