@@ -41,7 +41,7 @@ service {
 			tomcatInstances=tomcatService.waitForInstances(tomcatService.numberOfPlannedInstances,60, TimeUnit.SECONDS)				
 			instanceProcessID=context.getInstanceId()			                       
 			tomcatInstances.each {
-				if ( instanceProcessID == it.instanceID ) {
+				if ( instanceProcessID == it.instanceId ) {
 					println "tomcat-service.groovy(updateWar customCommand):  instanceProcessID is ${instanceProcessID} now invoking updateWarFile..."
 					it.invoke("updateWarFile")
 				}
