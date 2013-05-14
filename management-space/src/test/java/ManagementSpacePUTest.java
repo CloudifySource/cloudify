@@ -46,7 +46,9 @@ public class ManagementSpacePUTest {
 	 */
 	@Before
 	public void before() throws UnknownHostException {
-		final String ip = java.net.InetAddress.getLocalHost().getHostAddress();
+		//final String ip = java.net.InetAddress.getLocalHost().getHostAddress();
+		// Adding localhost nic address to try and get past travis ipv6 issue
+		final String ip = "127.0.0.1";
 		System.setProperty("java.rmi.server.hostname", ip);
 	}
 
