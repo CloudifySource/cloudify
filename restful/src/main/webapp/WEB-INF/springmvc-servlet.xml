@@ -89,22 +89,12 @@
 	</beans>
 	
 	<beans profile="secure">
-		<bean id="permissionEvaluator" class="org.cloudifysource.security.CustomPermissionEvaluator" />
-		<bean id="expressionHandler" class="org.cloudifysource.security.ExtendedMethodSecurityExpressionHandler">
-			<property name="permissionEvaluator" ref="permissionEvaluator" />
-		</bean>
-		
 		<sec:global-method-security pre-post-annotations="enabled" proxy-target-class="true">
 			<sec:expression-handler ref="expressionHandler" />
 		</sec:global-method-security>	
 	</beans>
 	
 	<beans profile="nonsecure,default">
-		<bean id="permissionEvaluator" class="org.cloudifysource.security.CustomApproveAllPermissionEvaluator" />
-		<bean id="expressionHandler" class="org.cloudifysource.security.ExtendedMethodSecurityExpressionHandler">
-			<property name="permissionEvaluator" ref="permissionEvaluator" />
-		</bean>
-	
 		<sec:global-method-security pre-post-annotations="disabled" proxy-target-class="true">
 			<sec:expression-handler ref="expressionHandler" />
 		</sec:global-method-security>		

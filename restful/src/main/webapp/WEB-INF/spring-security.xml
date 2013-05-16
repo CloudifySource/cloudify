@@ -70,5 +70,19 @@
 		</constructor-arg>
 		<property name="UserDetailsContextMapper" ref="CustomLdapUserDetailsMapper"/>
 	</bean-->
+	
+	<beans profile="secure">
+		<bean id="permissionEvaluator" class="org.cloudifysource.security.CustomPermissionEvaluator" />
+		<bean id="expressionHandler" class="org.cloudifysource.security.ExtendedMethodSecurityExpressionHandler">
+			<property name="permissionEvaluator" ref="permissionEvaluator" />
+		</bean>
+	</beans>
+	
+	<beans profile="nonsecure,default">
+		<bean id="permissionEvaluator" class="org.cloudifysource.security.CustomApproveAllPermissionEvaluator" />
+		<bean id="expressionHandler" class="org.cloudifysource.security.ExtendedMethodSecurityExpressionHandler">
+			<property name="permissionEvaluator" ref="permissionEvaluator" />
+		</bean>
+	</beans>
 
 </beans>
