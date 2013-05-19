@@ -15,7 +15,9 @@
  *******************************************************************************/
 package org.cloudifysource.security;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -56,7 +58,7 @@ public class ExtendedMethodSecurityExpressionHandler extends
 	private RoleHierarchy roleHierarchy;
 
 	private Logger logger = java.util.logging.Logger.getLogger(ExtendedMethodSecurityExpressionHandler.class.getName());
-	
+
 	/**
 	 * Uses a {@link CustomMethodSecurityEvaluationContext} as the
 	 * <tt>EvaluationContext</tt> implementation and configures it with a
@@ -79,7 +81,7 @@ public class ExtendedMethodSecurityExpressionHandler extends
 
 		return ctx;
 	}
-	
+
 	@Override
 	public ExpressionParser getExpressionParser() {
         return expressionParser;
@@ -135,37 +137,35 @@ public class ExtendedMethodSecurityExpressionHandler extends
 				if (responseObject instanceof Map) {
 					@SuppressWarnings("unchecked")
 					Map<String, String> objectsMap = (Map<String, String>) responseObject;
-					//Map<Object, String> retainMap = new HashMap<Object, String>();
-					
+					Map<Object, String> retainMap = new HashMap<Object, String>();
+
 					for (Map.Entry<String, String> entry : objectsMap.entrySet()) {
 						String filterObject = entry.getValue();
 						rootObject.setFilterObject(filterObject);
-						if (!ExpressionUtils.evaluateAsBoolean(filterExpression, ctx)) {
-							objectsMap.remove(entry);
-							//retainMap.put(entry.getKey(), entry.getValue());
+						if (ExpressionUtils.evaluateAsBoolean(filterExpression, ctx)) {
+							retainMap.put(entry.getKey(), entry.getValue());
 						}
 					}
-					//returnValue = RestUtils.successStatus(retainMap);
-					
+					returnValue.put(CloudifyConstants.RESPONSE_KEY, retainMap);
+
 				} else if (responseObject instanceof List) {
 					@SuppressWarnings("unchecked")
 					List<Object> objectsList = (List<Object>) responseObject;
-					//List<Object> retainList = new ArrayList<Object>();
-					
+					List<Object> retainList = new ArrayList<Object>();
+
 					for (Object object : objectsList) {
 						if (object instanceof ApplicationDescription) {
 							rootObject.setFilterObject(((ApplicationDescription) object).getAuthGroups());
-							if (!ExpressionUtils.evaluateAsBoolean(filterExpression, ctx)) {
-								objectsList.remove(object);
-								//retainList.add(object);
+							if (ExpressionUtils.evaluateAsBoolean(filterExpression, ctx)) {
+								retainList.add(object);
 							}
 						}
-						
+
 					}
-					//returnValue = RestUtils.successStatus(retainList);
+					returnValue.put(CloudifyConstants.RESPONSE_KEY, retainList);
 				}
 			}
-			
+
 			return returnValue;
 		}
 
@@ -173,5 +173,4 @@ public class ExtendedMethodSecurityExpressionHandler extends
 				"Filter target must be a collection or array type, but was "
 						+ filterTarget);
 	}
-
 }
