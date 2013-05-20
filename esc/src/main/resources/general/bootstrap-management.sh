@@ -22,23 +22,23 @@
 # args:
 # $1 the error code of the last command (should be explicitly passed)
 # $2 the message to print in case of an error
-#
+# 
 # an error message is printed and the script exists with the provided error code
 function error_exit {
-	echo "$2 : error code: $1"
-	exit ${1}
+	echo "$3 : error code: $2"
+	exit ${2}
 }
 
 # args:
 # $1 the error code of the last command (should be explicitly passed)
-# $2 the message to print in case of an error
+# $2 the message to print in case of an error 
 # $3 the threshold to exit on
 #
-# if (last_error_code [$1]) >= (threshold [$3]) the provided message[$2] is printed and the script
-# exists with the provided error code ($1)
+# if (last_error_code [$1]) >= (threshold [$4]) (defaults to 0), the script
+# exits with the provided error code [$2] and the provided message [$3] is printed
 function error_exit_on_level {
-	if [ ${1} -ge ${3} ]; then
-		error_exit ${1} ${2}
+	if [ ${1} -ge ${4} ]; then
+		error_exit ${2} ${3}
 	fi
 }
 
@@ -69,8 +69,7 @@ else
 	if [ -f ${SCRIPTPATH}/../cloudify_env.sh ]; then
 		ENV_FILE_PATH=${SCRIPTPATH}/../cloudify_env.sh
 	else
-		echo Cloudify environment file not found! Bootstrapping cannot proceed!
-		exit 105
+		error_exit 100 "Cloudify environment file not found! Bootstrapping cannot proceed!"
 	fi
 
 fi
@@ -108,45 +107,45 @@ else
 	wget -q -O $WORKING_HOME_DIRECTORY/java.bin $GIGASPACES_AGENT_ENV_JAVA_URL || error_exit $? "Failed downloading Java installation from $GIGASPACES_AGENT_ENV_JAVA_URL"
 	chmod +x $WORKING_HOME_DIRECTORY/java.bin
 	echo -e "\n" > $WORKING_HOME_DIRECTORY/input.txt
-	rm -rf ~/java || error_exit $? "Failed removing old java installation directory"
+	rm -rf ~/java || error_exit $? 102 "Failed removing old java installation directory"
 	mkdir ~/java
 	cd ~/java
-
+	
 	echo Installing JDK
 	$WORKING_HOME_DIRECTORY/java.bin < $WORKING_HOME_DIRECTORY/input.txt > /dev/null
-	mv ~/java/*/* ~/java || error_exit $? "Failed moving JDK installation"
+	mv ~/java/*/* ~/java || error_exit $? 103 "Failed moving JDK installation"
 	rm -f $WORKING_HOME_DIRECTORY/input.txt
     export JAVA_HOME=~/java
-fi
+fi  
 
 export EXT_JAVA_OPTIONS="-Dcom.gs.multicast.enabled=false"
 
 if [ ! -z "$GIGASPACES_LINK" ]; then
 	echo Downloading cloudify installation from $GIGASPACES_LINK.tar.gz
-	wget -q $GIGASPACES_LINK.tar.gz -O $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz || error_exit $? "Failed downloading cloudify installation"
+	wget -q $GIGASPACES_LINK.tar.gz -O $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz || error_exit $? 104 "Failed downloading cloudify installation"
 fi
 
 if [ ! -z "$GIGASPACES_OVERRIDES_LINK" ]; then
 	echo Downloading cloudify overrides from $GIGASPACES_OVERRIDES_LINK.tar.gz
-	wget -q $GIGASPACES_OVERRIDES_LINK.tar.gz -O $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz || error_exit $? "Failed downloading cloudify overrides"
+	wget -q $GIGASPACES_OVERRIDES_LINK.tar.gz -O $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz || error_exit $? 105 "Failed downloading cloudify overrides"
 fi
 
 # Todo: Check this condition
 if [ ! -d "~/gigaspaces" -o $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz -nt ~/gigaspaces ]; then
-	rm -rf ~/gigaspaces || error_exit $? "Failed removing old gigaspaces directory"
-	mkdir ~/gigaspaces || error_exit $? "Failed creating gigaspaces directory"
+	rm -rf ~/gigaspaces || error_exit $? 106 "Failed removing old gigaspaces directory"
+	mkdir ~/gigaspaces || error_exit $? 107 "Failed creating gigaspaces directory"
 
 	# 2 is the error level threshold. 1 means only warnings
 	# this is needed for testing purposes on zip files created on the windows platform
-	tar xfz $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz -C ~/gigaspaces || error_exit_on_level $? "Failed extracting cloudify installation" 2
+	tar xfz $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz -C ~/gigaspaces || error_exit_on_level $? 108 "Failed extracting cloudify installation" 2
 
 	# Todo: consider removing this line
-	chmod -R 777 ~/gigaspaces || error_exit $? "Failed changing permissions in cloudify installion"
-	mv ~/gigaspaces/*/* ~/gigaspaces || error_exit $? "Failed moving cloudify installation"
+	chmod -R 777 ~/gigaspaces || error_exit $? 109 "Failed changing permissions in cloudify installation"
+	mv ~/gigaspaces/*/* ~/gigaspaces || error_exit $? 110 "Failed moving cloudify installation"
 
 	if [ ! -z "$GIGASPACES_OVERRIDES_LINK" ]; then
 		echo Copying overrides into cloudify distribution
-		tar xfz $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz -C ~/gigaspaces || error_exit_on_level $? "Failed extracting cloudify overrides" 2
+		tar xfz $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz -C ~/gigaspaces || error_exit_on_level $? 111 "Failed extracting cloudify overrides" 2
 	fi
 fi
 
@@ -157,13 +156,13 @@ fi
 
 # UPDATE SETENV SCRIPT...
 echo Updating environment script
-cd ~/gigaspaces/bin || error_exit $? "Failed changing directory to bin directory"
+cd ~/gigaspaces/bin || error_exit $? 112 "Failed changing directory to bin directory"
 
-sed -i "2i . ${ENV_FILE_PATH}" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "2i export NIC_ADDR=$MACHINE_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "2i export LOOKUPLOCATORS=$LUS_IP_ADDRESS" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "2i export PATH=$JAVA_HOME/bin:$PATH" setenv.sh || error_exit $? "Failed updating setenv.sh"
-sed -i "2i export JAVA_HOME=$JAVA_HOME" setenv.sh || error_exit $? "Failed updating setenv.sh"
+sed -i "2i . ${ENV_FILE_PATH}" setenv.sh || error_exit $? 113 "Failed updating setenv.sh"
+sed -i "2i export NIC_ADDR=$MACHINE_IP_ADDRESS" setenv.sh || error_exit $? 113 "Failed updating setenv.sh"
+sed -i "2i export LOOKUPLOCATORS=$LUS_IP_ADDRESS" setenv.sh || error_exit $? 113 "Failed updating setenv.sh"
+sed -i "2i export PATH=$JAVA_HOME/bin:$PATH" setenv.sh || error_exit $? 113 "Failed updating setenv.sh"
+sed -i "2i export JAVA_HOME=$JAVA_HOME" setenv.sh || error_exit $? 113 "Failed updating setenv.sh"
 
 
 # START AGENT ALONE OR WITH MANAGEMENT
@@ -172,7 +171,7 @@ if [ -f nohup.out ]; then
 fi
 
 if [ -f nohup.out ]; then
-   error_exit 1 "Failed to remove nohup.out Probably used by another process"
+   error_exit 114 "Failed to remove nohup.out, it might be used by another process"
 fi
 
 # Privileged mode handling
@@ -183,7 +182,7 @@ if [ "$GIGASPACES_AGENT_ENV_PRIVILEGED" = "true" ]; then
 		# root is privileged by definition
 		echo Running as root
 	else
-		sudo -n ls > /dev/null || error_exit_on_level $? "Current user is not a sudoer, or requires a password for sudo" 1
+		sudo -n ls > /dev/null || error_exit_on_level $? 115 "Current user is not a sudoer, or requires a password for sudo" 1
 	fi
 
 	# now modify sudoers configuration to allow execution without tty
@@ -201,10 +200,10 @@ if [ "$GIGASPACES_AGENT_ENV_PRIVILEGED" = "true" ]; then
 	else
 			# other - modify sudoers file
 			if [ ! -f "/etc/sudoers" ]; then
-					error_exit 101 "Could not find sudoers file at expected location (/etc/sudoers)"
+					error_exit 116 "Could not find sudoers file at expected location (/etc/sudoers)"
 			fi
 			echo Setting privileged mode
-			sudo sed -i 's/^Defaults.*requiretty/#&/g' /etc/sudoers || error_exit_on_level $? "Failed to edit sudoers file to disable requiretty directive" 1
+			sudo sed -i 's/^Defaults.*requiretty/#&/g' /etc/sudoers || error_exit_on_level $? 117 "Failed to edit sudoers file to disable requiretty directive" 1
 	fi
 
 fi
@@ -216,7 +215,7 @@ if [ ! -z "$GIGASPACES_AGENT_ENV_INIT_COMMAND" ]; then
 	$GIGASPACES_AGENT_ENV_INIT_COMMAND
 fi
 
-cd ~/gigaspaces/tools/cli || error_exit $? "Failed changing directory to cli directory"
+cd ~/gigaspaces/tools/cli || error_exit $? 118 "Failed changing directory to cli directory"
 
 START_COMMAND_ARGS="-timeout 30 --verbose -auto-shutdown"
 if [ "$GSA_MODE" = "agent" ]; then
@@ -229,7 +228,7 @@ else
 	if [ "$NO_WEB_SERVICES" = "true" ]; then
 		START_COMMAND_ARGS="${START_COMMAND_ARGS} -no-web-services -no-management-space"
 	fi
-fi
+fi	
 
 # Execute post-bootstrap customization script if exists
 run_script "post-bootstrap"
@@ -240,6 +239,7 @@ RETVAL=$?
 echo cat nohup.out
 cat nohup.out
 if [ $RETVAL -ne 0 ]; then
-  error_exit $RETVAL $ERRMSG
+	RETVAL=255
+	error_exit $RETVAL $ERRMSG
 fi
 exit 0
