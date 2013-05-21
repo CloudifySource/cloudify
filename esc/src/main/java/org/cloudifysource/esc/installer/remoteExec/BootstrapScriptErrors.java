@@ -12,7 +12,7 @@ import org.apache.commons.lang.StringUtils;
 public enum BootstrapScriptErrors {
 
     /**
-     * Script terminated unexpectedly
+     * Script terminated unexpectedly.
      */
     UNEXPECTED_TERMINATION("Script terminated unexpectedly"),
 
@@ -114,7 +114,7 @@ public enum BootstrapScriptErrors {
 	/**
 	 * Custom error.
 	 */
-	CUSTOM(255, "");
+	CUSTOM_ERROR(255, "");
 
 	private final int errorCode;
 	private final String errorMessage;

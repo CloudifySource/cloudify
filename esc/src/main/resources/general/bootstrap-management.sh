@@ -20,8 +20,8 @@
 #############################################################################
 
 # args:
-# $1 the error code of the last command (should be explicitly passed)
-# $2 the message to print in case of an error
+# $2 the error code of the last command (should be explicitly passed)
+# $3 the message to print in case of an error
 # 
 # an error message is printed and the script exists with the provided error code
 function error_exit {
@@ -104,7 +104,7 @@ else
 	export GIGASPACES_ORIGINAL_JAVA_HOME=$JAVA_HOME
 
 	echo Downloading JDK from $GIGASPACES_AGENT_ENV_JAVA_URL
-	wget -q -O $WORKING_HOME_DIRECTORY/java.bin $GIGASPACES_AGENT_ENV_JAVA_URL || error_exit $? "Failed downloading Java installation from $GIGASPACES_AGENT_ENV_JAVA_URL"
+	wget -q -O $WORKING_HOME_DIRECTORY/java.bin $GIGASPACES_AGENT_ENV_JAVA_URL || error_exit $? 101 "Failed downloading Java installation from $GIGASPACES_AGENT_ENV_JAVA_URL"
 	chmod +x $WORKING_HOME_DIRECTORY/java.bin
 	echo -e "\n" > $WORKING_HOME_DIRECTORY/input.txt
 	rm -rf ~/java || error_exit $? 102 "Failed removing old java installation directory"
@@ -238,8 +238,9 @@ nohup ./cloudify.sh $START_COMMAND $START_COMMAND_ARGS
 RETVAL=$?
 echo cat nohup.out
 cat nohup.out
+
 if [ $RETVAL -ne 0 ]; then
 	RETVAL=255
-	error_exit $RETVAL $ERRMSG
+	error_exit $? $RETVAL "$ERRMSG"
 fi
 exit 0
