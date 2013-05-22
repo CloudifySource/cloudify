@@ -37,6 +37,7 @@ public class CloudifyVersion implements ProductVersion {
 	private final String BUILD_NUM = "4983-34";
 	private final String V_NAME = "GigaSpaces";
 	private final String PRODUCT_HELP_URL = "http://www.cloudifysource.org/guide";
+    private final String BUILD_TIMESTAMP = "2234234.234234";
 
 	/** default constructor for Class.forName() - see com.j_spaces.kernel.PlatformVersion */
 	public CloudifyVersion() {
@@ -134,4 +135,9 @@ public class CloudifyVersion implements ProductVersion {
 	public String getProductHelpUrl() {
 		return PRODUCT_HELP_URL;
 	}
+
+    @Override
+    public String getBuildTimestamp() {
+        return BUILD_TIMESTAMP;
+    }
 }
