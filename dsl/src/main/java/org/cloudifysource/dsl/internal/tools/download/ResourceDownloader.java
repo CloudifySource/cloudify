@@ -241,8 +241,10 @@ public class ResourceDownloader {
             }
             finished = true;
         } catch (IOException e) {
-        	logger.warning("Failed downloading resource from " + downloadURL.toString());
-        	throw new ResourceDownloadException("Failed downloading resource.", e);
+        	logger.warning("Failed downloading resource from " + downloadURL.toString() 
+        			+ ". Reason was: " + e.getMessage());
+        	throw new ResourceDownloadException("Failed downloading resource. Reason was: " 
+        			+ e.getMessage(), e);
         } finally {
         	IOUtils.closeQuietly(os);
         	IOUtils.closeQuietly(is);
