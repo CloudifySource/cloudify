@@ -1,28 +1,29 @@
 /*******************************************************************************
  * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  ******************************************************************************/
 package org.cloudifysource.rest.controllers;
 
 import static org.cloudifysource.rest.ResponseConstants.HTTP_OK;
 import static org.cloudifysource.rest.util.RestUtils.successStatus;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 
 import net.jini.core.lease.Lease;
 
@@ -36,14 +37,18 @@ import org.cloudifysource.restDoclet.annotations.JsonRequestExample;
 import org.cloudifysource.restDoclet.annotations.JsonResponseExample;
 import org.cloudifysource.restDoclet.annotations.PossibleResponseStatus;
 import org.cloudifysource.restDoclet.annotations.PossibleResponseStatuses;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.context.GigaSpaceContext;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.gigaspaces.client.WriteModifiers;
 
@@ -61,8 +66,41 @@ public class AttributesController {
 	private static final Logger logger = Logger.getLogger(AttributesController.class.getName());
 
 	/**
+	 * Exception handler for all of known internal server exceptions.
+	 *
+	 * @param response
+	 *            The response object to edit, if not committed yet.
+	 * @param e
+	 *            The exception that occurred, from which data is read for logging and for the response error message.
+	 * @throws IOException
+	 *             Reporting failure to edit the response object
+	 */
+	@ExceptionHandler(RestErrorException.class)
+	@ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+	public void handleServerErrors(final HttpServletResponse response,
+			final RestErrorException e) throws IOException {
+
+		if (response.isCommitted()) {
+			logger.log(
+					Level.WARNING,
+					"Caught exception, but response already commited. Not sending error message based on exception",
+					e);
+		} else {
+			final Map<String, Object> errorDescriptionMap = e
+					.getErrorDescription();
+			final String errorMap = new ObjectMapper()
+					.writeValueAsString(errorDescriptionMap);
+			logger.log(Level.INFO, "caught exception. Sending response message "
+					+ errorDescriptionMap.get("error"), e);
+			final byte[] messageBytes = errorMap.getBytes();
+			final ServletOutputStream outputStream = response.getOutputStream();
+			outputStream.write(messageBytes);
+		}
+	}
+
+	/**
 	 * Gets an attribute value, scope: instance attributes.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param serviceName
@@ -102,7 +140,7 @@ public class AttributesController {
 
 	/**
 	 * Gets multiple attributes' values, scope: instance attributes.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param serviceName
@@ -141,9 +179,8 @@ public class AttributesController {
 	}
 
 	/**
-	 * Gets multiple attributes' values, from all instances, scope: instance
-	 * attributes.
-	 * 
+	 * Gets multiple attributes' values, from all instances, scope: instance attributes.
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param serviceName
@@ -181,7 +218,7 @@ public class AttributesController {
 
 	/**
 	 * Gets an attribute value, scope: service attributes.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param serviceName
@@ -219,7 +256,7 @@ public class AttributesController {
 
 	/**
 	 * Gets multiple attributes' values, scope: service attributes.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param serviceName
@@ -255,7 +292,7 @@ public class AttributesController {
 
 	/**
 	 * Gets an attribute value, scope: application attributes.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param attributeName
@@ -287,7 +324,7 @@ public class AttributesController {
 
 	/**
 	 * Gets multiple attributes' values, scope: application attributes.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @return a Map containing the attributes' names (keys) and values.
@@ -318,7 +355,7 @@ public class AttributesController {
 
 	/**
 	 * Gets an attribute value, scope: global attributes.
-	 * 
+	 *
 	 * @param attributeName
 	 *            The name (key) of the attribute to get.
 	 * @return The attribute's value.
@@ -346,7 +383,7 @@ public class AttributesController {
 
 	/**
 	 * Gets multiple attributes' values, scope: global attributes.
-	 * 
+	 *
 	 * @return a Map containing the attributes' names (keys) and values.
 	 */
 	@JsonResponseExample(status = "success",
@@ -374,7 +411,7 @@ public class AttributesController {
 
 	/**
 	 * Sets an attribute value, scope: instance attributes.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param serviceName
@@ -420,7 +457,7 @@ public class AttributesController {
 
 	/**
 	 * Sets multiple attributes' values, scope: instance attributes.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param serviceName
@@ -428,8 +465,7 @@ public class AttributesController {
 	 * @param instanceId
 	 *            The service instance id.
 	 * @param attributesMap
-	 *            a Map containing the attributes' names (keys) and values to
-	 *            set.
+	 *            a Map containing the attributes' names (keys) and values to set.
 	 * @return The status of the operation.
 	 */
 	@JsonRequestExample(requestBody =
@@ -454,7 +490,7 @@ public class AttributesController {
 
 	/**
 	 * Sets an attribute value, scope: service attributes.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param serviceName
@@ -498,14 +534,13 @@ public class AttributesController {
 
 	/**
 	 * Sets multiple attributes' values, scope: service attributes.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param serviceName
 	 *            The service name.
 	 * @param attributesMap
-	 *            a Map containing the attributes' names (keys) and values to
-	 *            set.
+	 *            a Map containing the attributes' names (keys) and values to set.
 	 * @return A map of the previous values.
 	 */
 	@JsonRequestExample(requestBody =
@@ -529,7 +564,7 @@ public class AttributesController {
 
 	/**
 	 * Sets an attribute value, scope: application attributes.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param attributeName
@@ -568,12 +603,11 @@ public class AttributesController {
 
 	/**
 	 * Sets multiple attributes' values, scope: application attributes.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param attributesMap
-	 *            a Map containing the attributes' names (keys) and values to
-	 *            set.
+	 *            a Map containing the attributes' names (keys) and values to set.
 	 * @return A map of the previous values.
 	 */
 	@JsonRequestExample(requestBody =
@@ -624,7 +658,7 @@ public class AttributesController {
 
 	/**
 	 * Sets an attribute value, scope: global attributes.
-	 * 
+	 *
 	 * @param attributeName
 	 *            The name of the attribute to get.
 	 * @param attributeValue
@@ -659,10 +693,9 @@ public class AttributesController {
 
 	/**
 	 * Sets multiple attributes' values, scope: global attributes.
-	 * 
+	 *
 	 * @param attributesMap
-	 *            a Map containing the attributes' names (keys) and values to
-	 *            set.
+	 *            a Map containing the attributes' names (keys) and values to set.
 	 * @return A map of the previous values.
 	 */
 	@JsonRequestExample(requestBody = "{\"attribute1Name\":\"attribute1Value\",\"attribute2Name\":\"attribute2Value\"}")
@@ -682,7 +715,7 @@ public class AttributesController {
 
 	/**
 	 * Deletes an attribute value, scope: instance attributes.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param serviceName
@@ -692,6 +725,7 @@ public class AttributesController {
 	 * @param attributeName
 	 *            The name of the attribute to get.
 	 * @return The previous value.
+	 * @throws RestErrorException .
 	 */
 	@JsonResponseExample(status = "success", responseBody = "{\"attributeName\":\"attributeValue\"}",
 			comments = "attributeValue is the previous value (before deleted)")
@@ -701,7 +735,7 @@ public class AttributesController {
 	@ResponseBody
 	public Object deleteInstanceAttribute(@PathVariable final String applicationName,
 			@PathVariable final String serviceName, @PathVariable final int instanceId,
-			@PathVariable final String attributeName) {
+			@PathVariable final String attributeName) throws RestErrorException {
 
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to delete attribute " + attributeName + " of instance number " + instanceId
@@ -714,15 +748,13 @@ public class AttributesController {
 		// take (delete)
 		final InstanceCloudifyAttribute previousValue = gigaSpace.take(attribute);
 
-		final Object value = previousValue != null ? previousValue.getValue() : null;
-		final Map<String, Object> mapResult = new HashMap<String, Object>();
-		mapResult.put(attributeName, value);
+		final Map<String, Object> mapResult = createDeleteAttributeResponseMap(attributeName, previousValue);
 		return mapResult;
 	}
 
 	/**
 	 * Deletes multiple attributes, scope: instance attributes.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param serviceName
@@ -761,7 +793,7 @@ public class AttributesController {
 
 	/**
 	 * Deletes an attribute value, scope: service attributes.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param serviceName
@@ -769,6 +801,7 @@ public class AttributesController {
 	 * @param attributeName
 	 *            The name of the attribute to get.
 	 * @return The previous value.
+	 * @throws RestErrorException .
 	 */
 	@JsonResponseExample(status = "success", responseBody = "{\"attributeName\":\"attributeValue\"}",
 			comments = "attributeValue is the previous value (before deleted)")
@@ -777,7 +810,8 @@ public class AttributesController {
 			method = RequestMethod.DELETE)
 	@ResponseBody
 	public Object deleteServiceAttribute(@PathVariable final String applicationName,
-			@PathVariable final String serviceName, @PathVariable final String attributeName) {
+			@PathVariable final String serviceName, @PathVariable final String attributeName)
+					throws RestErrorException {
 
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to delete attribute " + attributeName
@@ -790,15 +824,13 @@ public class AttributesController {
 		// take (delete)
 		final ServiceCloudifyAttribute previousValue = gigaSpace.take(attribute);
 
-		final Object value = previousValue != null ? previousValue.getValue() : null;
-		final Map<String, Object> mapResult = new HashMap<String, Object>();
-		mapResult.put(attributeName, value);
+		final Map<String, Object> mapResult = createDeleteAttributeResponseMap(attributeName, previousValue);
 		return mapResult;
 	}
 
 	/**
 	 * Deletes multiple attributes, scope: service attributes.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param serviceName
@@ -834,12 +866,13 @@ public class AttributesController {
 
 	/**
 	 * Deletes an attribute value, scope: application attributes.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @param attributeName
 	 *            The name of the attribute to get.
 	 * @return The previous value.
+	 * @throws RestErrorException .
 	 */
 	@JsonResponseExample(status = "success", responseBody = "{\"attributeName\":\"attributeValue\"}",
 			comments = "attributeValue is the previous value (before deleted)")
@@ -847,7 +880,7 @@ public class AttributesController {
 	@RequestMapping(value = "applications/{applicationName}/{attributeName}", method = RequestMethod.DELETE)
 	@ResponseBody
 	public Object deleteApplicationAttribute(@PathVariable final String applicationName,
-			@PathVariable final String attributeName) {
+			@PathVariable final String attributeName) throws RestErrorException {
 
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to delete attribute " + attributeName
@@ -859,15 +892,13 @@ public class AttributesController {
 		// take (delete)
 		final ApplicationCloudifyAttribute previousValue = gigaSpace.take(attribute);
 
-		final Object value = previousValue != null ? previousValue.getValue() : null;
-		final Map<String, Object> mapResult = new HashMap<String, Object>();
-		mapResult.put(attributeName, value);
+		final Map<String, Object> mapResult = createDeleteAttributeResponseMap(attributeName, previousValue);
 		return mapResult;
 	}
 
 	/**
 	 * Deletes multiple attributes, scope: application attributes.
-	 * 
+	 *
 	 * @param applicationName
 	 *            The application name.
 	 * @return A map of the previous values.
@@ -897,17 +928,18 @@ public class AttributesController {
 
 	/**
 	 * Deletes an attribute, scope: global attributes.
-	 * 
+	 *
 	 * @param attributeName
 	 *            The name of the attribute to delete.
 	 * @return The previous value.
+	 * @throws RestErrorException .
 	 */
 	@JsonResponseExample(status = "success", responseBody = "{\"attributeName\":\"attributeValue\"}",
 			comments = "attributeValue is the previous value (before deleted)")
 	@PossibleResponseStatuses(responseStatuses = { @PossibleResponseStatus(code = HTTP_OK, description = "success") })
 	@RequestMapping(value = "globals/{attributeName}", method = RequestMethod.DELETE)
 	@ResponseBody
-	public Object deleteGlobalAttribute(@PathVariable final String attributeName) {
+	public Object deleteGlobalAttribute(@PathVariable final String attributeName) throws RestErrorException {
 
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("received request to delete global attribute: " + attributeName);
@@ -916,16 +948,29 @@ public class AttributesController {
 		final GlobalCloudifyAttribute attribute = new GlobalCloudifyAttribute(attributeName, null);
 		// take (delete)
 		final GlobalCloudifyAttribute previousValue = gigaSpace.take(attribute);
+		final Map<String, Object> mapResult = createDeleteAttributeResponseMap(attributeName, previousValue);
 
-		final Object value = previousValue != null ? previousValue.getValue() : null;
-		final Map<String, Object> mapResult = new HashMap<String, Object>();
-		mapResult.put(attributeName, value);
 		return mapResult;
+	}
+
+	private Map<String, Object> createDeleteAttributeResponseMap(final String attributeName,
+			final AbstractCloudifyAttribute previousValue) throws RestErrorException {
+		final boolean found = (previousValue != null);
+
+		if (found) {
+			final Map<String, Object> mapResult = new HashMap<String, Object>();
+			final Object value = previousValue.getValue();
+			mapResult.put(attributeName, value);
+			return mapResult;
+		} else {
+			throw new RestErrorException("attribute_not_found", attributeName);
+		}
+
 	}
 
 	/**
 	 * Deletes multiple attributes, scope: global attributes.
-	 * 
+	 *
 	 * @return A list of the previous values.
 	 */
 	@JsonResponseExample(status = "success",

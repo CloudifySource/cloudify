@@ -16,6 +16,7 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -47,10 +48,9 @@ import org.codehaus.jackson.map.ObjectMapper;
 import com.j_spaces.kernel.PlatformVersion;
 
 /**
- * This class implements the {@link org.cloudifysource.shell.AdminFacade},
- * relying on the abstract implementation of {@link AbstractAdminFacade}.
- * It discovers and manages applications, services, containers and other components over REST, using the
- * {@link GSRestClient}.
+ * This class implements the {@link org.cloudifysource.shell.AdminFacade}, relying on the abstract implementation of
+ * {@link AbstractAdminFacade}. It discovers and manages applications, services, containers and other components over
+ * REST, using the {@link GSRestClient}.
  *
  * @author rafi, barakm, adaml, noak
  * @since 2.0.0
@@ -721,14 +721,23 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			final String applicationName, final String... attributeNames)
 			throws CLIException {
 		final String url = getRelativeUrlForAttributes(scope, applicationName);
-		for (final String attributeName : attributeNames) {
+		for (int i = 0; i < attributeNames.length; ++i) {
+			final String attributeName = attributeNames[i];
+
 			try {
 				client.delete(url + "/" + attributeName);
 			} catch (final ErrorStatusException e) {
-				throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
-			}
-		}
+				if (i != 0) {
+					final String[] deletedAttributes = Arrays.copyOfRange(attributeNames, 0, i);
+					logger.severe(ShellUtils.getFormattedMessage("attribute_not_deleted_some_deleted", attributeName,
+							Arrays.toString(deletedAttributes)));
 
+				}
+				throw new CLIStatusException(e);
+
+			}
+
+		}
 	}
 
 	private String getRelativeUrlForAttributes(final String scope,

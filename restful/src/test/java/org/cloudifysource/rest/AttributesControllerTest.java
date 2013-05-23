@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -18,9 +18,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.cloudifysource.rest.controllers.AttributesController;
+import org.cloudifysource.rest.controllers.RestErrorException;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
@@ -29,12 +29,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.method.HandlerMethod;
 
 /**
- * This class tests different calls (get/post) to the attributes controller web service, over REST. 
- * The new spring REST testing framework is being used.
- * 
+ * This class tests different calls (get/post) to the attributes controller web service, over REST. The new spring REST
+ * testing framework is being used.
+ *
  * @author noak
  */
-@Ignore
 // Swap the default JUnit4 with the spring specific SpringJUnit4ClassRunner.
 // This will allow spring to inject the application context
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -51,15 +50,27 @@ public class AttributesControllerTest extends ControllerTest {
 	private List<String> multipleAttributesUris;
 	private HashMap<String, HashMap<RequestMethod, HandlerMethod>> controllerMapping;
 
-
+	@Override
 	public HandlerMethod getExpectedMethod(final String requestUri, final RequestMethod requestMethod) {
 		final HashMap<RequestMethod, HandlerMethod> uriMap = controllerMapping.get(requestUri);
 		Assert.assertNotNull(uriMap);
 		return uriMap.get(requestMethod);
 	}
-	
+
+	private static final String SINGLE_SERVICE_ATTRIBUTE_URI = "/attributes/services/"
+			+ APPLICATION_NAME + "/" + SERVICE_NAME + "/" + ATTRIBUTE_NAME;
+
+	private static final String SINGLE_GLOBAL_ATTRIBUTE_URI = "/attributes/globals/" + ATTRIBUTE_NAME;
+	private static final String SINGLE_APPLICATION_ATTRIBUTE_URI = "/attributes/applications/"
+			+ APPLICATION_NAME + "/" + ATTRIBUTE_NAME;
+
+	private static final String SINGLE_INSTANCE_ATTRIBUTE_URI = "/attributes/instances/"
+			+ APPLICATION_NAME + "/" + SERVICE_NAME + "/" + INSTANCE_ID
+			+ "/" + ATTRIBUTE_NAME;
+
 	/**
 	 * Initialize the basic objects that are used widely in the tests.
+	 *
 	 * @return the mapping from uri and http method to the correct handler method
 	 * @throws NoSuchMethodException
 	 *             Indicates the defined {@link HandlerMethod} does not exist
@@ -72,8 +83,8 @@ public class AttributesControllerTest extends ControllerTest {
 		multipleAttributesUris = new LinkedList<String>();
 
 		// global scope, single attribute
-		final String singleGlobalAttributeUri = "/attributes/globals/" + ATTRIBUTE_NAME;
-		singleAttributeUris.add(singleGlobalAttributeUri);
+
+		singleAttributeUris.add(SINGLE_GLOBAL_ATTRIBUTE_URI);
 		final HashMap<RequestMethod, HandlerMethod> singleGlobalAttributeHandlers =
 				new HashMap<RequestMethod, HandlerMethod>();
 		singleGlobalAttributeHandlers.put(RequestMethod.GET, new HandlerMethod(
@@ -96,9 +107,7 @@ public class AttributesControllerTest extends ControllerTest {
 				controller, "deleteGlobalAttributes"));
 
 		// application scope, single attribute
-		final String singleApplicationAttributeUri = "/attributes/applications/"
-				+ APPLICATION_NAME + "/" + ATTRIBUTE_NAME;
-		singleAttributeUris.add(singleApplicationAttributeUri);
+		singleAttributeUris.add(SINGLE_APPLICATION_ATTRIBUTE_URI);
 		final HashMap<RequestMethod, HandlerMethod> singleApplicationAttributeHandlers =
 				new HashMap<RequestMethod, HandlerMethod>();
 		singleApplicationAttributeHandlers.put(RequestMethod.GET, new HandlerMethod(
@@ -126,9 +135,7 @@ public class AttributesControllerTest extends ControllerTest {
 						String.class));
 
 		// service scope, single attribute
-		final String singleServiceAttributeUri = "/attributes/services/"
-				+ APPLICATION_NAME + "/" + SERVICE_NAME + "/" + ATTRIBUTE_NAME;
-		singleAttributeUris.add(singleServiceAttributeUri);
+		singleAttributeUris.add(SINGLE_SERVICE_ATTRIBUTE_URI);
 		final HashMap<RequestMethod, HandlerMethod> singleServiceAttributeHandlers =
 				new HashMap<RequestMethod, HandlerMethod>();
 		singleServiceAttributeHandlers.put(RequestMethod.GET, new HandlerMethod(
@@ -156,10 +163,7 @@ public class AttributesControllerTest extends ControllerTest {
 				controller, "deleteServiceAttributes", String.class, String.class));
 
 		// instance scope, single attribute
-		final String singleInstanceAttributeUri = "/attributes/instances/"
-				+ APPLICATION_NAME + "/" + SERVICE_NAME + "/" + INSTANCE_ID
-				+ "/" + ATTRIBUTE_NAME;
-		singleAttributeUris.add(singleInstanceAttributeUri);
+		singleAttributeUris.add(SINGLE_INSTANCE_ATTRIBUTE_URI);
 		final HashMap<RequestMethod, HandlerMethod> singleInstanceAttributeHandlers =
 				new HashMap<RequestMethod, HandlerMethod>();
 		singleInstanceAttributeHandlers.put(RequestMethod.GET, new HandlerMethod(
@@ -189,10 +193,10 @@ public class AttributesControllerTest extends ControllerTest {
 				String.class, int.class));
 
 		controllerMapping = new HashMap<String, HashMap<RequestMethod, HandlerMethod>>();
-		controllerMapping.put(singleGlobalAttributeUri, singleGlobalAttributeHandlers);
-		controllerMapping.put(singleApplicationAttributeUri, singleApplicationAttributeHandlers);
-		controllerMapping.put(singleServiceAttributeUri, singleServiceAttributeHandlers);
-		controllerMapping.put(singleInstanceAttributeUri, singleInstanceAttributeHandlers);
+		controllerMapping.put(SINGLE_GLOBAL_ATTRIBUTE_URI, singleGlobalAttributeHandlers);
+		controllerMapping.put(SINGLE_APPLICATION_ATTRIBUTE_URI, singleApplicationAttributeHandlers);
+		controllerMapping.put(SINGLE_SERVICE_ATTRIBUTE_URI, singleServiceAttributeHandlers);
+		controllerMapping.put(SINGLE_INSTANCE_ATTRIBUTE_URI, singleInstanceAttributeHandlers);
 		controllerMapping.put(multipleGlobalAttributesUri, multipleGlobalAttributesHandlers);
 		controllerMapping.put(multipleApplicationAttributesUri, multipleApplicationAttributesHandlers);
 		controllerMapping.put(multipleServiceAttributesUri, multipleServiceAttributesHandlers);
@@ -201,10 +205,30 @@ public class AttributesControllerTest extends ControllerTest {
 		// TODO: fix license
 	}
 
+	@Test(expected = RestErrorException.class)
+	public void testRemoveMissingGlobalAttribute() throws Exception {
+		testDelete(SINGLE_GLOBAL_ATTRIBUTE_URI, convertToJson(new HashMap<Object, Object>()));
+	}
+
+	@Test(expected = RestErrorException.class)
+	public void testRemoveMissingApplicationAttribute() throws Exception {
+		testDelete(SINGLE_APPLICATION_ATTRIBUTE_URI, convertToJson(new HashMap<Object, Object>()));
+	}
+
+	@Test(expected = RestErrorException.class)
+	public void testRemoveMissingServiceAttribute() throws Exception {
+		testDelete(SINGLE_SERVICE_ATTRIBUTE_URI, convertToJson(new HashMap<Object, Object>()));
+	}
+
+	@Test(expected = RestErrorException.class)
+	public void testRemoveMissingInstanceAttribute() throws Exception {
+		testDelete(SINGLE_INSTANCE_ATTRIBUTE_URI, convertToJson(new HashMap<Object, Object>()));
+	}
+
 	/**
 	 * Test GET & POST calls for getting or setting a single attribute, in all 4 scopes (global, application, service &
 	 * instance).
-	 * 
+	 *
 	 * @throws Exception
 	 *             Indicates the GET / POST call failed.
 	 */
@@ -231,7 +255,7 @@ public class AttributesControllerTest extends ControllerTest {
 	/**
 	 * Test GET & POST calls for getting or setting multiple attributes at once, in all 4 scopes (global, application,
 	 * service & instance).
-	 * 
+	 *
 	 * @throws Exception
 	 *             Indicates the GET / POST call failed.
 	 */
