@@ -68,6 +68,7 @@ import org.jclouds.providers.Providers;
 import org.jclouds.rest.RestContext;
 
 import com.google.common.base.Predicate;
+import com.j_spaces.kernel.Environment;
 
 /**************
  * A jclouds-based CloudifyProvisioning implementation. Uses the JClouds Compute Context API to provision an image with
@@ -81,6 +82,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		ProvisioningDriver, ProvisioningDriverClassContextAware,
 		CustomServiceDataAware, ManagementLocator {
 
+	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
 	private static final String PUBLIC_IP_REGEX = "org.cloudifysource.default-cloud-driver.public-ip-regex";
 	private static final String PUBLIC_IP_CIDR = "org.cloudifysource.default-cloud-driver.public-ip-cidr";
 	private static final String PRIVATE_IP_REGEX = "org.cloudifysource.default-cloud-driver.private-ip-regex";
@@ -92,10 +94,16 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	private static final String OPENSTACK_API = "openstack-nova";
 	private static final String CLOUDSTACK = "cloudstack";
 	private static final String ENDPOINT_OVERRIDE = "jclouds.endpoint";
+	private static final String CLOUDS_FOLDER_PATH = Environment.getHomeDirectory() + "clouds";
+
 
 	// TODO: should it be volatile?
 	private static ResourceBundle defaultProvisioningDriverMessageBundle;
 
+	private String cloudFolder;
+	private String groovyFile;
+	private String propertiesFile;	
+	
 	private JCloudsDeployer deployer;
 	private SubnetInfo privateSubnetInfo;
 	private Pattern privateIpPattern;
@@ -742,6 +750,10 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		// it is now supported by jclouds.
 
 		String providerName = cloud.getProvider().getProvider();
+		cloudFolder = CLOUDS_FOLDER_PATH + FILE_SEPARATOR + cloud.getName();
+		groovyFile = cloudFolder + FILE_SEPARATOR + cloud.getName() + "-cloud.groovy";
+		propertiesFile = cloudFolder + FILE_SEPARATOR + cloud.getName() + "-cloud.properties";
+		
 		String apiId;
 		boolean endpointRequired = false;
 
@@ -761,11 +773,13 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 				validationContext.validationEventEnd(ValidationResultType.OK);
 			} catch (NoSuchElementException ex) {
 				validationContext.validationEventEnd(ValidationResultType.ERROR);
-				throw new CloudProvisioningException("Provider not supported: " + providerName, ex);
+				throw new CloudProvisioningException(getFormattedMessage("error_provider_or_api_name_validation",
+						providerName, cloudFolder), ex);
 			}
 		}
 		validateComputeTemplates(endpointRequired, apiId, validationContext);
 	}
+	
 
 	private void validateComputeTemplates(final boolean endpointRequired, final String apiId,
 			final ValidationContext validationContext) throws CloudProvisioningException {
@@ -803,7 +817,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 				} catch (IOException e) {
 					closeDeployer(deployer);
 					validationContext.validationEventEnd(ValidationResultType.ERROR);
-					throw new CloudProvisioningException("Authentication to the cloud failed");
+					throw new CloudProvisioningException(getFormattedMessage("error_cloud_credentials_validation",
+							groovyFile, propertiesFile));
 				}
 
 				imageId = template.getImageId();
@@ -826,7 +841,13 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 					validationContext.validationEventEnd(ValidationResultType.OK);
 				} catch (Exception ex) {
 					validationContext.validationEventEnd(ValidationResultType.ERROR);
-					throw new CloudProvisioningException("Invalid template configuration: " + ex.getMessage(), ex);
+					throw new CloudProvisioningException(
+							getFormattedMessage("error_image_hardware_location_combination_validation",
+							imageId == null ? "" : imageId,
+									hardwareId == null ? "" : hardwareId, locationId == null ? "" : locationId,
+											groovyFile, propertiesFile), ex);
+					//throw new CloudProvisioningException(getFormattedMessage("error_template_validation",
+					//		templateName, ex.getMessage(), CLOUDS_FOLDER_PATH + FILE_SEPARATOR + cloud.getName()), ex);
 				}
 
 				if (isKnownAPI(apiId)) {
@@ -842,6 +863,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			closeDeployer(deployer);
 		}
 	}
+	
 
 	private void validateSecurityGroupsForTemplate(final ComputeTemplate template, final String apiId,
 			final ComputeServiceContext computeServiceContext, final ValidationContext validationContext)
@@ -901,10 +923,9 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 						}
 
 						validationContext.validationEventEnd(ValidationResultType.OK);
-					} catch (Exception ex) {
+					} catch (CloudProvisioningException ex) {
 						validationContext.validationEventEnd(ValidationResultType.ERROR);
-						throw new CloudProvisioningException("Invalid security groups configuration: "
-								+ ex.getMessage(), ex);
+						throw ex;
 					}
 				}
 			} else {
@@ -912,6 +933,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			}
 		}
 	}
+	
 
 	private void validateKeyPairForTemplate(final ComputeTemplate template, final String apiId,
 			final ComputeServiceContext computeServiceContext, final ValidationContext validationContext)
@@ -960,14 +982,15 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 					}
 
 					validationContext.validationEventEnd(ValidationResultType.OK);
-				} catch (Exception ex) {
+					
+				} catch (CloudProvisioningException ex) {
 					validationContext.validationEventEnd(ValidationResultType.ERROR);
-					throw new CloudProvisioningException("Invalid key-pair configuration: " + ex.getMessage(), ex);
+					throw ex;
 				}
 			}
 		}
-
 	}
+	
 
 	private void validateEC2KeyPair(final ComputeServiceContext computeServiceContext, final String locationId,
 			final String keyPairName) throws CloudProvisioningException {
@@ -977,10 +1000,11 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		String region = JCloudsUtils.getEC2region(ec2Client, locationId);
 		Set<KeyPair> foundKeyPairs = ec2KeyPairClient.describeKeyPairsInRegion(region, keyPairName);
 		if (foundKeyPairs == null || foundKeyPairs.size() == 0 || foundKeyPairs.iterator().next() == null) {
-			throw new CloudProvisioningException(
-					"Key pair \"" + keyPairName + "\" is invalid or in the wrong availability zone");
+			throw new CloudProvisioningException(getFormattedMessage("error_key_pair_validation", keyPairName, 
+					groovyFile, propertiesFile));
 		}
 	}
+	
 
 	private void validateOpenstackKeyPair(final ComputeServiceContext computeServiceContext, final String locationId,
 			final String keyPairName) throws CloudProvisioningException {
@@ -989,10 +1013,11 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		Predicate<org.jclouds.openstack.nova.v2_0.domain.KeyPair> keyPairNamePredicate =
 				org.jclouds.openstack.nova.v2_0.predicates.KeyPairPredicates.nameEquals(keyPairName);
 		if (!keyPairApi.list().anyMatch(keyPairNamePredicate)) {
-			throw new CloudProvisioningException(
-					"Key pair \"" + keyPairName + "\" is invalid or in the wrong availability zone");
+			throw new CloudProvisioningException(getFormattedMessage("error_key_pair_validation", keyPairName, 
+					groovyFile, propertiesFile));
 		}
 	}
+	
 
 	private boolean isKnownAPI(final String apiName) {
 		boolean supported = false;
@@ -1006,6 +1031,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 		return supported;
 	}
+	
 
 	private void validateEc2SecurityGroups(final EC2Client ec2Client, final String locationId,
 			final String[] securityGroupsInRegion) throws CloudProvisioningException {
@@ -1023,13 +1049,18 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		}
 
 		if (missingSecurityGroups.size() == 1) {
-			throw new CloudProvisioningException("Invalid security group name: "
-					+ missingSecurityGroups.iterator().next());
+			throw new CloudProvisioningException(getFormattedMessage("error_security_group_validation",
+					missingSecurityGroups.iterator().next(), groovyFile, propertiesFile));
+			//throw new CloudProvisioningException("Invalid security group name: "
+			//		+ missingSecurityGroups.iterator().next());
 		} else if (missingSecurityGroups.size() > 1) {
-			throw new CloudProvisioningException("Invalid security group names: "
-					+ Arrays.toString(missingSecurityGroups.toArray()));
+			throw new CloudProvisioningException(getFormattedMessage("error_security_groups_validation",
+					Arrays.toString(missingSecurityGroups.toArray()), groovyFile, propertiesFile));
+			//throw new CloudProvisioningException("Invalid security group names: "
+			//		+ Arrays.toString(missingSecurityGroups.toArray()));
 		}
 	}
+	
 
 	private void validateOpenstackSecurityGroups(final NovaApi novaApi, final String region,
 			final String[] securityGroupsInRegion) throws CloudProvisioningException {
@@ -1046,13 +1077,18 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		}
 
 		if (missingSecurityGroups.size() == 1) {
-			throw new CloudProvisioningException("Invalid security group name: "
-					+ missingSecurityGroups.iterator().next());
+			throw new CloudProvisioningException(getFormattedMessage("error_security_group_validation",
+					missingSecurityGroups.iterator().next(), groovyFile, propertiesFile));
+			//throw new CloudProvisioningException("Invalid security group name: "
+			//		+ missingSecurityGroups.iterator().next());
 		} else if (missingSecurityGroups.size() > 1) {
-			throw new CloudProvisioningException("Invalid security group names: "
-					+ Arrays.toString(missingSecurityGroups.toArray()));
+			throw new CloudProvisioningException(getFormattedMessage("error_security_groups_validation",
+					Arrays.toString(missingSecurityGroups.toArray()), groovyFile, propertiesFile));
+			//throw new CloudProvisioningException("Invalid security group names: "
+			//		+ Arrays.toString(missingSecurityGroups.toArray()));
 		}
 	}
+	
 
 	private String getEndpoint(final ComputeTemplate template) {
 		String endpoint = null;
@@ -1064,6 +1100,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 		return endpoint;
 	}
+	
 
 	private void closeDeployer(final JCloudsDeployer jcloudsDeployer) {
 		if (jcloudsDeployer != null) {
@@ -1072,6 +1109,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			logger.fine("Cloud deployer closed");
 		}
 	}
+	
 
 	private String getOpenstackLocationByHardwareId(final String hardwareId) {
 		String region = "";
@@ -1093,6 +1131,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		logger.fine("region: " + region);
 		return region;
 	}
+	
 
 	/**
 	 * returns the message as it appears in the DefaultProvisioningDriver message bundle.
@@ -1106,6 +1145,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	protected static String getFormattedMessage(final String msgName, final Object... arguments) {
 		return getFormattedMessage(getDefaultProvisioningDriverMessageBundle(), msgName, arguments);
 	}
+	
 
 	/**
 	 * Returns the message bundle of this cloud driver.
