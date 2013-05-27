@@ -100,8 +100,7 @@ public class ByonDeployer {
 				if (template.getRemoteExecution() == RemoteExecutionModes.WINRM) {
 					node.setLoginPort(RemoteExecutionModes.WINRM.getDefaultPort());
 				}
-				IPUtils.validateConnection(node.getPrivateIP(),
-						node.getLoginPort());
+				IPUtils.validateConnection(node.getPrivateIP(), node.getLoginPort());
 				resolvedNodes.add(node);
 			} catch (final Exception ex) {
 				// this node is not reachable - add it to the invalid nodes pool
@@ -525,8 +524,8 @@ public class ByonDeployer {
 	}
 
 	/**
-	 * * Invalidates the given node (i.e. moves it from the free pool to the invalidated pool), so it will not be
-	 * allocated unless all the free nodes are in use.
+	 *  Invalidates the given node (i.e. moves it from the free pool to the invalid pool), so it will not be
+	 *  allocated unless all the free nodes are in use.
 	 *
 	 * @param templateName
 	 *            The template this server belongs to
