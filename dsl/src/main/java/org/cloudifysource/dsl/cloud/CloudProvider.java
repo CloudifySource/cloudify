@@ -51,9 +51,6 @@ public class CloudProvider {
 
 	private String machineNamePrefix;
 
-	@Deprecated
-	private boolean dedicatedManagementMachines = true;
-
 	private List<String> managementOnlyFiles;
 
 	private String sshLoggingLevel = Level.INFO.toString();
@@ -90,15 +87,6 @@ public class CloudProvider {
 		this.machineNamePrefix = machineNamePrefix;
 	}
 
-	@Deprecated
-	public boolean isDedicatedManagementMachines() {
-		return dedicatedManagementMachines;
-	}
-
-	@Deprecated
-	public void setDedicatedManagementMachines(final boolean dedicatedManagementMachines) {
-		this.dedicatedManagementMachines = dedicatedManagementMachines;
-	}
 
 	public List<String> getManagementOnlyFiles() {
 		return managementOnlyFiles;
@@ -178,7 +166,7 @@ public class CloudProvider {
 		return "CloudProvider [provider=" + provider
 				+ ", cloudifyUrl=" + cloudifyUrl
 				+ ", machineNamePrefix=" + machineNamePrefix
-				+ ", dedicatedManagementMachines=" + dedicatedManagementMachines + ", managementOnlyFiles="
+				+ ", managementOnlyFiles="
 				+ managementOnlyFiles + ",  sshLoggingLevel=" + sshLoggingLevel + ", zones=" + zones
 				+ ", managementGroup=" + managementGroup + ", numberOfManagementMachines=" + numberOfManagementMachines
 				+ ", reservedMemoryCapacityPerMachineInMB=" + reservedMemoryCapacityPerMachineInMB + "]";
