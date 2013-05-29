@@ -163,3 +163,4 @@ cloudify/.idea/*
 /cloudify/releases
 /cloudify/tmp
 /cloudify/xap.files.tmp.dir
+target
