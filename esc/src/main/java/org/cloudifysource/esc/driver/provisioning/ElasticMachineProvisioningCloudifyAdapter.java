@@ -19,7 +19,6 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
-import org.cloudifysource.dsl.context.blockstorage.StorageFacade;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.ComputeTemplatesReader;
 import org.cloudifysource.dsl.internal.DSLException;
@@ -85,7 +84,7 @@ import java.util.logging.Logger;
  */
 public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachineProvisioning, Bean {
 
-	private static final String REMOTE_ADMIN_SHARE_CHAR = "$";
+    private static final String REMOTE_ADMIN_SHARE_CHAR = "$";
 
 	private static final String BACK_SLASH = "\\";
 
@@ -104,7 +103,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private static final Map<String, ProvisioningDriverClassContext> PROVISIONING_DRIVER_CONTEXT_PER_DRIVER_CLASSNAME =
 			new HashMap<String, ProvisioningDriverClassContext>();
 
-	private static Admin globalAdminInstance = null;
+    private static final int DISCOVERY_INTERVAL = 5000;
+
+    private static Admin globalAdminInstance = null;
 	private static final Object GLOBAL_ADMIN_MUTEX = new Object();
 
 	private static final long DEFAULT_AGENT_DISCOVERY_INTERVAL = 1000L;
@@ -126,7 +127,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private ElasticMachineProvisioningProgressChangedEventListener machineEventListener;
 	private ElasticGridServiceAgentProvisioningProgressChangedEventListener agentEventListener;
 
-    private Admin getGlobalAdminInstance(final Admin esmAdminInstance) throws InterruptedException, ElasticMachineProvisioningException {
+    private Admin getGlobalAdminInstance(final Admin esmAdminInstance)
+            throws InterruptedException, ElasticMachineProvisioningException {
 		synchronized (GLOBAL_ADMIN_MUTEX) {
 			if (globalAdminInstance == null) {
 				// create admin clone from esm instance
@@ -148,9 +150,11 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		}
 	}
 
-    private void waitForAgentsToBeDiscovered(final Admin esmAdminInstance, final Admin globalAdminInstance) throws InterruptedException, ElasticMachineProvisioningException {
+    private void waitForAgentsToBeDiscovered(final Admin esmAdminInstance, final Admin globalAdminInstance)
+            throws InterruptedException, ElasticMachineProvisioningException {
 
-        final long endTime = System.currentTimeMillis() + cloud.getConfiguration().getAdminLoadingTimeInSeconds() * MILLISECONDS_IN_SECOND;
+        final long endTime = System.currentTimeMillis()
+                + cloud.getConfiguration().getAdminLoadingTimeInSeconds() * MILLISECONDS_IN_SECOND;
         boolean esmAdminOk = false;
         Map<String, GridServiceContainer> undiscoveredAgentsContianersPerProcessingUnitInstanceName;
 
@@ -158,13 +162,15 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
             if (!esmAdminOk) {
                 // Validate all agents have been discovered in the original esm admin.
-                undiscoveredAgentsContianersPerProcessingUnitInstanceName = getUndiscoveredAgentsContianersPerProcessingUnitInstanceName(esmAdminInstance);
+                undiscoveredAgentsContianersPerProcessingUnitInstanceName =
+                        getUndiscoveredAgentsContianersPerProcessingUnitInstanceName(esmAdminInstance);
                 if (undiscoveredAgentsContianersPerProcessingUnitInstanceName.isEmpty()) {
                     esmAdminOk = true;
                 } else {
-                    logger.info("Detected containers who's agent was not discovered yet : " + logContainers(undiscoveredAgentsContianersPerProcessingUnitInstanceName));
+                    logger.info("Detected containers who's agent was not discovered yet : "
+                            + logContainers(undiscoveredAgentsContianersPerProcessingUnitInstanceName));
                     logger.info("Sleeping for 5 seconds");
-                    Thread.sleep(5000);
+                    Thread.sleep(DISCOVERY_INTERVAL);
                 }
             } else {
                 Set<String> esmAdminAgentUids = esmAdminInstance.getGridServiceAgents().getUids().keySet();
@@ -179,36 +185,43 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
                     }
                 }
                 if (agentsNotDiscoveredInGlobalAdminInstance.isEmpty()) {
-                    logger.fine("All agents discovered by esm admin are discovered by cloud driver admin. Machine provisioning will continue.");
+                    logger.fine("All agents discovered by esm admin are discovered by cloud driver admin. "
+                            + "Machine provisioning will continue.");
                     return;
                 } else {
-                    logger.info("Detected agents that are discovered in the esm admin but not in the cloud driver admin : "
-                            + agentsNotDiscoveredInGlobalAdminInstance + " . Waiting 5 seconds for agent discovery");
-                    Thread.sleep(5000);
+                    logger.info("Detected agents that are discovered in the esm admin but not in the "
+                            + "cloud driver admin : " + agentsNotDiscoveredInGlobalAdminInstance
+                            + " . Waiting 5 seconds for agent discovery");
+                    Thread.sleep(DISCOVERY_INTERVAL);
                 }
             }
         }
-        throw new ElasticMachineProvisioningException("Cannot start a new machine when the admin has not been synced properly");
+        throw new ElasticMachineProvisioningException("Cannot start a new machine when the admin "
+                + "has not been synced properly");
 
     }
 
-    private Map<String, GridServiceContainer> getUndiscoveredAgentsContianersPerProcessingUnitInstanceName(final Admin admin) {
+    private Map<String, GridServiceContainer> getUndiscoveredAgentsContianersPerProcessingUnitInstanceName(
+            final Admin admin) {
         final Map<String, GridServiceContainer> undiscoveredAgentsContianersPerProcessingUnitInstanceName =
                 new HashMap<String, GridServiceContainer>();
         for (ProcessingUnit pu : admin.getProcessingUnits()) {
             for (ProcessingUnitInstance instance : pu.getInstances()) {
                 GridServiceContainer container = instance.getGridServiceContainer();
                 if (container.getAgentId() != -1 && container.getGridServiceAgent() == null) {
-                    undiscoveredAgentsContianersPerProcessingUnitInstanceName.put(instance.getProcessingUnitInstanceName(), container);
+                    undiscoveredAgentsContianersPerProcessingUnitInstanceName
+                            .put(instance.getProcessingUnitInstanceName(), container);
                 }
             }
         }
         return undiscoveredAgentsContianersPerProcessingUnitInstanceName;
     }
 
-    private String logContainers(final Map<String, GridServiceContainer> undiscoveredAgentsContainersPerProcessingUnitInstanceName) {
+    private String logContainers(
+            final Map<String, GridServiceContainer> undiscoveredAgentsContainersPerProcessingUnitInstanceName) {
         StringBuilder builder = new StringBuilder();
-        for (Map.Entry<String, GridServiceContainer> entry : undiscoveredAgentsContainersPerProcessingUnitInstanceName.entrySet()) {
+        for (Map.Entry<String, GridServiceContainer> entry
+                : undiscoveredAgentsContainersPerProcessingUnitInstanceName.entrySet()) {
             final GridServiceContainer container = entry.getValue();
             final String processingUnitInstanceName = entry.getKey();
             builder.append("GridServiceContainer[uid=" + container.getUid() + "] agentId=[" + container.getAgentId()
@@ -290,7 +303,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			throws ElasticMachineProvisioningException,
 			ElasticGridServiceAgentProvisioningException, InterruptedException, TimeoutException {
 
-		logger.info("Cloudify Adapter is starting a new machine with zones " + zones.getZones() + " and reservation id " + reservationId);
+		logger.info("Cloudify Adapter is starting a new machine with zones "
+                + zones.getZones() + " and reservation id " + reservationId);
 
 		// calculate timeout
 		final long end = System.currentTimeMillis() + unit.toMillis(duration);
@@ -338,7 +352,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			// This is the call to the actual cloud driver implementation!
 			machineDetails = provisionMachine(locationId, duration, unit);
 
-            // This is to protect against a bug in the Admin. see CLOUDIFY-1592 (https://cloudifysource.atlassian.net/browse/CLOUDIFY-1592)
+            // This is to protect against a bug in the Admin. see CLOUDIFY-1592
+            // (https://cloudifysource.atlassian.net/browse/CLOUDIFY-1592)
             validateMachineIp(machineDetails);
 
 			// Auto populate installer configuration with values set in template if they were not previously set.
@@ -381,7 +396,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				logger.info("Machine provisioning provided a machine and indicated that an agent is already running");
 			} else {
 				// install gigaspaces and start agent
-				logger.info("Cloudify Adapter is installing Cloudify agent with reservation id " + reservationId + " on " + machineIp);
+				logger.info("Cloudify Adapter is installing Cloudify agent with reservation id "
+                        + reservationId + " on " + machineIp);
 				installAndStartAgent(machineDetails, reservationId, end);
 				// check for timeout again - the installation step can also take a
 				// while to complete.
@@ -395,7 +411,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			// be added here.
 
 			// wait for GSA to become available
-			logger.info("Cloudify adapter is waiting for GSA with reservation id " + reservationId + " to become available");
+			logger.info("Cloudify adapter is waiting for GSA with reservation id "
+                    + reservationId + " to become available");
 			final GridServiceAgent gsa = waitForGsa(machineIp, end);
             if (gsa == null) {
                 // GSA did not start correctly or on time - shutdown the machine
@@ -403,10 +420,12 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
                 throw new TimeoutException("New machine was provisioned and Cloudify was installed, "
                         + "but a GSA was not discovered on the new machine: " + machineDetails);
             }
-            final GSAReservationId discoveredReservationId = ((InternalGridServiceAgent)gsa).getReservationId();
+            final GSAReservationId discoveredReservationId = ((InternalGridServiceAgent) gsa).getReservationId();
             logger.info("Discovered agent with reservation id " + discoveredReservationId);
             if (reservationId != null && !reservationId.equals(discoveredReservationId)) {
-                throw new ElasticMachineProvisioningException("Cloudify Adapter discovered the wrong agent. expected reservation id is " + reservationId + ". but actual was " + discoveredReservationId);
+                throw new ElasticMachineProvisioningException("Cloudify Adapter discovered the wrong agent. "
+                        + "expected reservation id is "
+                        + reservationId + ". but actual was " + discoveredReservationId);
             }
 			// TODO: Derive cloudify specific event and include more event details as specified in CLOUDIFY-10651
 			agentEventListener.elasticGridServiceAgentProvisioningProgressChanged(
@@ -450,7 +469,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
         }
 	}
 
-    private void validateMachineIp(MachineDetails machineDetails) throws CloudProvisioningException {
+    private void validateMachineIp(final MachineDetails machineDetails) throws CloudProvisioningException {
 
         logger.fine("Validating " + machineDetails + " after provisioning ");
 
@@ -469,7 +488,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
             if (agent.getMachine().getHostAddress().equals(machineIp)) {
                 // we found an existing agent with the ip on the newly provisioned machine.
-                throw new CloudProvisioningException("An existing agent with ip " + machineIp + " was discovered. this machine is invalid.");
+                throw new CloudProvisioningException("An existing agent with ip " + machineIp
+                        + " was discovered. this machine is invalid.");
             }
 
         }
@@ -728,15 +748,16 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	/**
 	 * exposes the storage API of the cloud to agent machines.
-	 * @see {@link StorageFacade}
+	 * @see {@link org.cloudifysource.dsl.context.blockstorage.StorageFacade}
 	 *
 	 * DO NOT refactor this method's name since it is called via reflection by the ESM.
 	 *
 	 * @author elip
-	 * @return
+	 * @return The storage driver.
 	 */
 	public RemoteStorageProvisioningDriverAdapter getStorageImpl() {
-		return new RemoteStorageProvisioningDriverAdapter(storageProvisioning, cloud.getCloudStorage().getTemplates().get(storageTemplateName));
+		return new RemoteStorageProvisioningDriverAdapter(storageProvisioning,
+                cloud.getCloudStorage().getTemplates().get(storageTemplateName));
 	}
 
 	@Override
@@ -846,7 +867,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			throw new IllegalArgumentException("Cloud configuration directory was not set!");
 		}
 
-		if(ServiceUtils.isWindows()) {
+		if (ServiceUtils.isWindows()) {
 			cloudConfigDirectoryPath = EnvironmentFileBuilder.normalizeCygwinPath(cloudConfigDirectoryPath);
 		}
 		return cloudConfigDirectoryPath;
