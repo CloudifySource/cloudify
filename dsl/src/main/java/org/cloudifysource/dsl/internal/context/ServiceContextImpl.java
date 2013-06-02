@@ -1,19 +1,20 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.dsl.internal.context;
+
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.context.ServiceContext;
@@ -31,9 +32,6 @@ import org.openspaces.admin.internal.esm.InternalElasticServiceManager;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.core.cluster.ClusterInfo;
 
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
-
 /**
  *
  *
@@ -43,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 public class ServiceContextImpl implements ServiceContext {
 
 	private org.cloudifysource.dsl.Service service;
-	private Admin admin;	
+	private Admin admin;
 	private final String serviceDirectory;
 	private ClusterInfo clusterInfo;
 	private boolean initialized = false;
@@ -135,10 +133,18 @@ public class ServiceContextImpl implements ServiceContext {
 		ElasticServiceManager elasticServiceManager;
 		if (admin != null) {
 			elasticServiceManager = admin.getElasticServiceManagers().waitForAtLeastOne();
-			RemoteStorageProvisioningDriver storageApi = 
+			RemoteStorageProvisioningDriver storageApi =
 					(RemoteStorageProvisioningDriver) ((InternalElasticServiceManager) elasticServiceManager)
-					.getStorageApi(ServiceUtils.getAbsolutePUName(applicationName, serviceName));
-			
+							.getStorageApi(ServiceUtils.getAbsolutePUName(applicationName, serviceName));
+
+			if (logger.isLoggable(Level.FINE)) {
+				if (storageApi == null) {
+					logger.fine("storageApi was not found");
+				} else {
+					logger.fine("storageApi successfully located");
+				}
+			}
+
 			return new StorageFacadeImpl(this, storageApi);
 
 		}
@@ -190,9 +196,8 @@ public class ServiceContextImpl implements ServiceContext {
 	/*
 	 * (non-Javadoc)
 	 *
-	 * @see
-	 * org.cloudifysource.dsl.context.IServiceContext#waitForService(java.lang
-	 * .String, int, java.util.concurrent.TimeUnit)
+	 * @see org.cloudifysource.dsl.context.IServiceContext#waitForService(java.lang .String, int,
+	 * java.util.concurrent.TimeUnit)
 	 */
 	@Override
 	public org.cloudifysource.dsl.context.Service waitForService(
@@ -253,10 +258,8 @@ public class ServiceContextImpl implements ServiceContext {
 	}
 
 	/**
-	 * Returns the Admin Object the underlies the Service Context. Note: this is
-	 * intended as a debugging aid, and should not be used by most application.
-	 * Only power users, familiar with the details of the Admin API, should use
-	 * it.
+	 * Returns the Admin Object the underlies the Service Context. Note: this is intended as a debugging aid, and should
+	 * not be used by most application. Only power users, familiar with the details of the Admin API, should use it.
 	 *
 	 * @return the admin.
 	 */
@@ -360,7 +363,7 @@ public class ServiceContextImpl implements ServiceContext {
 
 	@Override
 	public String getHardwareID() {
-        return System.getenv(CloudifyConstants.CLOUDIFY_CLOUD_HARDWARE_ID);
+		return System.getenv(CloudifyConstants.CLOUDIFY_CLOUD_HARDWARE_ID);
 	}
 
 	@Override
@@ -372,12 +375,12 @@ public class ServiceContextImpl implements ServiceContext {
 	public String getMachineID() {
 		return System.getenv(CloudifyConstants.GIGASPACES_CLOUD_MACHINE_ID);
 	}
-	
+
 	@Override
 	public String getLocationId() {
 		return System.getenv(CloudifyConstants.CLOUDIFY_CLOUD_LOCATION_ID);
 	}
-	
+
 	@Override
 	public StorageFacade getStorage() {
 		if (storageFacade == null) {
