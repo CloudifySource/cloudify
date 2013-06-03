@@ -492,7 +492,7 @@
 					<archive>
 						<manifestEntries>
 							<!-- The class-path entries MUST be in the same line! -->
-							<Class-Path>lib/platform/cloudify/dsl.jar lib/platform/cloudify/security-2.6.0-SNAPSHOT.jar lib/platform/cloudify/security-ldap-2.6.0-SNAPSHOT.jar tools/groovy/embeddable/groovy-all-1.8.6.jar tools/groovy/lib/ivy-2.2.0.jar</Class-Path>
+							<Class-Path>lib/platform/cloudify/dsl.jar lib/platform/cloudify/security-${cloudifyVersion}.jar lib/platform/cloudify/security-ldap-${cloudifyVersion}.jar tools/groovy/embeddable/groovy-all-1.8.6.jar tools/groovy/lib/ivy-2.2.0.jar</Class-Path>
 						</manifestEntries>
 					</archive>
 					<webResources>
