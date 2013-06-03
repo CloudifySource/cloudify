@@ -846,8 +846,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 							imageId == null ? "" : imageId,
 									hardwareId == null ? "" : hardwareId, locationId == null ? "" : locationId,
 											groovyFile, propertiesFile), ex);
-					//throw new CloudProvisioningException(getFormattedMessage("error_template_validation",
-					//		templateName, ex.getMessage(), CLOUDS_FOLDER_PATH + FILE_SEPARATOR + cloud.getName()), ex);
 				}
 
 				if (isKnownAPI(apiId)) {
@@ -1051,13 +1049,9 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		if (missingSecurityGroups.size() == 1) {
 			throw new CloudProvisioningException(getFormattedMessage("error_security_group_validation",
 					missingSecurityGroups.iterator().next(), groovyFile, propertiesFile));
-			//throw new CloudProvisioningException("Invalid security group name: "
-			//		+ missingSecurityGroups.iterator().next());
 		} else if (missingSecurityGroups.size() > 1) {
 			throw new CloudProvisioningException(getFormattedMessage("error_security_groups_validation",
 					Arrays.toString(missingSecurityGroups.toArray()), groovyFile, propertiesFile));
-			//throw new CloudProvisioningException("Invalid security group names: "
-			//		+ Arrays.toString(missingSecurityGroups.toArray()));
 		}
 	}
 	
@@ -1079,13 +1073,9 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		if (missingSecurityGroups.size() == 1) {
 			throw new CloudProvisioningException(getFormattedMessage("error_security_group_validation",
 					missingSecurityGroups.iterator().next(), groovyFile, propertiesFile));
-			//throw new CloudProvisioningException("Invalid security group name: "
-			//		+ missingSecurityGroups.iterator().next());
 		} else if (missingSecurityGroups.size() > 1) {
 			throw new CloudProvisioningException(getFormattedMessage("error_security_groups_validation",
 					Arrays.toString(missingSecurityGroups.toArray()), groovyFile, propertiesFile));
-			//throw new CloudProvisioningException("Invalid security group names: "
-			//		+ Arrays.toString(missingSecurityGroups.toArray()));
 		}
 	}
 	
