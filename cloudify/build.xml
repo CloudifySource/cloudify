@@ -529,7 +529,7 @@
 		
 	</target>
 	
-	<target name="publish.cloudify.jars.to.maven.repository"  if="publish.cloudify.build">
+	<target name="publish.cloudify.jars.to.maven.repository">
 		<echo message="uploading cloudify jar artifacts to S3" />
 				
 		<exec executable="${mvn.executable}">
