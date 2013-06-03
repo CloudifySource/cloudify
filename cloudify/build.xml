@@ -154,6 +154,7 @@
        <property name="milestone.field" value="MILESTONE" />
        <property name="build.type.field" value="BUILD_TYPE" />
 	   <property name="version.field" value="VERSION" />
+	   <property name="build.timestamp.field" value="BUILD_TIMESTAMP" />
 		
 	
        <replaceregexp file="${gigaspaces.related.folder}/src/java/com/j_spaces/kernel/${platform.verion.file.name}"
@@ -165,12 +166,16 @@
                         replace='${milestone.field} = "${cloudify.milestone}";'/>
 
        <replaceregexp file="${gigaspaces.related.folder}/src/java/com/j_spaces/kernel/${platform.verion.file.name}"
-                                match="${build.type.field} = (.*)"
-                                replace='${build.type.field} = "${build.type}";'/>
+                        match="${build.type.field} = (.*)"
+                        replace='${build.type.field} = "${build.type}";'/>
+
+		<replaceregexp file="${gigaspaces.related.folder}/src/java/com/j_spaces/kernel/${platform.verion.file.name}"
+                        match="${version.field} = (.*)"
+                        replace='${version.field} = "${cloudify.version}";'/>
 		
 		<replaceregexp file="${gigaspaces.related.folder}/src/java/com/j_spaces/kernel/${platform.verion.file.name}"
-		                                match="${version.field} = (.*)"
-		                                replace='${version.field} = "${cloudify.version}";'/>
+			            match="${build.timestamp.field} = (.*)"
+			            replace='${build.timestamp.field} = "${build.timestamp}";'/>
    </target>
 	
 	<!-- Remark: XAP  properties are updated from the XAP build --> 
@@ -531,7 +536,7 @@
 			<arg value="s3client:deploy-native" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
-			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/esc/${s3.cloudify.publish.folder}" />
+			<arg value="-Dput.source=${maven.repo.local}/org/cloudifysource/esc/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.target=org/cloudifysource/esc/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.container=${cloudify.maven.container}"/>
 		</exec>
@@ -540,7 +545,7 @@
 			<arg value="s3client:deploy-native" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
-			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/security/${s3.cloudify.publish.folder}" />
+			<arg value="-Dput.source=${maven.repo.local}/org/cloudifysource/security/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.target=org/cloudifysource/security/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.container=${cloudify.maven.container}"/>
 		</exec>
@@ -549,7 +554,7 @@
 			<arg value="s3client:deploy-native" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
-			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/security-ldap/${s3.cloudify.publish.folder}" />
+			<arg value="-Dput.source=${maven.repo.local}/org/cloudifysource/security-ldap/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.target=org/cloudifysource/security-ldap/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.container=${cloudify.maven.container}"/>
 		</exec>
@@ -558,7 +563,7 @@
 			<arg value="s3client:deploy-native" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
-			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/USM/${s3.cloudify.publish.folder}" />
+			<arg value="-Dput.source=${maven.repo.local}/org/cloudifysource/USM/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.target=org/cloudifysource/USM/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.container=${cloudify.maven.container}"/>
 		</exec>
@@ -567,7 +572,7 @@
 			<arg value="s3client:deploy-native" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
-			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/dsl/${s3.cloudify.publish.folder}" />
+			<arg value="-Dput.source=${maven.repo.local}/org/cloudifysource/dsl/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.target=org/cloudifysource/dsl/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.container=${cloudify.maven.container}"/>
 		</exec>
@@ -576,7 +581,7 @@
 			<arg value="s3client:deploy-native" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
-			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/security/${s3.cloudify.publish.folder}" />
+			<arg value="-Dput.source=${maven.repo.local}/org/cloudifysource/security/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.target=org/cloudifysource/security/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.container=${cloudify.maven.container}"/>
 		</exec>
@@ -585,7 +590,7 @@
 			<arg value="s3client:deploy-native" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
-			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/security-ldap/${s3.cloudify.publish.folder}" />
+			<arg value="-Dput.source=${maven.repo.local}/org/cloudifysource/security-ldap/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.target=org/cloudifysource/security-ldap/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.container=${cloudify.maven.container}"/>
 		</exec>
@@ -594,7 +599,7 @@
 			<arg value="s3client:deploy-native" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
-			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/CLI/${s3.cloudify.publish.folder}" />
+			<arg value="-Dput.source=${maven.repo.local}/org/cloudifysource/CLI/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.target=org/cloudifysource/CLI/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.container=${cloudify.maven.container}"/>
 		</exec>
@@ -603,7 +608,7 @@
 			<arg value="s3client:deploy-native" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
-			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/rest-client/${s3.cloudify.publish.folder}" />
+			<arg value="-Dput.source=${maven.repo.local}/org/cloudifysource/rest-client/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.target=org/cloudifysource/rest-client/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.container=${cloudify.maven.container}"/>
 		</exec>
@@ -612,16 +617,16 @@
 			<arg value="s3client:deploy-native" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
-			<arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/cloudify/${s3.cloudify.publish.folder}" />
+			<arg value="-Dput.source=${maven.repo.local}/org/cloudifysource/cloudify/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.target=org/cloudifysource/cloudify/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.container=${cloudify.maven.container}"/>
 		</exec>
 
         <exec executable="${mvn.executable}">
-            <arg value="s3client:put" />
+            <arg value="s3client:deploy-native" />
             <arg value="-Dput.user=${put.user}" />
             <arg value="-Dput.key=${put.key}" />
-            <arg value="-Dput.source=${user.home}/.m2/repository/org/cloudifysource/management-space/${s3.cloudify.publish.folder}" />
+            <arg value="-Dput.source=${maven.repo.local}/org/cloudifysource/management-space/${s3.cloudify.publish.folder}" />
             <arg value="-Dput.target=org/cloudifysource/management-space/${s3.cloudify.publish.folder}" />
             <arg value="-Dput.container=${cloudify.maven.container}"/>
         </exec>
