@@ -46,7 +46,7 @@ public class CloudifyVersion implements ProductVersion {
 	@Override
 	public String getOfficialVersion() {
 		return V_NAME + " " + getShortOfficialVersion() + " (build "
-				+ BUILD_NUM + ")";
+		+ BUILD_NUM + ", timestamp " + BUILD_TIMESTAMP + ")";
 	}
 
 	@Override
