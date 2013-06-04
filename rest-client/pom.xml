@@ -4,7 +4,7 @@
 	<parent>
 		<artifactId>cloudify</artifactId>
 		<groupId>org.cloudifysource</groupId>
-		<version>2.5.1-RELEASE</version>
+		<version>2_5_2-SNAPSHOT</version>
 		<relativePath>../cloudify</relativePath>
 	</parent>
 	
