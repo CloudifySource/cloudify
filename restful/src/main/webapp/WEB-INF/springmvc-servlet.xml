@@ -60,6 +60,7 @@
 				<mvc:mapping path="/**/repo/**"/>
 				<mvc:mapping path="/**/alert/**"/>
 				<mvc:mapping path="/**/config/**"/>
+                <mvc:mapping path="/**/upload/**"/>
 				<bean class="org.cloudifysource.rest.interceptors.ApiVersionValidationAndRestResponseBuilderInterceptor"></bean>
 			</mvc:interceptor>
 			 
