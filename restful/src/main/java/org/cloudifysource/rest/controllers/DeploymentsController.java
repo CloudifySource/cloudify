@@ -12,64 +12,35 @@
  *******************************************************************************/
 package org.cloudifysource.rest.controllers;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import net.jini.core.discovery.LookupLocator;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.ComputeDetails;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
-import org.cloudifysource.dsl.internal.DSLServiceCompilationResult;
-import org.cloudifysource.dsl.internal.DSLUtils;
-import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.dsl.internal.*;
 import org.cloudifysource.dsl.internal.packaging.FileAppender;
 import org.cloudifysource.dsl.internal.packaging.Packager;
-import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
-import org.cloudifysource.dsl.rest.request.SetApplicationAttributesRequest;
-import org.cloudifysource.dsl.rest.request.SetServiceAttributesRequest;
-import org.cloudifysource.dsl.rest.request.SetServiceInstanceAttributesRequest;
-import org.cloudifysource.dsl.rest.request.UpdateApplicationAttributeRequest;
-import org.cloudifysource.dsl.rest.response.DeleteApplicationAttributeResponse;
-import org.cloudifysource.dsl.rest.response.DeleteServiceAttributeResponse;
-import org.cloudifysource.dsl.rest.response.DeleteServiceInstanceAttributeResponse;
-import org.cloudifysource.dsl.rest.response.GetApplicationAttributesResponse;
-import org.cloudifysource.dsl.rest.response.GetServiceAttributesResponse;
-import org.cloudifysource.dsl.rest.response.GetServiceInstanceAttributesResponse;
-import org.cloudifysource.dsl.rest.response.InstallServiceResponse;
-import org.cloudifysource.dsl.rest.response.ServiceDetails;
-import org.cloudifysource.dsl.rest.response.ServiceInstanceDetails;
-import org.cloudifysource.dsl.rest.response.ServiceInstanceMetricsData;
-import org.cloudifysource.dsl.rest.response.ServiceInstanceMetricsResponse;
-import org.cloudifysource.dsl.rest.response.ServiceMetricsResponse;
+import org.cloudifysource.dsl.rest.request.*;
+import org.cloudifysource.dsl.rest.response.*;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.rest.RestConfiguration;
 import org.cloudifysource.rest.deploy.DeploymentConfig;
 import org.cloudifysource.rest.deploy.ElasticDeploymentCreationException;
 import org.cloudifysource.rest.deploy.ElasticProcessingUnitDeploymentFactory;
 import org.cloudifysource.rest.deploy.ElasticProcessingUnitDeploymentFactoryImpl;
+import org.cloudifysource.rest.events.EventsUtils;
+import org.cloudifysource.rest.events.cache.EventsCache;
+import org.cloudifysource.rest.events.cache.EventsCacheKey;
+import org.cloudifysource.rest.events.cache.EventsCacheValue;
 import org.cloudifysource.rest.interceptors.ApiVersionValidationAndRestResponseBuilderInterceptor;
 import org.cloudifysource.rest.repo.UploadRepo;
-import org.cloudifysource.security.CustomPermissionEvaluator;
 import org.cloudifysource.rest.util.IsolationUtils;
 import org.cloudifysource.rest.util.LifecycleEventsContainer;
 import org.cloudifysource.rest.util.RestPollingRunnable;
 import org.cloudifysource.rest.validators.InstallServiceValidationContext;
 import org.cloudifysource.rest.validators.InstallServiceValidator;
+import org.cloudifysource.security.CustomPermissionEvaluator;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
 import org.openspaces.admin.application.Application;
@@ -82,10 +53,18 @@ import org.openspaces.admin.pu.elastic.topology.ElasticDeploymentTopology;
 import org.openspaces.admin.space.ElasticSpaceDeployment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.PostConstruct;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 //import com.sun.mail.iap.Response;
 
@@ -117,7 +96,11 @@ public class DeploymentsController extends BaseRestContoller {
 	private static final Logger logger = Logger
 			.getLogger(DeploymentsController.class.getName());
 
-	@Autowired
+    private static final int MAX_NUMBER_OF_EVENTS = 100;
+
+    private static final int REFRESH_INTERVAL_MILLIS = 500;
+
+    @Autowired
 	private UploadRepo repo;
 
 	@Autowired
@@ -128,6 +111,16 @@ public class DeploymentsController extends BaseRestContoller {
 
 	@Autowired(required = false)
 	private CustomPermissionEvaluator permissionEvaluator;
+
+    private EventsCache eventsCache;
+
+    /**
+     * Initialization.
+     */
+    @PostConstruct
+    public void init() {
+        this.eventsCache = new EventsCache(restConfig.getAdmin());
+    }
 
 	/**
 	 * This method provides metadata about a service belonging to a specific application.
@@ -176,7 +169,62 @@ public class DeploymentsController extends BaseRestContoller {
 		return serviceDetails;
 	}
 
-	/**
+    /**
+     * Retrieves events based on deployment id. The deployment id may be of service or application.
+     * In the case of an application deployment id, all services events will be returned.
+     *
+     * @param deploymentId The deployment id given at install time.
+     * @param from The starting index.
+     * @param to The finish index.
+     * @return {@link org.cloudifysource.dsl.rest.response.DeploymentEvents} - The deployment events.
+     * @throws Throwable Thrown in case of any error.
+     */
+    @RequestMapping(value = "{deploymentId}/events", method = RequestMethod.GET)
+    public DeploymentEvents getDeploymentEvents(
+            @PathVariable final String deploymentId,
+            @RequestParam(required = false, defaultValue = "0") final int from,
+            @RequestParam(required = false, defaultValue = "-1") final int to)
+            throws Throwable {
+
+        // limit the default number of events returned to the client.
+        int actualTo = to;
+        if (to == -1) {
+            actualTo = from + MAX_NUMBER_OF_EVENTS;
+        }
+
+        EventsCacheKey key = new EventsCacheKey(deploymentId);
+        logger.fine(EventsUtils.getThreadId()
+                + " Received request for events [" + from + "]-[" + to + "] . key : " + key);
+        EventsCacheValue value;
+        try {
+            logger.fine(EventsUtils.getThreadId() + " Retrieving events from cache for key : " + key);
+            value = eventsCache.get(key);
+        } catch (final ExecutionException e) {
+            throw e.getCause();
+        }
+
+        // we don't want another request to modify our object during this calculation.
+        synchronized (value.getMutex()) {
+            if (!EventsUtils.eventsPresent(value.getEvents(), from, actualTo)) {
+                // enforce time restriction on refresh operations.
+                long now = System.currentTimeMillis();
+                if (now - value.getLastRefreshedTimestamp() > REFRESH_INTERVAL_MILLIS) {
+                    logger.fine(EventsUtils.getThreadId() + " Some events are missing from cache. Refreshing...");
+                    // refresh the cache for this deployment.
+                    eventsCache.refresh(key);
+                }
+            } else {
+                logger.fine(EventsUtils.getThreadId() + " Found all relevant events in cache.");
+            }
+
+            // return the events. this MAY or MAY NOT be the complete set of events requested.
+            // request for specific events is treated as best effort. no guarantees all events are returned.
+            return EventsUtils.extractDesiredEvents(value.getEvents(), from, actualTo);
+        }
+    }
+
+
+    /**
 	 * This method sets the given attributes to the application scope. Note that this action is Update or write. so the
 	 * given attribute may not pre-exist.
 	 * 
@@ -769,7 +817,7 @@ public class DeploymentsController extends BaseRestContoller {
 	 * 
 	 * @param appName
 	 *            the application name
-	 * @return {@link ApplicationAttributesResponse} application attribute response
+	 * @return {@link GetApplicationAttributesResponse} application attribute response
 	 * @throws RestErrorException
 	 *             when application not exist
 	 */
@@ -839,7 +887,7 @@ public class DeploymentsController extends BaseRestContoller {
 	 *            the application name
 	 * @param serviceName
 	 *            the service name
-	 * @return {@link ServiceAttributesResponse}
+	 * @return {@link GetServiceAttributesResponse}
 	 * @throws RestErrorException
 	 *             rest error exception when application , service not exist
 	 */
