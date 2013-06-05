@@ -54,7 +54,7 @@ import com.j_spaces.kernel.PlatformVersion;
 @RunWith(SpringJUnit4ClassRunner.class)
 //Setup the configuration of the application context and the web mvc layer
 @ContextConfiguration({"classpath:META-INF/spring/applicationContext.xml",
-        "classpath:META-INF/spring/webmvc-config-test.xml" })
+		"classpath:META-INF/spring/webmvc-config-upload-test.xml" })
 public class UploadControllerTest extends ControllerTest {
 
     private static final String UPLOAD_RESOURCES_PATH = "src" + File.separator + "test" + File.separator
