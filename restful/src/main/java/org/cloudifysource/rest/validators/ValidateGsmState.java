@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
  *
  */
 @Component
-public class ValidateGsmState implements InstallServiceValidator {
+public class ValidateGsmState implements InstallServiceValidator, UninstallServiceValidator {
 
     private static final Logger logger = Logger.getLogger(ValidateGsmState.class.getName());
 
@@ -42,6 +42,11 @@ public class ValidateGsmState implements InstallServiceValidator {
 
     @Override
     public void validate(final InstallServiceValidationContext validationContext) throws RestErrorException {
+        validateGsmState(validationContext.getCloud());
+    }
+
+    @Override
+    public void validate(UninstallServiceValidationContext validationContext) throws RestErrorException {
         validateGsmState(validationContext.getCloud());
     }
 
@@ -63,6 +68,7 @@ public class ValidateGsmState implements InstallServiceValidator {
             }
         }
     }
+
 
 
 }
