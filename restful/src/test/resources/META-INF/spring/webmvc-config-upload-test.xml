@@ -58,11 +58,6 @@
         <property name="prefix" value=""/>
         <property name="suffix" value=".jsp"/>
     </bean>
-    
-    <bean id="admin" class="org.cloudifysource.rest.util.AdminFactoryBean">
-		<property name="groups" value="${restful.lookupGroups}" />
-		<property name="locators" value="${restful.lookupLocators}" />
-	</bean>
 
     <!-- bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
          <property name="location" value="classpath*:META-INF/spring/*.properties"/>
