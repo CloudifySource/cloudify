@@ -13,6 +13,7 @@
 package org.cloudifysource.rest.repo;
 
 import java.io.File;
+import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
 
@@ -21,23 +22,30 @@ import org.apache.commons.io.FileUtils;
  * @author yael
  *
  */
-public class CleanUploadDirThread implements Runnable {
+public class CleanUploadDirRunnable implements Runnable {
+	private static final Logger logger = Logger.getLogger(CleanUploadDirRunnable.class.getName());
 
 	private File restUploadDir;
 	private long cleanupTimeoutMillis;
 	
-	public CleanUploadDirThread(final File restUploadDir, final long cleanupTimeoutMillis) {
+	public CleanUploadDirRunnable(final File restUploadDir, final long cleanupTimeoutMillis) {
 		this.restUploadDir = restUploadDir;
 		this.cleanupTimeoutMillis = cleanupTimeoutMillis;
 	}
 	
 	@Override
 	public void run() {
+		logger.finest("cleaning all the folders in upload directory that are in the system more than " 
+				+ cleanupTimeoutMillis + " millis.");
 		if (restUploadDir != null) {
 			File[] listFiles = restUploadDir.listFiles();
 			for (File file : listFiles) {
 				if (System.currentTimeMillis() - file.lastModified() >= cleanupTimeoutMillis) {
+					logger.finer("delete folder " + file.getName());
 					FileUtils.deleteQuietly(file);
+				} else {
+					logger.finest("Folder " + file.getName() + " was not deleted (in the system for " 
+							+ (System.currentTimeMillis() - file.lastModified()) + "millis).");
 				}
 			}
 		}

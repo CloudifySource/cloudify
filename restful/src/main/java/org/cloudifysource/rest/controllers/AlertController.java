@@ -18,25 +18,25 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
  * AlertsRestController provides Rest implementation for Alerts.
- * 
- * 
- * 
+ *
+ *
+ *
  * @author ahmad
  * @since 2.5.0
  */
 @Controller
 @RequestMapping(value = "/{version}/alerts")
-public class AlertController extends BaseRestContoller {
-	
-	
-	/******
-	 * get manager alerts.
-	 */
-	@RequestMapping(value = "/", method = RequestMethod.GET)
-	public void getManagerAlerts() {
-			throwUnsupported();
-	}
-	
-	
+public class AlertController extends BaseRestController {
+
+
+    /******
+     * get manager alerts.
+     */
+    @RequestMapping(value = "/", method = RequestMethod.GET)
+    public void getManagerAlerts() {
+        throw new UnsupportedOperationException();
+    }
+
+
 
 }

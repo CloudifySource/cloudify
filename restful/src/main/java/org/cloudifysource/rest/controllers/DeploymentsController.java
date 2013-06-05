@@ -56,6 +56,8 @@ import org.openspaces.admin.pu.elastic.ElasticStatefulProcessingUnitDeployment;
 import org.openspaces.admin.pu.elastic.ElasticStatelessProcessingUnitDeployment;
 import org.openspaces.admin.pu.elastic.topology.ElasticDeploymentTopology;
 import org.openspaces.admin.space.ElasticSpaceDeployment;
+import org.openspaces.core.GigaSpace;
+import org.openspaces.core.context.GigaSpaceContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -94,7 +96,7 @@ import java.util.logging.Logger;
 
 @Controller
 @RequestMapping(value = "/{version}/deployments")
-public class DeploymentsController extends BaseRestContoller {
+public class DeploymentsController extends BaseRestController {
 
 	private static final Logger logger = Logger
 			.getLogger(DeploymentsController.class.getName());
@@ -104,6 +106,9 @@ public class DeploymentsController extends BaseRestContoller {
     private static final int REFRESH_INTERVAL_MILLIS = 500;
 
     private static final int DEPLOYMENT_TIMEOUT_SECONDS = 60;
+
+    @GigaSpaceContext(name = "gigaSpace")
+    protected GigaSpace gigaSpace;
 
     @Autowired
 	private UploadRepo repo;
@@ -255,151 +260,131 @@ public class DeploymentsController extends BaseRestContoller {
         }
     }
 
+    /**
+     * Sets application level attributes for the given application.
+     * @param appName The application name.
+     * @param attributesRequest Request body, specifying the attributes names and values.
+     * @throws RestErrorException Thrown in case the request body is empty.
+     * @throws ResourceNotFoundException Thrown in case the application does not exist.
+     */
+    @RequestMapping(value = "/{appName}/attributes", method = RequestMethod.POST)
+    public void setApplicationAttributes(
+            @PathVariable final String appName,
+            @RequestBody final SetApplicationAttributesRequest attributesRequest)
+            throws RestErrorException, ResourceNotFoundException {
+        // valid application
+        controllerHelper.getApplication(appName);
+
+        if (attributesRequest == null || attributesRequest.getAttributes() == null) {
+            throw new RestErrorException(CloudifyMessageKeys.EMPTY_REQUEST_BODY_ERROR.getName());
+        }
+
+        // set attributes
+        controllerHelper.setAttributes(appName, null, null, attributesRequest.getAttributes());
+
+    }
+
 
     /**
-	 * This method sets the given attributes to the application scope. Note that this action is Update or write. so the
-	 * given attribute may not pre-exist.
-	 * 
-	 * @param appName
-	 *            - the application name.
-	 * @param attributesRequest
-	 *            - An instance of {@link SetApplicationAttributesRequest} (as JSON) that holds the requested
-	 *            attributes.
-	 * @throws RestErrorException
-	 *             rest error exception
-	 */
-	@RequestMapping(value = "/{appName}/attributes", method = RequestMethod.POST)
-	public void setApplicationAttributes(@PathVariable final String appName,
-			@RequestBody final SetApplicationAttributesRequest attributesRequest)
-			throws RestErrorException {
+     * Delete an instance level attribute.
+     * @param appName The application name.
+     * @param serviceName The service name.
+     * @param instanceId The instance id.
+     * @param attributeName The attribute name.
+     * @return The previous value for this attribute in the response.
+     * @throws ResourceNotFoundException Thrown in case the requested service or service instance does not exist.
+     * @throws RestErrorException Thrown in case the requested attribute name is empty.
+     */
+    @RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/attributes/{attributeName}",
+            method = RequestMethod.DELETE)
+    public DeleteServiceInstanceAttributeResponse deleteServiceInstanceAttribute(
+            @PathVariable final String appName,
+            @PathVariable final String serviceName,
+            @PathVariable final Integer instanceId,
+            @PathVariable final String attributeName)
+            throws ResourceNotFoundException, RestErrorException {
+        // valid service
+        controllerHelper.getService(appName, serviceName);
 
-		// valid application
-		getApplication(appName);
+        // logger - request to delete attributes
+        if (logger.isLoggable(Level.FINER)) {
+            logger.finer("received request to delete attribute "
+                    + attributeName + " of instance Id " + instanceId + " of service "
+                    + ServiceUtils.getAbsolutePUName(appName, serviceName)
+                    + " of application " + appName);
+        }
 
-		if (attributesRequest == null
-				|| attributesRequest.getAttributes() == null) {
-			throw new RestErrorException(
-					CloudifyMessageKeys.EMPTY_REQUEST_BODY_ERROR.getName());
-		}
+        // get delete attribute returned previous value
+        final Object previous = controllerHelper.deleteAttribute(appName, serviceName, instanceId, attributeName);
 
-		// set attributes
-		setAttributes(appName, null, null, attributesRequest.getAttributes());
+        // create response object
+        final DeleteServiceInstanceAttributeResponse siar = new DeleteServiceInstanceAttributeResponse();
+        // set previous value
+        siar.setPreviousValue(previous);
+        // return response object
+        return siar;
 
-	}
+    }
 
-	/**
-	 * This method deletes a curtain attribute from the service instance scope.
-	 * 
-	 * @param appName
-	 *            - the application name.
-	 * @param serviceName
-	 *            - the service name.
-	 * @param instanceId
-	 *            - the instance id.
-	 * @param attributeName
-	 *            - the required attribute to delete.
-	 * @return - A {@link DeleteServiceInstanceAttributeResponse} instance it holds the deleted attribute previous value
-	 * @throws RestErrorException
-	 *             rest error exception when application , service not exist
-	 */
-	@RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/"
-			+ "attributes/{attributeName}", method = RequestMethod.DELETE)
-	public DeleteServiceInstanceAttributeResponse deleteServiceInstanceAttribute(
-			@PathVariable final String appName,
-			@PathVariable final String serviceName,
-			@PathVariable final Integer instanceId,
-			@PathVariable final String attributeName) throws RestErrorException {
+    /**
+     * Provides various meta data about the service instance.
+     * @param appName The application name.
+     * @param serviceName The service name.
+     * @param instanceId The instance id.
+     * @return Meta data about the service instance.
+     * @throws ResourceNotFoundException Thrown in case the service or service instance does not exist.
+     */
+    @RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/metadata",
+            method = RequestMethod.GET)
+    public ServiceInstanceDetails getServiceInstanceDetails(
+            @PathVariable final String appName,
+            @PathVariable final String serviceName,
+            @PathVariable final Integer instanceId)
+            throws ResourceNotFoundException {
+        // get processingUnit instance
+        final ProcessingUnitInstance pui = controllerHelper.getServiceInstance(appName, serviceName, instanceId);
 
-		// valid service
-		getService(appName, serviceName);
+        // get USM details
+        final org.openspaces.pu.service.ServiceDetails usmDetails = pui.getServiceDetailsByServiceId("USM");
+        // get attributes details
+        final Map<String, Object> puiAttributes = usmDetails.getAttributes();
 
-		// logger - request to delete attributes
-		if (logger.isLoggable(Level.FINER)) {
-			logger.finer("received request to delete attribute "
-					+ attributeName + " of instance Id " + instanceId + " of service "
-					+ ServiceUtils.getAbsolutePUName(appName, serviceName)
-					+ " of application " + appName);
-		}
+        // get private ,public IP
+        final String privateIp =
+                controllerHelper.getServiceInstanceEnvVariable(pui, CloudifyConstants.GIGASPACES_AGENT_ENV_PRIVATE_IP);
+        final String publicIp =
+                controllerHelper.getServiceInstanceEnvVariable(pui, CloudifyConstants.GIGASPACES_AGENT_ENV_PUBLIC_IP);
 
-		// get delete attribute returned previous value
-		final Object previous = deleteAttribute(appName, serviceName, instanceId,
-				attributeName);
+        // machine details
+        final String hardwareId =
+                controllerHelper.getServiceInstanceEnvVariable(pui, CloudifyConstants.GIGASPACES_CLOUD_HARDWARE_ID);
+        final String machineId =
+                controllerHelper.getServiceInstanceEnvVariable(pui, CloudifyConstants.GIGASPACES_CLOUD_MACHINE_ID);
+        final String imageId =
+                controllerHelper.getServiceInstanceEnvVariable(pui, CloudifyConstants.GIGASPACES_CLOUD_IMAGE_ID);
+        final String templateName =
+                controllerHelper.getServiceInstanceEnvVariable(pui, CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME);
 
-		// create response object
-		final DeleteServiceInstanceAttributeResponse siar = new DeleteServiceInstanceAttributeResponse();
-		// set previous value
-		siar.setPreviousValue(previous);
-		// return response object
-		return siar;
+        // return new instance
+        final ServiceInstanceDetails sid = new ServiceInstanceDetails();
+        // set service instance details
+        sid.setApplicationName(appName);
+        sid.setServiceName(serviceName);
+        sid.setServiceInstanceName(pui.getName());
 
-	}
+        // set service instance machine details
+        sid.setHardwareId(hardwareId);
+        sid.setImageId(imageId);
+        sid.setInstanceId(instanceId);
+        sid.setMachineId(machineId);
+        sid.setPrivateIp(privateIp);
+        sid.setProcessDetails(puiAttributes);
+        sid.setPublicIp(publicIp);
+        sid.setTemplateName(templateName);
 
-	/******
-	 * get service instance details. provides metadata about an instance with given application , service name
-	 * 
-	 * @param appName
-	 *            the application name
-	 * @param serviceName
-	 *            the service name
-	 * @param instanceId
-	 *            the instance id
-	 * @return service instance details {@link ServiceInstanceDetails}
-	 * @throws RestErrorException
-	 *             when application , service or service instance not exist
-	 */
-	@RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/metadata",
-			method = RequestMethod.GET)
-	public ServiceInstanceDetails getServiceInstanceDetails(
-			@PathVariable final String appName,
-			@PathVariable final String serviceName,
-			@PathVariable final Integer instanceId) throws RestErrorException {
+        return sid;
 
-		// get processingUnit instance
-		final ProcessingUnitInstance pui = getServiceInstance(appName, serviceName,
-				instanceId);
-
-		// get USM details
-		final org.openspaces.pu.service.ServiceDetails usmDetails = pui
-				.getServiceDetailsByServiceId("USM");
-		// get attributes details
-		final Map<String, Object> puiAttributes = usmDetails.getAttributes();
-
-		// get private ,public IP
-		final String privateIp = getServiceInstanceEnvVarible(pui,
-				CloudifyConstants.GIGASPACES_AGENT_ENV_PRIVATE_IP);
-		final String publicIp = getServiceInstanceEnvVarible(pui,
-				CloudifyConstants.GIGASPACES_AGENT_ENV_PUBLIC_IP);
-
-		// machine details
-		final String hardwareId = getServiceInstanceEnvVarible(pui,
-				CloudifyConstants.GIGASPACES_CLOUD_HARDWARE_ID);
-		final String machineId = getServiceInstanceEnvVarible(pui,
-				CloudifyConstants.GIGASPACES_CLOUD_MACHINE_ID);
-		final String imageId = getServiceInstanceEnvVarible(pui,
-				CloudifyConstants.GIGASPACES_CLOUD_IMAGE_ID);
-		final String templateName = getServiceInstanceEnvVarible(pui,
-				CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME);
-
-		// return new instance
-		final ServiceInstanceDetails sid = new ServiceInstanceDetails();
-		// set service instance details
-		sid.setApplicationName(appName);
-		sid.setServiceName(serviceName);
-		sid.setServiceInstanceName(pui.getName());
-
-		// set service instance machine details
-		sid.setHardwareId(hardwareId);
-		sid.setImageId(imageId);
-		sid.setInstanceId(instanceId);
-		sid.setMachineId(machineId);
-		sid.setPrivateIp(privateIp);
-		sid.setProcessDetails(puiAttributes);
-		sid.setPublicIp(publicIp);
-		sid.setTemplateName(templateName);
-
-		return sid;
-
-	}
+    }
 
     /**
      *
@@ -1043,588 +1028,479 @@ public class DeploymentsController extends BaseRestContoller {
 		validationContext.setCloudOverridesFile(cloudOverridesFile);
 		validationContext.setServiceOverridesFile(serviceOverridesFile);
 		validationContext.setCloudConfigurationFile(cloudConfigurationFile);
-		for (final InstallServiceValidator validator : getInstallServiceValidators()) {
+		for (final InstallServiceValidator validator : installServiceValidators) {
 			validator.validate(validationContext);
 		}
 	}
 
-	/******
-	 * get application status by given name.
-	 * 
-	 * @param appName
-	 *            the application name.
-	 * @return
-	 */
-	@RequestMapping(value = "/{appName}", method = RequestMethod.GET)
-	public void getApplicationStatus(@PathVariable final String appName) {
-		throwUnsupported();
-	}
-
-	/******
-	 * get Service status by given name.
-	 * 
-	 * @param appName
-	 *            the application name
-	 * @param serviceName
-	 *            the service name.
-	 * @return
-	 */
-	@RequestMapping(value = "/{appName}/services/{serviceName}", method = RequestMethod.GET)
-	public void getServiceStatus(@PathVariable final String appName,
-			@PathVariable final String serviceName) {
-		throwUnsupported();
-	}
-
-	/******
-	 * update application by given name.
-	 * 
-	 * @param appName
-	 *            the application name.
-	 * @return
-	 */
-	@RequestMapping(value = "/{appName}", method = RequestMethod.PUT)
-	public void updateApplication(@PathVariable final String appName) {
-		throwUnsupported();
-	}
-
-	/******
-	 * update service by given name.
-	 * 
-	 * @param appName
-	 *            the application name
-	 * @param serviceName
-	 *            the service name
-	 * @return
-	 */
-	@RequestMapping(value = "/{appName}/services/{serviceName}", method = RequestMethod.PUT)
-	public void updateService(@PathVariable final String appName,
-			@PathVariable final String serviceName) {
-		throwUnsupported();
-	}
-
-	/**
-	 * uninstall an application by given name.
-	 * 
-	 * @param appName
-	 *            application name
-	 */
-	@RequestMapping(value = "/{appName}", method = RequestMethod.DELETE)
-	public void uninstallApplication(@PathVariable final String appName) {
-		throwUnsupported();
-	}
-
-	/******
-	 * uninstall a service by given name.
-	 * 
-	 * @param appName
-	 *            the application name
-	 * @param serviceName
-	 *            the service name
-	 * @return
-	 */
-	@RequestMapping(value = "/{appName}/services/{serviceName}", method = RequestMethod.DELETE)
-	public void uninstallService(@PathVariable final String appName,
-			@PathVariable final String serviceName) {
-		throwUnsupported();
-	}
-
-	/**
-	 * update application attributes.
-	 * 
-	 * @param appName
-	 *            the application name
-	 * @param attributeName
-	 *            the attribute name
-	 * @param updateApplicationAttributeRequest
-	 *            update application attribute request {@link updateApplicationAttributeRequest}
-	 */
-	@RequestMapping(value = "/{appName}/attributes/{attributeName}", method = RequestMethod.PUT)
-	public void updateApplicationAttribute(
-			@PathVariable final String appName,
-			@PathVariable final String attributeName,
-			@RequestBody final UpdateApplicationAttributeRequest updateApplicationAttributeRequest) {
-
-		throwUnsupported();
-	}
-
-	/**
-	 * get application attributes.
-	 * 
-	 * @param appName
-	 *            the application name
-	 * @return {@link GetApplicationAttributesResponse} application attribute response
-	 * @throws RestErrorException
-	 *             when application not exist
-	 */
-	@RequestMapping(value = "/{appName}/attributes", method = RequestMethod.GET)
-	public GetApplicationAttributesResponse getApplicationAttribute(
-			@PathVariable final String appName) throws RestErrorException {
-
-		// valid application if exist
-		getApplication(appName);
-
-		if (logger.isLoggable(Level.FINER)) {
-			logger.finer("received request to get all attributes of application "
-					+ appName);
-		}
-
-		// get attributes
-		final Map<String, Object> attributes = getAttributes(appName, null, null);
-
-		// create response object
-		final GetApplicationAttributesResponse aar = new GetApplicationAttributesResponse();
-		// set attributes
-		aar.setAttributes(attributes);
-		return aar;
-
-	}
-
-	/**
-	 * delete application attribute.
-	 * 
-	 * @param appName
-	 *            the application name
-	 * @param attributeName
-	 *            attribute name to delete
-	 * @return {@link DeleteApplicationAttributeResponse}
-	 * @throws RestErrorException
-	 *             rest error exception when application not exist
-	 */
-	@RequestMapping(value = "/{appName}/attributes/{attributeName}", method = RequestMethod.DELETE)
-	public DeleteApplicationAttributeResponse deleteApplicationAttribute(
-			@PathVariable final String appName,
-			@PathVariable final String attributeName)
-			throws RestErrorException {
-
-		// valid application if exist
-		getApplication(appName);
-
-		if (logger.isLoggable(Level.FINER)) {
-			logger.finer("received request to delete attributes "
-					+ attributeName + " of application " + appName);
-		}
-
-		// delete attribute returned previous value
-		final Object previousValue = deleteAttribute(appName, null,
-				null, attributeName);
-
-		final DeleteApplicationAttributeResponse daar = new DeleteApplicationAttributeResponse();
-		daar.setPreviousValue(previousValue);
-
-		return daar;
-
-	}
-
-	/******
-	 * get service attribute by given name.
-	 * 
-	 * @param appName
-	 *            the application name
-	 * @param serviceName
-	 *            the service name
-	 * @return {@link GetServiceAttributesResponse}
-	 * @throws RestErrorException
-	 *             rest error exception when application , service not exist
-	 */
-	@RequestMapping(value = "/{appName}/service/{serviceName}/attributes", method = RequestMethod.GET)
-	public GetServiceAttributesResponse getServiceAttribute(
-			@PathVariable final String appName,
-			@PathVariable final String serviceName) throws RestErrorException {
-
-		// valid exist service
-		getService(appName, serviceName);
-
-		// logger - request to get all attributes
-		if (logger.isLoggable(Level.FINER)) {
-			logger.finer("received request to get all attributes of service "
-					+ ServiceUtils.getAbsolutePUName(appName, serviceName)
-					+ " of application " + appName);
-		}
-
-		// get attributes
-		final Map<String, Object> attributes = getAttributes(appName, serviceName,
-				null);
-
-		// create response object
-		final GetServiceAttributesResponse sar = new GetServiceAttributesResponse();
-		// set attributes
-		sar.setAttributes(attributes);
-		// return response object
-		return sar;
-
-	}
-
-	/******
-	 * set service attribute by given name.
-	 * 
-	 * @param appName
-	 *            the application name
-	 * @param serviceName
-	 *            the service name
-	 * @param request
-	 *            service attributes request
-	 * @return
-	 * @throws RestErrorException
-	 *             rest error exception
-	 */
-	@RequestMapping(value = "/{appName}/service/{serviceName}/attributes", method = RequestMethod.POST)
-	public void setServiceAttribute(@PathVariable final String appName,
-			@PathVariable final String serviceName,
-			@RequestBody final SetServiceAttributesRequest request)
-			throws RestErrorException {
-
-		// valid service
-		getService(appName, serviceName);
-
-		// validate request object
-		if (request == null || request.getAttributes() == null) {
-			throw new RestErrorException(
-					CloudifyMessageKeys.EMPTY_REQUEST_BODY_ERROR.getName());
-		}
-
-		if (logger.isLoggable(Level.FINER)) {
-			logger.finer("received request to set attributes "
-					+ request.getAttributes().keySet() + " of service "
-					+ ServiceUtils.getAbsolutePUName(appName, serviceName)
-					+ " of application " + appName + " to: "
-					+ request.getAttributes().values());
-
-		}
-
-		// set attributes
-		setAttributes(appName, serviceName, null, request.getAttributes());
-
-	}
-
-	/******
-	 * update service attribute by given name.
-	 * 
-	 * @param appName
-	 *            the application name
-	 * @param serviceName
-	 *            the service name
-	 * @return
-	 */
-	@RequestMapping(value = "/{appName}/service/{serviceName}/attributes", method = RequestMethod.PUT)
-	public void updateServiceAttribute(@PathVariable final String appName,
-			@PathVariable final String serviceName) {
-		throwUnsupported();
-	}
-
-	/******
-	 * delete service attribute by given name.
-	 * 
-	 * @param appName
-	 *            the application name
-	 * @param serviceName
-	 *            the service name
-	 * @param attributeName
-	 *            attribute name to delete
-	 * @return {@link DeleteServiceAttributeResponse}
-	 * @throws RestErrorException
-	 *             when attribute name is empty,null or application name ,service not exist
-	 */
-	@RequestMapping(value = "/{appName}/service/{serviceName}/attributes/{attributeName}", method = RequestMethod.DELETE)
-	public DeleteServiceAttributeResponse deleteServiceAttribute(
-			@PathVariable final String appName,
-			@PathVariable final String serviceName,
-			@PathVariable final String attributeName)
-			throws RestErrorException {
-
-		// valid service
-		getService(appName, serviceName);
-
-		// logger - request to delete attributes
-		if (logger.isLoggable(Level.FINER)) {
-			logger.finer("received request to delete attribute "
-					+ attributeName + " of service "
-					+ ServiceUtils.getAbsolutePUName(appName, serviceName)
-					+ " of application " + appName);
-		}
-
-		// get delete attribute returned previous value
-		final Object previous = deleteAttribute(appName,
-				serviceName, null, attributeName);
-
-		// create response object
-		final DeleteServiceAttributeResponse sar = new DeleteServiceAttributeResponse();
-		// set previous value
-		sar.setPreviousValue(previous);
-		// return response object
-		return sar;
-
-	}
-
-	/******
-	 * get service instance attribute by given name.
-	 * 
-	 * @param appName
-	 *            the application name
-	 * @param serviceName
-	 *            the service name
-	 * @param instanceId
-	 *            the instance id
-	 * @return ServiceInstanceAttributesResponse
-	 * @throws RestErrorException
-	 *             rest error exception when application , service not exist
-	 */
-	@RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/attributes", method = RequestMethod.GET)
-	public GetServiceInstanceAttributesResponse getServiceInstanceAttribute(
-			@PathVariable final String appName,
-			@PathVariable final String serviceName,
-			@PathVariable final Integer instanceId) throws RestErrorException {
-
-		// valid service
-		getService(appName, serviceName);
-
-		// logger - request to get all attributes
-		if (logger.isLoggable(Level.FINER)) {
-			logger.finer("received request to get all attributes of instance number "
-					+ instanceId
-					+ " of service "
-					+ ServiceUtils.getAbsolutePUName(appName, serviceName)
-					+ " of application " + appName);
-		}
-
-		// get attributes
-		final Map<String, Object> attributes = getAttributes(appName, serviceName,
-				instanceId);
-		// create response object
-		final GetServiceInstanceAttributesResponse siar = new GetServiceInstanceAttributesResponse();
-		// set attributes
-		siar.setAttributes(attributes);
-		// return response object
-		return siar;
-
-	}
-
-	/******
-	 * set service instance attribute by given name , id.
-	 * 
-	 * @param appName
-	 *            the application name
-	 * @param serviceName
-	 *            the service name
-	 * @param instanceId
-	 *            the instance id
-	 * @param request
-	 *            service instance attributes request
-	 * @return
-	 * @throws RestErrorException
-	 *             rest error exception when application or service not exist
-	 */
-	@RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/attributes", method = RequestMethod.POST)
-	public void setServiceInstanceAttribute(@PathVariable final String appName,
-			@PathVariable final String serviceName,
-			@PathVariable final Integer instanceId,
-			@RequestBody final SetServiceInstanceAttributesRequest request)
-			throws RestErrorException {
-
-		// valid service
-		getService(appName, serviceName);
-
-		// validate request object
-		if (request == null || request.getAttributes() == null) {
-			throw new RestErrorException(
-					CloudifyMessageKeys.EMPTY_REQUEST_BODY_ERROR.getName());
-		}
-
-		if (logger.isLoggable(Level.FINER)) {
-			logger.finer("received request to set attribute "
-					+ request.getAttributes().keySet() + " of instance number "
-					+ instanceId + " of service "
-					+ ServiceUtils.getAbsolutePUName(appName, serviceName)
-					+ " of application " + appName + " to: "
-					+ request.getAttributes().values());
-		}
-
-		// set attributes
-		setAttributes(appName, serviceName, instanceId, request.getAttributes());
-
-	}
-
-	/******
-	 * update service instance attribute by given name , id.
-	 * 
-	 * @param appName
-	 *            the application name
-	 * @param serviceName
-	 *            the service name
-	 * @param instanceId
-	 *            the instance id
-	 * @return
-	 */
-	@RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/attributes", method = RequestMethod.PUT)
-	public void updateServiceInstanceAttribute(
-			@PathVariable final String appName,
-			@PathVariable final String serviceName,
-			@PathVariable final String instanceId) {
-		throwUnsupported();
-	}
-
-	/******
-	 * get service metrics by given service name.
-	 * 
-	 * @param appName
-	 *            the application name
-	 * @param serviceName
-	 *            the service name
-	 * 
-	 * 
-	 * @return ServiceMetricsResponse instance
-	 * @throws RestErrorException
-	 *             rest error exception
-	 */
-	@RequestMapping(value = "/{appName}/service/{serviceName}/metrics", method = RequestMethod.GET)
-	public ServiceMetricsResponse getServiceMetrics(
-			@PathVariable final String appName,
-			@PathVariable final String serviceName) throws RestErrorException {
-
-		// service instances metrics data
-		final List<ServiceInstanceMetricsData> serviceInstanceMetricsDatas =
-				new ArrayList<ServiceInstanceMetricsData>();
-
-		// get service
-		final ProcessingUnit service = getService(appName, serviceName);
-
-		// set metrics for every instance
-		for (final ProcessingUnitInstance serviceInstance : service.getInstances()) {
-
-			final Map<String, Object> metrics = serviceInstance.getStatistics()
-					.getMonitors().get("USM").getMonitors();
-			serviceInstanceMetricsDatas.add(new ServiceInstanceMetricsData(
-					serviceInstance.getInstanceId(), metrics));
-
-		}
-
-		// create response instance
-		final ServiceMetricsResponse smr = new ServiceMetricsResponse();
-		smr.setAppName(appName);
-		smr.setServiceInstaceMetricsData(serviceInstanceMetricsDatas);
-		smr.setServiceName(serviceName);
-
-		return smr;
-
-	}
-
-	/******
-	 * get service instance metrics by given specific instanceId.
-	 * 
-	 * @param appName
-	 *            the application name
-	 * @param serviceName
-	 *            the service name
-	 * @param instanceId
-	 *            the instance name
-	 * @return ServiceInstanceMetricsResponse {@link ServiceInstanceMetricsResponse}
-	 * @throws RestErrorException
-	 *             rest error exception
-	 */
-	@RequestMapping(value = "{appName}/service/{serviceName}/instances/{instanceId}/metrics", method = RequestMethod.GET)
-	public ServiceInstanceMetricsResponse getServiceInstanceMetrics(
-			@PathVariable final String appName,
-			@PathVariable final String serviceName,
-			@PathVariable final Integer instanceId) throws RestErrorException {
-
-		// get service instance
-		final ProcessingUnitInstance serviceInstance = getServiceInstance(appName,
-				serviceName, instanceId);
-
-		// get metrics data
-		final Map<String, Object> metrics = serviceInstance.getStatistics()
-				.getMonitors().get("USM").getMonitors();
-
-		final ServiceInstanceMetricsData serviceInstanceMetricsData = new ServiceInstanceMetricsData(
-				instanceId, metrics);
-
-		// create response object
-		final ServiceInstanceMetricsResponse simr = new ServiceInstanceMetricsResponse();
-
-		// set response data
-		simr.setAppName(appName);
-		simr.setServiceName(serviceName);
-		simr.setServiceInstanceMetricsData(serviceInstanceMetricsData);
-
-		return simr;
-	}
-
-	/******
-	 * set service details by given name.
-	 * 
-	 * @param appName
-	 *            the application name
-	 * @param serviceName
-	 *            the service name
-	 * @return
-	 */
-	@RequestMapping(value = "/{appName}/service/{serviceName}/metadata", method = RequestMethod.POST)
-	public void setServiceDetails(@PathVariable final String appName,
-			@PathVariable final String serviceName) {
-		throwUnsupported();
-	}
-
-	/******
-	 * update service details by given name.
-	 * 
-	 * @param appName
-	 *            the application name
-	 * @param serviceName
-	 *            the service name
-	 * @return
-	 */
-	@RequestMapping(value = "/{appName}/service/{serviceName}/metadata", method = RequestMethod.PUT)
-	public void updateServiceDetails(@PathVariable final String appName,
-			@PathVariable final String serviceName) {
-		throwUnsupported();
-	}
-
-	/******
-	 * set service instance details by given name.
-	 * 
-	 * @param appName
-	 *            the application name
-	 * @param serviceName
-	 *            the service name
-	 * @param instanceId
-	 *            the instance id
-	 * @return
-	 */
-	@RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/metadata", method = RequestMethod.POST)
-	public void setServiceInstanceDetails(@PathVariable final String appName,
-			@PathVariable final String serviceName,
-			@PathVariable final String instanceId) {
-		throwUnsupported();
-	}
-
-	/******
-	 * get service alert by given name.
-	 * 
-	 * @param appName
-	 *            the application name
-	 * @param serviceName
-	 *            the service name
-	 * @return
-	 */
-	@RequestMapping(value = "/appName}/service/{serviceName}/alerts", method = RequestMethod.GET)
-	public void getServiceAlerts(@PathVariable final String appName,
-			@PathVariable final String serviceName) {
-		throwUnsupported();
-	}
-
-	public UploadRepo getRepo() {
-		return repo;
-	}
-
-	public void setRepo(final UploadRepo repo) {
-		this.repo = repo;
-	}
-
-	public InstallServiceValidator[] getInstallServiceValidators() {
-		return installServiceValidators;
-	}
-
-	public void setInstallServiceValidators(final InstallServiceValidator[] installServiceValidators) {
-		this.installServiceValidators = installServiceValidators;
-	}
-
+    /**
+     *
+     * @param appName .
+     */
+    @RequestMapping(value = "/{appName}", method = RequestMethod.GET)
+    public void getApplicationStatus(@PathVariable final String appName) {
+        throw new UnsupportedOperationException();
+    }
+
+
+    /**
+     *
+     * @param appName .
+     * @param serviceName .
+     */
+    @RequestMapping(value = "/{appName}/services/{serviceName}", method = RequestMethod.GET)
+    public void getServiceStatus(
+            @PathVariable final String appName,
+            @PathVariable final String serviceName) {
+        throw new UnsupportedOperationException();
+    }
+
+
+    /**
+     *
+     * @param appName .
+     */
+    @RequestMapping(value = "/{appName}", method = RequestMethod.PUT)
+    public void updateApplication(@PathVariable final String appName) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     *
+     * @param appName .
+     * @param serviceName .
+     */
+    @RequestMapping(value = "/{appName}/services/{serviceName}", method = RequestMethod.PUT)
+    public void updateService(
+            @PathVariable final String appName,
+            @PathVariable final String serviceName) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     *
+     * @param appName .
+     * @param attributeName .
+     * @param updateApplicationAttributeRequest .
+     */
+    @RequestMapping(value = "/{appName}/attributes/{attributeName}", method = RequestMethod.PUT)
+    public void updateApplicationAttribute(
+            @PathVariable final String appName,
+            @PathVariable final String attributeName,
+            @RequestBody final UpdateApplicationAttributeRequest updateApplicationAttributeRequest) {
+        throw new UnsupportedOperationException();
+    }
+
+
+    /**
+     * Retrieves application level attributes.
+     * @param appName The application name.
+     * @return An instance of {@link GetApplicationAttributesResponse}
+     * containing all the application attributes names and values.
+     * @throws ResourceNotFoundException Thrown in case the application does not exist.
+     */
+    @RequestMapping(value = "/{appName}/attributes", method = RequestMethod.GET)
+    public GetApplicationAttributesResponse getApplicationAttributes(
+            @PathVariable final String appName)
+            throws ResourceNotFoundException {
+
+        // valid application if exist
+        controllerHelper.getApplication(appName);
+
+        if (logger.isLoggable(Level.FINER)) {
+            logger.finer("received request to get all attributes of application " + appName);
+        }
+
+        // get attributes
+        final Map<String, Object> attributes = controllerHelper.getAttributes(appName, null, null);
+
+        // create response object
+        final GetApplicationAttributesResponse aar = new GetApplicationAttributesResponse();
+        // set attributes
+        aar.setAttributes(attributes);
+        return aar;
+
+    }
+
+    /**
+     * Deletes an application level attribute.
+     * @param appName The application name.
+     * @param attributeName The attribute name.
+     * @return The previous value of the attribute.
+     * @throws ResourceNotFoundException Thrown in case the application does not exist.
+     * @throws RestErrorException Thrown in case the attribute name is empty.
+     */
+    @RequestMapping(value = "/{appName}/attributes/{attributeName}", method = RequestMethod.DELETE)
+    public DeleteApplicationAttributeResponse deleteApplicationAttribute(
+            @PathVariable final String appName,
+            @PathVariable final String attributeName)
+            throws ResourceNotFoundException, RestErrorException {
+
+        // valid application if exist
+        controllerHelper.getApplication(appName);
+
+        if (logger.isLoggable(Level.FINER)) {
+            logger.finer("received request to delete attributes "
+                    + attributeName + " of application " + appName);
+        }
+
+        // delete attribute returned previous value
+        final Object previousValue = controllerHelper.deleteAttribute(appName, null, null, attributeName);
+
+        final DeleteApplicationAttributeResponse daar = new DeleteApplicationAttributeResponse();
+        daar.setPreviousValue(previousValue);
+
+        return daar;
+
+    }
+
+    /**
+     * Retrieves service level attributes.
+     * @param appName The application name.
+     * @param serviceName The service name.
+     * @return An instance of {@link GetServiceAttributesResponse}
+     * containing all the service attributes names and values.
+     * @throws ResourceNotFoundException Thrown in case the service does not exist.
+     */
+    @RequestMapping(value = "/{appName}/service/{serviceName}/attributes", method = RequestMethod.GET)
+    public GetServiceAttributesResponse getServiceAttributes(
+            @PathVariable final String appName,
+            @PathVariable final String serviceName)
+            throws ResourceNotFoundException {
+
+        // valid exist service
+        controllerHelper.getService(appName, serviceName);
+
+        // logger - request to get all attributes
+        if (logger.isLoggable(Level.FINER)) {
+            logger.finer("received request to get all attributes of service "
+                    + ServiceUtils.getAbsolutePUName(appName, serviceName)
+                    + " of application " + appName);
+        }
+
+        // get attributes
+        final Map<String, Object> attributes = controllerHelper.getAttributes(appName, serviceName,
+                null);
+
+        // create response object
+        final GetServiceAttributesResponse sar = new GetServiceAttributesResponse();
+        // set attributes
+        sar.setAttributes(attributes);
+        // return response object
+        return sar;
+
+    }
+
+    /**
+     * Sets service level attributes for the given application.
+     * @param appName The application name.
+     * @param serviceName The service name.
+     * @param request Request body, specifying the attributes names and values.
+     * @throws RestErrorException Thrown in case the request body is empty.
+     * @throws ResourceNotFoundException Thrown in case the service does not exist.
+     */
+    @RequestMapping(value = "/{appName}/service/{serviceName}/attributes", method = RequestMethod.POST)
+    public void setServiceAttribute(
+            @PathVariable final String appName,
+            @PathVariable final String serviceName,
+            @RequestBody final SetServiceAttributesRequest request)
+            throws ResourceNotFoundException, RestErrorException {
+
+        // valid service
+        controllerHelper.getService(appName, serviceName);
+
+        // validate request object
+        if (request == null || request.getAttributes() == null) {
+            throw new RestErrorException(CloudifyMessageKeys.EMPTY_REQUEST_BODY_ERROR.getName());
+        }
+
+        if (logger.isLoggable(Level.FINER)) {
+            logger.finer("received request to set attributes "
+                    + request.getAttributes().keySet() + " of service "
+                    + ServiceUtils.getAbsolutePUName(appName, serviceName)
+                    + " of application " + appName + " to: "
+                    + request.getAttributes().values());
+
+        }
+
+        // set attributes
+        controllerHelper.setAttributes(appName, serviceName, null, request.getAttributes());
+
+    }
+
+    /**
+     *
+     * @param appName .
+     * @param serviceName .
+     */
+    @RequestMapping(value = "/{appName}/service/{serviceName}/attributes", method = RequestMethod.PUT)
+    public void updateServiceAttribute(
+            @PathVariable final String appName,
+            @PathVariable final String serviceName) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Deletes a service level attribute.
+     * @param appName The application name.
+     * @param serviceName The service name.
+     * @param attributeName The attribute name.
+     * @return The previous value of the attribute.
+     * @throws ResourceNotFoundException Thrown in case the service does not exist.
+     * @throws RestErrorException Thrown in case the attribute name is empty.
+     */
+    @RequestMapping(value = "/{appName}/service/{serviceName}/attributes/{attributeName}",
+            method = RequestMethod.DELETE)
+    public DeleteServiceAttributeResponse deleteServiceAttribute(
+            @PathVariable final String appName,
+            @PathVariable final String serviceName,
+            @PathVariable final String attributeName)
+            throws ResourceNotFoundException, RestErrorException {
+
+
+        // valid service
+        controllerHelper.getService(appName, serviceName);
+
+        // logger - request to delete attributes
+        if (logger.isLoggable(Level.FINER)) {
+            logger.finer("received request to delete attribute "
+                    + attributeName + " of service "
+                    + ServiceUtils.getAbsolutePUName(appName, serviceName)
+                    + " of application " + appName);
+        }
+
+        // get delete attribute returned previous value
+        final Object previous = controllerHelper.deleteAttribute(appName, serviceName, null, attributeName);
+
+        // create response object
+        final DeleteServiceAttributeResponse sar = new DeleteServiceAttributeResponse();
+        // set previous value
+        sar.setPreviousValue(previous);
+        // return response object
+        return sar;
+
+    }
+
+    /**
+     * Retrieves service instance level attributes.
+     * @param appName The application name.
+     * @param serviceName The service name.
+     * @param instanceId The instance id.
+     * @return An instance of {@link GetServiceInstanceAttributesResponse}
+     * containing all the service instance attributes names and values.
+     * @throws ResourceNotFoundException Thrown in case the service instance does not exist.
+     */
+    @RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/attributes",
+            method = RequestMethod.GET)
+    public GetServiceInstanceAttributesResponse getServiceInstanceAttributes(
+            @PathVariable final String appName,
+            @PathVariable final String serviceName,
+            @PathVariable final Integer instanceId)
+            throws ResourceNotFoundException {
+
+        // valid service
+        controllerHelper.getService(appName, serviceName);
+
+        // logger - request to get all attributes
+        if (logger.isLoggable(Level.FINER)) {
+            logger.finer("received request to get all attributes of instance number "
+                    + instanceId
+                    + " of service "
+                    + ServiceUtils.getAbsolutePUName(appName, serviceName)
+                    + " of application " + appName);
+        }
+
+        // get attributes
+        final Map<String, Object> attributes = controllerHelper.getAttributes(appName, serviceName, instanceId);
+        // create response object
+        final GetServiceInstanceAttributesResponse siar = new GetServiceInstanceAttributesResponse();
+        // set attributes
+        siar.setAttributes(attributes);
+        // return response object
+        return siar;
+
+    }
+
+    /**
+     * Sets service instance level attributes for the given application.
+     * @param appName The application name.
+     * @param serviceName The service name.
+     * @param instanceId The instance id.
+     * @param request Request body, specifying the attributes names and values.
+     * @throws RestErrorException Thrown in case the request body is empty.
+     * @throws ResourceNotFoundException Thrown in case the service instance does not exist.
+     */
+    @RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/attributes",
+            method = RequestMethod.POST)
+    public void setServiceInstanceAttributes(
+            @PathVariable final String appName,
+            @PathVariable final String serviceName,
+            @PathVariable final Integer instanceId,
+            @RequestBody final SetServiceInstanceAttributesRequest request)
+            throws ResourceNotFoundException, RestErrorException {
+
+        // valid service
+        controllerHelper.getService(appName, serviceName);
+
+        // validate request object
+        if (request == null || request.getAttributes() == null) {
+            throw new RestErrorException(
+                    CloudifyMessageKeys.EMPTY_REQUEST_BODY_ERROR.getName());
+        }
+
+        if (logger.isLoggable(Level.FINER)) {
+            logger.finer("received request to set attribute "
+                    + request.getAttributes().keySet() + " of instance number "
+                    + instanceId + " of service "
+                    + ServiceUtils.getAbsolutePUName(appName, serviceName)
+                    + " of application " + appName + " to: "
+                    + request.getAttributes().values());
+        }
+
+        // set attributes
+        controllerHelper.setAttributes(appName, serviceName, instanceId, request.getAttributes());
+    }
+
+    /**
+     *
+     * @param appName .
+     * @param serviceName .
+     * @param instanceId .
+     */
+    @RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/attributes",
+            method = RequestMethod.PUT)
+    public void updateServiceInstanceAttribute(
+            @PathVariable final String appName,
+            @PathVariable final String serviceName,
+            @PathVariable final String instanceId) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Retrieves USM metric details about the service.
+     * @param appName The application name.
+     * @param serviceName The service name.
+     * @return Various USM metric details about the service
+     * @throws ResourceNotFoundException .
+     */
+    @RequestMapping(value = "/{appName}/service/{serviceName}/metrics", method = RequestMethod.GET)
+    public ServiceMetricsResponse getServiceMetrics(
+            @PathVariable final String appName,
+            @PathVariable final String serviceName)
+            throws ResourceNotFoundException {
+
+        // service instances metrics data
+        final List<ServiceInstanceMetricsData> serviceInstanceMetricsDatas =
+                new ArrayList<ServiceInstanceMetricsData>();
+
+        // get service
+        final ProcessingUnit service = controllerHelper.getService(appName, serviceName);
+
+        // set metrics for every instance
+        for (final ProcessingUnitInstance serviceInstance : service.getInstances()) {
+
+            final Map<String, Object> metrics = serviceInstance.getStatistics()
+                    .getMonitors().get("USM").getMonitors();
+            serviceInstanceMetricsDatas.add(new ServiceInstanceMetricsData(
+                    serviceInstance.getInstanceId(), metrics));
+
+        }
+
+        // create response instance
+        final ServiceMetricsResponse smr = new ServiceMetricsResponse();
+        smr.setAppName(appName);
+        smr.setServiceInstaceMetricsData(serviceInstanceMetricsDatas);
+        smr.setServiceName(serviceName);
+
+        return smr;
+
+    }
+
+    /**
+     * Retrieves USM metric details about the service instance.
+     * @param appName The application name.
+     * @param serviceName The service name.
+     * @param instanceId The instance id.
+     * @return Various USM metric details about the service instance.
+     * @throws ResourceNotFoundException .
+     */
+    @RequestMapping(value = "{appName}/service/{serviceName}/instances/{instanceId}/metrics",
+            method = RequestMethod.GET)
+    public ServiceInstanceMetricsResponse getServiceInstanceMetrics(
+            @PathVariable final String appName,
+            @PathVariable final String serviceName,
+            @PathVariable final Integer instanceId)
+            throws ResourceNotFoundException {
+
+        // get service instance
+        final ProcessingUnitInstance serviceInstance =
+                controllerHelper.getServiceInstance(appName, serviceName, instanceId);
+
+        // get metrics data
+        final Map<String, Object> metrics = serviceInstance.getStatistics().getMonitors().get("USM").getMonitors();
+
+        final ServiceInstanceMetricsData serviceInstanceMetricsData =
+                new ServiceInstanceMetricsData(instanceId, metrics);
+
+        // create response object
+        final ServiceInstanceMetricsResponse simr = new ServiceInstanceMetricsResponse();
+
+        // set response data
+        simr.setAppName(appName);
+        simr.setServiceName(serviceName);
+        simr.setServiceInstanceMetricsData(serviceInstanceMetricsData);
+
+        return simr;
+    }
+
+    /**
+     *
+     * @param appName .
+     * @param serviceName .
+     */
+    @RequestMapping(value = "/{appName}/service/{serviceName}/metadata", method = RequestMethod.POST)
+    public void setServiceDetails(
+            @PathVariable final String appName,
+            @PathVariable final String serviceName) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     *
+     * @param appName .
+     * @param serviceName .
+     */
+    @RequestMapping(value = "/{appName}/service/{serviceName}/metadata", method = RequestMethod.PUT)
+    public void updateServiceDetails(
+            @PathVariable final String appName,
+            @PathVariable final String serviceName) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     *
+     * @param appName .
+     * @param serviceName .
+     * @param instanceId .
+     */
+    @RequestMapping(value = "/{appName}/service/{serviceName}/instances/{instanceId}/metadata",
+            method = RequestMethod.POST)
+    public void setServiceInstanceDetails(
+            @PathVariable final String appName,
+            @PathVariable final String serviceName,
+            @PathVariable final String instanceId) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     *
+     * @param appName .
+     * @param serviceName .
+     */
+    @RequestMapping(value = "/appName}/service/{serviceName}/alerts", method = RequestMethod.GET)
+    public void getServiceAlerts(
+            @PathVariable final String appName,
+            @PathVariable final String serviceName) {
+        throw new UnsupportedOperationException();
+    }
 }

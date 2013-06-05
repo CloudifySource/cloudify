@@ -19,7 +19,7 @@ import java.util.Properties;
 import java.util.concurrent.TimeoutException;
 
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
-import org.cloudifysource.dsl.rest.ApplicationDescription;
+import org.cloudifysource.dsl.rest.response.ApplicationDescription;
 import org.cloudifysource.dsl.rest.response.ControllerDetails;
 import org.cloudifysource.restclient.InvocationResult;
 import org.cloudifysource.shell.commands.CLIException;
