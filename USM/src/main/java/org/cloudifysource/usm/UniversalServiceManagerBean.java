@@ -396,11 +396,12 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 	private void deAllocateStorage() throws USMException, TimeoutException {
 
-		Service service = getUsmLifecycleBean().getConfiguration().getService();
-		final String storageTemplateName = service.getStorage().getTemplate();
-		final StorageFacade storage = getUsmLifecycleBean().getConfiguration().getServiceContext().getStorage();
+        Service service = getUsmLifecycleBean().getConfiguration().getService();
+        final String storageTemplateName = service.getStorage().getTemplate();
 
-		if (StringUtils.isNotBlank(storageTemplateName)) {
+        if (StringUtils.isNotBlank(storageTemplateName)) {
+
+            final StorageFacade storage = getUsmLifecycleBean().getConfiguration().getServiceContext().getStorage();
 
 			try {
 
