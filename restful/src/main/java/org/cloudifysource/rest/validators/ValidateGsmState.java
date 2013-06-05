@@ -36,7 +36,8 @@ public class ValidateGsmState implements
         InstallServiceValidator,
         UninstallServiceValidator,
         InstallApplicationValidator,
-        UninstallApplicationValidator {
+        UninstallApplicationValidator,
+        SetServiceInstancesValidator{
 
     private static final Logger logger = Logger.getLogger(ValidateGsmState.class.getName());
 
@@ -64,6 +65,12 @@ public class ValidateGsmState implements
     public void validate(final UninstallApplicationValidationContext validationContext)
             throws RestErrorException {
         validateGsmState(validationContext.getCloud());
+    }
+
+    @Override
+    public void validate(final SetServiceInstancesValidationContext validationContext) throws RestErrorException {
+        validateGsmState(validationContext.getCloud());
+
     }
 
     void validateGsmState(final Cloud cloud) throws RestErrorException {

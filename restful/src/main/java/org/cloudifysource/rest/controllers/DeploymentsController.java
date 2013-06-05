@@ -26,6 +26,7 @@ import org.cloudifysource.dsl.internal.*;
 import org.cloudifysource.dsl.rest.request.*;
 import org.cloudifysource.dsl.rest.response.*;
 import org.cloudifysource.dsl.utils.ServiceUtils;
+import org.cloudifysource.rest.ResponseConstants;
 import org.cloudifysource.rest.RestConfiguration;
 import org.cloudifysource.rest.controllers.helpers.ControllerHelper;
 import org.cloudifysource.rest.controllers.helpers.PropertiesOverridesMerger;
@@ -52,14 +53,18 @@ import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
 import org.openspaces.admin.gsm.GridServiceManager;
 import org.openspaces.admin.internal.admin.InternalAdmin;
+import org.openspaces.admin.internal.pu.InternalProcessingUnit;
+import org.openspaces.admin.internal.pu.elastic.GridServiceContainerConfig;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
 import org.openspaces.admin.pu.elastic.ElasticStatefulProcessingUnitDeployment;
 import org.openspaces.admin.pu.elastic.ElasticStatelessProcessingUnitDeployment;
+import org.openspaces.admin.pu.elastic.config.ManualCapacityScaleConfigurer;
 import org.openspaces.admin.pu.elastic.topology.ElasticDeploymentTopology;
 import org.openspaces.admin.space.ElasticSpaceDeployment;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.context.GigaSpaceContext;
+import org.openspaces.core.util.MemoryUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -111,6 +116,8 @@ public class DeploymentsController extends BaseRestController {
 
     private static final int WAIT_FOR_MANAGED_TIMEOUT_SECONDS = 10;
 
+    private static final int LOCAL_CLOUD_INSTANCE_MEMORY_MB = 512;
+
     @GigaSpaceContext(name = "gigaSpace")
     protected GigaSpace gigaSpace;
 
@@ -131,6 +138,9 @@ public class DeploymentsController extends BaseRestController {
 
     @Autowired
     private final UninstallApplicationValidator[] uninstallApplicationValidators = new UninstallApplicationValidator[0];
+
+    @Autowired
+    private final SetServiceInstancesValidator[] setServiceInstancesValidators = new SetServiceInstancesValidator[0];
 
     @Autowired(required = false)
 	private CustomPermissionEvaluator permissionEvaluator;
@@ -289,6 +299,95 @@ public class DeploymentsController extends BaseRestController {
         controllerHelper.setAttributes(appName, null, null, attributesRequest.getAttributes());
 
     }
+
+    /**
+     * Sets the number of instances of a service to a given value. This operation is only allowed for services that are
+     * marked as Elastic (defined in the recipe). Note: set instances does NOT support multi-tenancy. You should only
+     * use set-instances with dedicated machine SLA. Manually scaling a multi-tenant service will cause unexpected
+     * side-effect.
+     *
+     * @param applicationName
+     *            the application name.
+     *
+     * @param serviceName
+     *            the service name.
+     *
+     * @param request
+     *            the request details.
+     *
+     * @throws RestErrorException
+     *             When the service is not elastic.
+     * @throws ResourceNotFoundException
+     *             If the service is not found.
+     */
+    @RequestMapping(value = "/{applicationName}/services/{serviceName}/count",
+            method = RequestMethod.POST)
+    @PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
+    public void setServiceInstances(
+            @PathVariable final String applicationName,
+            @PathVariable final String serviceName,
+            @RequestBody final SetServiceInstancesRequest request)
+            throws RestErrorException, ResourceNotFoundException {
+
+        if (logger.isLoggable(Level.INFO)) {
+            logger.info("Scaling request for service: " + applicationName + "." + serviceName
+                    + " to " + request.getCount() + " instances");
+        }
+
+        final ProcessingUnit pu = this.controllerHelper.getService(applicationName, serviceName);
+
+        if (pu == null) {
+            throw new RestErrorException(
+                    ResponseConstants.FAILED_TO_LOCATE_SERVICE, serviceName);
+        }
+
+        validateSetInstances(applicationName, serviceName, request, pu);
+
+        if (permissionEvaluator != null) {
+            final String puAuthGroups = pu.getBeanLevelProperties().getContextProperties().
+                    getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
+            final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            final CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
+            permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
+        }
+
+        final int count = request.getCount();
+        logger.info("Scaling " + pu.getName() + " to " + count + " instances");
+
+        Cloud cloud = restConfig.getCloud();
+
+        if (cloud == null) {
+            // Manual scale by number of instances
+            pu.scale(new ManualCapacityScaleConfigurer().memoryCapacity(
+                    LOCAL_CLOUD_INSTANCE_MEMORY_MB * count, MemoryUnit.MEGABYTES).create());
+
+        } else {
+
+            final Map<String, String> properties = ((InternalProcessingUnit) pu).getElasticProperties();
+            final GridServiceContainerConfig gscConfig = new GridServiceContainerConfig(properties);
+            final long cloudExternalProcessMemoryInMB = gscConfig.getMaximumMemoryCapacityInMB();
+
+            pu.scale(ElasticScaleConfigFactory.createManualCapacityScaleConfig(
+                    (int) (cloudExternalProcessMemoryInMB * count), 0,
+                    request.isLocationAware(), true));
+        }
+    }
+
+    private void validateSetInstances(final String applicationName, final String serviceName,
+                                      final SetServiceInstancesRequest request, final ProcessingUnit pu) throws RestErrorException {
+        SetServiceInstancesValidationContext validationContext = new SetServiceInstancesValidationContext();
+        validationContext.setApplicationName(applicationName);
+        validationContext.setServiceName(serviceName);
+        validationContext.setCloud(this.restConfig.getCloud());
+        validationContext.setRequest(request);
+        validationContext.setProcessingUnit(pu);
+
+        for (SetServiceInstancesValidator validator : setServiceInstancesValidators) {
+            validator.validate(validationContext);
+        }
+    }
+
+
 
 
     /**
