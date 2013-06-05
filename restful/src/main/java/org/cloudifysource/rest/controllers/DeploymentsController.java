@@ -19,6 +19,7 @@ import org.cloudifysource.dsl.Application;
 import org.cloudifysource.dsl.ComputeDetails;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.dsl.context.kvstorage.spaceentries.ApplicationCloudifyAttribute;
 import org.cloudifysource.dsl.context.kvstorage.spaceentries.InstanceCloudifyAttribute;
 import org.cloudifysource.dsl.context.kvstorage.spaceentries.ServiceCloudifyAttribute;
 import org.cloudifysource.dsl.internal.*;
@@ -50,6 +51,7 @@ import org.jgrapht.traverse.TopologicalOrderIterator;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
 import org.openspaces.admin.gsm.GridServiceManager;
+import org.openspaces.admin.internal.admin.InternalAdmin;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
 import org.openspaces.admin.pu.elastic.ElasticStatefulProcessingUnitDeployment;
@@ -107,6 +109,8 @@ public class DeploymentsController extends BaseRestController {
 
     private static final int DEPLOYMENT_TIMEOUT_SECONDS = 60;
 
+    private static final int WAIT_FOR_MANAGED_TIMEOUT_SECONDS = 10;
+
     @GigaSpaceContext(name = "gigaSpace")
     protected GigaSpace gigaSpace;
 
@@ -125,6 +129,8 @@ public class DeploymentsController extends BaseRestController {
     @Autowired
     private final InstallApplicationValidator[] installApplicationValidators = new InstallApplicationValidator[0];
 
+    @Autowired
+    private final UninstallApplicationValidator[] uninstallApplicationValidators = new UninstallApplicationValidator[0];
 
     @Autowired(required = false)
 	private CustomPermissionEvaluator permissionEvaluator;
@@ -469,6 +475,86 @@ public class DeploymentsController extends BaseRestController {
         }
     }
 
+    private List<ProcessingUnit> createUninstallOrder(
+            final ProcessingUnit[] pus,
+            final String applicationName) {
+
+        // TODO: Refactor this - merge with createServiceOrder, as methods are
+        // very similar
+        final DirectedGraph<ProcessingUnit, DefaultEdge> graph = new DefaultDirectedGraph<ProcessingUnit, DefaultEdge>(
+                DefaultEdge.class);
+
+        for (final ProcessingUnit processingUnit : pus) {
+            graph.addVertex(processingUnit);
+        }
+
+        final Map<String, ProcessingUnit> puByName = new HashMap<String, ProcessingUnit>();
+        for (final ProcessingUnit processingUnit : pus) {
+            puByName.put(processingUnit.getName(), processingUnit);
+        }
+
+        for (final ProcessingUnit processingUnit : pus) {
+            final String dependsOn = (String) processingUnit
+                    .getBeanLevelProperties().getContextProperties()
+                    .get(CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON);
+            if (dependsOn == null) {
+                logger.warning("Could not find the "
+                        + CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON
+                        + " property for processing unit "
+                        + processingUnit.getName());
+
+            } else {
+                final String[] dependencies = dependsOn.replace("[", "")
+                        .replace("]", "").split(",");
+                for (final String puName : dependencies) {
+                    final String normalizedPuName = puName.trim();
+                    if (normalizedPuName.length() > 0) {
+                        final ProcessingUnit dependency = puByName
+                                .get(normalizedPuName);
+                        if (dependency == null) {
+                            logger.severe("Could not find Processing Unit "
+                                    + normalizedPuName
+                                    + " that Processing Unit "
+                                    + processingUnit.getName() + " depends on");
+                        } else {
+                            // the reverse to the install order.
+                            graph.addEdge(processingUnit, dependency);
+                        }
+                    }
+                }
+            }
+        }
+
+        final CycleDetector<ProcessingUnit, DefaultEdge> cycleDetector =
+                new CycleDetector<ProcessingUnit, DefaultEdge>(
+                        graph);
+        final boolean containsCycle = cycleDetector.detectCycles();
+
+        if (containsCycle) {
+            logger.warning("Detected a cycle in the dependencies of application: "
+                    + applicationName
+                    + " while preparing to uninstall."
+                    + " The service in this application will be uninstalled in a random order");
+
+            return Arrays.asList(pus);
+        }
+
+        final TopologicalOrderIterator<ProcessingUnit, DefaultEdge> iterator =
+                new TopologicalOrderIterator<ProcessingUnit, DefaultEdge>(graph);
+
+        final List<ProcessingUnit> orderedList = new ArrayList<ProcessingUnit>();
+        while (iterator.hasNext()) {
+            final ProcessingUnit nextPU = iterator.next();
+            if (!orderedList.contains(nextPU)) {
+                orderedList.add(nextPU);
+            }
+        }
+        // Collections.reverse(orderedList);
+        return orderedList;
+
+    }
+
+
 
     private List<Service> createServiceDependencyOrder(final org.cloudifysource.dsl.Application application) {
         final DirectedGraph<Service, DefaultEdge> graph = new DefaultDirectedGraph<Service, DefaultEdge>(
@@ -725,6 +811,139 @@ public class DeploymentsController extends BaseRestController {
         installServiceResponse.setDeploymentID(deploymentID);
         return installServiceResponse;
     }
+
+    /**
+     *
+     * @param appName
+     * 		The application name.
+     * @return uninstall response.
+     * @throws RestErrorException .
+     */
+    @RequestMapping(value = "/{appName}", method = RequestMethod.DELETE)
+    @PreAuthorize("isFullyAuthenticated()")
+    public UninstallApplicationResponse uninstallApplication(
+            @PathVariable final String appName,
+            @RequestParam(required = false, defaultValue = "15") final Integer timeoutInMinutes)
+            throws RestErrorException {
+
+        validateUninstallApplication(appName);
+
+        final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // Check that Application exists
+        final org.openspaces.admin.application.Application app = this.restConfig.getAdmin().getApplications().waitFor(
+                appName, 10, TimeUnit.SECONDS);
+
+        final ProcessingUnit[] pus = app.getProcessingUnits()
+                .getProcessingUnits();
+
+        if (pus.length > 0) {
+            if (permissionEvaluator != null) {
+                final CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
+                // all the application PUs are supposed to have the same auth-groups setting
+                final String puAuthGroups = pus[0].getBeanLevelProperties().getContextProperties().
+                        getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
+                permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
+            }
+        }
+
+        final StringBuilder sb = new StringBuilder();
+        final List<ProcessingUnit> uninstallOrder = createUninstallOrder(pus,
+                appName);
+        // TODO: Add timeout.
+        FutureTask<Boolean> undeployTask = null;
+        logger.log(Level.INFO, "Starting to poll for" + appName + " uninstall lifecycle events.");
+        if (uninstallOrder.size() > 0) {
+
+            undeployTask = new FutureTask<Boolean>(new Runnable() {
+                private final long startTime = System.currentTimeMillis();
+
+                @Override
+                public void run() {
+
+                    final String deploymentId = uninstallOrder.get(0).getBeanLevelProperties()
+                            .getContextProperties().getProperty(CloudifyConstants.CONTEXT_PROPERTY_DEPLOYMENT_ID);
+
+                    for (final ProcessingUnit processingUnit : uninstallOrder) {
+                        if (permissionEvaluator != null) {
+                            final CloudifyAuthorizationDetails authDetails =
+                                    new CloudifyAuthorizationDetails(authentication);
+                            final String puAuthGroups = processingUnit.getBeanLevelProperties().getContextProperties().
+                                    getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
+                            permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
+                        }
+
+                        final long undeployTimeout = TimeUnit.MINUTES.toMillis(timeoutInMinutes)
+                                - (System.currentTimeMillis() - startTime);
+                        try {
+                            //TODO: move this to constant
+                            if (processingUnit.waitForManaged(WAIT_FOR_MANAGED_TIMEOUT_SECONDS,
+                                    TimeUnit.SECONDS) == null) {
+                                logger.log(Level.WARNING,
+                                        "Failed to locate GSM that is managing Processing Unit "
+                                                + processingUnit.getName());
+                            } else {
+                                logger.log(Level.INFO,
+                                        "Undeploying Processing Unit "
+                                                + processingUnit.getName());
+                                populateEventsCache(deploymentId, processingUnit);
+                                processingUnit.undeployAndWait(undeployTimeout,
+                                        TimeUnit.MILLISECONDS);
+                                final String serviceName = ServiceUtils.getApplicationServiceName(
+                                        processingUnit.getName(), appName);
+                                logger.info("Removing application service scope attributes for service " + serviceName);
+                                deleteServiceAttributes(appName,
+                                        serviceName);
+                            }
+                        } catch (final Exception e) {
+                            final String msg = "Failed to undeploy processing unit: "
+                                    + processingUnit.getName()
+                                    + " while uninstalling application "
+                                    + appName
+                                    + ". Uninstall will continue, but service "
+                                    + processingUnit.getName()
+                                    + " may remain in an unstable state";
+
+                            logger.log(Level.SEVERE, msg, e);
+                        }
+                    }
+                    DeploymentEvent undeployFinishedEvent = new DeploymentEvent();
+                    undeployFinishedEvent.setDescription(CloudifyConstants.UNDEPLOYED_SUCCESSFULLY_EVENT);
+                    eventsCache.add(new EventsCacheKey(deploymentId), undeployFinishedEvent);
+                    logger.log(Level.INFO, "Application " + appName
+                            + " undeployment complete");
+                }
+            }, Boolean.TRUE);
+
+            ((InternalAdmin) this.restConfig.getAdmin()).scheduleAdminOperation(undeployTask);
+        }
+
+        final String errors = sb.toString();
+        if (errors.length() == 0) {
+            logger.info("Removing all application scope attributes for application " + appName);
+            deleteApplicationScopeAttributes(appName);
+            final UninstallApplicationResponse response = new UninstallApplicationResponse();
+            return response;
+        }
+        throw new RestErrorException(errors);
+    }
+
+    private void deleteApplicationScopeAttributes(final String applicationName) {
+        final ApplicationCloudifyAttribute applicationAttributeTemplate =
+                new ApplicationCloudifyAttribute(applicationName, null, null);
+        gigaSpace.takeMultiple(applicationAttributeTemplate);
+    }
+
+    private void validateUninstallApplication(final String appName)
+            throws RestErrorException {
+        final UninstallApplicationValidationContext validationContext =
+                new UninstallApplicationValidationContext();
+        validationContext.setCloud(restConfig.getCloud());
+        validationContext.setApplicationName(appName);
+        for (final UninstallApplicationValidator validator : uninstallApplicationValidators) {
+            validator.validate(validationContext);
+        }
+    }
+
 
     /**
      * Uninstalls a service.
