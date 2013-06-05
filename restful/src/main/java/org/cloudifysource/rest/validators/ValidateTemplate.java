@@ -15,6 +15,8 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
+import org.cloudifysource.dsl.Application;
+import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
@@ -27,13 +29,25 @@ import org.springframework.stereotype.Component;
  *
  */
 @Component
-public class ValidateTemplate implements InstallServiceValidator {
+public class ValidateTemplate implements InstallServiceValidator, InstallApplicationValidator {
 
     @Override
     public void validate(final InstallServiceValidationContext validationContext) throws RestErrorException {
         Cloud cloud = validationContext.getCloud();
         String templateName = validationContext.getTemplateName();
         validateTemplate(templateName, cloud);
+    }
+
+    @Override
+    public void validate(final InstallApplicationValidationContext validationContext)
+            throws RestErrorException {
+        final Application application = validationContext.getApplication();
+        final Cloud cloud = validationContext.getCloud();
+        for (Service service : application.getServices()) {
+            if (service.getCompute() != null) {
+                validateTemplate(service.getCompute().getTemplate(), cloud);
+            }
+        }
     }
 
     private void validateTemplate(final String templateName, final Cloud cloud) throws RestErrorException {

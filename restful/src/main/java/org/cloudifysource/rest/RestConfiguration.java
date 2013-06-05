@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2013 GigaSpaces Technologies Ltd. All rights reserved
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -30,119 +31,139 @@ import org.cloudifysource.rest.util.RestPollingRunnable;
 import org.openspaces.admin.Admin;
 
 /**
- * 
+ *
  * @author yael
- * 
+ *
  */
 public class RestConfiguration {
 
-	private Admin admin;
-	private Cloud cloud = null;
-	private CloudConfigurationHolder cloudConfigurationHolder;
-	private File cloudConfigurationDir;
-	private String defaultTemplateName;
-	private ComputeTemplate managementTemplate;
-	private String managementTemplateName;
-	private final AtomicInteger lastTemplateFileNum = new AtomicInteger(0);
-	private String temporaryFolderPath;
-	/**
-	 * A set containing all of the executed lifecycle events. used to avoid duplicate prints.
-	 */
-	private final Set<String> eventsSet = new HashSet<String>();
-	private final Map<UUID, RestPollingRunnable> lifecyclePollingThreadContainer =
-			new ConcurrentHashMap<UUID, RestPollingRunnable>();
-	private final ScheduledExecutorService scheduledExecutor = Executors
-			.newScheduledThreadPool(10, new ThreadFactory() {
-				private final AtomicInteger threadNumber = new AtomicInteger(1);
+    private static final int THREAD_POOL_SIZE = 20;
+    private Admin admin;
+    private Cloud cloud = null;
+    private CloudConfigurationHolder cloudConfigurationHolder;
+    private File cloudConfigurationDir;
+    private String defaultTemplateName;
+    private ComputeTemplate managementTemplate;
+    private String managementTemplateName;
+    private final AtomicInteger lastTemplateFileNum = new AtomicInteger(0);
+    private String temporaryFolderPath;
+    /**
+     * A set containing all of the executed lifecycle events. used to avoid duplicate prints.
+     */
+    private final Set<String> eventsSet = new HashSet<String>();
+    private final Map<UUID, RestPollingRunnable> lifecyclePollingThreadContainer =
+            new ConcurrentHashMap<UUID, RestPollingRunnable>();
+    private final ScheduledExecutorService scheduledExecutor = Executors
+            .newScheduledThreadPool(10, new ThreadFactory() {
+                private final AtomicInteger threadNumber = new AtomicInteger(1);
 
-				@Override
-				public Thread newThread(final Runnable r) {
-					final Thread thread = new Thread(r,
-							"LifecycleEventsPollingExecutor-"
-									+ threadNumber.getAndIncrement());
-					thread.setDaemon(true);
-					return thread;
-				}
-			});
-	
-	public Admin getAdmin() {
-		return admin;
-	}
+                @Override
+                public Thread newThread(final Runnable r) {
+                    final Thread thread = new Thread(r,
+                            "LifecycleEventsPollingExecutor-"
+                                    + threadNumber.getAndIncrement());
+                    thread.setDaemon(true);
+                    return thread;
+                }
+            });
 
-	public void setAdmin(final Admin admin) {
-		this.admin = admin;
-	}
-	
-	public Cloud getCloud() {
-		return cloud;
-	}
+    // Set up a small thread pool with daemon threads.
+    private final ExecutorService executorService = Executors
+            .newFixedThreadPool(THREAD_POOL_SIZE, new ThreadFactory() {
+                private final AtomicInteger threadNumber = new AtomicInteger(1);
 
-	public void setCloud(final Cloud cloud) {
-		this.cloud = cloud;
-	}
+                @Override
+                public Thread newThread(final Runnable r) {
+                    final Thread thread = new Thread(r,
+                            "ServiceControllerExecutor-"
+                                    + threadNumber.getAndIncrement());
+                    thread.setDaemon(true);
+                    return thread;
+                }
+            });
 
-	public CloudConfigurationHolder getCloudConfigurationHolder() {
-		return cloudConfigurationHolder;
-	}
+    public Admin getAdmin() {
+        return admin;
+    }
 
-	public void setCloudConfigurationHolder(final CloudConfigurationHolder cloudConfigurationHolder) {
-		this.cloudConfigurationHolder = cloudConfigurationHolder;
-	}
+    public void setAdmin(final Admin admin) {
+        this.admin = admin;
+    }
 
-	public File getCloudConfigurationDir() {
-		return cloudConfigurationDir;
-	}
+    public Cloud getCloud() {
+        return cloud;
+    }
 
-	public void setCloudConfigurationDir(final File cloudConfigurationDir) {
-		this.cloudConfigurationDir = cloudConfigurationDir;
-	}
+    public void setCloud(final Cloud cloud) {
+        this.cloud = cloud;
+    }
 
-	public String getDefaultTemplateName() {
-		return defaultTemplateName;
-	}
+    public CloudConfigurationHolder getCloudConfigurationHolder() {
+        return cloudConfigurationHolder;
+    }
 
-	public void setDefaultTemplateName(final String defaultTemplateName) {
-		this.defaultTemplateName = defaultTemplateName;
-	}
+    public void setCloudConfigurationHolder(final CloudConfigurationHolder cloudConfigurationHolder) {
+        this.cloudConfigurationHolder = cloudConfigurationHolder;
+    }
 
-	public ComputeTemplate getManagementTemplate() {
-		return managementTemplate;
-	}
+    public File getCloudConfigurationDir() {
+        return cloudConfigurationDir;
+    }
 
-	public void setManagementTemplate(final ComputeTemplate managementTemplate) {
-		this.managementTemplate = managementTemplate;
-	}
+    public void setCloudConfigurationDir(final File cloudConfigurationDir) {
+        this.cloudConfigurationDir = cloudConfigurationDir;
+    }
 
-	public String getManagementTemplateName() {
-		return managementTemplateName;
-	}
-	
-	public void setManagementTemplateName(final String managementTemplateName) {
-		this.managementTemplateName = managementTemplateName;
-	}
+    public String getDefaultTemplateName() {
+        return defaultTemplateName;
+    }
 
-	public AtomicInteger getLastTemplateFileNum() {
-		return lastTemplateFileNum;
-	}
+    public void setDefaultTemplateName(final String defaultTemplateName) {
+        this.defaultTemplateName = defaultTemplateName;
+    }
 
-	public String getTemporaryFolderPath() {
-		return temporaryFolderPath;
-	}
+    public ComputeTemplate getManagementTemplate() {
+        return managementTemplate;
+    }
 
-	public void setTemporaryFolderPath(final String temporaryFolderPath) {
-		this.temporaryFolderPath = temporaryFolderPath;
-	}
+    public void setManagementTemplate(final ComputeTemplate managementTemplate) {
+        this.managementTemplate = managementTemplate;
+    }
 
-	public Set<String> getEventsSet() {
-		return eventsSet;
-	}
+    public String getManagementTemplateName() {
+        return managementTemplateName;
+    }
 
-	public Map<UUID, RestPollingRunnable> getLifecyclePollingThreadContainer() {
-		return lifecyclePollingThreadContainer;
-	}
+    public void setManagementTemplateName(final String managementTemplateName) {
+        this.managementTemplateName = managementTemplateName;
+    }
 
-	public ScheduledExecutorService getScheduledExecutor() {
-		return scheduledExecutor;
-	}
+    public AtomicInteger getLastTemplateFileNum() {
+        return lastTemplateFileNum;
+    }
+
+    public String getTemporaryFolderPath() {
+        return temporaryFolderPath;
+    }
+
+    public void setTemporaryFolderPath(final String temporaryFolderPath) {
+        this.temporaryFolderPath = temporaryFolderPath;
+    }
+
+    public Set<String> getEventsSet() {
+        return eventsSet;
+    }
+
+    public Map<UUID, RestPollingRunnable> getLifecyclePollingThreadContainer() {
+        return lifecyclePollingThreadContainer;
+    }
+
+    public ScheduledExecutorService getScheduledExecutor() {
+        return scheduledExecutor;
+    }
+
+    public ExecutorService getExecutorService() {
+        return executorService;
+    }
 
 }

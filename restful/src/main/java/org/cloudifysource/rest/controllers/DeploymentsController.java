@@ -15,6 +15,7 @@ package org.cloudifysource.rest.controllers;
 import net.jini.core.discovery.LookupLocator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.dsl.Application;
 import org.cloudifysource.dsl.ComputeDetails;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.cloud.Cloud;
@@ -38,12 +39,14 @@ import org.cloudifysource.rest.repo.UploadRepo;
 import org.cloudifysource.rest.util.IsolationUtils;
 import org.cloudifysource.rest.util.LifecycleEventsContainer;
 import org.cloudifysource.rest.util.RestPollingRunnable;
-import org.cloudifysource.rest.validators.InstallServiceValidationContext;
-import org.cloudifysource.rest.validators.InstallServiceValidator;
-import org.cloudifysource.rest.validators.UninstallServiceValidationContext;
-import org.cloudifysource.rest.validators.UninstallServiceValidator;
+import org.cloudifysource.rest.validators.*;
 import org.cloudifysource.security.CloudifyAuthorizationDetails;
 import org.cloudifysource.security.CustomPermissionEvaluator;
+import org.jgrapht.DirectedGraph;
+import org.jgrapht.alg.CycleDetector;
+import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.traverse.TopologicalOrderIterator;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
 import org.openspaces.admin.gsm.GridServiceManager;
@@ -63,10 +66,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -117,6 +117,10 @@ public class DeploymentsController extends BaseRestContoller {
     @Autowired
     private final UninstallServiceValidator[] uninstallServiceValidators = new UninstallServiceValidator[0];
 
+    @Autowired
+    private final InstallApplicationValidator[] installApplicationValidators = new InstallApplicationValidator[0];
+
+
     @Autowired(required = false)
 	private CustomPermissionEvaluator permissionEvaluator;
 
@@ -161,6 +165,41 @@ public class DeploymentsController extends BaseRestContoller {
 
         return serviceDetails;
     }
+
+    /******
+     * Waits for a single instance of a service to become available. NOTE: currently only uses service name as
+     * processing unit name.
+     *
+     * @param applicationName
+     *            not used.
+     * @param serviceName
+     *            the service name.
+     * @param timeout
+     *            the timeout period to wait for the processing unit, and then the PU instance.
+     * @param timeUnit
+     *            the time unit used to wait for the processing unit, and then the PU instance.
+     * @return true if instance is found, false if instance is not found in the specified period.
+     */
+    public boolean waitForServiceInstance(
+            final String applicationName,
+            final String serviceName, final long timeout,
+            final TimeUnit timeUnit) {
+
+        // this should be a very fast lookup, since the service was already
+        // successfully deployed
+        final String absolutePUName = ServiceUtils.getAbsolutePUName(
+                applicationName, serviceName);
+        final ProcessingUnit pu = restConfig.getAdmin().getProcessingUnits().waitFor(
+                absolutePUName, timeout, timeUnit);
+        if (pu == null) {
+            return false;
+        }
+
+        // ignore the time spent on PU lookup, as it should be failry short.
+        return pu.waitFor(1, timeout, timeUnit);
+
+    }
+
 
     /**
      * Retrieves events based on deployment id. The deployment id may be of service or application.
@@ -362,17 +401,164 @@ public class DeploymentsController extends BaseRestContoller {
 
 	}
 
-	/******
-	 * Installs an application.
-	 * 
-	 * @param appName
-	 *            the application name.
-	 * @return
-	 */
-	@RequestMapping(value = "/{name}", method = RequestMethod.POST)
-	public void installApplication(@PathVariable final String appName) {
-		throwUnsupported();
-	}
+    /**
+     *
+     * @param appName
+     * 			The application name.
+     * @param request
+     * 			install application request.
+     * @return
+     * 		an install application response.
+     * @throws RestErrorException .
+     *
+     */
+    @RequestMapping(value = "/{appName}", method = RequestMethod.POST)
+    @PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
+    public InstallApplicationResponse installApplication(
+            @PathVariable final String appName,
+            @RequestBody final InstallApplicationRequest request)
+            throws RestErrorException {
+
+        //get the application file
+        final String applcationFileUploadKey = request.getApplcationFileUploadKey();
+        final File applicationFile = getFromRepo(applcationFileUploadKey,
+                CloudifyMessageKeys.WRONG_APPLICTION_FILE_UPLOAD_KEY.getName(),
+                appName);
+        //get the application overrides file
+        final String applicationOverridesFileKey = request.getApplicationOverridesUploadKey();
+        final File applicationOverridesFile = getFromRepo(applicationOverridesFileKey,
+                CloudifyMessageKeys.WRONG_APPLICTION_OVERRIDES_FILE_UPLOAD_KEY.getName(),
+                appName);
+
+        //read application data
+        DSLApplicationCompilatioResult result;
+        try {
+            result = ServiceReader
+                    .getApplicationFromFile(applicationFile,
+                            applicationOverridesFile);
+        } catch (final Exception e) {
+            throw new RestErrorException("Failed reading application file."
+                    + " Reason: " + e.getMessage(), e);
+        }
+        validateInstallApplication(result.getApplication());
+        // update effective authGroups
+        String effectiveAuthGroups = getEffectiveAuthGroups(request.getAuthGroups());
+        request.setAuthGroups(effectiveAuthGroups);
+
+        //create install dependency order.
+        final List<Service> services = createServiceDependencyOrder(result
+                .getApplication());
+
+        //create a deployment ID that would be used across all services.
+        final String deploymentID = UUID.randomUUID().toString();
+
+        final ApplicationDeployerRunnable installer =
+                new ApplicationDeployerRunnable(this,
+                        request,
+                        result,
+                        services,
+                        deploymentID,
+                        applicationOverridesFile);
+
+        //start install thread.
+        if (installer.isAsyncInstallPossibleForApplication()) {
+            installer.run();
+        } else {
+            restConfig.getExecutorService().execute(installer);
+        }
+        //creating response
+        final InstallApplicationResponse response = new InstallApplicationResponse();
+        response.setDeploymentID(deploymentID);
+
+        return response;
+    }
+
+    private void validateInstallApplication(final Application application)
+            throws RestErrorException {
+        final InstallApplicationValidationContext validationContext =
+                new InstallApplicationValidationContext();
+        validationContext.setApplication(application);
+        validationContext.setCloud(restConfig.getCloud());
+        for (final InstallApplicationValidator validator : installApplicationValidators) {
+            validator.validate(validationContext);
+        }
+    }
+
+
+    private List<Service> createServiceDependencyOrder(final org.cloudifysource.dsl.Application application) {
+        final DirectedGraph<Service, DefaultEdge> graph = new DefaultDirectedGraph<Service, DefaultEdge>(
+                DefaultEdge.class);
+
+        final Map<String, Service> servicesByName = new HashMap<String, Service>();
+
+        final List<Service> services = application.getServices();
+
+        for (final Service service : services) {
+            // keep a map of names to services
+            servicesByName.put(service.getName(), service);
+            // and create the graph node
+            graph.addVertex(service);
+        }
+
+        for (final Service service : services) {
+            final List<String> dependsList = service.getDependsOn();
+            if (dependsList != null) {
+                for (final String depends : dependsList) {
+                    final Service dependency = servicesByName.get(depends);
+                    if (dependency == null) {
+                        throw new IllegalArgumentException("Dependency '"
+                                + depends + "' of service: "
+                                + service.getName() + " was not found");
+                    }
+
+                    graph.addEdge(dependency, service);
+                }
+            }
+        }
+
+        final CycleDetector<Service, DefaultEdge> cycleDetector = new CycleDetector<Service, DefaultEdge>(
+                graph);
+        final boolean containsCycle = cycleDetector.detectCycles();
+
+        if (containsCycle) {
+            final Set<Service> servicesInCycle = cycleDetector.findCycles();
+            final StringBuilder sb = new StringBuilder();
+            boolean first = true;
+            for (final Service service : servicesInCycle) {
+                if (!first) {
+                    sb.append(",");
+                } else {
+                    first = false;
+                }
+                sb.append(service.getName());
+            }
+
+            final String cycleString = sb.toString();
+
+            // NOTE: This is not exactly how the cycle detector works. The
+            // returned list is the vertex set for the subgraph of all cycles.
+            // So if there are multiple cycles, the list will contain the
+            // members of all of them.
+            throw new IllegalArgumentException(
+                    "The dependency graph of application: "
+                            + application.getName()
+                            + " contains one or more cycles. "
+                            + "The services that form a cycle are part of the following group: "
+                            + cycleString);
+        }
+
+        final TopologicalOrderIterator<Service, DefaultEdge> iterator =
+                new TopologicalOrderIterator<Service, DefaultEdge>(graph);
+
+        final List<Service> orderedList = new ArrayList<Service>();
+        while (iterator.hasNext()) {
+            orderedList.add(iterator.next());
+        }
+        return orderedList;
+
+    }
+
+
 
     /**
      * Executes an install service request onto the grid.
