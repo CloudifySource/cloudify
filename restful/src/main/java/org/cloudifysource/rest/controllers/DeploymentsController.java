@@ -80,6 +80,8 @@ import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_LUS;
+
 /**
  * This controller is responsible for retrieving information about deployments. It is also the entry point for deploying
  * services and application. <br>
@@ -185,6 +187,21 @@ public class DeploymentsController extends BaseRestController {
         serviceDetails.setInstanceNames(instanceNames);
 
         return serviceDetails;
+    }
+
+    /**
+     * Basic test to see if the rest is connected properly.
+     * @throws RestErrorException Thrown in case the rest does not identify any lookup services.
+     */
+    @RequestMapping(value = "/testrest", method = RequestMethod.GET)
+    public void test() throws RestErrorException {
+
+        if (restConfig.getAdmin().getLookupServices().getSize() > 0) {
+            return;
+        }
+        final String groups = Arrays.toString(restConfig.getAdmin().getGroups());
+        final String locators = Arrays.toString(restConfig.getAdmin().getLocators());
+        throw new RestErrorException(FAILED_TO_LOCATE_LUS, groups, locators);
     }
 
     /******
