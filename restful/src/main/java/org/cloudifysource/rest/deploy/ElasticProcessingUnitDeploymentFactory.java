@@ -30,7 +30,7 @@ public interface ElasticProcessingUnitDeploymentFactory {
 	 * 			the deployment configuration object.
 	 * @return
 	 * 			an elastic deployment object
-	 * @throws ElasticDeploymentCreationException .
+	 * @throws org.cloudifysource.rest.deploy.ElasticDeploymentCreationException .
 	 */
 	ElasticDeploymentTopology create(final DeploymentConfig deploymentConfig)
 			throws ElasticDeploymentCreationException;

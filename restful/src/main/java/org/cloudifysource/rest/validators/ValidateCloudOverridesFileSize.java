@@ -13,28 +13,28 @@ import org.cloudifysource.rest.controllers.RestErrorException;
  */
 public class ValidateCloudOverridesFileSize implements InstallServiceValidator {
 
-	private static final long DEFAULT_CLOUD_OVERRIDES_FILE_LENGTH_LIMIT_BYTES = 
-			CloudifyConstants.CLOUD_OVERRIDES_FILE_LENGTH_LIMIT_BYTES;
-	private long cloudOverridesFileSizeLimit = DEFAULT_CLOUD_OVERRIDES_FILE_LENGTH_LIMIT_BYTES;
-	
-	@Override
-	public void validate(final InstallServiceValidationContext validationContext) throws RestErrorException {
-		File cloudOverridesFile = validationContext.getCloudOverridesFile();
-		if (cloudOverridesFile != null) {
-			if (cloudOverridesFile.length() > cloudOverridesFileSizeLimit) {
-				throw new RestErrorException(CloudifyMessageKeys.CLOUD_OVERRIDES_SIZE_LIMIT_EXCEEDED.getName(), 
-						cloudOverridesFile.getAbsolutePath());
-			}
-		}
+    private static final long DEFAULT_CLOUD_OVERRIDES_FILE_LENGTH_LIMIT_BYTES =
+            CloudifyConstants.CLOUD_OVERRIDES_FILE_LENGTH_LIMIT_BYTES;
+    private long cloudOverridesFileSizeLimit = DEFAULT_CLOUD_OVERRIDES_FILE_LENGTH_LIMIT_BYTES;
 
-	}
+    @Override
+    public void validate(final InstallServiceValidationContext validationContext) throws RestErrorException {
+        File cloudOverridesFile = validationContext.getCloudOverridesFile();
+        if (cloudOverridesFile != null) {
+            if (cloudOverridesFile.length() > cloudOverridesFileSizeLimit) {
+                throw new RestErrorException(CloudifyMessageKeys.CLOUD_OVERRIDES_SIZE_LIMIT_EXCEEDED.getName(),
+                        cloudOverridesFile.getAbsolutePath());
+            }
+        }
 
-	public long getCloudOverridesFileSizeLimit() {
-		return cloudOverridesFileSizeLimit;
-	}
+    }
 
-	public void setCloudOverridesFileSizeLimit(final long cloudOverridesFileSizeLimit) {
-		this.cloudOverridesFileSizeLimit = cloudOverridesFileSizeLimit;
-	}
+    public long getCloudOverridesFileSizeLimit() {
+        return cloudOverridesFileSizeLimit;
+    }
+
+    public void setCloudOverridesFileSizeLimit(final long cloudOverridesFileSizeLimit) {
+        this.cloudOverridesFileSizeLimit = cloudOverridesFileSizeLimit;
+    }
 
 }

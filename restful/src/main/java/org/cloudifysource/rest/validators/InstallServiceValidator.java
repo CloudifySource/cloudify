@@ -19,15 +19,15 @@ import org.cloudifysource.rest.controllers.RestErrorException;
 
 /**
  * An interface for rest validator classes. Each validator must implement the validate method.
- * 
+ *
  * @author yael
- * 
+ *
  */
 public interface InstallServiceValidator {
-	/**
-	 * 
-	 * @param validationContext .
-	 * @throws RestErrorException .
-	 */
-	void validate(final InstallServiceValidationContext validationContext) throws RestErrorException;
+    /**
+     *
+     * @param validationContext .
+     * @throws RestErrorException .
+     */
+    void validate(final InstallServiceValidationContext validationContext) throws RestErrorException;
 }

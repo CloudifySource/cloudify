@@ -19,42 +19,50 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.rest.ResponseConstants;
+import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.rest.controllers.RestErrorException;
 import org.openspaces.admin.Admin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/**
+ * validates that if running with high availability, both GSMs are up.
+ *
+ * @author adaml
+ *
+ */
 @Component
 public class ValidateGsmState implements InstallServiceValidator {
 
-	Logger logger = Logger.getLogger(ValidateGsmState.class.getName());
+    private static final Logger logger = Logger.getLogger(ValidateGsmState.class.getName());
 
 
-	@Autowired(required = true)
-	private Admin admin;
+    @Autowired(required = true)
+    private Admin admin;
 
-	@Override
-	public void validate(final InstallServiceValidationContext validationContext) throws RestErrorException {
-		//When a manager is down and persistence is used along with HA, install/uninstall/scaling should be disabled.
-		logger.info("Validating Gsm state.");
-		Cloud cloud = validationContext.getCloud();
-		if (cloud != null) {
-			String persistentStoragePath = cloud.getConfiguration().getPersistentStoragePath();
-			if (persistentStoragePath != null) {
-				int numManagementMachines = cloud.getProvider().getNumberOfManagementMachines();
-				final boolean isGsmStateValid = admin.getGridServiceManagers()
-						.waitFor(numManagementMachines, 10, TimeUnit.SECONDS);
-				if (!isGsmStateValid) {
-					int gsmCount = admin.getGridServiceManagers().getManagers().length;
-					logger.warning("Not all gsm instances are intact. Found " + gsmCount);
-					throw new RestErrorException(ResponseConstants.NOT_ALL_GSM_INSTANCES_RUNNING, 
-							numManagementMachines, gsmCount);
-				}
-			}
-		}		
-	}
+    @Override
+    public void validate(final InstallServiceValidationContext validationContext) throws RestErrorException {
+        validateGsmState(validationContext.getCloud());
+    }
 
+    void validateGsmState(final Cloud cloud) throws RestErrorException {
+        //When a manager is down and persistence is used along with HA, install/uninstall/scaling should be disabled.
+        logger.info("Validating Gsm state.");
+        if (cloud != null) {
+            String persistentStoragePath = cloud.getConfiguration().getPersistentStoragePath();
+            if (persistentStoragePath != null) {
+                int numManagementMachines = cloud.getProvider().getNumberOfManagementMachines();
+                final boolean isGsmStateValid = admin.getGridServiceManagers()
+                        .waitFor(numManagementMachines, 10, TimeUnit.SECONDS);
+                if (!isGsmStateValid) {
+                    int gsmCount = admin.getGridServiceManagers().getManagers().length;
+                    logger.warning("Not all gsm instances are intact. Found " + gsmCount);
+                    throw new RestErrorException(CloudifyMessageKeys.NOT_ALL_GSM_INSTANCES_RUNNING.getName(),
+                            numManagementMachines, gsmCount);
+                }
+            }
+        }
+    }
 
 
 }

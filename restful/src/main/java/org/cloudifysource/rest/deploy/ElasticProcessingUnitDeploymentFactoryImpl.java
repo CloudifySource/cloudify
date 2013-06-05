@@ -1,20 +1,22 @@
 /*******************************************************************************
  * Copyright (c) 2013 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.rest.deploy;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -31,8 +33,11 @@ import org.cloudifysource.dsl.StatelessProcessingUnit;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.packaging.ZipUtils;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
+import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.esc.driver.provisioning.CloudifyMachineProvisioningConfig;
+import org.cloudifysource.rest.RestConfiguration;
 import org.cloudifysource.rest.controllers.ElasticScaleConfigFactory;
 import org.cloudifysource.rest.util.IsolationUtils;
 import org.openspaces.admin.pu.elastic.ElasticStatefulProcessingUnitDeployment;
@@ -47,22 +52,30 @@ import org.openspaces.admin.space.ElasticSpaceDeployment;
 import org.openspaces.core.util.MemoryUnit;
 
 /**
- * 
+ * Elastic deployment factory class.
+ *
  * @author adaml
  * @since 2.6.0
  */
 public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProcessingUnitDeploymentFactory {
-	
+
 	private static final Logger logger = Logger
 			.getLogger(ElasticProcessingUnitDeploymentFactoryImpl.class.getName());
 
 	private static final String LOCALCLOUD_ZONE = "localcloud";
-	
+
 	private DeploymentConfig deploymentConfig;
-	
+
+	// this should be used to create temp directories in the shared temp location.
+	private final RestConfiguration restConfig;
+
+	public ElasticProcessingUnitDeploymentFactoryImpl(final RestConfiguration restConfig) {
+		this.restConfig = restConfig;
+	}
+
 	@Override
 	public ElasticDeploymentTopology create(final DeploymentConfig deploymentConfig)
-				throws ElasticDeploymentCreationException {
+			throws ElasticDeploymentCreationException {
 		final Service service = deploymentConfig.getService();
 		this.deploymentConfig = deploymentConfig;
 		if (service.getLifecycle() != null) {
@@ -70,7 +83,7 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 		} else if (service.getStatefulProcessingUnit() != null) {
 			return createElasticStatefulProcessingUnit();
 		} else if (service.getStatelessProcessingUnit() != null
-					|| service.getMirrorProcessingUnit() != null) {
+				|| service.getMirrorProcessingUnit() != null) {
 			return createElasticStatelessPUDeployment();
 		} else if (service.getDataGrid() != null) {
 			return createElasticDatagridDeployment();
@@ -78,19 +91,18 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 			throw new ElasticDeploymentCreationException("Unsupported service type");
 		}
 	}
-	
-//TODO: ask yael about the context properties
+
 	private ElasticSpaceDeployment createElasticDatagridDeployment() {
-		
+
 		final String absolutePUName = deploymentConfig.getAbsolutePUName();
 		final ElasticSpaceDeployment deployment = new ElasticSpaceDeployment(absolutePUName);
 		addSharedDeploymentParameters(deployment);
-		
+
 		final DataGrid dataGrid = deploymentConfig.getService().getDataGrid();
 		addProcessingUnitContextProperties(deployment, dataGrid.getContextProperties());
 		final Sla puSla = dataGrid.getSla();
 		prepareSla(puSla);
-		
+
 		final int containerMemoryInMB = puSla.getMemoryCapacityPerContainer();
 		final int maxMemoryInMB = puSla.getMaxMemoryCapacity();
 		deployment
@@ -103,14 +115,14 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 		ManualCapacityScaleConfig scaleConfig;
 		if (isLocalcloud()) {
 			scaleConfig = new ManualCapacityScaleConfigurer()
-			.memoryCapacity(containerMemoryInMB * deploymentConfig.getService().getNumInstances(),
-					MemoryUnit.MEGABYTES).create();
+					.memoryCapacity(containerMemoryInMB * deploymentConfig.getService().getNumInstances(),
+							MemoryUnit.MEGABYTES).create();
 		} else {
 			final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory();
 			deployment.memoryCapacityPerContainer((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
 			scaleConfig = ElasticScaleConfigFactory
 					.createManualCapacityScaleConfig((int) cloudExternalProcessMemoryInMB, 0,
-					deploymentConfig.getService().isLocationAware(), true);
+							deploymentConfig.getService().isLocationAware(), true);
 			// TODO: [itaif] Why only capacity of one container ?
 		}
 		deployment.scale(scaleConfig);
@@ -125,8 +137,22 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 			}
 		}
 	}
-	
-	private ElasticStatelessProcessingUnitDeployment createElasticStatelessPUDeployment() {
+
+	// TODO - temp files should be created in shared temp location, as read from restConfig
+	private File getBinaryFromPackagedRecipe(final File packagedService, final String binaryName) throws
+			IOException {
+
+		File resultFile = ZipUtils.unzipEntry(packagedService, "ext/" + binaryName, binaryName);
+		if (resultFile == null) {
+			throw new IllegalArgumentException("Missing file in packaged service: " + binaryName);
+		}
+
+		return resultFile;
+
+	}
+
+	private ElasticStatelessProcessingUnitDeployment createElasticStatelessPUDeployment()
+			throws ElasticDeploymentCreationException {
 		final Service service = deploymentConfig.getService();
 		final StatelessProcessingUnit puConfig;
 		if (service.getStatelessProcessingUnit() != null) {
@@ -137,26 +163,35 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 		final Sla statelessSla = puConfig.getSla();
 		final int containerMemoryInMB = statelessSla.getMemoryCapacityPerContainer();
 		prepareSla(statelessSla);
-		//TODO: why is there no maxMemory?
+		// TODO: why is there no maxMemory?
+		final File packagedService = deploymentConfig.getPackedFile();
+		final String binaryFileName = deploymentConfig.getService().getStatelessProcessingUnit().getBinaries();
+		File binaryFile = null;
+		try {
+			binaryFile = getBinaryFromPackagedRecipe(packagedService, binaryFileName);
+		} catch (IOException e) {
+			throw new ElasticDeploymentCreationException("Failed to open packaged service file: " + e.getMessage(), e);
+		}
+
 		final ElasticStatelessProcessingUnitDeployment deployment = new ElasticStatelessProcessingUnitDeployment(
-				deploymentConfig.getPackedFile())
+				binaryFile)
 				.memoryCapacityPerContainer(containerMemoryInMB, MemoryUnit.MEGABYTES);
-		//Shared properties among all deployment types
+		// Shared properties among all deployment types
 		addSharedDeploymentParameters(deployment);
 		addProcessingUnitContextProperties(deployment, puConfig.getContextProperties());
-		
+
 		setSpringProfilesActive(deployment, puConfig.getSpringProfilesActive());
 
 		ManualCapacityScaleConfig scaleConfig;
 		if (isLocalcloud()) {
 			scaleConfig = new ManualCapacityScaleConfigurer()
-			.memoryCapacity(containerMemoryInMB * service.getNumInstances(),
-					MemoryUnit.MEGABYTES).create();
+					.memoryCapacity(containerMemoryInMB * service.getNumInstances(),
+							MemoryUnit.MEGABYTES).create();
 		} else {
 			final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory();
 			deployment.memoryCapacityPerContainer(
 					(int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
-			//create manual standard scale config
+			// create manual standard scale config
 			scaleConfig = ElasticScaleConfigFactory
 					.createManualCapacityScaleConfig(containerMemoryInMB
 							* service.getNumInstances(), 0,
@@ -174,51 +209,61 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 		}
 	}
 
-	private ElasticStatefulProcessingUnitDeployment createElasticStatefulProcessingUnit() {
+	private ElasticStatefulProcessingUnitDeployment createElasticStatefulProcessingUnit()
+			throws ElasticDeploymentCreationException {
 		StatefulProcessingUnit puConfig = deploymentConfig.getService().getStatefulProcessingUnit();
 		final Sla statefulSla = puConfig.getSla();
 		prepareSla(statefulSla);
-		
-		final ElasticStatefulProcessingUnitDeployment deployment = 
-								new ElasticStatefulProcessingUnitDeployment(deploymentConfig.getPackedFile());
-		//Shared properties among all deployment types
+
+		final File packagedService = deploymentConfig.getPackedFile();
+		final String binaryFileName = deploymentConfig.getService().getStatelessProcessingUnit().getBinaries();
+		File binaryFile = null;
+		try {
+			binaryFile = getBinaryFromPackagedRecipe(packagedService, binaryFileName);
+		} catch (IOException e) {
+			throw new ElasticDeploymentCreationException("Failed to open packaged service file: " + e.getMessage(), e);
+		}
+
+		final ElasticStatefulProcessingUnitDeployment deployment =
+				new ElasticStatefulProcessingUnitDeployment(binaryFile);
+		// Shared properties among all deployment types
 		addSharedDeploymentParameters(deployment);
 		addProcessingUnitContextProperties(deployment, puConfig.getContextProperties());
 
-		//TODO:The sla should also be available in a usm service.
-		//these properties should be set if defined to overrride the properties set in the cloud groovy. 
+		// TODO:The sla should also be available in a usm service.
+		// these properties should be set if defined to overrride the properties set in the cloud groovy.
 		final int containerMemoryInMB = statefulSla.getMemoryCapacityPerContainer();
 		final int maxMemoryCapacityInMB = statefulSla.getMaxMemoryCapacity();
 
 		deployment.memoryCapacityPerContainer(containerMemoryInMB, MemoryUnit.MEGABYTES)
-					.maxMemoryCapacity(maxMemoryCapacityInMB + "m")
-					.highlyAvailable(statefulSla.getHighlyAvailable())
-					.singleMachineDeployment();
+				.maxMemoryCapacity(maxMemoryCapacityInMB + "m")
+				.highlyAvailable(statefulSla.getHighlyAvailable())
+				.singleMachineDeployment();
 
 		setSpringProfilesActive(deployment, puConfig.getSpringProfilesActive());
 		ManualCapacityScaleConfig scaleConfig;
 		final int memoryCapacity = statefulSla.getMemoryCapacity();
 		if (isLocalcloud()) {
-			//setting localcloud scale config
+			// setting localcloud scale config
 			scaleConfig = new ManualCapacityScaleConfigurer()
-			.memoryCapacity(containerMemoryInMB * deploymentConfig.getService().getNumInstances(),
-					MemoryUnit.MEGABYTES).create();
+					.memoryCapacity(containerMemoryInMB * deploymentConfig.getService().getNumInstances(),
+							MemoryUnit.MEGABYTES).create();
 		} else {
-			//create manual standard scale config
+			// create manual standard scale config
 			scaleConfig = ElasticScaleConfigFactory
-			.createManualCapacityScaleConfig(memoryCapacity, 0, 
-					deploymentConfig.getService().isLocationAware(), true);
+					.createManualCapacityScaleConfig(memoryCapacity, 0,
+							deploymentConfig.getService().isLocationAware(), true);
 		}
 		deployment.scale(scaleConfig);
-		
+
 		return deployment;
 	}
-	
-	private ElasticStatelessProcessingUnitDeployment createElasticUSMDeployment() 
+
+	private ElasticStatelessProcessingUnitDeployment createElasticUSMDeployment()
 			throws ElasticDeploymentCreationException {
-		final ElasticStatelessProcessingUnitDeployment deployment = 
+		final ElasticStatelessProcessingUnitDeployment deployment =
 				new ElasticStatelessProcessingUnitDeployment(deploymentConfig.getPackedFile());
-		//Shared properties among all deployment types
+		// Shared properties among all deployment types
 		addSharedDeploymentParameters(deployment);
 		deployment.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_ASYNC_INSTALL, "true");
 		if (!deploymentConfig.getInstallRequest().getSelfHealing()) {
@@ -228,8 +273,8 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 		final Service service = deploymentConfig.getService();
 		final boolean scalingRulesDefined = service.getScalingRules() == null ? false : true;
 		if (!isLocalcloud()) {
-			//override provisioning config set in shared props since isolation 
-			//is not yet supported for every pu type.
+			// override provisioning config set in shared props since isolation
+			// is not yet supported for every pu type.
 			boolean dedicated = IsolationUtils.isDedicated(service);
 			final CloudifyMachineProvisioningConfig config = createCloudifyMachineProvisioningConfig();
 			setIsolationConfig(deployment, dedicated, config);
@@ -240,49 +285,48 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 			} else {
 				cloudExternalProcessMemoryInMB = IsolationUtils.getInstanceMemoryMB(service);
 			}
-			
-			//this defines the total external memory for gsc and external process 
+
+			// this defines the total external memory for gsc and external process
 			deployment.memoryCapacityPerContainer((int) cloudExternalProcessMemoryInMB, MemoryUnit.MEGABYTES);
 			if (scalingRulesDefined) {
 				try {
 					final AutomaticCapacityScaleConfig scaleConfig = ElasticScaleConfigFactory
 							.createAutomaticCapacityScaleConfig(deploymentConfig.getAbsolutePUName(),
-									service, 
+									service,
 									(int) cloudExternalProcessMemoryInMB,
-									service.isLocationAware(), 
+									service.isLocationAware(),
 									dedicated);
 					deployment.scale(scaleConfig);
 				} catch (final Exception e) {
-					throw new ElasticDeploymentCreationException("Failed creating scale config." , e);
+					throw new ElasticDeploymentCreationException("Failed creating scale config.", e);
 				}
 			} else {
-				final int totalMemoryInMB = (int) cloudExternalProcessMemoryInMB  
-									* deploymentConfig.getService().getNumInstances();
+				final int totalMemoryInMB = (int) cloudExternalProcessMemoryInMB
+						* deploymentConfig.getService().getNumInstances();
 				final double totalCpuCores = calculateTotalCpuCores(service);
 				final ManualCapacityScaleConfig scaleConfig = ElasticScaleConfigFactory
 						.createManualCapacityScaleConfig(totalMemoryInMB,
 								totalCpuCores, service.isLocationAware(), dedicated);
 				deployment.scale(scaleConfig);
 			}
-		} else { //localcloud
-			//this defines the total external memory for gsc and external process
+		} else { // localcloud
+			// this defines the total external memory for gsc and external process
 			final int externalProcessMemoryInMB = 512;
 			deployment.memoryCapacityPerContainer(externalProcessMemoryInMB, MemoryUnit.MEGABYTES);
 			if (scalingRulesDefined) {
 				try {
-				final AutomaticCapacityScaleConfig scaleConfig = ElasticScaleConfigFactory
-						.createAutomaticCapacityScaleConfig(deploymentConfig.getAbsolutePUName(),
-								service, externalProcessMemoryInMB, false, false);
-				deployment.scale(scaleConfig);
+					final AutomaticCapacityScaleConfig scaleConfig = ElasticScaleConfigFactory
+							.createAutomaticCapacityScaleConfig(deploymentConfig.getAbsolutePUName(),
+									service, externalProcessMemoryInMB, false, false);
+					deployment.scale(scaleConfig);
 				} catch (final Exception e) {
-					throw new ElasticDeploymentCreationException("Failed creating scale config." , e);
+					throw new ElasticDeploymentCreationException("Failed creating scale config.", e);
 				}
 			} else {
-				final int containerMemoryInMB = 128;
 				// the processing unit scales out whenever the specified memory capacity is breached
 				deployment.scale(new ManualCapacityScaleConfigurer()
-				.memoryCapacity(containerMemoryInMB * deploymentConfig.getService().getNumInstances(),
-						MemoryUnit.MEGABYTES).create());
+						.memoryCapacity(externalProcessMemoryInMB * deploymentConfig.getService().getNumInstances(),
+								MemoryUnit.MEGABYTES).create());
 			}
 		}
 		return deployment;
@@ -337,28 +381,28 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 		// are identified by zone.
 		final DiscoveredMachineProvisioningConfig config = new DiscoveredMachineProvisioningConfigurer()
 				.reservedMemoryCapacityPerMachine(reservedMemoryPerMachineInMB, MemoryUnit.MEGABYTES)
-						.create();
-		
+				.create();
+
 		// localcloud is also the management machine
 		config.setReservedMemoryCapacityPerManagementMachineInMB(reservedMemoryPerManagementMachineInMB);
-		
-		//TODO: This should be checked and removed. we no longer use zones.
+
+		// TODO: This should be checked and removed. we no longer use zones.
 		String[] agentZones = new String[] { LOCALCLOUD_ZONE };
 		config.setGridServiceAgentZones(agentZones);
-		
+
 		deployment.publicMachineProvisioning(config);
 	}
 
 	CloudifyMachineProvisioningConfig createCloudifyMachineProvisioningConfig() {
-		
+
 		final Cloud cloud = deploymentConfig.getCloud();
 		final String serviceTemplateName = deploymentConfig.getTemplateName();
 		final String managementMachineTemplateName = cloud.getConfiguration().getManagementMachineTemplate();
 		final Map<String, ComputeTemplate> templates = cloud.getCloudCompute().getTemplates();
-		
+
 		final ComputeTemplate serviceTemplate = templates.get(serviceTemplateName);
 		final ComputeTemplate managementTemplate = templates.get(managementMachineTemplateName);
-		
+
 		String storageTemplate = null;
 		if (deploymentConfig.getService().getStorage() != null) {
 			storageTemplate = deploymentConfig.getService().getStorage().getTemplate();
@@ -366,12 +410,12 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 		}
 		logger.fine("Creating cloud machine provisioning config. Template remote directory is: "
 				+ serviceTemplate.getRemoteDirectory());
-		//TODO: is there any reason for passing the remote dir? this could be extracted from the cloud file.
+		// TODO: is there any reason for passing the remote dir? this could be extracted from the cloud file.
 		final CloudifyMachineProvisioningConfig config = new CloudifyMachineProvisioningConfig(
 				cloud, serviceTemplate, serviceTemplateName, managementTemplate.getRemoteDirectory(),
 				storageTemplate);
 		config.setAuthGroups(deploymentConfig.getAuthGroups());
-		
+
 		String cloudOverrides = deploymentConfig.getCloudOverrides();
 		if (cloudOverrides != null) {
 			logger.fine("Recieved request for installation of "
@@ -382,11 +426,11 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 			logger.fine("No cloud overrides parameters were requested for the installation of "
 					+ deploymentConfig.getAbsolutePUName());
 		}
-		//TODO: When is this used?
+		// TODO: When is this used?
 		addCloudConfigurationCostants(config);
 
 		config.setLocator(deploymentConfig.getLocators());
-		
+
 		return config;
 	}
 
@@ -405,7 +449,7 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 		return false;
 	}
 
-	//This method is currently used only for USM type services.
+	// This method is currently used only for USM type services.
 	private void setIsolationConfig(
 			final ElasticDeploymentTopology deployment,
 			final boolean dedicated, final CloudifyMachineProvisioningConfig config) {
@@ -468,7 +512,7 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 			}
 		}
 	}
-	
+
 	private void setContextProperties(
 			final ElasticDeploymentTopology deployment,
 			final Properties contextProperties) {
@@ -479,15 +523,15 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 					(String) entry.getValue());
 		}
 	}
-	
+
 	private static double calculateTotalCpuCores(final Service service) {
 		final double instanceCpuCores = IsolationUtils.getInstanceCpuCores(service);
 		final int numberOfInstances = service.getNumInstances();
 		return numberOfInstances * instanceCpuCores;
 	}
-	
-	//calculate the external process memory according to the
-	//properties set in the template and the reserved capacity for machine
+
+	// calculate the external process memory according to the
+	// properties set in the template and the reserved capacity for machine
 	private long calculateExternalProcessMemory() {
 		String templateName = deploymentConfig.getTemplateName();
 		Cloud cloud = deploymentConfig.getCloud();
@@ -520,25 +564,35 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 				+ cloudExternalProcessMemoryInMB);
 		return cloudExternalProcessMemoryInMB;
 	}
-	
+
 	/**
 	 * Create Properties object with settings from the service object, if found on the given service. The supported
 	 * settings are: com.gs.application.dependsOn com.gs.service.type com.gs.service.icon
 	 * com.gs.service.network.protocolDescription
-	 * 
-	 * @param service
-	 *            The service object the read the settings from
+	 *
+	 * The service object the read the settings from
+	 *
 	 * @return Properties object populated with the above properties, if found on the given service.
 	 */
 	private Properties createServiceContextProperties() {
+
 		final Properties contextProperties = new Properties();
 		Service service = deploymentConfig.getService();
 
-		if (service.getDependsOn() != null) {
+		if (service.getDependsOn().isEmpty()) {
+			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON, "[]");
+		} else {
+			final List<String> absoluteServiceNames = new ArrayList<String>();
+			for (final String name : service.getDependsOn()) {
+				absoluteServiceNames.add(ServiceUtils.getAbsolutePUName(
+						deploymentConfig.getApplicationName(), name.trim()));
+			}
 			contextProperties.setProperty(
-					CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON, service
-							.getDependsOn().toString());
+					CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON,
+					Arrays.toString(absoluteServiceNames.toArray()));
+
 		}
+
 		if (service.getType() != null) {
 			contextProperties.setProperty(
 					CloudifyConstants.CONTEXT_PROPERTY_SERVICE_TYPE,
@@ -558,6 +612,11 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 								service.getNetwork().getProtocolDescription());
 			}
 		}
+		if (deploymentConfig.getCloud() != null) {
+			contextProperties.setProperty(
+					CloudifyConstants.CONTEXT_PROPERTY_CLOUD_NAME,
+					deploymentConfig.getCloud().getName());
+		}
 
 		contextProperties.setProperty(
 				CloudifyConstants.CONTEXT_PROPERTY_ELASTIC,
@@ -566,49 +625,49 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 		final InstallServiceRequest installRequest = deploymentConfig.getInstallRequest();
 		if (installRequest.isDebugAll()) {
 			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_ALL, Boolean.TRUE.toString());
-			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_MODE, 
+			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_MODE,
 					installRequest.getDebugMode());
 		} else if (installRequest.getDebugEvents() != null) {
-			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_EVENTS, 
+			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_EVENTS,
 					installRequest.getDebugEvents());
-			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_MODE, 
+			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_MODE,
 					installRequest.getDebugMode());
 		}
 
 		return contextProperties;
 	}
-	
-	//adds all shared properties among all deployment types
+
+	// adds all shared properties among all deployment types
 	private void addSharedDeploymentParameters(
 			final ElasticDeploymentTopology deployment) {
 		deployment.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME,
-														deploymentConfig.getApplicationName())
-				  .addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS,
-						  									deploymentConfig.getAuthGroups())
-				  .name(deploymentConfig.getAbsolutePUName());
+				deploymentConfig.getApplicationName())
+				.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS,
+						deploymentConfig.getAuthGroups())
+				.name(deploymentConfig.getAbsolutePUName());
 		// add context properties
 		final Properties contextProperties = createServiceContextProperties();
 		setContextProperties(deployment, contextProperties);
-		deployment.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_DEPLOYMENT_ID, 
+		deployment.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_DEPLOYMENT_ID,
 				deploymentConfig.getDeploymentId());
-		
-        if (!isLocalcloud()) {
-        	logger.fine("setting lrmi bind ports and container memory context properties");
-            deployment.addCommandLineArgument("-D" + CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY + "="
-                    + deploymentConfig.getCloud().getConfiguration().getComponents().getUsm().getPortRange())
-                      .addCommandLineArgument("-Xmx" + deploymentConfig.getCloud().getConfiguration().getComponents()
-                    		  .getUsm().getMaxMemory())
-                      .addCommandLineArgument("-Xms" + deploymentConfig.getCloud().getConfiguration().getComponents()
-                    		  .getUsm().getMinMemory());
-            
-    		final CloudifyMachineProvisioningConfig config = createCloudifyMachineProvisioningConfig();
-    		//TODO: uncomment this when isolation is defined for pu types. 
-    		//isolation should work out of the box for every pu type.
-//    		setIsolationConfig(deployment, dedicated, config);
-    		deployment.dedicatedMachineProvisioning(config);
-			
-        } else { //localcloud
-        	setLocalcloudMachineProvisioningConfig(deployment);
-        }
+
+		if (!isLocalcloud()) {
+			logger.fine("setting lrmi bind ports and container memory context properties");
+			deployment.addCommandLineArgument("-D" + CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY + "="
+					+ deploymentConfig.getCloud().getConfiguration().getComponents().getUsm().getPortRange())
+					.addCommandLineArgument("-Xmx" + deploymentConfig.getCloud().getConfiguration().getComponents()
+							.getUsm().getMaxMemory())
+					.addCommandLineArgument("-Xms" + deploymentConfig.getCloud().getConfiguration().getComponents()
+							.getUsm().getMinMemory());
+
+			final CloudifyMachineProvisioningConfig config = createCloudifyMachineProvisioningConfig();
+			// TODO: uncomment this when isolation is defined for pu types.
+			// isolation should work out of the box for every pu type.
+			// setIsolationConfig(deployment, dedicated, config);
+			deployment.dedicatedMachineProvisioning(config);
+
+		} else { // localcloud
+			setLocalcloudMachineProvisioningConfig(deployment);
+		}
 	}
 }

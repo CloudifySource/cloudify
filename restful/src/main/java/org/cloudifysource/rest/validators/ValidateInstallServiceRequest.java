@@ -15,8 +15,6 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
-import org.apache.commons.lang.StringUtils;
-import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.internal.DSLErrorMessageException;
 import org.cloudifysource.dsl.internal.debug.DebugUtils;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
@@ -31,25 +29,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class ValidateInstallServiceRequest implements InstallServiceValidator {
 
-	@Override
-	public void validate(final InstallServiceValidationContext validationContext) throws RestErrorException {
-		String absolutePuName = validationContext.getAbsolutePuName();
-		InstallServiceRequest request = validationContext.getRequest();
-		if (request == null) {
-			throw new RestErrorException(CloudifyMessageKeys.VALIDATOR_REQUEST_MISSING.getName(), absolutePuName);
-		}
-		String uploadKey = request.getUploadKey();
-		if (StringUtils.isBlank(uploadKey)) {
-			throw new RestErrorException(CloudifyMessageKeys.UPLOAD_KEY_PARAMETER_MISSING.getName(), absolutePuName);
-		}
+    @Override
+    public void validate(final InstallServiceValidationContext validationContext) throws RestErrorException {
+        final InstallServiceRequest request = validationContext.getRequest();
+        if (request == null) {
+            return;
+        }
 
-		boolean debugAll = request.isDebugAll();
-		String debugEvents = request.getDebugEvents();
-		try {
-			DebugUtils.validateDebugSettings(debugAll, debugEvents, request.getDebugMode());
-			} catch (DSLErrorMessageException e) {
-				throw new RestErrorException(e.getErrorMessage().getName(), e.getArgs());
-			}
-	}
+        boolean debugAll = request.isDebugAll();
+        String debugEvents = request.getDebugEvents();
+        try {
+            DebugUtils.validateDebugSettings(debugAll, debugEvents, request.getDebugMode());
+        } catch (DSLErrorMessageException e) {
+            throw new RestErrorException(e.getErrorMessage().getName(), e.getArgs());
+        }
+    }
 
 }

@@ -17,7 +17,7 @@ package org.cloudifysource.rest.validators;
 
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
+import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.rest.controllers.RestErrorException;
 import org.cloudifysource.rest.util.IsolationUtils;
 import org.springframework.stereotype.Component;
@@ -25,31 +25,31 @@ import org.springframework.stereotype.Component;
 @Component
 public class ValidateInstanceMemory implements InstallServiceValidator {
 
-	@Override
-	public void validate(final InstallServiceValidationContext validationContext) throws RestErrorException {
-		final Service service = validationContext.getService();
-		final Cloud cloud = validationContext.getCloud();
-		if (service == null) {
-			return;
-		}
-		if (IsolationUtils.isDedicated(service)) {
-			return;
-		}
-		String serviceTemplate = null;
-		if (service.getCompute() != null) {
-			serviceTemplate = service.getCompute().getTemplate();
-		}
-		if (serviceTemplate == null) {
-			serviceTemplate = cloud.getCloudCompute().getTemplates().entrySet().iterator().next().getKey();
-		}
-		final int machineTemplateMemory =
-				cloud.getCloudCompute().getTemplates().get(serviceTemplate).getMachineMemoryMB();
-		final int reservedMachineMemory = cloud.getProvider().getReservedMemoryCapacityPerMachineInMB();
-		final long instanceMemoryMB = IsolationUtils.getInstanceMemoryMB(service);
-		if (instanceMemoryMB > machineTemplateMemory - reservedMachineMemory) {
-			throw new RestErrorException(CloudifyErrorMessages.INSUFFICIENT_MEMORY.getName(),
-					service.getName(), instanceMemoryMB, machineTemplateMemory, reservedMachineMemory);
-		}
-	}
+    @Override
+    public void validate(final InstallServiceValidationContext validationContext) throws RestErrorException {
+        final Service service = validationContext.getService();
+        final Cloud cloud = validationContext.getCloud();
+        if (service == null) {
+            return;
+        }
+        if (IsolationUtils.isDedicated(service)) {
+            return;
+        }
+        String serviceTemplate = null;
+        if (service.getCompute() != null) {
+            serviceTemplate = service.getCompute().getTemplate();
+        }
+        if (serviceTemplate == null) {
+            serviceTemplate = cloud.getCloudCompute().getTemplates().entrySet().iterator().next().getKey();
+        }
+        final int machineTemplateMemory =
+                cloud.getCloudCompute().getTemplates().get(serviceTemplate).getMachineMemoryMB();
+        final int reservedMachineMemory = cloud.getProvider().getReservedMemoryCapacityPerMachineInMB();
+        final long instanceMemoryMB = IsolationUtils.getInstanceMemoryMB(service);
+        if (instanceMemoryMB > machineTemplateMemory - reservedMachineMemory) {
+            throw new RestErrorException(CloudifyMessageKeys.INSUFFICIENT_MEMORY.getName(),
+                    service.getName(), instanceMemoryMB, machineTemplateMemory, reservedMachineMemory);
+        }
+    }
 
 }

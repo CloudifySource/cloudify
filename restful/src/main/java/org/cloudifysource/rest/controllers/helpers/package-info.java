@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 GigaSpaces Technologies Ltd. All rights reserved
+ * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,24 +12,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.cloudifysource.dsl.rest.response;
+ ******************************************************************************/
 
-/**
- * A POJO represent install service response used for making a REST API response . 
- *
- * @author yael
- *
- */
-public class InstallServiceResponse {
+/**************************
+ * Package for various helpers.
+ *****************************/
 
-    private String deploymentID = "";
+package org.cloudifysource.rest.controllers.helpers;
 
-    public String getDeploymentID() {
-        return deploymentID;
-    }
-
-    public void setDeploymentID(final String deploymentID) {
-        this.deploymentID = deploymentID;
-    }
-}
