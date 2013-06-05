@@ -40,11 +40,12 @@ import org.springframework.web.multipart.MultipartFile;
 public class UploadRepoTest {
 
     private UploadRepo repo;
-    private static final int CLEANUP_TIMEOUT_MILLIS = 100;
-    private static final String TEST_FILE_NAME = "test.txt";
-    private static final String ZIP_FILE_PATH = "src/test/resources/upload/test.zip";
-    private static final String TXT_FILE_PATH = "src/test/resources/upload/" + TEST_FILE_NAME;
-
+ 	private static final int CLEANUP_TIMEOUT_MILLIS = 100;
+	private static final String UPLOAD_DIR_PATH = 
+			"src" + File.separator + "test" + File.separator + "resources" + File.separator + "upload";
+	private static final String ZIP_FILE_PATH = UPLOAD_DIR_PATH + File.separator + "test.zip";
+ 	private static final String TEST_FILE_NAME = "test.txt";
+	private static final String TXT_FILE_PATH = UPLOAD_DIR_PATH + File.separator + TEST_FILE_NAME;
     @Before
     public void init() throws IOException {
         repo = new UploadRepo();
