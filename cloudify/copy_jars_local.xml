@@ -31,16 +31,28 @@
 	<macrodef name="copy_binaries">
 		<attribute name="target.dir" default="NOT SET" />
 		<sequential>
-			<echo>Copying to  @{target.dir}</echo>
+			<echo>Copying to @{target.dir}</echo>
 			<copy overwrite="yes" todir="@{target.dir}/lib/platform/usm" file="../USM/target/usm.jar" />
 			<copy overwrite="yes" todir="@{target.dir}/tools/cli" file="../CLI/target/cli.jar" />
 			<copy overwrite="yes" todir="@{target.dir}/tools/rest" file="../restful/target/rest.war" />
 			<copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" />
-			<copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../security/target/security-${cloudify.version}-${cloudify.jars.suffix}.jar" />
-			<copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../security-ldap/target/security-ldap-${cloudify.version}-${cloudify.jars.suffix}.jar" />
-			<copy overwrite="yes" todir="@{target.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-${cloudify.version}-${cloudify.jars.suffix}.jar" />
 			<copy overwrite="yes" todir="@{target.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
 			<copy overwrite="yes" todir="@{target.dir}/tools/management-space" file="../management-space/target/management-space.jar" />
+			<copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify">
+			    <fileset dir="../security/target">
+			        <include name="security-${cloudify.version}-${cloudify.jars.suffix}*.jar" />
+			    </fileset>
+			</copy>
+			<copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify">
+			    <fileset dir="../security-ldap/target">
+			    	<include name="security-ldap-${cloudify.version}-${cloudify.jars.suffix}*.jar" />
+			    </fileset>
+			</copy>
+			<copy overwrite="yes" todir="@{target.dir}/lib/platform/esm">
+			    <fileset dir="../esc/target/esc/lib">
+			        <include name="esc-${cloudify.version}-${cloudify.jars.suffix}*.jar" />
+			    </fileset>
+			</copy>
 		</sequential>
 	</macrodef>
 
@@ -89,8 +101,12 @@
 		<copy todir="${ec2-win.dir}/tools/cli" file="../CLI/target/cli.jar" />
 		<copy todir="${ec2-win.dir}/tools/rest" file="../restful/target/rest.war" />
 		<copy todir="${ec2-win.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" />
-		<copy todir="${ec2-win.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-${cloudify.version}-${cloudify.jars.suffix}.jar" />
 		<copy todir="${ec2-win.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
+		<copy todir="${ec2-win.dir}/lib/platform/esm">
+		    <fileset dir="../esc/target/esc/lib">
+		        <include name="esc-${cloudify.version}-${cloudify.jars.suffix}*.jar" />
+		    </fileset>
+		</copy>		
 	</target>
 
 
@@ -100,8 +116,12 @@
 		<copy todir="${azure.dir}/tools/cli" file="../CLI/target/cli.jar" />
 		<copy todir="${azure.dir}/tools/rest" file="../restful/target/rest.war" />
 		<copy todir="${azure.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" />
-		<copy todir="${azure.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-${cloudify.version}-${cloudify.jars.suffix}.jar" />
-		<copy todir="${azure.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
+		<copy todir="${azure.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />		
+		<copy todir="${azure.dir}/lib/platform/esm">
+		    <fileset dir="../esc/target/esc/lib">
+		        <include name="esc-${cloudify.version}-${cloudify.jars.suffix}*.jar" />
+		    </fileset>
+		</copy>		
 	</target>
 
 	<target name="Copy Cloudify jars to byon upload dir" depends="">
@@ -115,8 +135,12 @@
 		<copy todir="${byon.dir}/tools/cli" file="../CLI/target/cli.jar" />
 		<copy todir="${byon.dir}/tools/rest" file="../restful/target/rest.war" />
 		<copy todir="${byon.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" />
-		<copy todir="${byon.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-${cloudify.version}-${cloudify.jars.suffix}.jar" />
 		<copy todir="${byon.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
+		<copy todir="${byon.dir}/lib/platform/esm">
+		    <fileset dir="../esc/target/esc/lib">
+		        <include name="esc-${cloudify.version}-${cloudify.jars.suffix}*.jar" />
+		    </fileset>
+		</copy>		
 	</target>
  -->
 	<target name="Copy Cloudify jars to hp upload dir" depends="">
@@ -129,8 +153,12 @@
 		<copy todir="${rsopenstack.dir}/tools/cli" file="../CLI/target/cli.jar" />
 		<copy todir="${rsopenstack.dir}/tools/rest" file="../restful/target/rest.war" />
 		<copy todir="${rsopenstack.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" />
-		<copy todir="${rsopenstack.dir}/lib/platform/esm" file="../esc/target/esc/lib/esc-${cloudify.version}-${cloudify.jars.suffix}.jar" />
 		<copy todir="${rsopenstack.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
+		<copy todir="${rsopenstack.dir}/lib/platform/esm">
+		    <fileset dir="../esc/target/esc/lib">
+		        <include name="esc-${cloudify.version}-${cloudify.jars.suffix}*.jar" />
+		    </fileset>
+		</copy>		
 	</target>
 
 
