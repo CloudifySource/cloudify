@@ -33,6 +33,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -49,6 +50,7 @@ import com.j_spaces.kernel.PlatformVersion;
  * @author yael
  *
  */
+@Ignore
 //Swap the default JUnit4 with the spring specific SpringJUnit4ClassRunner.
 //This will allow spring to inject the application context
 @RunWith(SpringJUnit4ClassRunner.class)
