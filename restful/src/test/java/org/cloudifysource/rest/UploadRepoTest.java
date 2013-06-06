@@ -40,7 +40,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class UploadRepoTest {
 
     private UploadRepo repo;
- 	private static final int CLEANUP_TIMEOUT_MILLIS = 100;
+ 	private static final int CLEANUP_TIMEOUT_MILLIS = 1000;
 	private static final String UPLOAD_DIR_PATH =
 			"src" + File.separator + "test" + File.separator + "resources" + File.separator + "upload";
 	private static final String ZIP_FILE_PATH = UPLOAD_DIR_PATH + File.separator + "test.zip";
@@ -64,16 +64,21 @@ public class UploadRepoTest {
     }
 
     @Test
-    public void getTimoutedFile() throws InterruptedException, IOException {
+    public void getTimedoutFile() throws InterruptedException, IOException {
         repo.resetTimeout(CLEANUP_TIMEOUT_MILLIS);
         File file = new File(ZIP_FILE_PATH);
         String dirName = null;
         try {
+        	System.out.println("tring to put file " + file.getAbsolutePath() + " in repo.");
             dirName = putTest(file);
         } catch (RestErrorException e) {
             fail(e.getMessage());
         }
         File uploadedFile = repo.get(dirName);
+    	System.out.println("got from repo " 
+    			+  ((uploadedFile == null) 
+    					? "upload file [dir name = " + dirName + "] not exist in repo" 
+    					: uploadedFile.getAbsolutePath()));
         assertUploadedFile(uploadedFile);
 
         // wait until the file is deleted.

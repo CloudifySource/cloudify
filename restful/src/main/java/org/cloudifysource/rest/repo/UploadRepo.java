@@ -18,6 +18,7 @@ import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
@@ -53,6 +54,7 @@ public class UploadRepo {
     @PostConstruct
     public void init() throws IOException {
         createUploadDir();
+        logger.log(Level.INFO, "created rest uploads directory - " + restUploadDir.getAbsolutePath());
         createScheduledExecutor();
     }
 
