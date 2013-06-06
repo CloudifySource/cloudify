@@ -188,7 +188,7 @@ public class UploadRepo {
      * @param cleanupTimeoutMillis .
      */
     public void resetTimeout(final int cleanupTimeoutMillis) {
-        logger.finer("reset timeout to " + cleanupTimeoutMillis + " milliseconds.");
+        logger.info("reset timeout to " + cleanupTimeoutMillis + " milliseconds.");
         this.setCleanupTimeoutMillis(cleanupTimeoutMillis);
         reset();
     }

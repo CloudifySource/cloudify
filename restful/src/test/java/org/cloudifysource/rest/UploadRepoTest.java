@@ -64,31 +64,36 @@ public class UploadRepoTest {
     }
 
     @Test
-    public void getTimedoutFile() throws InterruptedException, IOException {
-        repo.resetTimeout(CLEANUP_TIMEOUT_MILLIS);
-        File file = new File(ZIP_FILE_PATH);
-        String dirName = null;
+    public void testUploadTimeout() throws InterruptedException, IOException {
+    	int cleanupTimeoutMillis = repo.getCleanupTimeoutMillis();
+    	repo.resetTimeout(CLEANUP_TIMEOUT_MILLIS);
         try {
-        	System.out.println("tring to put file " + file.getAbsolutePath() + " in repo.");
-            dirName = putTest(file);
-        } catch (RestErrorException e) {
-            fail(e.getMessage());
+        	File file = new File(ZIP_FILE_PATH);
+        	String dirName = null;
+        	try {
+        		System.out.println("tring to put file " + file.getAbsolutePath() + " in repo.");
+        		dirName = putTest(file);
+        	} catch (RestErrorException e) {
+        		fail(e.getMessage());
+        	}
+        	File uploadedFile = repo.get(dirName);
+        	System.out.println("got from repo " 
+        			+  ((uploadedFile == null) 
+        					? "upload file [dir name = " + dirName + "] not exist in repo" 
+        							: uploadedFile.getAbsolutePath()));
+        	assertUploadedFile(uploadedFile);
+
+        	// wait until the file is deleted.
+        	Thread.sleep(repo.getCleanupTimeoutMillis() * 3);
+
+        	final File restUploadDir = repo.getRestUploadDir();
+        	Assert.assertNotNull(restUploadDir);
+        	Assert.assertTrue(restUploadDir.isDirectory());
+        	file = repo.get(dirName);
+        	Assert.assertNull(file);
+        } finally {
+        	repo.resetTimeout(cleanupTimeoutMillis);
         }
-        File uploadedFile = repo.get(dirName);
-    	System.out.println("got from repo " 
-    			+  ((uploadedFile == null) 
-    					? "upload file [dir name = " + dirName + "] not exist in repo" 
-    					: uploadedFile.getAbsolutePath()));
-        assertUploadedFile(uploadedFile);
-
-        // wait until the file is deleted.
-        Thread.sleep(repo.getCleanupTimeoutMillis() * 3);
-
-        final File restUploadDir = repo.getRestUploadDir();
-        Assert.assertNotNull(restUploadDir);
-        Assert.assertTrue(restUploadDir.isDirectory());
-        file = repo.get(dirName);
-        Assert.assertNull(file);
     }
 
     @Test

@@ -80,7 +80,6 @@ public class UploadControllerTest extends ControllerTest {
         versionedUploadUri = "/" + version + UPLOAD_URI;
         controller = applicationContext.getBean(UploadController.class);
         uploadRepo = applicationContext.getBean(UploadRepo.class);
-        uploadRepo.resetTimeout(TEST_CLEANUP_TIMOUT_MILLIS);
         controllerMapping = new HashMap<String, HashMap<RequestMethod, HandlerMethod>>();
         HashMap<RequestMethod, HandlerMethod> map = new HashMap<RequestMethod, HandlerMethod>();
         HandlerMethod method = new HandlerMethod(controller, "upload", String.class, MultipartFile.class);
@@ -150,17 +149,24 @@ public class UploadControllerTest extends ControllerTest {
 
     @Test
     public void testUploadTimeout() throws Exception {
-        File file = new File(TEST_FILE_PATH);
-        UploadResponse uploadResponse = uploadFile(file);
-        String uploadKey = uploadResponse.getUploadKey();
-        Assert.assertNotNull(uploadKey);
-        File uploadedFile = assertUploadedFileExists(file, uploadKey);
-        String parentPath = uploadedFile.getParentFile().getAbsolutePath();
+    	int cleanupTimeoutMillis = uploadRepo.getCleanupTimeoutMillis();
+        uploadRepo.resetTimeout(TEST_CLEANUP_TIMOUT_MILLIS);
+        try {       	
+        	File file = new File(TEST_FILE_PATH);
+        	UploadResponse uploadResponse = uploadFile(file);
+        	String uploadKey = uploadResponse.getUploadKey();
+        	Assert.assertNotNull(uploadKey);
+        	File uploadedFile = assertUploadedFileExists(file, uploadKey);
+        	String parentPath = uploadedFile.getParentFile().getAbsolutePath();
 
-        Thread.sleep(TEST_CLEANUP_TIMOUT_MILLIS * 3);
+        	Thread.sleep(TEST_CLEANUP_TIMOUT_MILLIS * 3);
 
-        File expectedToBeDeletedFolder = new File(parentPath);
-        Assert.assertFalse(expectedToBeDeletedFolder.exists());
+        	File expectedToBeDeletedFolder = new File(parentPath);
+        	Assert.assertFalse(expectedToBeDeletedFolder.exists());
+        } finally {
+        	System.out.println("setting the cleanup timeout back to " + cleanupTimeoutMillis + " millis");
+        	uploadRepo.resetTimeout(cleanupTimeoutMillis);
+        }
     }
 
     @Test
