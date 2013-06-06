@@ -33,7 +33,6 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -106,7 +105,6 @@ public class UploadControllerTest extends ControllerTest {
     }
 
     @Test
-    @Ignore
     public void testUpload() throws Exception {
         File file = new File(TEST_FILE_PATH);
         UploadResponse uploadResponse = uploadFile(file);
@@ -116,7 +114,6 @@ public class UploadControllerTest extends ControllerTest {
     }
 
     @Test
-    @Ignore
     public void testUploadDifferentName() throws Exception {
         File file = new File(TEST_FILE1_PATH);
         UploadResponse uploadResponse = uploadFile(file);
@@ -126,7 +123,6 @@ public class UploadControllerTest extends ControllerTest {
     }
 
     @Test
-    @Ignore
     public void testUploadExceededSizeLimitFile() throws Exception {
         uploadRepo.setUploadSizeLimitBytes(TEST_UPLOAD_SIZE_LIMIT_BYTES);
         File uploadFile = new File(TEST_FILE_PATH);
@@ -151,7 +147,6 @@ public class UploadControllerTest extends ControllerTest {
     }
 
     @Test
-    @Ignore
     public void testUploadTimeout() throws Exception {
         File file = new File(TEST_FILE_PATH);
         UploadResponse uploadResponse = uploadFile(file);
@@ -167,7 +162,6 @@ public class UploadControllerTest extends ControllerTest {
     }
 
     @Test
-    @Ignore
     public void testUplaodFileNotExist() throws Exception {
         File file = new File("notExist.zip");
         try {
