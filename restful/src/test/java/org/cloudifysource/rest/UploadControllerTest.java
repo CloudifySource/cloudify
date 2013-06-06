@@ -107,8 +107,10 @@ public class UploadControllerTest extends ControllerTest {
     @Test
     public void testUpload() throws Exception {
         File file = new File(TEST_FILE_PATH);
+        System.out.println("tring to upload file " + file.getAbsolutePath());
         UploadResponse uploadResponse = uploadFile(file);
         String uploadKey = uploadResponse.getUploadKey();
+        System.out.println("file has been uploaded. the upload key is " + uploadKey);
         Assert.assertNotNull(uploadKey);
         assertUploadedFileExists(file, uploadKey);
     }
@@ -185,6 +187,8 @@ public class UploadControllerTest extends ControllerTest {
         Assert.assertTrue(uploadedFileDir.exists());
         Assert.assertTrue(uploadedFileDir.isDirectory());
         File uploadedFile = new File(uploadedFileDir, UPLOADED_FILE_NAME);
+        System.out.println("uploaded file " + uploadedFile.getAbsolutePath() 
+        		+ (uploadedFile.exists() ? "" : " not") + " exists.");
         Assert.assertNotNull(uploadedFile);
         Assert.assertTrue(uploadedFile.exists());
         Assert.assertTrue(uploadedFile.isFile());
