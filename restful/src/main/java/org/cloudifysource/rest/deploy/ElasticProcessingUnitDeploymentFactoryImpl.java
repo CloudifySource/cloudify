@@ -139,10 +139,10 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 	}
 
 	// TODO - temp files should be created in shared temp location, as read from restConfig
-	private File getBinaryFromPackagedRecipe(final File packagedService, final String binaryName) throws
+	private File getBinaryFromPackedRecipe(final File packedService, final String binaryName) throws
 			IOException {
 
-		File resultFile = ZipUtils.unzipEntry(packagedService, "ext/" + binaryName, binaryName);
+		File resultFile = ZipUtils.unzipEntry(packedService, "ext/" + binaryName, binaryName);
 		if (resultFile == null) {
 			throw new IllegalArgumentException("Missing file in packaged service: " + binaryName);
 		}
@@ -164,11 +164,11 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 		final int containerMemoryInMB = statelessSla.getMemoryCapacityPerContainer();
 		prepareSla(statelessSla);
 		// TODO: why is there no maxMemory?
-		final File packagedService = deploymentConfig.getPackedFile();
+		final File packedService = deploymentConfig.getPackedFile();
 		final String binaryFileName = deploymentConfig.getService().getStatelessProcessingUnit().getBinaries();
 		File binaryFile = null;
 		try {
-			binaryFile = getBinaryFromPackagedRecipe(packagedService, binaryFileName);
+			binaryFile = getBinaryFromPackedRecipe(packedService, binaryFileName);
 		} catch (IOException e) {
 			throw new ElasticDeploymentCreationException("Failed to open packaged service file: " + e.getMessage(), e);
 		}
@@ -215,11 +215,11 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 		final Sla statefulSla = puConfig.getSla();
 		prepareSla(statefulSla);
 
-		final File packagedService = deploymentConfig.getPackedFile();
-		final String binaryFileName = deploymentConfig.getService().getStatelessProcessingUnit().getBinaries();
+		final File packedService = deploymentConfig.getPackedFile();
+		final String binaryFileName = deploymentConfig.getService().getStatefulProcessingUnit().getBinaries();
 		File binaryFile = null;
 		try {
-			binaryFile = getBinaryFromPackagedRecipe(packagedService, binaryFileName);
+			binaryFile = getBinaryFromPackedRecipe(packedService, binaryFileName);
 		} catch (IOException e) {
 			throw new ElasticDeploymentCreationException("Failed to open packaged service file: " + e.getMessage(), e);
 		}

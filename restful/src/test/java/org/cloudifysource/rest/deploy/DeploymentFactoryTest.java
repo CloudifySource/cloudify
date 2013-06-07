@@ -27,7 +27,6 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openspaces.admin.internal.pu.elastic.config.AbstractElasticProcessingUnitConfig;
 import org.openspaces.admin.pu.elastic.ElasticMachineProvisioningConfig;
@@ -43,6 +42,8 @@ public class DeploymentFactoryTest {
 
     private static final String USM_SERVICE_FILE = "src/test/resources/deploy/usm-service.groovy";
     private static final String STATEFUL_SERVICE_FILE = "src/test/resources/deploy/stateful-service.groovy";
+    private static final String STATEFUL_PACKED_FILE = "src/test/resources/deploy/stateful.zip";
+    private static final String STATELESS_PACKED_FILE = "src/test/resources/deploy/statelessPU.zip";
     private static final String STATELESS_SERVICE_FILE = "src/test/resources/deploy/stateless-service.groovy";
     private static final String DATAGRID_SERVICE_FILE = "src/test/resources/deploy/DataGrid-service.groovy";
     private static final String CLOUD_FILE = "src/test/resources/deploy/ec2-cloud.groovy";
@@ -203,12 +204,14 @@ public class DeploymentFactoryTest {
         return deploymentConfig;
     }
 
-    @Ignore
+    
     @Test
     public void testElasticStatfulDeploymentIntegrity() throws Exception {
         final Service service = ServiceReader.readService(new File(STATEFUL_SERVICE_FILE));
         //cloud deployment assertions
         DeploymentConfig deploymentConfig = createDeploymentConfig(false, service);
+        //override dummy file.
+        deploymentConfig.setPackedFile(new File(STATEFUL_PACKED_FILE));
         ElasticStatefulProcessingUnitDeployment deployment =
                 (ElasticStatefulProcessingUnitDeployment) deploymentFactory.create(deploymentConfig);
         ElasticStatefulProcessingUnitConfig deploymentHolder = deployment.create();
@@ -217,6 +220,9 @@ public class DeploymentFactoryTest {
 
         //localcloud deployment assertions
         deploymentConfig = createDeploymentConfig(true, service);
+      //override dummy file.
+        deploymentConfig.setPackedFile(new File(STATEFUL_PACKED_FILE));
+        //creating deployment
         deployment = (ElasticStatefulProcessingUnitDeployment) deploymentFactory.create(deploymentConfig);
         deploymentHolder = deployment.create();
         assertSharedLocalcloudProperties(deploymentHolder);
@@ -378,12 +384,14 @@ public class DeploymentFactoryTest {
                 scaleStrategy.getProperties().get("at-most-one-container-per-machine").equals("true"));
     }
 
-    @Ignore
+    
     @Test
     public void testElasticStatelessDeploymentIntegrity() throws Exception {
         final Service service = ServiceReader.readService(new File(STATELESS_SERVICE_FILE));
         //cloud deployment assertions
         DeploymentConfig deploymentConfig = createDeploymentConfig(false, service);
+        //override dummy file
+        deploymentConfig.setPackedFile(new File(STATELESS_PACKED_FILE));
         ElasticStatelessProcessingUnitDeployment deployment =
                 (ElasticStatelessProcessingUnitDeployment) deploymentFactory.create(deploymentConfig);
         ElasticStatelessProcessingUnitConfig deploymentHolder = deployment.create();
@@ -392,6 +400,8 @@ public class DeploymentFactoryTest {
 
         //localcloud deployment assertions
         deploymentConfig = createDeploymentConfig(true, service);
+        //override dummy file
+        deploymentConfig.setPackedFile(new File(STATELESS_PACKED_FILE));
         deployment = (ElasticStatelessProcessingUnitDeployment) deploymentFactory.create(deploymentConfig);
         deploymentHolder = deployment.create();
         assertSharedLocalcloudProperties(deploymentHolder);
