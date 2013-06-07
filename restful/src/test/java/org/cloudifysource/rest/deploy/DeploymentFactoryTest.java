@@ -42,8 +42,8 @@ public class DeploymentFactoryTest {
 
     private static final String USM_SERVICE_FILE = "src/test/resources/deploy/usm-service.groovy";
     private static final String STATEFUL_SERVICE_FILE = "src/test/resources/deploy/stateful-service.groovy";
-    private static final String STATEFUL_PACKED_FILE = "src/test/resources/deploy/stateful.zip";
-    private static final String STATELESS_PACKED_FILE = "src/test/resources/deploy/statelessPU.zip";
+    private static final String STATEFUL_PACKED_FILE = "src/test/resources/deploy/packedStatefulPU.zip";
+    private static final String STATELESS_PACKED_FILE = "src/test/resources/deploy/packedStatelessPU.zip";
     private static final String STATELESS_SERVICE_FILE = "src/test/resources/deploy/stateless-service.groovy";
     private static final String DATAGRID_SERVICE_FILE = "src/test/resources/deploy/DataGrid-service.groovy";
     private static final String CLOUD_FILE = "src/test/resources/deploy/ec2-cloud.groovy";
