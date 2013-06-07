@@ -66,7 +66,7 @@ public class ResourceDownloaderTest {
 	@BeforeClass
 	public static void beforeClass()
 			throws Exception {
-
+		
 		// Start embedded jetty server.
 		final URL resourceUrl = new File(RESOURCE_FOLDER).
 				getAbsoluteFile().toURI().toURL();
@@ -75,12 +75,22 @@ public class ResourceDownloaderTest {
 		handler.setBaseResource(resource);
 		server.setHandler(handler);
 		server.start();
+		
+		// Create the destination folder if does not exist 
+		final File destinationFolder = new File(DESTINATION_FOLDER);
+		if (!destinationFolder.exists()) {
+			destinationFolder.mkdirs();
+		}
 	}
 
 	@AfterClass
 	public static void afterClass()
 			throws Exception {
 		server.stop();
+		final File destinationFolder = new File(DESTINATION_FOLDER);
+		if (destinationFolder.exists()) {
+			FileUtils.deleteQuietly(destinationFolder);
+		}
 	}
 
 	@Test
