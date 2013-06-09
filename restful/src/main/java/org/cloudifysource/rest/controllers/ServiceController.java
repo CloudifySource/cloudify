@@ -462,6 +462,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @throws RestErrorException
 	 *             Machine not found, dump file is too large, machine dump generation failed.
 	 */
+	@JsonResponseExample(status = "success", responseBody = "\"&ltbyte array of the dump file&gt;\"")
 	@JsonRequestExample(requestBody = "{\"fileSizeLimit\" : 50000000}")
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
@@ -1368,6 +1369,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @throws RestErrorException
 	 *             When service processing unit not found or failed to add the instance.
 	 */
+	@JsonResponseExample(status = "success")
+	@JsonRequestExample(requestBody = "{\"timeout\":5 , \"authGroups\":\"myAuthGroups\"}")
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/addinstance",
 			method = RequestMethod.POST)
 	@PreAuthorize("isFullyAuthenticated()")
@@ -1427,6 +1430,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @throws RestErrorException
 	 *             When failed to locate the service or if the service instance is not available.
 	 */
+	@JsonResponseExample(status = "success")
 	@PossibleResponseStatuses(responseStatuses = {
 			@PossibleResponseStatus(code = HTTP_OK, description = "success"),
 			@PossibleResponseStatus(code = HTTP_INTERNAL_SERVER_ERROR, description = "failed_to_locate_service"),
@@ -4140,7 +4144,8 @@ public class ServiceController implements ServiceDetailsProvider {
 	Map<String, Object>
 			addTemplatesInternal(
 					@RequestParam
-					(value = CloudifyConstants.TEMPLATES_DIR_PARAM_NAME, required = true) final MultipartFile templatesFolder)
+					(value = CloudifyConstants.TEMPLATES_DIR_PARAM_NAME, required = true) 
+					final MultipartFile templatesFolder)
 					throws IOException, DSLException, RestErrorException {
 		ComputeTemplatesReader reader = new ComputeTemplatesReader();
 		File localTemplatesFolder = reader.unzipCloudTemplatesFolder(copyMultipartFileToLocalFile(templatesFolder));
@@ -4431,6 +4436,25 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @throws RestErrorException
 	 *             If cloud is a local cloud.
 	 */
+	@JsonResponseExample(status = "success" , 
+			responseBody = 
+			"{\"SMALL_LINUX\":{" 
+			+ "\"imageId\":\"us-east-1/ami-1624987f\"," 
+			+ "\"hardwareId\":\"m1.small\"," 
+			+ "\"locationId\":\"us-east-1\","
+			+ "\"localDirectory\":\"upload\","
+			+ "\"keyFile\":\"user-ec2-east.pem\","
+			+ "\"numberOfCores\":1,"
+			+ "\"options\":{\"securityGroups\":[\"default\"],\"keyPair\":\"user-ec2-east\"},"
+			+ "\"overrides\":{},"
+			+ "\"fileTransfer\":\"SCP\","
+			+ "\"remoteExecution\":\"SSH\","
+			+ "\"username\":\"ec2-user\","
+			+ "\"remoteDirectory\":\"/home/ec2-user/gs-files\","
+			+ "\"privileged\":true,"
+			+ "\"absoluteUploadDir\":\"/home/ec2-user/gs-files/upload\","
+			+ "\"machineMemoryMB\":1600"
+			+ "}}")
 	@RequestMapping(value = "templates", method = RequestMethod.GET)
 	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS')")
 	public @ResponseBody
@@ -4451,6 +4475,25 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @throws RestErrorException
 	 *             if the cloud is a local cloud or the template doesn't exist.
 	 */
+	@JsonResponseExample(status = "success" , 
+			responseBody = 
+			"{" 
+			+ "\"imageId\":\"us-east-1/ami-1624987f\"," 
+			+ "\"hardwareId\":\"m1.small\"," 
+			+ "\"locationId\":\"us-east-1\","
+			+ "\"localDirectory\":\"upload\","
+			+ "\"keyFile\":\"user-ec2-east.pem\","
+			+ "\"numberOfCores\":1,"
+			+ "\"options\":{\"securityGroups\":[\"default\"],\"keyPair\":\"user-ec2-east\"},"
+			+ "\"overrides\":{},"
+			+ "\"fileTransfer\":\"SCP\","
+			+ "\"remoteExecution\":\"SSH\","
+			+ "\"username\":\"ec2-user\","
+			+ "\"remoteDirectory\":\"/home/ec2-user/gs-files\","
+			+ "\"privileged\":true,"
+			+ "\"absoluteUploadDir\":\"/home/ec2-user/gs-files/upload\","
+			+ "\"machineMemoryMB\":1600"
+			+ "}")
 	@RequestMapping(value = "templates/{templateName}", method = RequestMethod.GET)
 	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS')")
 	public @ResponseBody
@@ -4747,6 +4790,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @throws RestErrorException
 	 *             in-case the application name is already taken by a different group.
 	 */
+	@JsonResponseExample(status = "success")
 	@RequestMapping(value = "application/{applicationName}/install/permissions", method = RequestMethod.GET)
 	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS')")
 	@ResponseBody
@@ -4828,6 +4872,11 @@ public class ServiceController implements ServiceDetailsProvider {
 		});
 	}
 
+	/**
+	 * 
+	 * @return a map containing the managers details.
+	 * @throws RestErrorException .
+	 */
 	@RequestMapping(value = "/controllers", method = RequestMethod.GET)
 	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
 	@ResponseBody

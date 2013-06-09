@@ -37,7 +37,6 @@ public class InfraController extends BaseRestController {
     /******
      * add group security.
      *
-     * @return
      */
     @RequestMapping(value = "/securitygroups ", method = RequestMethod.POST)
     public void addSecurityGroup() {
@@ -49,7 +48,6 @@ public class InfraController extends BaseRestController {
      *
      * @param groupName
      *            the group name
-     * @return
      */
     @RequestMapping(value = "/securitygroups/{groupName}", method = RequestMethod.POST)
     public void addSecurityRule(@PathVariable final String groupName) {
@@ -61,7 +59,6 @@ public class InfraController extends BaseRestController {
      *
      * @param groupName
      *            the group name
-     * @return
      */
     @RequestMapping(value = "/securitygroups/{groupName}", method = RequestMethod.DELETE)
     public void removeSecurityRule(@PathVariable final String groupName) {
@@ -73,7 +70,6 @@ public class InfraController extends BaseRestController {
      *
      * @param groupName
      *            the group name
-     * @return
      */
     @RequestMapping(value = "/securitygroups/{groupName}", method = RequestMethod.PUT)
     public void updateSecurityRule(@PathVariable final String groupName) {

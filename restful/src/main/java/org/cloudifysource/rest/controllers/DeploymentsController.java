@@ -86,13 +86,16 @@ import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_LUS;
  * This controller is responsible for retrieving information about deployments. It is also the entry point for deploying
  * services and application. <br>
  * <br>
- * The response body will always return in a JSON representation of the {@link Response} Object. <br>
+ * The response body will always return in a JSON representation of the {@link Response} Object. 
+ * <br>
  * A controller method may return the {@link Response} Object directly. in this case this return value will be used as
  * the response body. Otherwise, an implicit wrapping will occur. the return value will be inserted into
- * {@code Response#setResponse(Object)}. other fields of the {@link Response} object will be filled with default values. <br>
+ * {@code Response#setResponse(Object)}. 
+ * other fields of the {@link Response} object will be filled with default values. <br>
  * <h1>Important</h1> {@code @ResponseBody} annotations are not permitted. <br>
  * <br>
- * <h1>Possible return values</h1> 200 - OK<br>
+ * <h1>Possible return values</h1> 
+ * 200 - OK<br>
  * 400 - controller throws an exception<br>
  * 500 - Unexpected exception<br>
  * <br>
@@ -932,6 +935,8 @@ public class DeploymentsController extends BaseRestController {
      *
      * @param appName
      * 		The application name.
+     * @param timeoutInMinutes
+     * 		The timeout in minutes.
      * @return uninstall response.
      * @throws RestErrorException .
      */

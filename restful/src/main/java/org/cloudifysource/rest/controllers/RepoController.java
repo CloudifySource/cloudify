@@ -43,7 +43,6 @@ public class RepoController extends BaseRestController {
     /******
      * get application recipe given name.
      * @param appName the application name
-     * @return
      */
     @RequestMapping(value = "/apps/{appName}", method = RequestMethod.GET)
     public void getAppRecipe(
@@ -54,7 +53,6 @@ public class RepoController extends BaseRestController {
     /******
      * update application recipe given name.
      * @param appName the application name
-     * @return
      */
     @RequestMapping(value = "/apps/{appName}", method = RequestMethod.PUT)
     public void updateAppRecipe(
@@ -66,7 +64,6 @@ public class RepoController extends BaseRestController {
     /******
      * delete application recipe given name.
      * @param appName the application name
-     * @return
      */
     @RequestMapping(value = "/apps/{appName}", method = RequestMethod.DELETE)
     public void deleteAppRecipe(
