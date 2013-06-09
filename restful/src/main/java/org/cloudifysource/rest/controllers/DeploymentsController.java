@@ -12,7 +12,32 @@
  *******************************************************************************/
 package org.cloudifysource.rest.controllers;
 
+import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_LUS;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.annotation.PostConstruct;
+
 import net.jini.core.discovery.LookupLocator;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.Application;
@@ -22,15 +47,48 @@ import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.context.kvstorage.spaceentries.ApplicationCloudifyAttribute;
 import org.cloudifysource.dsl.context.kvstorage.spaceentries.InstanceCloudifyAttribute;
 import org.cloudifysource.dsl.context.kvstorage.spaceentries.ServiceCloudifyAttribute;
-import org.cloudifysource.dsl.internal.*;
-import org.cloudifysource.dsl.rest.request.*;
-import org.cloudifysource.dsl.rest.response.*;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
+import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
+import org.cloudifysource.dsl.internal.DSLServiceCompilationResult;
+import org.cloudifysource.dsl.internal.DSLUtils;
+import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.dsl.rest.request.InstallApplicationRequest;
+import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
+import org.cloudifysource.dsl.rest.request.SetApplicationAttributesRequest;
+import org.cloudifysource.dsl.rest.request.SetServiceAttributesRequest;
+import org.cloudifysource.dsl.rest.request.SetServiceInstanceAttributesRequest;
+import org.cloudifysource.dsl.rest.request.SetServiceInstancesRequest;
+import org.cloudifysource.dsl.rest.request.UpdateApplicationAttributeRequest;
+import org.cloudifysource.dsl.rest.response.DeleteApplicationAttributeResponse;
+import org.cloudifysource.dsl.rest.response.DeleteServiceAttributeResponse;
+import org.cloudifysource.dsl.rest.response.DeleteServiceInstanceAttributeResponse;
+import org.cloudifysource.dsl.rest.response.DeploymentEvent;
+import org.cloudifysource.dsl.rest.response.DeploymentEvents;
+import org.cloudifysource.dsl.rest.response.GetApplicationAttributesResponse;
+import org.cloudifysource.dsl.rest.response.GetServiceAttributesResponse;
+import org.cloudifysource.dsl.rest.response.GetServiceInstanceAttributesResponse;
+import org.cloudifysource.dsl.rest.response.InstallApplicationResponse;
+import org.cloudifysource.dsl.rest.response.InstallServiceResponse;
+import org.cloudifysource.dsl.rest.response.Response;
+import org.cloudifysource.dsl.rest.response.ServiceDetails;
+import org.cloudifysource.dsl.rest.response.ServiceInstanceDetails;
+import org.cloudifysource.dsl.rest.response.ServiceInstanceMetricsData;
+import org.cloudifysource.dsl.rest.response.ServiceInstanceMetricsResponse;
+import org.cloudifysource.dsl.rest.response.ServiceMetricsResponse;
+import org.cloudifysource.dsl.rest.response.UninstallApplicationResponse;
+import org.cloudifysource.dsl.rest.response.UninstallServiceResponse;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.rest.ResponseConstants;
 import org.cloudifysource.rest.RestConfiguration;
 import org.cloudifysource.rest.controllers.helpers.ControllerHelper;
 import org.cloudifysource.rest.controllers.helpers.PropertiesOverridesMerger;
-import org.cloudifysource.rest.deploy.*;
+import org.cloudifysource.rest.deploy.ApplicationDeployerRunnable;
+import org.cloudifysource.rest.deploy.DeploymentConfig;
+import org.cloudifysource.rest.deploy.DeploymentFileHolder;
+import org.cloudifysource.rest.deploy.ElasticDeploymentCreationException;
+import org.cloudifysource.rest.deploy.ElasticProcessingUnitDeploymentFactory;
+import org.cloudifysource.rest.deploy.ElasticProcessingUnitDeploymentFactoryImpl;
 import org.cloudifysource.rest.events.EventsUtils;
 import org.cloudifysource.rest.events.cache.EventsCache;
 import org.cloudifysource.rest.events.cache.EventsCacheKey;
@@ -41,7 +99,16 @@ import org.cloudifysource.rest.repo.UploadRepo;
 import org.cloudifysource.rest.util.IsolationUtils;
 import org.cloudifysource.rest.util.LifecycleEventsContainer;
 import org.cloudifysource.rest.util.RestPollingRunnable;
-import org.cloudifysource.rest.validators.*;
+import org.cloudifysource.rest.validators.InstallApplicationValidationContext;
+import org.cloudifysource.rest.validators.InstallApplicationValidator;
+import org.cloudifysource.rest.validators.InstallServiceValidationContext;
+import org.cloudifysource.rest.validators.InstallServiceValidator;
+import org.cloudifysource.rest.validators.SetServiceInstancesValidationContext;
+import org.cloudifysource.rest.validators.SetServiceInstancesValidator;
+import org.cloudifysource.rest.validators.UninstallApplicationValidationContext;
+import org.cloudifysource.rest.validators.UninstallApplicationValidator;
+import org.cloudifysource.rest.validators.UninstallServiceValidationContext;
+import org.cloudifysource.rest.validators.UninstallServiceValidator;
 import org.cloudifysource.security.CloudifyAuthorizationDetails;
 import org.cloudifysource.security.CustomPermissionEvaluator;
 import org.jgrapht.DirectedGraph;
@@ -70,17 +137,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
-
-import javax.annotation.PostConstruct;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_LUS;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * This controller is responsible for retrieving information about deployments. It is also the entry point for deploying
@@ -970,6 +1031,8 @@ public class DeploymentsController extends BaseRestController {
         final StringBuilder sb = new StringBuilder();
         final List<ProcessingUnit> uninstallOrder = createUninstallOrder(pus,
                 appName);
+        final String deploymentId = uninstallOrder.get(0).getBeanLevelProperties()
+                .getContextProperties().getProperty(CloudifyConstants.CONTEXT_PROPERTY_DEPLOYMENT_ID);
         // TODO: Add timeout.
         FutureTask<Boolean> undeployTask = null;
         logger.log(Level.INFO, "Starting to poll for" + appName + " uninstall lifecycle events.");
@@ -980,9 +1043,6 @@ public class DeploymentsController extends BaseRestController {
 
                 @Override
                 public void run() {
-
-                    final String deploymentId = uninstallOrder.get(0).getBeanLevelProperties()
-                            .getContextProperties().getProperty(CloudifyConstants.CONTEXT_PROPERTY_DEPLOYMENT_ID);
 
                     for (final ProcessingUnit processingUnit : uninstallOrder) {
                         if (permissionEvaluator != null) {
@@ -1043,6 +1103,7 @@ public class DeploymentsController extends BaseRestController {
             logger.info("Removing all application scope attributes for application " + appName);
             deleteApplicationScopeAttributes(appName);
             final UninstallApplicationResponse response = new UninstallApplicationResponse();
+            response.setDeploymentID(deploymentId);
             return response;
         }
         throw new RestErrorException(errors);
