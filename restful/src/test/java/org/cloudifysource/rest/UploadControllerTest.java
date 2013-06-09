@@ -33,7 +33,6 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -50,7 +49,6 @@ import com.j_spaces.kernel.PlatformVersion;
  * @author yael
  *
  */
-@Ignore
 //Swap the default JUnit4 with the spring specific SpringJUnit4ClassRunner.
 //This will allow spring to inject the application context
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -73,7 +71,7 @@ public class UploadControllerTest extends ControllerTest {
     private UploadRepo uploadRepo;
 
     private static final int TEST_UPLOAD_SIZE_LIMIT_BYTES = 10;
-    private static final int TEST_CLEANUP_TIMOUT_MILLIS = 100;
+    private static final int TEST_CLEANUP_TIMOUT_MILLIS = 1000;
 
 
     @Before
