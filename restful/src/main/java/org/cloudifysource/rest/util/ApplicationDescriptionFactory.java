@@ -12,6 +12,12 @@
  *******************************************************************************/
 package org.cloudifysource.rest.util;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyConstants.DeploymentState;
 import org.cloudifysource.dsl.internal.CloudifyConstants.USMState;
@@ -19,20 +25,20 @@ import org.cloudifysource.dsl.rest.response.ApplicationDescription;
 import org.cloudifysource.dsl.rest.response.InstanceDescription;
 import org.cloudifysource.dsl.rest.response.ServiceDescription;
 import org.cloudifysource.dsl.utils.ServiceUtils;
+import org.cloudifysource.dsl.utils.ServiceUtils.FullServiceName;
 import org.cloudifysource.rest.exceptions.ResourceNotFoundException;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.application.Application;
 import org.openspaces.admin.internal.pu.DefaultProcessingUnit;
-import org.openspaces.admin.pu.*;
+import org.openspaces.admin.pu.DeploymentStatus;
+import org.openspaces.admin.pu.ProcessingUnit;
+import org.openspaces.admin.pu.ProcessingUnitInstance;
+import org.openspaces.admin.pu.ProcessingUnitInstanceStatistics;
+import org.openspaces.admin.pu.ProcessingUnitType;
+import org.openspaces.admin.pu.ProcessingUnits;
 import org.openspaces.admin.zone.Zone;
 import org.openspaces.admin.zone.Zones;
 import org.openspaces.pu.service.ServiceMonitors;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * This factory class is responsible for manufacturing an application description POJO. The application description will
@@ -129,9 +135,15 @@ public class ApplicationDescriptionFactory {
         ServiceDescription serviceDescription = new ServiceDescription();
         serviceDescription.setPlannedInstances(plannedNumberOfInstances);
         serviceDescription.setInstanceCount(numberOfServiceInstances);
-        String applicationName = processingUnit.getName().split("\\.")[1];
+
+        FullServiceName fullServiceName = ServiceUtils.getFullServiceName(processingUnit.getName());
+
+        final String applicationName = fullServiceName.getApplicationName();
+        final String serviceName = fullServiceName.getServiceName();
+
         serviceDescription.setApplicationName(applicationName);
-        serviceDescription.setServiceName(ServiceUtils.getApplicationServiceName(absolutePuName, applicationName));
+        serviceDescription.setServiceName(serviceName);
+
         serviceDescription.setInstancesDescription(serviceInstancesDescription);
         serviceDescription.setServiceState(serviceState);
 
