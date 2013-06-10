@@ -20,7 +20,6 @@ import java.util.Map;
 import org.cloudifysource.rest.controllers.AttributesController;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
@@ -34,7 +33,6 @@ import org.springframework.web.method.HandlerMethod;
  *
  * @author noak
  */
-@Ignore
 // Swap the default JUnit4 with the spring specific SpringJUnit4ClassRunner.
 // This will allow spring to inject the application context
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -102,7 +100,7 @@ public class AttributesControllerTest extends ControllerTest {
         final HashMap<RequestMethod, HandlerMethod> singleApplicationAttributeHandlers =
                 new HashMap<RequestMethod, HandlerMethod>();
         singleApplicationAttributeHandlers.put(RequestMethod.GET, new HandlerMethod(
-                controller, "getApplicationAttributes", String.class,
+                controller, "getApplicationAttribute", String.class,
                 String.class));
         singleApplicationAttributeHandlers.put(RequestMethod.POST, new HandlerMethod(
                 controller, "setApplicationAttribute", String.class,
@@ -132,7 +130,7 @@ public class AttributesControllerTest extends ControllerTest {
         final HashMap<RequestMethod, HandlerMethod> singleServiceAttributeHandlers =
                 new HashMap<RequestMethod, HandlerMethod>();
         singleServiceAttributeHandlers.put(RequestMethod.GET, new HandlerMethod(
-                controller, "getServiceAttributes", String.class, String.class,
+                controller, "getServiceAttribute", String.class, String.class,
                 String.class));
         singleServiceAttributeHandlers.put(RequestMethod.POST, new HandlerMethod(
                 controller, "setServiceAttribute", String.class, String.class,

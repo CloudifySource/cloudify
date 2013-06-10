@@ -113,9 +113,8 @@ public abstract class ControllerTest {
         // validate the response
         Assert.assertTrue("Wrong response status: " + response.getStatus(),
                 response.getStatus() == HttpStatus.OK.value());
-        Assert.assertEquals(
-                "Wrong content type in response: " + response.getContentType(),
-                MediaType.APPLICATION_JSON, response.getContentType());
+        Assert.assertTrue(response.getContentType().contains(MediaType.APPLICATION_JSON));
+
         return response;
     }
 
