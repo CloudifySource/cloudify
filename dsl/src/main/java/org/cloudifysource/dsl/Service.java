@@ -95,7 +95,7 @@ public class Service {
 	private Map<String, String> customProperties = new HashMap<String, String>();
 
 	private ComputeDetails compute;
-	
+
 	private StorageDetails storage = new StorageDetails();
 
 	private LinkedList<String> extendedServicesPaths = new LinkedList<String>();
@@ -115,6 +115,8 @@ public class Service {
 	private long samplingPeriodInSeconds = DEFAULT_SAMPLING_PERIOD_SECONDS;
 
 	private boolean locationAware = false;
+
+	private int retries = -1;
 
 	public IsolationSLA getIsolationSLA() {
 		return isolationSLA;
@@ -468,31 +470,42 @@ public class Service {
 		validateServiceType();
 	}
 
-    @DSLValidation
-    void validateMultitenantStorage(final DSLValidationContext validationContext) throws DSLValidationException {
+	@DSLValidation
+	void validateRetriesLimit(final DSLValidationContext validationContext)
+			throws DSLValidationException {
+		if (this.retries < -1) {
+			throw new DSLValidationException(
+					"Valid values for the retries field are -1 (for always retry) and above. "
+							+ "Set to '0' for no retries.");
+		}
+	}
 
-        if ((numInstances > 1) && (isMultitenant()) && getStorage().getTemplate() != null) {
-            throw new DSLValidationException("numInstances must be 1 when used in a Multi-tenant configuration with static storage defined.");
-        }
-    }
+	@DSLValidation
+	void validateMultitenantStorage(final DSLValidationContext validationContext) throws DSLValidationException {
 
-    private boolean isMultitenant() {
-        IsolationSLA isolationSla = getIsolationSLA();
-        if (isolationSla != null) {
-            if (isolationSla.getDedicated() != null) {
-                return false;
-            }
-            return true;
-        } else {
-            return false;
-        }
-    }
+		if (numInstances > 1 && isMultitenant() && getStorage().getTemplate() != null) {
+			throw new DSLValidationException(
+					"numInstances must be 1 when used in a Multi-tenant configuration with static storage defined.");
+		}
+	}
+
+	private boolean isMultitenant() {
+		final IsolationSLA isolationSla = getIsolationSLA();
+		if (isolationSla != null) {
+			if (isolationSla.getDedicated() != null) {
+				return false;
+			}
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 	private void validateServiceType() throws DSLValidationException {
 		boolean typeExists = false;
-		String[] enumAsString = new String[ServiceTierType.values().length];
+		final String[] enumAsString = new String[ServiceTierType.values().length];
 		int counter = 0;
-		for (ServiceTierType tierType : ServiceTierType.values()) {
+		for (final ServiceTierType tierType : ServiceTierType.values()) {
 			enumAsString[counter] = tierType.toString();
 			counter++;
 			if (tierType.toString().equalsIgnoreCase(this.type)) {
@@ -525,8 +538,8 @@ public class Service {
 	@DSLValidation
 	void validateIcon(final DSLValidationContext validationContext) throws DSLValidationException {
 		boolean isServiceFile = false;
-		String serviceSuffix = DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX.trim();
-		String filePath = validationContext.getFilePath().trim();
+		final String serviceSuffix = DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX.trim();
+		final String filePath = validationContext.getFilePath().trim();
 
 		// execute this validation only if an icon was set and this is a Service's groovy file (not an Application's)
 		if (filePath.endsWith(serviceSuffix)) {
@@ -534,7 +547,7 @@ public class Service {
 		}
 
 		if (icon != null && isServiceFile) {
-			File dslFile = new File(filePath);
+			final File dslFile = new File(filePath);
 			File iconFile = new File(dslFile.getParent(), icon);
 
 			if (!iconFile.isFile()) {
@@ -593,9 +606,9 @@ public class Service {
 			throws DSLValidationException {
 		if (this.userInterface != null) {
 			// Validate metric list
-			List<MetricGroup> metricGroups = this.userInterface.getMetricGroups();
-			for (MetricGroup metricGroup : metricGroups) {
-				for (Object metric : metricGroup.getMetrics()) {
+			final List<MetricGroup> metricGroups = this.userInterface.getMetricGroups();
+			for (final MetricGroup metricGroup : metricGroups) {
+				for (final Object metric : metricGroup.getMetrics()) {
 					if (metric instanceof List<?>) {
 						if (!(((List) metric).get(0) instanceof String)) {
 							throw new DSLValidationException("the defined metric " + metric.toString() + " is invalid."
@@ -640,7 +653,7 @@ public class Service {
 
 		DSLUtils.validateRecipeName(name);
 	}
-	
+
 	@DSLValidation
 	void validateInstanceSize(final DSLValidationContext validationContext)
 			throws DSLValidationException {
@@ -656,7 +669,7 @@ public class Service {
 							+ ") must be equal or greater than the minimum number of instances ("
 							+ minAllowedInstances + ")");
 		}
-		
+
 		if (minAllowedInstances > numInstances) {
 			throw new DSLValidationException(
 					"number of instances ("
@@ -676,9 +689,9 @@ public class Service {
 					"number of instances must be set to a positive integer");
 		}
 	}
-	
+
 	@DSLValidation
-	void validateScalingRules(final DSLValidationContext validationContext) 
+	void validateScalingRules(final DSLValidationContext validationContext)
 			throws DSLValidationException {
 		if (scalingRules != null) {
 			for (final ScalingRuleDetails scalingRule : scalingRules) {
@@ -686,7 +699,7 @@ public class Service {
 						.getServiceStatistics();
 				if (serviceStatisticsObject == null) {
 					throw new DSLValidationException(
-							"scalingRule must specify serviceStatistics (either a closure or " 
+							"scalingRule must specify serviceStatistics (either a closure or "
 									+ "reference a predefined serviceStatistics name).");
 				}
 			}
@@ -715,5 +728,19 @@ public class Service {
 
 	public void setStorage(final StorageDetails storage) {
 		this.storage = storage;
+	}
+
+	/*********
+	 * Specifies the number of times that the service should be retried if it failed to install/start. Default value is
+	 * -1, indicating retry forever. A service instance that exceeds its number of retries is set to the Error state.
+	 *
+	 * @return the retry limit for this service.
+	 */
+	public int getRetries() {
+		return retries;
+	}
+
+	public void setRetries(final int retries) {
+		this.retries = retries;
 	}
 }

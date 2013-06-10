@@ -12,9 +12,30 @@
  *******************************************************************************/
 package org.cloudifysource.usm;
 
-import com.gigaspaces.client.ChangeSet;
-import com.gigaspaces.internal.sigar.SigarHolder;
-import com.j_spaces.kernel.Environment;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -49,7 +70,11 @@ import org.openspaces.core.cluster.MemberAliveIndicator;
 import org.openspaces.core.properties.BeanLevelProperties;
 import org.openspaces.core.properties.BeanLevelPropertiesAware;
 import org.openspaces.pu.container.support.ResourceApplicationContext;
-import org.openspaces.pu.service.*;
+import org.openspaces.pu.service.InvocableService;
+import org.openspaces.pu.service.ServiceDetails;
+import org.openspaces.pu.service.ServiceDetailsProvider;
+import org.openspaces.pu.service.ServiceMonitors;
+import org.openspaces.pu.service.ServiceMonitorsProvider;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -57,21 +82,9 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Field;
-
-import java.net.*;
-import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
+import com.gigaspaces.client.ChangeSet;
+import com.gigaspaces.internal.sigar.SigarHolder;
+import com.j_spaces.kernel.Environment;
 
 /**********
  * The main component of the USM project - this is the bean that runs the lifecycle of a service, monitors it and
@@ -154,6 +167,9 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 	private GigaSpace managementSpace;
 
+	// the service retries field value
+	private int retries;
+
 	/********
 	 * The USM Bean entry point. This is where processing of a service instance starts.
 	 *
@@ -170,6 +186,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		initUniqueFileName();
 		initCustomProperties();
 		this.myPid = this.sigar.getPid();
+		initRetries();
 
 		final boolean existingProcessFound = checkForPIDFile();
 
@@ -179,6 +196,37 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		initEvents();
 
 		reset(existingProcessFound);
+	}
+
+	private void initRetries() throws IOException, USMException {
+		retries = this.usmLifecycleBean.getConfiguration().getService().getRetries();
+		logger.fine("Retries value for this service is: " + retries);
+		if (retries == -1) {
+			// Nothing to do.
+			return;
+		}
+
+		// the retries field is set to a non default value, so find out the current attempt number
+
+		//
+		final String attemptFileName = this.uniqueFileNamePrefix + this.myPid + ".dat";
+		final File attemptFile = new File(attemptFileName);
+		logger.fine("Attemp file is: " + attemptFile.getAbsolutePath());
+		int currentAttempt = 1;
+		if (attemptFile.exists()) {
+			final String attemptInformation = FileUtils.readFileToString(attemptFile);
+			logger.fine("Read retry data: " + attemptInformation);
+			try {
+				currentAttempt = Integer.parseInt(attemptInformation);
+				++currentAttempt;
+			} catch (NumberFormatException e) {
+				throw new USMException("Failed to parse retry data from attempt file data: " + attemptInformation, e);
+			}
+		}
+
+
+		FileUtils.writeStringToFile(attemptFile, Integer.toString(currentAttempt));
+
 	}
 
 	/**********
@@ -226,8 +274,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 			try {
 				deAllocateStorageSync();
 			} catch (final Exception e) {
-                getUsmLifecycleBean().log("Failed de-allocating storage volume. this may cause a leak : "
-                        + ExceptionUtils.getRootCauseMessage(e));
+				getUsmLifecycleBean().log("Failed de-allocating storage volume. this may cause a leak : "
+						+ ExceptionUtils.getRootCauseMessage(e));
 				logger.log(Level.WARNING, "Failed to deallocate storage: "
 						+ e.getMessage(), e);
 			}
@@ -344,7 +392,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 							+ serviceVolume.getState());
 					switch (serviceVolume.getState()) {
 
-					case CREATED :
+					case CREATED:
 						getUsmLifecycleBean().log("Attaching volume to device " + storageTemplate.getDeviceName());
 						storage.attachVolume(serviceVolume.getId(), storageTemplate.getDeviceName());
 						getUsmLifecycleBean().log(
@@ -354,7 +402,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 						storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
 						break;
 
-					case ATTACHED :
+					case ATTACHED:
 						getUsmLifecycleBean().log("Attaching volume to device " + storageTemplate.getDeviceName());
 						storage.format(storageTemplate.getDeviceName(), storageTemplate.getFileSystemType());
 						getUsmLifecycleBean().log(
@@ -362,17 +410,17 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 						storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
 						break;
 
-					case FORMATTED :
+					case FORMATTED:
 						getUsmLifecycleBean().log(
 								"Formatting volume to filesystem " + storageTemplate.getFileSystemType());
 						storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
 
-					case MOUNTED :
+					case MOUNTED:
 						break;
 
-                    default :
-                        throw new IllegalStateException("Unexpected state of service volume : "
-                                + serviceVolume.getState());
+					default:
+						throw new IllegalStateException("Unexpected state of service volume : "
+								+ serviceVolume.getState());
 					}
 				}
 			} catch (final Exception e) {
@@ -396,12 +444,12 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 	private void deAllocateStorage() throws USMException, TimeoutException {
 
-        Service service = getUsmLifecycleBean().getConfiguration().getService();
-        final String storageTemplateName = service.getStorage().getTemplate();
+		Service service = getUsmLifecycleBean().getConfiguration().getService();
+		final String storageTemplateName = service.getStorage().getTemplate();
 
-        if (StringUtils.isNotBlank(storageTemplateName)) {
+		if (StringUtils.isNotBlank(storageTemplateName)) {
 
-            final StorageFacade storage = getUsmLifecycleBean().getConfiguration().getServiceContext().getStorage();
+			final StorageFacade storage = getUsmLifecycleBean().getConfiguration().getServiceContext().getStorage();
 
 			try {
 
@@ -412,8 +460,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 						getServiceVolumeFromSpace(getUsmLifecycleBean().getConfiguration().getServiceContext());
 				if (serviceVolume == null) {
 					logger.fine("Could not find a volume for this service in the management space. "
-                            + "this probably means there was a problem during volume creation, "
-                            + "or it has already been de-allocated");
+							+ "this probably means there was a problem during volume creation, "
+							+ "or it has already been de-allocated");
 				} else {
 					getUsmLifecycleBean().log("De-allocating storage");
 					logger.fine("Detected an existing volume for this service upon de-allocation. found in state : "
@@ -434,7 +482,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 						}
 						break;
 
-					case ATTACHED :
+					case ATTACHED:
 						getUsmLifecycleBean().log("Detaching volume from  " + serviceVolume.getDevice());
 						storage.detachVolume(serviceVolume.getId());
 						if (deleteStorage) {
@@ -443,7 +491,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 						}
 						break;
 
-					case FORMATTED :
+					case FORMATTED:
 						getUsmLifecycleBean().log("Detaching volume from  " + serviceVolume.getDevice());
 						storage.detachVolume(serviceVolume.getId());
 						if (deleteStorage) {
@@ -452,16 +500,16 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 						}
 						break;
 
-					case CREATED :
+					case CREATED:
 						if (deleteStorage) {
 							getUsmLifecycleBean().log("Deleting volume with id " + serviceVolume.getId());
 							storage.deleteVolume(serviceVolume.getId());
 						}
 						break;
 
-                    default :
-                        throw new IllegalStateException("Unexpected state of service volume : "
-                            + serviceVolume.getState());
+					default:
+						throw new IllegalStateException("Unexpected state of service volume : "
+								+ serviceVolume.getState());
 
 					}
 				}
@@ -535,6 +583,10 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 	private File getErrorFile() {
 		return new File(this.uniqueFileNamePrefix + ERROR_FILE_NAME_SUFFFIX);
+	}
+
+	private File getAttemptFile() {
+		return new File(this.uniqueFileNamePrefix + ".attempt");
 	}
 
 	private String getLogsDir() {
@@ -1457,7 +1509,6 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 			return;
 
 		}
-
 
 		try {
 
