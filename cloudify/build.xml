@@ -107,7 +107,7 @@
 			<arg line="pull" />
 		</exec>	
 		<exec executable="git" dir="${basedir}">
-			<arg line="add **/${platform.verion.file.name} ${build.properties.file} ${cloudify.parent.pom.file} " />
+			<arg line="add **/${platform.verion.file.name} ${build.properties.file}  " />
 		</exec>
 		<exec executable="git" dir="${basedir}">
 			<arg value="commit" />
