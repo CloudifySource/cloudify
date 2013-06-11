@@ -81,7 +81,7 @@
 			<property name="connectors">
 				<list>
 					<bean class="org.eclipse.jetty.server.ssl.SslSelectChannelConnector">
-						<property name="port" value="8100" />
+						<property name="port" value="${web.sslPort}" />
 						<property name="acceptors" value="2" />
 						<property name="maxIdleTime" value="300000" />
 						<property name="keystore" value="${KEYSTORE_FILE}" />
