@@ -269,7 +269,7 @@ public final class CloudifyConstants {
     public static final int HTTP_STATUS_INTERNAL_SERVER_ERROR = 500;
     public static final int HTTP_STATUS_NOT_FOUND = 404;
     public static final int HTTP_STATUS_ACCESS_DENIED = 403;
-    public static final int HTTP_STATUS_BAD_CREDENTIALS = 401;
+    public static final int HTTP_STATUS_UNAUTHORIZED = 401;
 
 
     /*******************

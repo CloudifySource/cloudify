@@ -100,6 +100,7 @@ public class GSRestClient {
 	private static final String FORWARD_SLASH = "/";
 	private static final String HTTPS = "https";
 	private static final String MSG_RESPONSE_CODE = " response code ";
+	private static final String MSG_RESPONSE_REASON_PHRASE = "reason phrase";
 	private static final String MSG_RESPONSE_ENTITY_NULL = " response entity is null";
 	private static final String MSG_HTTP_GET_RESPONSE = " http get response: ";
 	private static final String MSG_REST_API_ERR = " Rest api error";
@@ -368,10 +369,13 @@ public class GSRestClient {
 		String responseBody;
 		try {
 			final HttpResponse response = httpClient.execute(httpMethod);
+			
 			final int statusCode = response.getStatusLine().getStatusCode();
 			if (statusCode != CloudifyConstants.HTTP_STATUS_CODE_OK) {
+				final String reasonPhrase = response.getStatusLine().getReasonPhrase();
 				if (logger.isLoggable(Level.FINE)) {
-					logger.log(Level.FINE, httpMethod.getURI() + MSG_RESPONSE_CODE + statusCode);
+					logger.log(Level.FINE, httpMethod.getURI() + MSG_RESPONSE_CODE + statusCode 
+							+ ", " + MSG_RESPONSE_REASON_PHRASE + ": " + reasonPhrase);
 				}
 				responseBody = getResponseBody(response, httpMethod);
 				if (logger.isLoggable(Level.FINE)) {
@@ -383,8 +387,8 @@ public class GSRestClient {
 				} else if (statusCode == CloudifyConstants.HTTP_STATUS_ACCESS_DENIED) {
 					throw new ErrorStatusException(CloudifyErrorMessages.NO_PERMISSION_ACCESS_DENIED.getName(),
 							httpMethod.getURI());
-				} else if (statusCode == CloudifyConstants.HTTP_STATUS_BAD_CREDENTIALS) {
-					throw new ErrorStatusException(CloudifyErrorMessages.BAD_CREDENTIALS.getName(),
+				} else if (statusCode == CloudifyConstants.HTTP_STATUS_UNAUTHORIZED) {
+					throw new ErrorStatusException(CloudifyErrorMessages.UNAUTHORIZED.getName(), reasonPhrase,
 							httpMethod.getURI());
 				}
 

@@ -110,7 +110,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			client.get(SERVICE_CONTROLLER_URL + "testlogin");
 			newRestClient.connect();
 		} catch (final ErrorStatusException e) {
-			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
+			throw new CLIStatusException(e);
 		}
 	}
 

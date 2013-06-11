@@ -63,9 +63,9 @@ public enum CloudifyErrorMessages {
 	NO_PERMISSION_ACCESS_DENIED("no_permission_access_is_denied", 0),
 
 	/**
-	 * Access to the resource is denied, permission not granted.
+	 * Access to the resource is denied, unauthorized.
 	 */
-	BAD_CREDENTIALS("bad_credentials", 0),
+	UNAUTHORIZED("unauthorized", 0),
 
 	/**
 	 * Byon template's configuration is missing nodes list.

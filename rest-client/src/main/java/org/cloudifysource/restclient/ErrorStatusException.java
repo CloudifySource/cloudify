@@ -58,8 +58,7 @@ public class ErrorStatusException extends RestException {
 	 * @param args
 	 *            Optional arguments combined in the message
 	 */
-	public ErrorStatusException(final Throwable cause, final String reasonCode,
-			final Object... args) {
+	public ErrorStatusException(final Throwable cause, final String reasonCode, final Object... args) {
 		super(REASON_CODE + ":" + reasonCode, cause);
 		this.args = args;
 		this.reasonCode = reasonCode;
@@ -76,6 +75,22 @@ public class ErrorStatusException extends RestException {
 		super(REASON_CODE + reasonCode);
 		this.reasonCode = reasonCode;
 		this.args = args;
+	}
+
+	/**
+	 * @param reasonCode
+	 *            A unique code used to retrieve the formatted message from a
+	 *            message bundle
+	 * @param verboseData
+	 *            verbose data
+	 * @param args
+	 *            Optional arguments combined in the message
+	 */
+	public ErrorStatusException(final String reasonCode, final String verboseData, final Object... args) {
+		super(REASON_CODE + reasonCode);
+		this.reasonCode = reasonCode;
+		this.args = args;
+		this.verboseData = verboseData;
 	}
 
 	/**

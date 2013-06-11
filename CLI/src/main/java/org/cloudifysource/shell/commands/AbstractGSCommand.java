@@ -112,6 +112,7 @@ public abstract class AbstractGSCommand implements Action {
         raiseCloseShellExceptionIfNonInteractive(session, t);
     }
 
+
 	/**
 	 * If not using the CLI in interactive mode - the method adds the given throwable to the session and throws a
 	 * CloseShellException.
