@@ -169,6 +169,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 	// the service retries field value
 	private int retries;
+	private int currentAttempt;
 
 	/********
 	 * The USM Bean entry point. This is where processing of a service instance starts.
@@ -186,10 +187,10 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		initUniqueFileName();
 		initCustomProperties();
 		this.myPid = this.sigar.getPid();
-		initRetries();
 
 		final boolean existingProcessFound = checkForPIDFile();
 
+		initRetries(existingProcessFound);
 		initManagementSpace();
 
 		// Initialize and sort events
@@ -198,7 +199,16 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		reset(existingProcessFound);
 	}
 
-	private void initRetries() throws IOException, USMException {
+	private boolean isRetryLimitExceeded() {
+		if (this.retries == -1) {
+			return false; // no retry limit
+		}
+
+		return (this.currentAttempt > this.retries);
+
+	}
+
+	private void initRetries(final boolean existingProcessFound) throws USMException {
 		retries = this.usmLifecycleBean.getConfiguration().getService().getRetries();
 		logger.fine("Retries value for this service is: " + retries);
 		if (retries == -1) {
@@ -207,25 +217,36 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		}
 
 		// the retries field is set to a non default value, so find out the current attempt number
-
-		//
-		final String attemptFileName = this.uniqueFileNamePrefix + this.myPid + ".dat";
-		final File attemptFile = new File(attemptFileName);
+		final File attemptFile = getAttemptFile();
 		logger.fine("Attemp file is: " + attemptFile.getAbsolutePath());
-		int currentAttempt = 1;
+		currentAttempt = 1;
 		if (attemptFile.exists()) {
-			final String attemptInformation = FileUtils.readFileToString(attemptFile);
+			String attemptInformation;
+			try {
+				attemptInformation = FileUtils.readFileToString(attemptFile);
+			} catch (final IOException e) {
+				throw new USMException("Failed to read attempt file " + attemptFile + ". Error was: " + e.getMessage(),
+						e);
+			}
 			logger.fine("Read retry data: " + attemptInformation);
 			try {
 				currentAttempt = Integer.parseInt(attemptInformation);
-				++currentAttempt;
 			} catch (NumberFormatException e) {
 				throw new USMException("Failed to parse retry data from attempt file data: " + attemptInformation, e);
 			}
+
+			// If recovering from GSC crash, use the same attempt number
+			if (!existingProcessFound) {
+				// otherwise, increment the current attempt number.
+				++currentAttempt;
+			}
 		}
 
-
-		FileUtils.writeStringToFile(attemptFile, Integer.toString(currentAttempt));
+		try {
+			FileUtils.writeStringToFile(attemptFile, Integer.toString(currentAttempt));
+		} catch (final IOException e) {
+			throw new USMException("Failed to write attempt file " + attemptFile + ". Error was: " + e.getMessage(), e);
+		}
 
 	}
 
@@ -779,9 +800,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 			}
 			launch();
 		} catch (USMException e) {
-			if (this.selfHealing) {
-				throw e;
-			} else {
+
+			if (!this.selfHealing) {
 				// This exception is intentionally swallowed so the USM will not be reloaded by the GSM
 				// for a retry.
 				logger.log(
@@ -790,6 +810,16 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 								+ "Self-healing is disabled so this service will not be restarted.",
 						e);
 				this.state = USMState.ERROR;
+			} else if (isRetryLimitExceeded()) {
+				//
+				logger.log(
+						Level.SEVERE,
+						"An exception was encountered while executing the service lifecycle. "
+								+ "The retry limit was exceeded so this service will not be restarted.",
+						e);
+				this.state = USMState.ERROR;
+			} else {
+				throw e;
 			}
 		}
 
@@ -1639,6 +1669,10 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 	public int getInstanceId() {
 		return this.instanceId;
+	}
+
+	public int getCurrentAttempt() {
+		return currentAttempt;
 	}
 
 }
