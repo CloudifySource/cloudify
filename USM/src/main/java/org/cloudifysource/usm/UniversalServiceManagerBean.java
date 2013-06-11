@@ -50,6 +50,7 @@ import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyConstants.USMState;
 import org.cloudifysource.dsl.utils.ServiceUtils;
+import org.cloudifysource.dsl.utils.ServiceUtils.FullServiceName;
 import org.cloudifysource.usm.dsl.DSLEntryExecutor;
 import org.cloudifysource.usm.events.EventResult;
 import org.cloudifysource.usm.events.StartReason;
@@ -63,6 +64,7 @@ import org.openspaces.admin.Admin;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
 import org.openspaces.admin.pu.events.ProcessingUnitInstanceAddedEventListener;
+import org.openspaces.admin.space.Space;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.cluster.ClusterInfo;
 import org.openspaces.core.cluster.ClusterInfoAware;
@@ -166,8 +168,6 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	private MonitorsCache monitorsCache;
 
 	private GigaSpace managementSpace;
-
-	// the service retries field value
 	private int retries;
 	private int currentAttempt;
 
@@ -190,7 +190,6 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 		final boolean existingProcessFound = checkForPIDFile();
 
-		initRetries(existingProcessFound);
 		initManagementSpace();
 
 		// Initialize and sort events
@@ -200,55 +199,38 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	}
 
 	private boolean isRetryLimitExceeded() {
-		if (this.retries == -1) {
-			return false; // no retry limit
-		}
-
-		return (this.currentAttempt > this.retries);
-
-	}
-
-	private void initRetries(final boolean existingProcessFound) throws USMException {
 		retries = this.usmLifecycleBean.getConfiguration().getService().getRetries();
-		logger.fine("Retries value for this service is: " + retries);
+		logger.info("Retry limit for this service is: " + retries);
 		if (retries == -1) {
-			// Nothing to do.
-			return;
+			return false;
 		}
 
-		// the retries field is set to a non default value, so find out the current attempt number
-		final File attemptFile = getAttemptFile();
-		logger.fine("Attemp file is: " + attemptFile.getAbsolutePath());
-		currentAttempt = 1;
-		if (attemptFile.exists()) {
-			String attemptInformation;
-			try {
-				attemptInformation = FileUtils.readFileToString(attemptFile);
-			} catch (final IOException e) {
-				throw new USMException("Failed to read attempt file " + attemptFile + ". Error was: " + e.getMessage(),
-						e);
-			}
-			logger.fine("Read retry data: " + attemptInformation);
-			try {
-				currentAttempt = Integer.parseInt(attemptInformation);
-			} catch (NumberFormatException e) {
-				throw new USMException("Failed to parse retry data from attempt file data: " + attemptInformation, e);
-			}
+		currentAttempt = getCurrentAttemptNumber();
+		logger.info("Current attempt number is: " + currentAttempt);
 
-			// If recovering from GSC crash, use the same attempt number
-			if (!existingProcessFound) {
-				// otherwise, increment the current attempt number.
-				++currentAttempt;
-			}
-		}
+		return (currentAttempt > retries);
 
-		try {
-			FileUtils.writeStringToFile(attemptFile, Integer.toString(currentAttempt));
-		} catch (final IOException e) {
-			throw new USMException("Failed to write attempt file " + attemptFile + ". Error was: " + e.getMessage(), e);
+	}
+
+	private int getCurrentAttemptNumber() {
+		USMInstanceAttemptData template = new USMInstanceAttemptData();
+
+		FullServiceName fullName = ServiceUtils.getFullServiceName(this.clusterName);
+
+		template.setApplicationName(fullName.getApplicationName());
+		template.setGscPid(this.myPid);
+		template.setServiceName(fullName.getServiceName());
+		template.setInstanceId(this.instanceId);
+
+		final USMInstanceAttemptData data = this.managementSpace.read(template);
+		if (data == null) {
+			return 1;
+		} else {
+			return data.getCurrentAttemptNumber();
 		}
 
 	}
+
 
 	/**********
 	 * Bean shutdown method, responsible for shutting down the external service and releasing all resource.
@@ -318,13 +300,22 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 	}
 
-	private void initManagementSpace() {
+	private void initManagementSpace() throws USMException {
 		// initialize management space, except if running in test-recipe container.
 		if (this.isRunningInGSC()) {
 			managementSpace =
 					((AttributesFacadeImpl) getUsmLifecycleBean().getConfiguration().getServiceContext()
 							.getAttributes())
 							.getManagementSpace();
+		} else {
+			Admin admin = USMUtils.getAdmin();
+			Space space = admin.getSpaces().getSpaceByName(CloudifyConstants.MANAGEMENT_SPACE_NAME);
+			if (space == null) {
+				throw new USMException(
+						"Failed to locate management space in environment - USM initialization cannot continue");
+			}
+			this.managementSpace = space.getGigaSpace();
+
 		}
 	}
 
@@ -606,10 +597,6 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		return new File(this.uniqueFileNamePrefix + ERROR_FILE_NAME_SUFFFIX);
 	}
 
-	private File getAttemptFile() {
-		return new File(this.uniqueFileNamePrefix + ".attempt");
-	}
-
 	private String getLogsDir() {
 		return Environment.getHomeDirectory() + "logs";
 	}
@@ -815,7 +802,9 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 				logger.log(
 						Level.SEVERE,
 						"An exception was encountered while executing the service lifecycle. "
-								+ "The retry limit was exceeded so this service will not be restarted.",
+								+ "Current installation attempt is " + this.currentAttempt
+								+ " which exceeds the The retry limit(" + this.retries
+								+ "), so this service will not be restarted.",
 						e);
 				this.state = USMState.ERROR;
 			} else {
