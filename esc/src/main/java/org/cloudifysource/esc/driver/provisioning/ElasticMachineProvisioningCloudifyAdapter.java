@@ -1026,7 +1026,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	}
 	
 	@Override
-	public boolean cleanupMachineResources(long duration, TimeUnit timeUnit) throws ElasticMachineProvisioningException, InterruptedException, TimeoutException {
+	public void cleanupMachineResources(long duration, TimeUnit timeUnit) throws ElasticMachineProvisioningException, InterruptedException, TimeoutException {
 		//TODO: Implement
 	}
 }
