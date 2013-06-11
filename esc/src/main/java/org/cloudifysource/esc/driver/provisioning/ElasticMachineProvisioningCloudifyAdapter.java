@@ -1024,4 +1024,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			PROVISIONING_DRIVER_CONTEXT_PER_DRIVER_CLASSNAME.clear();
 		}
 	}
+	
+	@Override
+	boolean cleanupMachineResources(long duration, TimeUnit timeUnit) throws ElasticMachineProvisioningException, InterruptedException, TimeoutException {
+		//TODO: Implement
+	}
 }
