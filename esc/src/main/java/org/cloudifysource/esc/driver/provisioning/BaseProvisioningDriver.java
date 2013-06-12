@@ -404,7 +404,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 			int numberOfErrors, Exception firstCreationException, MachineDetails[] createdManagementMachines)
 					throws CloudProvisioningException;
 	@Override
-	public void releaseCloudResources(long duration, TimeUnit unit)
+	public void onServiceUninstalled(long duration, TimeUnit unit)
 			throws InterruptedException, TimeoutException, CloudProvisioningException {
 		
 	}

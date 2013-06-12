@@ -709,7 +709,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 	}
 
 	@Override
-	public void releaseCloudResources(long duration, TimeUnit unit) {
+	public void onServiceUninstalled(long duration, TimeUnit unit) {
 		// TODO Auto-generated method stub
 	}
 }

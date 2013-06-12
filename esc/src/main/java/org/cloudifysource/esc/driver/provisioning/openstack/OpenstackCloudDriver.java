@@ -830,7 +830,7 @@ public class OpenstackCloudDriver extends CloudDriverSupport implements Provisio
 	}
 
 	@Override
-	public void releaseCloudResources(long duration, TimeUnit unit) {
+	public void onServiceUninstalled(long duration, TimeUnit unit) {
 		// TODO Auto-generated method stub
 	}
 }
