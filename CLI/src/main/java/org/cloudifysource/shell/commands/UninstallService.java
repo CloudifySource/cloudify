@@ -25,7 +25,10 @@ import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.CompleterValues;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.shell.ShellUtils;
+import org.cloudifysource.shell.rest.RestAdminFacade;
+import org.cloudifysource.shell.rest.inspect.CLIServiceUninstaller;
 import org.fusesource.jansi.Ansi.Color;
 
 /**
@@ -41,7 +44,7 @@ import org.fusesource.jansi.Ansi.Color;
  *        Command syntax: uninstall-service [-timeout timeout] [-progress progress] service-name
  */
 @Command(scope = "cloudify", name = "uninstall-service", description = "undeploy a service")
-public class UninstallService extends AdminAwareCommand {
+public class UninstallService extends AdminAwareCommand implements NewRestClientCommand {
 
 	private static final int DEFAULT_TIMEOUT_MINUTES = 5;
 
@@ -50,6 +53,8 @@ public class UninstallService extends AdminAwareCommand {
 
 	@Argument(index = 0, required = true, name = "service-name")
 	private String serviceName;
+
+	private RestClient newRestClient = ((RestAdminFacade) getRestAdminFacade()).getNewRestClient();
 
 	/**
 	 * Gets all services installed on the default application.
@@ -99,5 +104,23 @@ public class UninstallService extends AdminAwareCommand {
 	private boolean askUninstallConfirmationQuestion()
 			throws IOException {
 		return ShellUtils.promptUser(session, "service_uninstall_confirmation", serviceName);
+	}
+
+	@Override
+	public Object doExecuteNewRestClient() throws Exception {
+        if (!askUninstallConfirmationQuestion()) {
+            return getFormattedMessage("uninstall_aborted");
+        }
+
+        CLIServiceUninstaller uninstaller = new CLIServiceUninstaller();
+        uninstaller.setApplicationName(getCurrentApplicationName());
+        uninstaller.setAskOnTimeout(true);
+        uninstaller.setInitialTimeout(timeoutInMinutes);
+		uninstaller.setRestClient(newRestClient);
+        uninstaller.setServiceName(serviceName);
+        uninstaller.setSession(session);
+        uninstaller.uninstall();
+
+        return getFormattedMessage("undeployed_successfully", Color.GREEN, serviceName);
 	}
 }

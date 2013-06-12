@@ -46,7 +46,11 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.restclient.StringUtils;
+import org.cloudifysource.restclient.exceptions.RestClientException;
+import org.cloudifysource.shell.exceptions.CLIException;
+import org.cloudifysource.shell.installer.CLIEventsDisplayer;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.Ansi.Color;
 import org.fusesource.jansi.Ansi.Erase;
@@ -602,5 +606,17 @@ public final class ShellUtils {
 
 		return formattedURL;
 	}
+	
+    public static String uploadToRepo(RestClient client, final File file, CLIEventsDisplayer displayer) 
+    		throws RestClientException, CLIException {
+        if (file != null) {
+            if (!file.isFile()) {
+                throw new CLIException(file.getAbsolutePath() + " is not a file or is missing");
+            }
+			displayer.printEvent("Uploading " + file.getAbsolutePath());
+			return client.upload(null, file).getUploadKey();
+        }
+        return null;
+    }
 
 }

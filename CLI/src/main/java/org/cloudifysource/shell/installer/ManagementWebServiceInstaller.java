@@ -35,7 +35,7 @@ import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.ShellUtils;
-import org.cloudifysource.shell.commands.CLIException;
+import org.cloudifysource.shell.exceptions.CLIException;
 import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.gsc.GridServiceContainer;
 import org.openspaces.admin.pu.ProcessingUnit;
@@ -320,7 +320,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 				try {
 					adminFacade.connect(username, password, url.toString(), isSecureConnection);
 					return true;
-				} catch (final CLIException e) {
+				} catch (final Exception e) {
 					if (verbose) {
 						logger.log(Level.INFO, "Error connecting to web service [" + serviceName + "].", e);
 					}

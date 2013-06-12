@@ -33,7 +33,7 @@ import org.cloudifysource.esc.shell.installer.CloudGridAgentBootstrapper;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.commands.AbstractGSCommand;
-import org.cloudifysource.shell.commands.CLIStatusException;
+import org.cloudifysource.shell.exceptions.CLIStatusException;
 
 /************
  * CLI Command to list cloud managers using the cloud driver.

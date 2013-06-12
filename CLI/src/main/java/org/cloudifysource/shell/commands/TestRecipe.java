@@ -46,6 +46,8 @@ import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.dsl.utils.RecipePathResolver;
+import org.cloudifysource.shell.exceptions.CLIException;
+import org.cloudifysource.shell.exceptions.CLIStatusException;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 import org.openspaces.pu.container.integrated.IntegratedProcessingUnitContainer;

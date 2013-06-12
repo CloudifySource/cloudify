@@ -30,6 +30,7 @@ import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.GigaShellMain;
+import org.cloudifysource.shell.exceptions.CLIException;
 import org.cloudifysource.shell.installer.CLIEventsDisplayer;
 import org.cloudifysource.shell.rest.RestAdminFacade;
 import org.codehaus.jackson.map.ObjectMapper;

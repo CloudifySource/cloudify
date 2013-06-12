@@ -211,6 +211,8 @@ public final class CloudifyConstants {
     public static final String CUSTOM_PROPERTY_PIDS_SIZE_LIMIT = "org.cloudifysource.pids-size-limit";
     public static final String CUSTOM_CLOUD_PROPERTY_UNICAST_DISCOVERY_PORT = "org.cloudifysource.unicast-discovery-port";
     public static final String CUSTOM_PROPERTY_CLEAN_REMOTE_DIR_ON_START = "org.cloudifysource.clearRemoteDirectoryOnStart";
+	public static final String NEW_REST_CLIENT_ENABLE_PROPERTY = "org.cloudifysource.rest-client.enable-new-rest-client";
+
 
     /*******************
      * event lifecycle polling parameters.

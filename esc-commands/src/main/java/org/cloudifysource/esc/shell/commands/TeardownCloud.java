@@ -42,8 +42,8 @@ import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.GigaShellMain;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.AbstractGSCommand;
-import org.cloudifysource.shell.commands.CLIException;
-import org.cloudifysource.shell.commands.CLIStatusException;
+import org.cloudifysource.shell.exceptions.CLIException;
+import org.cloudifysource.shell.exceptions.CLIStatusException;
 /**
  * Tears down the remote Cloud.
  *

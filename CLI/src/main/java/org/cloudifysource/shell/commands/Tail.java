@@ -24,6 +24,7 @@ import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.shell.ShellUtils;
+import org.cloudifysource.shell.exceptions.CLIStatusException;
 import org.fusesource.jansi.Ansi.Color;
 
 /**

@@ -22,6 +22,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.DateUtils;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
@@ -37,10 +38,21 @@ import org.cloudifysource.dsl.internal.debug.DebugUtils;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
+import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
+import org.cloudifysource.dsl.rest.response.InstallServiceResponse;
 import org.cloudifysource.dsl.utils.RecipePathResolver;
+import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.ShellUtils;
+import org.cloudifysource.shell.exceptions.CLIException;
+import org.cloudifysource.shell.exceptions.CLIStatusException;
+import org.cloudifysource.shell.installer.CLIEventsDisplayer;
+import org.cloudifysource.shell.rest.RestAdminFacade;
 import org.cloudifysource.shell.rest.RestLifecycleEventsLatch;
+import org.cloudifysource.shell.rest.inspect.CLIServiceInstaller;
+import org.cloudifysource.shell.util.NameAndPackedFileResolver;
+import org.cloudifysource.shell.util.PreparedPackageResolver;
+import org.cloudifysource.shell.util.ServiceResolver;
 import org.fusesource.jansi.Ansi.Color;
 
 /**
@@ -59,7 +71,7 @@ import org.fusesource.jansi.Ansi.Color;
  */
 @Command(scope = "cloudify", name = "install-service", description = "Installs a service. If you specify a folder"
 		+ " path it will be packed and deployed. If you specify a service archive, the shell will deploy that file.")
-public class InstallService extends AdminAwareCommand {
+public class InstallService extends AdminAwareCommand implements NewRestClientCommand {
 
 	private static final int DEFAULT_TIMEOUT_MINUTES = 5;
 	private static final String TIMEOUT_ERROR_MESSAGE = "Service installation timed out."
@@ -117,6 +129,9 @@ public class InstallService extends AdminAwareCommand {
 			description = "Debug mode. One of: instead, after or onError")
 	private String debugModeString = DebugModes.INSTEAD.getName();
 
+	private CLIEventsDisplayer displayer = new CLIEventsDisplayer();
+	private RestClient newRestClient = ((RestAdminFacade) getRestAdminFacade()).getNewRestClient();
+    
 	/**
 	 * {@inheritDoc}
 	 */
@@ -441,5 +456,66 @@ public class InstallService extends AdminAwareCommand {
 	public void setServiceFileName(final String serviceFileName) {
 		this.serviceFileName = serviceFileName;
 	}
+
+	@Override
+	public Object doExecuteNewRestClient() throws Exception {
+        NameAndPackedFileResolver nameAndPackedFileResolver = getResolver(recipe);
+        serviceName = nameAndPackedFileResolver.getName();
+        File packedFile = nameAndPackedFileResolver.getPackedFile();
+
+        // upload the files if necessary
+        final String cloudConfigurationFileKey = ShellUtils.uploadToRepo(newRestClient, cloudConfiguration, displayer);
+        final String cloudOverridesFileKey = ShellUtils.uploadToRepo(newRestClient, cloudOverrides, displayer);
+        final String overridesFileKey = ShellUtils.uploadToRepo(newRestClient, overrides, displayer);
+
+        final String recipeFileKey = ShellUtils.uploadToRepo(newRestClient, packedFile, displayer);
+
+        InstallServiceRequest request = new InstallServiceRequest();
+        request.setAuthGroups(authGroups);
+        request.setCloudConfigurationUploadKey(cloudConfigurationFileKey);
+        request.setDebugAll(debugAll);
+        request.setCloudOverridesUploadKey(cloudOverridesFileKey);
+        request.setDebugEvents(debugEvents);
+        request.setServiceOverridesUploadKey(overridesFileKey);
+        request.setServiceFolderUploadKey(recipeFileKey);
+        request.setSelfHealing(disableSelfHealing);
+        request.setTimeoutInMillis(timeoutInMinutes * DateUtils.MILLIS_PER_MINUTE);
+
+        // execute the request
+        InstallServiceResponse installServiceResponse = 
+        		newRestClient.installService(getCurrentApplicationName(), serviceName, request);
+
+        CLIServiceInstaller installer = new CLIServiceInstaller();
+        installer.setApplicationName(getCurrentApplicationName());
+        installer.setAskOnTimeout(true);
+        installer.setDeploymentId(installServiceResponse.getDeploymentID());
+        installer.setInitialTimeout(timeoutInMinutes);
+        installer.setRestClient(newRestClient);
+        installer.setServiceName(serviceName);
+        installer.setSession(session);
+        installer.setPlannedNumberOfInstances(
+        		nameAndPackedFileResolver.getPlannedNumberOfInstancesPerService().get(serviceName));
+        installer.install();
+
+        return getFormattedMessage("service_install_ended", Color.GREEN, serviceName);
+	}
+	
+    private NameAndPackedFileResolver getResolver(final File recipe) throws CLIStatusException {
+        if (recipe.isFile()) {
+            // this is a prepared package we can just use.
+            return new PreparedPackageResolver(recipe);
+        }
+		// this is an actual service directory
+		return new ServiceResolver(resolve(recipe), overrides, serviceName);
+    }
+    
+    private File resolve(final File recipe) throws CLIStatusException {
+        final RecipePathResolver pathResolver = new RecipePathResolver();
+        if (pathResolver.resolveService(recipe)) {
+            return pathResolver.getResolved();
+        }
+		throw new CLIStatusException("service_file_doesnt_exist",
+		        StringUtils.join(pathResolver.getPathsLooked().toArray(), ", "));
+    }
 
 }

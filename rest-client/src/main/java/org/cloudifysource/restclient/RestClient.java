@@ -1,16 +1,24 @@
 /*******************************************************************************
  * Copyright (c) 2013 GigaSpaces Technologies Ltd. All rights reserved
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  ******************************************************************************/
 package org.cloudifysource.restclient;
+
+import java.io.File;
+import java.net.URL;
+import java.security.KeyStore;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.http.HttpVersion;
@@ -29,22 +37,24 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.rest.request.InstallApplicationRequest;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
 import org.cloudifysource.dsl.rest.request.SetServiceInstancesRequest;
-import org.cloudifysource.dsl.rest.response.*;
+import org.cloudifysource.dsl.rest.response.ApplicationDescription;
+import org.cloudifysource.dsl.rest.response.DeploymentEvents;
+import org.cloudifysource.dsl.rest.response.InstallApplicationResponse;
+import org.cloudifysource.dsl.rest.response.InstallServiceResponse;
+import org.cloudifysource.dsl.rest.response.Response;
+import org.cloudifysource.dsl.rest.response.ServiceDescription;
+import org.cloudifysource.dsl.rest.response.UninstallApplicationResponse;
+import org.cloudifysource.dsl.rest.response.UninstallServiceResponse;
+import org.cloudifysource.dsl.rest.response.UploadResponse;
 import org.cloudifysource.restclient.exceptions.RestClientException;
 import org.cloudifysource.restclient.messages.MessagesUtils;
 import org.cloudifysource.restclient.messages.RestClientMessageKeys;
 import org.codehaus.jackson.type.TypeReference;
 
-import java.io.File;
-import java.net.URL;
-import java.security.KeyStore;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
-
 /**
- *
+ * This class performs all the calls to the REST API, 
+ * using the {@link RestClientExecutor}.
+ * 
  * @author yael
  * 
  */
@@ -53,31 +63,51 @@ public class RestClient {
 	private static final Logger logger = Logger.getLogger(RestClient.class.getName());
 
 	private static final String FAILED_CREATING_CLIENT = "failed_creating_client";
-
-	private final RestClientExecutor executor;
+	private static final String HTTPS = "https";
 
 	private static final String UPLOAD_CONTROLLER_URL = "/upload/";
 	private static final String DEPLOYMENT_CONTROLLER_URL = "/deployments/";
-	private String versionedDeploymentControllerUrl;
-	private String versionedUploadControllerUrl;
 
-	private static final String HTTPS = "https";
+	private static final String INSTALL_SERVICE_URL_FORMAT = "%s/services/%s";
+	private static final String INSTALL_APPLICATION_URL_FORMAT = "%s";
+	private static final String UPLOAD_URL_FORMAT = "%s";
+	private static final String GET_DEPLOYMENT_EVENTS_URL_FORMAT = "%s/events/?from=%s&to=%s";
+	private static final String GET_SERVICE_DESCRIPTION_URL_FORMAT = "%s/service/%s/description";
+	private static final String GET_SERVICES_DESCRIPTION_URL_FORMAT = "%s/description";
+	private static final String GET_APPLICATION_DESCRIPTION_URL_FORMAT = "applications/%s/description";
 
 	private static final String SET_INSTANCES_URL_FORMAT = "%s/services/%s/count";
-    private static final String GET_LAST_EVENT_URL_FORMAT = "%s/events/last/";
+	private static final String GET_LAST_EVENT_URL_FORMAT = "%s/events/last/";
+
+	private final RestClientExecutor executor;
+	private String versionedDeploymentControllerUrl;
+	private String versionedUploadControllerUrl;
 
 	public RestClient(final URL url,
 			final String username,
 			final String password,
 			final String apiVersion) throws RestClientException {
 
+		versionedDeploymentControllerUrl = apiVersion + DEPLOYMENT_CONTROLLER_URL;
+		versionedUploadControllerUrl = apiVersion + UPLOAD_CONTROLLER_URL;
+
 		this.executor = createExecutor(url, apiVersion);
+
 		setCredentials(username, password);
 	}
 
 	/**
+	 * 
+	 * @throws RestClientException .
+	 */
+	public void connect() throws RestClientException {
+		executor.get(versionedDeploymentControllerUrl + "testrest", new TypeReference<Response<Void>>() {
+		});
+	}
+
+	/**
 	 * Sets the credentials.
-	 *
+	 * 
 	 * @param username
 	 *            .
 	 * @param password
@@ -89,7 +119,7 @@ public class RestClient {
 
 	/**
 	 * Executes a rest api call to install a specific service.
-	 *
+	 * 
 	 * @param applicationName
 	 *            The name of the application.
 	 * @param serviceName
@@ -101,15 +131,18 @@ public class RestClient {
 	 */
 	public InstallServiceResponse installService(final String applicationName, final String serviceName,
 			final InstallServiceRequest request) throws RestClientException {
-		final String installServiceUrl = versionedDeploymentControllerUrl + applicationName + "/services/"
-				+ serviceName;
+		final String installServiceUrl = getFormattedUrl(
+				versionedDeploymentControllerUrl, 
+				INSTALL_SERVICE_URL_FORMAT, 
+				applicationName,
+				serviceName);
 		return executor.postObject(installServiceUrl, request, new TypeReference<Response<InstallServiceResponse>>() {
 		});
 	}
 
 	/**
 	 * Executes a rest api call to install an application.
-	 *
+	 * 
 	 * @param applicationName
 	 *            The name of the application.
 	 * @param request
@@ -119,10 +152,13 @@ public class RestClient {
 	 */
 	public InstallApplicationResponse installApplication(final String applicationName,
 			final InstallApplicationRequest request) throws RestClientException {
-		final String installApplicationUrl = versionedDeploymentControllerUrl + applicationName;
+		final String installApplicationUrl = getFormattedUrl(
+				versionedDeploymentControllerUrl, 
+				INSTALL_APPLICATION_URL_FORMAT, 
+				applicationName);
 		return executor.postObject(installApplicationUrl, request,
 				new TypeReference<Response<InstallApplicationResponse>>() {
-				});
+		});
 	}
 
 	/**
@@ -141,7 +177,11 @@ public class RestClient {
 	public UninstallServiceResponse uninstallService(final String applicationName, final String serviceName,
 			final int timeoutInMinutes) throws RestClientException {
 
-		final String url = versionedDeploymentControllerUrl + applicationName + "/services/" + serviceName;
+		final String url = getFormattedUrl(
+				versionedDeploymentControllerUrl, 
+				INSTALL_SERVICE_URL_FORMAT, 
+				applicationName, 
+				serviceName);
 		final Map<String, String> requestParams = new HashMap<String, String>();
 		requestParams.put(CloudifyConstants.REQ_PARAM_TIMEOUT_IN_MINUTES, String.valueOf(timeoutInMinutes));
 
@@ -185,16 +225,19 @@ public class RestClient {
 		validateFile(file);
 		final String finalFileName = fileName == null ? file.getName() : fileName;
 		logger.fine("uploading file " + file.getAbsolutePath() + " with name " + finalFileName);
-		final String uploadUrl = versionedUploadControllerUrl + finalFileName;
+		final String uploadUrl = getFormattedUrl(
+				versionedUploadControllerUrl, 
+				UPLOAD_URL_FORMAT, 
+				finalFileName);				
 		final UploadResponse response = executor.postFile(uploadUrl, file, CloudifyConstants.UPLOAD_FILE_PARAM_NAME,
 				new TypeReference<Response<UploadResponse>>() {
-				});
+		});
 		return response;
 	}
 
 	/**
 	 * Provides access to life cycle events of a service.
-	 *
+	 * 
 	 * @param deploymentId
 	 *            The deployment id given at installation time.
 	 * @param from
@@ -206,8 +249,13 @@ public class RestClient {
 	 */
 	public DeploymentEvents getDeploymentEvents(final String deploymentId, final int from, final int to)
 			throws RestClientException {
-		return executor.get(versionedDeploymentControllerUrl + "/" + deploymentId + "/events/" + "?from=" + from
-				+ "&to=" + to, new TypeReference<Response<DeploymentEvents>>() {
+		String url = getFormattedUrl(
+				versionedDeploymentControllerUrl, 
+				GET_DEPLOYMENT_EVENTS_URL_FORMAT, 
+				deploymentId, 
+				String.valueOf(from), 
+				String.valueOf(to));
+		return executor.get(url, new TypeReference<Response<DeploymentEvents>>() {
 		});
 	}
 
@@ -222,25 +270,34 @@ public class RestClient {
 	 */
 	public ServiceDescription getServiceDescription(final String appName, final String serviceName)
 			throws RestClientException {
-		return executor.get(versionedDeploymentControllerUrl + "/" + appName + "/service/" + serviceName
-				+ "/description", new TypeReference<Response<ServiceDescription>>() {
+		String url = getFormattedUrl(
+				versionedDeploymentControllerUrl, 
+				GET_SERVICE_DESCRIPTION_URL_FORMAT, 
+				appName,
+				serviceName);		
+		return executor.get(url, new TypeReference<Response<ServiceDescription>>() {
 		});
 	}
 
-    /**
-     * Retrieves a list of services description by deployment id.
-     * @param deploymentId The deployment id.
-     * @return
-     * @throws RestClientException
-     */
-    public List<ServiceDescription> getServicesDescription(final String deploymentId)
-            throws RestClientException {
-        return executor.get(versionedDeploymentControllerUrl + "/" + deploymentId + "/description", new TypeReference<Response<List<ServiceDescription>>>() {
-        });
-    }
+	/**
+	 * Retrieves a list of services description by deployment id.
+	 * 
+	 * @param deploymentId
+	 *            The deployment id.
+	 * @return list of {@link ServiceDescription}
+	 * @throws RestClientException 
+	 */
+	public List<ServiceDescription> getServicesDescription(final String deploymentId)
+			throws RestClientException {
+		String url = getFormattedUrl(
+				versionedDeploymentControllerUrl, 
+				GET_SERVICES_DESCRIPTION_URL_FORMAT, 
+				deploymentId);
+		return executor.get(url, new TypeReference<Response<List<ServiceDescription>>>() {
+		});
+	}
 
-
-    /**
+	/**
 	 * 
 	 * @param appName
 	 *            .
@@ -248,18 +305,64 @@ public class RestClient {
 	 * @throws RestClientException .
 	 */
 	public ApplicationDescription getApplicationDescription(final String appName) throws RestClientException {
-		return executor.get(versionedDeploymentControllerUrl + "/applications/" + appName + "/description",
-				new TypeReference<Response<ApplicationDescription>>() {
-				});
+		String url = getFormattedUrl(
+				versionedDeploymentControllerUrl, 
+				GET_APPLICATION_DESCRIPTION_URL_FORMAT, 
+				appName);
+		return executor.get(url, new TypeReference<Response<ApplicationDescription>>() {
+		});
 	}
 
-	/**
-	 *
-	 * @throws RestClientException .
+	/********
+	 * Manually Scales a specific service in/out.
+	 * 
+	 * @param applicationName
+	 *            the service's application name.
+	 * @param serviceName
+	 *            the service name.
+	 * @param request
+	 *            the scale request details.
+	 * @throws RestClientException
+	 *             in case of an error.
 	 */
-	public void connect() throws RestClientException {
-		executor.get(versionedDeploymentControllerUrl + "testrest", new TypeReference<Response<Void>>() {
+	public void setServiceInstances(final String applicationName, final String serviceName,
+			final SetServiceInstancesRequest request) throws RestClientException {
+		if (request == null) {
+			throw new IllegalArgumentException("request may not be null");
+		}
+
+		final String setInstancesUrl = getFormattedUrl(
+				versionedDeploymentControllerUrl, 
+				SET_INSTANCES_URL_FORMAT, 
+				applicationName, 
+				serviceName);
+		executor.postObject(
+				setInstancesUrl,
+				request,
+				new TypeReference<Response<Void>>() {
+				}
+				);
+
+	}
+
+	/********
+	 * Retrieves last event indes for this deployment id.
+	 * 
+	 * @param deploymentId
+	 *            The deploymentId.
+	 * @return {@link DeploymentEvents}
+	 * @throws RestClientException
+	 *             in case of an error on the rest server.
+	 */
+	public DeploymentEvents getLastEvent(final String deploymentId) throws RestClientException {
+
+		final String setInstancesUrl = getFormattedUrl(
+				versionedDeploymentControllerUrl, 
+				GET_LAST_EVENT_URL_FORMAT, 
+				deploymentId);
+		return executor.get(setInstancesUrl, new TypeReference<Response<DeploymentEvents>>() {
 		});
+
 	}
 
 	private void validateFile(final File file) throws RestClientException {
@@ -293,8 +396,6 @@ public class RestClient {
 		final HttpParams httpParams = httpClient.getParams();
 		HttpConnectionParams.setConnectionTimeout(httpParams, CloudifyConstants.DEFAULT_HTTP_CONNECTION_TIMEOUT);
 		HttpConnectionParams.setSoTimeout(httpParams, CloudifyConstants.DEFAULT_HTTP_READ_TIMEOUT);
-		versionedDeploymentControllerUrl = apiVersion + DEPLOYMENT_CONTROLLER_URL;
-		versionedUploadControllerUrl = apiVersion + UPLOAD_CONTROLLER_URL;
 		return new RestClientExecutor(httpClient, url);
 	}
 
@@ -310,8 +411,7 @@ public class RestClient {
 	private DefaultHttpClient getSSLHttpClient(final URL url) throws RestClientException {
 		try {
 			final KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-			// TODO : support self-signed certs if configured by user upon
-			// "connect"
+			// TODO : support self-signed certs if configured by user upon "connect"
 			trustStore.load(null, null);
 
 			final SSLSocketFactory sf = new RestSSLSocketFactory(trustStore);
@@ -333,47 +433,8 @@ public class RestClient {
 		}
 	}
 
-	private String getFormattedUrl(final String format, final String... args) {
-    	return versionedDeploymentControllerUrl  + String.format(format, (Object[])args);
-    }
-	  /********
-     * Manually Scales a specific service in/out.
-     * @param applicationName the service's application name.
-     * @param serviceName the service name.
-     * @param request the scale request details.
-     * @throws RestClientException in case of an error.
-     */
-	public void setServiceInstances(final String applicationName, final String serviceName,
-			final SetServiceInstancesRequest request) throws RestClientException {
-		if (request == null) {
-			throw new IllegalArgumentException("request may not be null");
-		}
-
-		final String setInstancesUrl =
-				getFormattedUrl(SET_INSTANCES_URL_FORMAT, applicationName, serviceName);
-		executor.postObject(
-				setInstancesUrl,
-				request,
-				new TypeReference<Response<Void>>() {
-				}
-				);
-
+	private String getFormattedUrl(final String controllerUrl, final String format, final String... args) {
+		return controllerUrl + String.format(format, (Object[]) args);
 	}
-
-	/********
-     * Retrieves last event indes for this deployment id.
-     * @param deploymentId The deploymentId.
-     * @throws RestClientException in case of an error on the rest server.
-     */
-	public DeploymentEvents getLastEvent(final String deploymentId) throws RestClientException {
-
-		final String setInstancesUrl =
-				getFormattedUrl(GET_LAST_EVENT_URL_FORMAT, deploymentId);
-        return executor.get(setInstancesUrl, new TypeReference<Response<DeploymentEvents>>(){});
-
-	}
-
-
-
 
 }

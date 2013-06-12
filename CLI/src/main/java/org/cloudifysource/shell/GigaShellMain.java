@@ -38,7 +38,7 @@ import org.apache.felix.gogo.runtime.CommandProcessorImpl;
 import org.apache.felix.service.command.CommandSession;
 import org.apache.karaf.shell.console.Main;
 import org.apache.karaf.shell.console.jline.Console;
-import org.cloudifysource.shell.commands.CLIException;
+import org.cloudifysource.shell.exceptions.CLIException;
 import org.cloudifysource.shell.logging.ShellErrorManager;
 import org.cloudifysource.shell.logging.ShellFormatter;
 import org.cloudifysource.shell.proxy.SystemDefaultProxySelector;

@@ -20,7 +20,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.cloudifysource.shell.commands.CLIException;
+import org.cloudifysource.shell.exceptions.CLIException;
 
 /**
  * @author rafi, barakm

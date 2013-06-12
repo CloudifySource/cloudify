@@ -36,11 +36,21 @@ import org.cloudifysource.dsl.internal.debug.DebugModes;
 import org.cloudifysource.dsl.internal.debug.DebugUtils;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
+import org.cloudifysource.dsl.rest.request.InstallApplicationRequest;
+import org.cloudifysource.dsl.rest.response.InstallApplicationResponse;
 import org.cloudifysource.dsl.utils.RecipePathResolver;
+import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.GigaShellMain;
 import org.cloudifysource.shell.ShellUtils;
+import org.cloudifysource.shell.exceptions.CLIStatusException;
+import org.cloudifysource.shell.installer.CLIEventsDisplayer;
+import org.cloudifysource.shell.rest.RestAdminFacade;
 import org.cloudifysource.shell.rest.RestLifecycleEventsLatch;
+import org.cloudifysource.shell.rest.inspect.CLIApplicationInstaller;
+import org.cloudifysource.shell.util.ApplicationResolver;
+import org.cloudifysource.shell.util.NameAndPackedFileResolver;
+import org.cloudifysource.shell.util.PreparedApplicationPackageResolver;
 import org.fusesource.jansi.Ansi.Color;
 
 /**
@@ -59,7 +69,7 @@ import org.fusesource.jansi.Ansi.Color;
 @Command(scope = "cloudify", name = "install-application", description = "Installs an application. If you specify"
 		+ " a folder path it will be packed and deployed. If you sepcify an application archive, the shell will deploy"
 		+ " that file.")
-public class InstallApplication extends AdminAwareCommand {
+public class InstallApplication extends AdminAwareCommand implements NewRestClientCommand {
 
 	private static final int DEFAULT_TIMEOUT_MINUTES = 10;
 	private static final String TIMEOUT_ERROR_MESSAGE = "Application installation timed out."
@@ -114,7 +124,8 @@ public class InstallApplication extends AdminAwareCommand {
 			description = "Debug mode. One of: instead, after or onError")
 	private String debugModeString = DebugModes.INSTEAD.getName();
 
-
+	private CLIEventsDisplayer displayer = new CLIEventsDisplayer();
+	private RestClient newRestClient = ((RestAdminFacade) getRestAdminFacade()).getNewRestClient();
 
 	/**
 	 * {@inheritDoc}
@@ -334,4 +345,92 @@ public class InstallApplication extends AdminAwareCommand {
 	public void setDisableSelfHealing(final boolean disableSelfHealing) {
 		this.disableSelfHealing = disableSelfHealing;
 	}
+
+	@Override
+	public Object doExecuteNewRestClient() 
+			throws Exception {
+		//resolve the path for the given app input
+		final RecipePathResolver pathResolver = new RecipePathResolver();
+		if (pathResolver.resolveApplication(applicationFile)) {
+			applicationFile = pathResolver.getResolved();
+		} else {
+			throw new CLIStatusException("application_not_found",
+					StringUtils.join(pathResolver.getPathsLooked().toArray(), ", "));
+		}
+		//resolve packed file and application name
+		final NameAndPackedFileResolver nameAndPackedFileResolver = getResolver(applicationFile);
+		if (StringUtils.isBlank(applicationName)) {
+			applicationName = nameAndPackedFileResolver.getName();
+		}
+		
+		final File packedFile = nameAndPackedFileResolver.getPackedFile();
+		//upload relevant application deployment files 
+		final String packedFileKey = ShellUtils.uploadToRepo(newRestClient, packedFile, displayer);
+		final String overridesFileKey = ShellUtils.uploadToRepo(newRestClient, overrides, displayer);
+		final String cloudOverridesFileKey = ShellUtils.uploadToRepo(newRestClient, cloudOverrides, displayer);
+		final String cloudConfigurationFileKey = ShellUtils.uploadToRepo(newRestClient, cloudConfiguration, displayer);
+		
+		//create the install request
+		InstallApplicationRequest request = new InstallApplicationRequest();
+		request.setApplcationFileUploadKey(packedFileKey);
+		request.setApplicationOverridesUploadKey(overridesFileKey);
+		request.setCloudOverridesUploadKey(cloudOverridesFileKey);
+		request.setCloudConfigurationUploadKey(cloudConfigurationFileKey);
+		request.setApplicationName(applicationName);
+		request.setAuthGroups(authGroups);
+		request.setDebugAll(debugAll);
+		request.setDebugEvents(debugEvents);
+		request.setDebugMode(debugModeString);
+		request.setSelfHealing(disableSelfHealing);
+		request.setTimeoutInMillis(TimeUnit.MINUTES.toMillis(timeoutInMinutes));
+
+
+        //install application
+        final InstallApplicationResponse installApplicationResponse =
+        		newRestClient.installApplication(applicationName, request);
+
+        Application application = ((Application) nameAndPackedFileResolver.getDSLObject());
+        //print application info.
+        printApplicationInfo(application);
+
+        Map<String, Integer> plannedNumberOfInstancesPerService = nameAndPackedFileResolver
+                .getPlannedNumberOfInstancesPerService();
+
+        CLIApplicationInstaller installer = new CLIApplicationInstaller();
+        installer.setApplicationName(applicationName);
+        installer.setAskOnTimeout(true);
+        installer.setDeploymentId(installApplicationResponse.getDeploymentID());
+        installer.setPlannedNumberOfInstancesPerService(plannedNumberOfInstancesPerService);
+        installer.setInitialTimeout(timeoutInMinutes);
+        installer.setRestClient(newRestClient);
+        installer.setSession(session);
+
+		if (!applicationFile.isFile()) {
+			final boolean delete = packedFile.delete();
+			if (!delete) {
+				logger.info("Failed to delete application file: " + packedFile.getAbsolutePath());
+			}
+		}
+
+		//set the active application in the CLI.
+		session.put(Constants.ACTIVE_APP, applicationName);
+		GigaShellMain.getInstance().setCurrentApplicationName(applicationName);
+		// drop one line before printing the last message
+        displayer.printEvent("");
+		return this.getFormattedMessage("application_installed_successfully", Color.GREEN, applicationName);
+	}
+    
+	private NameAndPackedFileResolver getResolver(final File applicationFile) 
+			throws CLIStatusException {
+		// this is a prepared package we can just use.
+		if (applicationFile.isFile()) {
+			if (applicationFile.getName().endsWith("zip") || applicationFile.getName().endsWith("jar")) {
+				return new PreparedApplicationPackageResolver(applicationFile, overrides);
+			} 
+			throw new CLIStatusException("application_file_format_mismatch", applicationFile.getPath()); 
+		}
+		// this is an actual application directory
+		return new ApplicationResolver(applicationFile);
+	}
+
 }

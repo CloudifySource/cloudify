@@ -25,9 +25,14 @@ import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.CompleterValues;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.GigaShellMain;
 import org.cloudifysource.shell.ShellUtils;
+import org.cloudifysource.shell.exceptions.CLIException;
+import org.cloudifysource.shell.exceptions.CLIStatusException;
+import org.cloudifysource.shell.rest.RestAdminFacade;
+import org.cloudifysource.shell.rest.inspect.CLIApplicationUninstaller;
 import org.fusesource.jansi.Ansi.Color;
 
 /**
@@ -44,12 +49,15 @@ import org.fusesource.jansi.Ansi.Color;
  * 
  */
 @Command(scope = "cloudify", name = "uninstall-application", description = "Uninstalls an application.")
-public class UninstallApplication extends AdminAwareCommand {
+public class UninstallApplication extends AdminAwareCommand implements NewRestClientCommand {
 
 	private static final int DEFAULT_TIMEOUT_MINUTES = 5;
 
 	@Argument(index = 0, required = true, name = "The name of the application")
 	private String applicationName;
+	
+	private RestClient newRestClient = ((RestAdminFacade) getRestAdminFacade()).getNewRestClient();
+
 
 	/**
 	 * Gets all deployed applications' names.
@@ -105,5 +113,30 @@ public class UninstallApplication extends AdminAwareCommand {
 	private boolean askUninstallConfirmationQuestion()
 			throws IOException {
 		return ShellUtils.promptUser(session, "application_uninstall_confirmation", applicationName);
+	}
+
+	@Override
+	public Object doExecuteNewRestClient() 
+			throws Exception {
+		if (!askUninstallConfirmationQuestion()) {
+			return getFormattedMessage("uninstall_aborted");
+		}
+
+		if (CloudifyConstants.MANAGEMENT_APPLICATION_NAME.equalsIgnoreCase(applicationName)) {
+			throw new CLIStatusException("cannot_uninstall_management_application");
+		}
+
+        CLIApplicationUninstaller uninstaller = new CLIApplicationUninstaller();
+        uninstaller.setApplicationName(applicationName);
+        uninstaller.setAskOnTimeout(true);
+        uninstaller.setInitialTimeout(timeoutInMinutes);
+		uninstaller.setRestClient(newRestClient);
+        uninstaller.setSession(session);
+        uninstaller.uninstall();
+
+		session.put(Constants.ACTIVE_APP, CloudifyConstants.DEFAULT_APPLICATION_NAME);
+		GigaShellMain.getInstance().setCurrentApplicationName(CloudifyConstants.DEFAULT_APPLICATION_NAME);
+		return getFormattedMessage("application_uninstalled_successfully", Color.GREEN, this.applicationName);
+	
 	}
 }

@@ -60,6 +60,7 @@ import org.cloudifysource.dsl.rest.request.SetServiceAttributesRequest;
 import org.cloudifysource.dsl.rest.request.SetServiceInstanceAttributesRequest;
 import org.cloudifysource.dsl.rest.request.SetServiceInstancesRequest;
 import org.cloudifysource.dsl.rest.request.UpdateApplicationAttributeRequest;
+import org.cloudifysource.dsl.rest.response.ApplicationDescription;
 import org.cloudifysource.dsl.rest.response.DeleteApplicationAttributeResponse;
 import org.cloudifysource.dsl.rest.response.DeleteServiceAttributeResponse;
 import org.cloudifysource.dsl.rest.response.DeleteServiceInstanceAttributeResponse;
@@ -71,6 +72,7 @@ import org.cloudifysource.dsl.rest.response.GetServiceInstanceAttributesResponse
 import org.cloudifysource.dsl.rest.response.InstallApplicationResponse;
 import org.cloudifysource.dsl.rest.response.InstallServiceResponse;
 import org.cloudifysource.dsl.rest.response.Response;
+import org.cloudifysource.dsl.rest.response.ServiceDescription;
 import org.cloudifysource.dsl.rest.response.ServiceDetails;
 import org.cloudifysource.dsl.rest.response.ServiceInstanceDetails;
 import org.cloudifysource.dsl.rest.response.ServiceInstanceMetricsData;
@@ -96,6 +98,7 @@ import org.cloudifysource.rest.events.cache.EventsCacheValue;
 import org.cloudifysource.rest.exceptions.ResourceNotFoundException;
 import org.cloudifysource.rest.interceptors.ApiVersionValidationAndRestResponseBuilderInterceptor;
 import org.cloudifysource.rest.repo.UploadRepo;
+import org.cloudifysource.rest.util.ApplicationDescriptionFactory;
 import org.cloudifysource.rest.util.IsolationUtils;
 import org.cloudifysource.rest.util.LifecycleEventsContainer;
 import org.cloudifysource.rest.util.RestPollingRunnable;
@@ -357,6 +360,42 @@ public class DeploymentsController extends BaseRestController {
         }
     }
 
+    /********************************
+	 * Returns the last event for a specific operation.
+	 *
+	 * @param operationId the operation ID.
+	 * @return the last event received for this operation. May be an empty set.
+	 * @throws Throwable in case of an error while retrieving events.
+	 */
+	@RequestMapping(value = "{operationId}/events/last", method = RequestMethod.GET)
+	public DeploymentEvents getLastDeploymentEvent(
+			@PathVariable final String operationId)
+			throws Throwable {
+
+		EventsCacheKey key = new EventsCacheKey(operationId);
+		logger.fine(EventsUtils.getThreadId()
+				+ " Received request for last event of key : " + key);
+		EventsCacheValue value;
+		try {
+			logger.fine(EventsUtils.getThreadId() + " Retrieving events from cache for key : " + key);
+			value = eventsCache.get(key);
+		} catch (final ExecutionException e) {
+			throw e.getCause();
+		}
+
+		// we don't want another request to modify our object during this calculation.
+		synchronized (value.getMutex()) {
+			eventsCache.refresh(key);
+			int lastEventId = value.getLastEventIndex();
+			if (lastEventId > 0) {
+				lastEventId = lastEventId - 1;
+			}
+			// return the events. this MAY or MAY NOT be the complete set of events requested.
+			// request for specific events is treated as best effort. no guarantees all events are returned.
+			return EventsUtils.extractDesiredEvents(value.getEvents(), lastEventId, lastEventId);
+		}
+	}
+	
     /**
      * Sets application level attributes for the given application.
      * @param appName The application name.
@@ -571,7 +610,7 @@ public class DeploymentsController extends BaseRestController {
         return sid;
 
     }
-
+   
     /**
      *
      * @param appName
@@ -655,6 +694,22 @@ public class DeploymentsController extends BaseRestController {
         }
     }
 
+    /**
+    *
+    * @param appName .
+    * @return {@link org.cloudifysource.dsl.rest.response.ApplicationDescription}.
+    * @throws ResourceNotFoundException .
+    */
+   @RequestMapping(value = "/applications/{appName}/description", method = RequestMethod.GET)
+   public ApplicationDescription getApplicationDescription(
+           @PathVariable final String appName)
+           throws ResourceNotFoundException {
+
+       final ApplicationDescriptionFactory appDescriptionFactory =
+               new ApplicationDescriptionFactory(restConfig.getAdmin());
+       return appDescriptionFactory.getApplicationDescription(appName);
+   }
+   
     private List<ProcessingUnit> createUninstallOrder(
             final ProcessingUnit[] pus,
             final String applicationName) {
@@ -991,7 +1046,53 @@ public class DeploymentsController extends BaseRestController {
         installServiceResponse.setDeploymentID(deploymentID);
         return installServiceResponse;
     }
+   
+   /**
+   *
+   * @param appName .
+   * @param serviceName .
+   * @return .
+   * @throws ResourceNotFoundException .
+   */
+  @RequestMapping(value = "/{appName}/service/{serviceName}/description", method = RequestMethod.GET)
+  public ServiceDescription getServiceDescription(
+          @PathVariable final String appName,
+          @PathVariable final String serviceName)
+          		throws ResourceNotFoundException {
 
+      final ApplicationDescriptionFactory appDescriptionFactory =
+      		new ApplicationDescriptionFactory(restConfig.getAdmin());
+
+      return appDescriptionFactory.
+      		getServiceDescription(ServiceUtils.getAbsolutePUName(appName, serviceName), appName);
+  }
+  
+  /**
+   * Retrieves a list of service descriptions belonging to a specific deployment.
+   * @param deploymentId The deployment id.
+   * @return The services description.
+   * @throws ResourceNotFoundException .
+   */
+  @RequestMapping(value = "/{deploymentId}/description", method = RequestMethod.GET)
+  public List<ServiceDescription> getServiceDescriptionListByDeploymentId(
+          @PathVariable final String deploymentId)
+          throws ResourceNotFoundException {
+
+      final ApplicationDescriptionFactory appDescriptionFactory =
+              new ApplicationDescriptionFactory(restConfig.getAdmin());
+      List<ServiceDescription> descriptions = new ArrayList<ServiceDescription>();
+      EventsCacheValue value = eventsCache.getIfExists(new EventsCacheKey(deploymentId));
+      for (ProcessingUnit pu : value.getProcessingUnits()) {
+          ServiceDescription serviceDescription = appDescriptionFactory.getServiceDescription(pu);
+          if (!serviceDescription.getInstancesDescription().isEmpty()) {
+              descriptions.add(serviceDescription);
+          } else {
+              // pu is stale. no instances
+          }
+      }
+      return descriptions;
+  }
+  
     /**
      *
      * @param appName

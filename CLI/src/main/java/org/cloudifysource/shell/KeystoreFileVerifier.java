@@ -8,7 +8,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
-import org.cloudifysource.shell.commands.CLIStatusException;
+import org.cloudifysource.shell.exceptions.CLIStatusException;
 
 /***********
  * Wrapper for code that verifies that a keystore file is valid and can be

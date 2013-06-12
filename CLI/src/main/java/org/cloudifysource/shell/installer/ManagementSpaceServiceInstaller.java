@@ -22,7 +22,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
-import org.cloudifysource.shell.commands.CLIException;
+import org.cloudifysource.shell.exceptions.CLIException;
 import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.pu.ProcessingUnitAlreadyDeployedException;
 import org.openspaces.admin.pu.ProcessingUnitDeployment;

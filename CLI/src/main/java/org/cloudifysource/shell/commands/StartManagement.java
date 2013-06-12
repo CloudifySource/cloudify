@@ -30,6 +30,7 @@ import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.CloudifyLicenseVerifier;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.ShellUtils;
+import org.cloudifysource.shell.exceptions.CLIException;
 import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
 
 /**

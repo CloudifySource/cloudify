@@ -70,8 +70,8 @@ import org.cloudifysource.esc.util.Utils;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.ShellUtils;
-import org.cloudifysource.shell.commands.CLIException;
-import org.cloudifysource.shell.commands.CLIStatusException;
+import org.cloudifysource.shell.exceptions.CLIException;
+import org.cloudifysource.shell.exceptions.CLIStatusException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.openspaces.admin.gsa.GSAReservationId;
@@ -841,7 +841,7 @@ public class CloudGridAgentBootstrapper {
 						try {
 							adminFacade.connect(username, password, restAdminUrl.toString(), isSecureConnection);
 							return true;
-						} catch (final CLIException e) {
+						} catch (final Exception e) {
 							if (verbose) {
 								logger.log(Level.INFO,
 										"Error connecting to rest service.", e);

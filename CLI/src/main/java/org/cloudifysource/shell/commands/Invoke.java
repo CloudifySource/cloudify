@@ -27,6 +27,7 @@ import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.restclient.InvocationResult;
+import org.cloudifysource.shell.exceptions.CLIStatusException;
 
 /**
  * @author rafi, adaml, barakm

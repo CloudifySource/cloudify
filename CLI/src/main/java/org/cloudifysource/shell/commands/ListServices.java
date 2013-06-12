@@ -18,6 +18,7 @@ package org.cloudifysource.shell.commands;
 import org.apache.felix.gogo.commands.Command;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.rest.response.ApplicationDescription;
+import org.cloudifysource.shell.exceptions.CLIStatusException;
 
 /**
  * @author noak, adaml

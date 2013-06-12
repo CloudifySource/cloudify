@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
-import org.cloudifysource.shell.commands.CLIException;
+import org.cloudifysource.shell.exceptions.CLIException;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.gsm.GridServiceManager;

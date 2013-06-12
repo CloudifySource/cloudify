@@ -44,7 +44,7 @@ import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.KeystoreFileVerifier;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.commands.AbstractGSCommand;
-import org.cloudifysource.shell.commands.CLIStatusException;
+import org.cloudifysource.shell.exceptions.CLIStatusException;
 
 import com.j_spaces.kernel.Environment;
 

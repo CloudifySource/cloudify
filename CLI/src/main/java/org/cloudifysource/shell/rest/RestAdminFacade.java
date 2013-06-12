@@ -31,18 +31,20 @@ import java.util.concurrent.TimeoutException;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.rest.response.ApplicationDescription;
-import org.cloudifysource.dsl.rest.response.ServiceDescription;
 import org.cloudifysource.dsl.rest.response.ControllerDetails;
+import org.cloudifysource.dsl.rest.response.ServiceDescription;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.restclient.ErrorStatusException;
 import org.cloudifysource.restclient.GSRestClient;
 import org.cloudifysource.restclient.InvocationResult;
+import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.restclient.RestException;
 import org.cloudifysource.restclient.StringUtils;
+import org.cloudifysource.restclient.exceptions.RestClientException;
 import org.cloudifysource.shell.AbstractAdminFacade;
 import org.cloudifysource.shell.ShellUtils;
-import org.cloudifysource.shell.commands.CLIException;
-import org.cloudifysource.shell.commands.CLIStatusException;
+import org.cloudifysource.shell.exceptions.CLIException;
+import org.cloudifysource.shell.exceptions.CLIStatusException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.j_spaces.kernel.PlatformVersion;
@@ -64,16 +66,23 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	private GSRestClient client;
 	private URL urlObj;
 
+	private RestClient newRestClient;
+
+	public RestClient getNewRestClient() {
+		return newRestClient;
+	}
+	
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public void doConnect(final String user, final String password, final String url, final boolean sslUsed)
-			throws CLIException {
+			throws CLIException, RestClientException {
 
 		try {
 			this.urlObj = new URL(ShellUtils.getFormattedRestUrl(url, sslUsed));
 			client = new GSRestClient(user, password, getUrl(), PlatformVersion.getVersionNumber());
+			newRestClient = new RestClient(urlObj, user, password, PlatformVersion.getVersion());
 			// test connection
 			client.get(SERVICE_CONTROLLER_URL + "testrest");
 			if (user != null || password != null) {
@@ -92,11 +101,14 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void reconnect(final String username, final String password) throws CLIException {
+	public void reconnect(final String username, final String password) 
+			throws CLIException, RestClientException {
 		try {
 			client.setCredentials(username, password);
+			newRestClient.setCredentials(username, password);
 			// test connection
 			client.get(SERVICE_CONTROLLER_URL + "testlogin");
+			newRestClient.connect();
 		} catch (final ErrorStatusException e) {
 			throw new CLIStatusException(e, e.getReasonCode(), e.getArgs());
 		}
@@ -120,6 +132,7 @@ public class RestAdminFacade extends AbstractAdminFacade {
 	@Override
 	public void doDisconnect() {
 		client = null;
+		newRestClient = null;
 	}
 
 	/**

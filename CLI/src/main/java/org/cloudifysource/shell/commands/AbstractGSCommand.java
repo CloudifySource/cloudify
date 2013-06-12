@@ -12,19 +12,26 @@
  *******************************************************************************/
 package org.cloudifysource.shell.commands;
 
-import java.util.Properties;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.felix.gogo.commands.Action;
 import org.apache.felix.gogo.commands.Option;
 import org.apache.felix.service.command.CommandSession;
 import org.apache.karaf.shell.console.CloseShellException;
-import org.cloudifysource.dsl.Service;
+import org.cloudifysource.restclient.exceptions.RestClientException;
+import org.cloudifysource.restclient.utils.NewRestClientUtils;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.ShellUtils;
+import org.cloudifysource.shell.exceptions.CLIException;
+import org.cloudifysource.shell.exceptions.CLIStatusException;
+import org.cloudifysource.shell.exceptions.handlers.CLIExceptionHandler;
+import org.cloudifysource.shell.exceptions.handlers.CLIStatusExceptionHandler;
+import org.cloudifysource.shell.exceptions.handlers.ClientSideExceptionHandler;
+import org.cloudifysource.shell.exceptions.handlers.InterruptedExceptionHandler;
+import org.cloudifysource.shell.exceptions.handlers.RestClientExceptionHandler;
+import org.cloudifysource.shell.exceptions.handlers.ThrowableHandler;
 import org.fusesource.jansi.Ansi.Color;
 
 /**
@@ -40,9 +47,10 @@ public abstract class AbstractGSCommand implements Action {
 
 	protected static final Logger logger = Logger.getLogger(AbstractGSCommand.class.getName());
 
-	@Option(required = false, name = "--verbose", description = "show detailed execution result including exception"
-			+ " stack trace")
+	@Option(required = false, name = "--verbose", 
+			description = "show detailed execution result including exception stack trace")
 	protected boolean verbose;
+
 	protected CommandSession session;
 	protected ResourceBundle messages;
 	protected boolean adminAware = false;
@@ -59,103 +67,50 @@ public abstract class AbstractGSCommand implements Action {
 	 *             Reporting a failure to execute this command
 	 */
 	@Override
-	public Object execute(final CommandSession session)
-			throws Exception {
+	public Object execute(final CommandSession session) throws Exception {
+
 		// setUpLoggingLevel(); //see CLOUDIFY-1558
 
 		this.session = session;
 		messages = ShellUtils.getMessageBundle();
-		try {
-			if (adminAware) {
-				adminFacade = (AdminFacade) session.get(Constants.ADMIN_FACADE);
 
-				if (!adminFacade.isConnected()) {
-					throw new CLIStatusException("not_connected");
-				}
-			}
-			final Object result = doExecute();
-			return result;
+        try {
+            if (adminAware) {
+                adminFacade = (AdminFacade) session.get(Constants.ADMIN_FACADE);
 
-		} catch (final CLIStatusException cse) {
-			if (verbose) {
-				if (cse.getVerboseData() == null) {
-					logger.log(
-							Level.WARNING, getFormattedMessageFromErrorStatusException(cse), cse);
-				} else {
-					logger.log(
-							Level.WARNING, getFormattedMessageFromErrorStatusException(cse, cse.getVerboseData()));
-				}
-			} else {
-				logger.log(
-						Level.WARNING, getFormattedMessageFromErrorStatusException(cse));
-			}
-			raiseCloseShellExceptionIfNonInteractive(
-					session, cse);
-		} catch (final CLIException e) {
-			if (!verbose) {
-				e.setStackTrace(new StackTraceElement[] {});
-			}
-			logger.log(
-					Level.WARNING, "", e);
-			raiseCloseShellExceptionIfNonInteractive(
-					session, e);
-		} catch (final InterruptedException e) {
-			final String msg = messages.getString("command_interrupted");
-			if (verbose) {
-				logger.log(
-						Level.SEVERE, msg, e);
-			} else {
-				logger.log(
-						Level.SEVERE, msg);
-			}
-			raiseCloseShellExceptionIfNonInteractive(
-					session, e);
-		} catch (final Throwable e) {
-			if (verbose) {
-				logger.log(
-						Level.SEVERE, "", e);
-			} else {
-				logger.log(
-						Level.SEVERE, e.getMessage());
-			}
-			raiseCloseShellExceptionIfNonInteractive(
-					session, e);
-		}
-		return getFormattedMessage(
-				"op_failed", Color.RED, "");
+                if (!adminFacade.isConnected()) {
+                    throw new CLIStatusException("not_connected");
+                }
+            }
+            // check if this command implements NewRestClientCommand and if the new rest client is enabled. 
+            // if so, execute this command using the new rest client.
+            if (this instanceof NewRestClientCommand 
+            		&& NewRestClientUtils.isNewRestClientEnabled()) {
+            	 return ((NewRestClientCommand) this).doExecuteNewRestClient();
+            }
+            // else, execute this command using the old rest client.
+            return doExecute();
+        } catch (final CLIStatusException e) {
+            handle(new CLIStatusExceptionHandler(e), e);
+        } catch (final CLIException e) {
+            handle(new CLIExceptionHandler(e), e);
+        } catch (final RestClientException e) {
+            handle(new RestClientExceptionHandler(e), e);
+        } catch (final InterruptedException e) {
+            handle(new InterruptedExceptionHandler(), e);
+        } catch (final Throwable t) {
+            handle(new ThrowableHandler(t), t);
+        }
+		return getFormattedMessage("op_failed", Color.RED, "");
 	}
 
-	private String getFormattedMessageFromErrorStatusException(final CLIStatusException e) {
-		return getFormattedMessageFromErrorStatusException(e, null);
-	}
-
-	/**
-	 * Gets a formatted message from the given CLIStatusException, using the exception's reason code as the message name
-	 * and the exception's args field, if not null.
-	 *
-	 * @param e
-	 *            The CLIStatusException to base on
-	 * @return The formatted message
-	 */
-	private String getFormattedMessageFromErrorStatusException(final CLIStatusException e, final String verboseData) {
-		String message = getFormattedMessage(e.getReasonCode(), e.getArgs());
-		if (message == null) {
-			message = e.getReasonCode();
-		}
-
-		if (verboseData != null) {
-			return message + " : " + verboseData;
-		} else {
-			return message;
-		}
-	}
-
-	// private String
-	// getFormattedMessageFromErrorStatusException(ErrorStatusException e,
-	// Color color) {
-	// String message = getFormattedMessageFromErrorStatusException(e);
-	// return ShellUtils.getColorMessage(message, color);
-	// }
+    private void handle(final ClientSideExceptionHandler clientSideExceptionHandler,
+                        final Throwable t) throws CloseShellException {
+        if (logger.isLoggable(clientSideExceptionHandler.getLoggingLevel())) {
+            logger.log(clientSideExceptionHandler.getLoggingLevel(), clientSideExceptionHandler.getMessage(verbose));
+        }
+        raiseCloseShellExceptionIfNonInteractive(session, t);
+    }
 
 	/**
 	 * If not using the CLI in interactive mode - the method adds the given throwable to the session and throws a
@@ -168,11 +123,10 @@ public abstract class AbstractGSCommand implements Action {
 	 * @throws CloseShellException
 	 *             Indicates the console to close.
 	 */
-	private static void raiseCloseShellExceptionIfNonInteractive(final CommandSession session, final Throwable t)
-			throws CloseShellException {
+	private static void raiseCloseShellExceptionIfNonInteractive(final CommandSession session,
+                                                                 final Throwable t) throws CloseShellException {
 		if (!(Boolean) session.get(Constants.INTERACTIVE_MODE)) {
-			session.put(
-					Constants.LAST_COMMAND_EXCEPTION, t);
+			session.put(Constants.LAST_COMMAND_EXCEPTION, t);
 			throw new CloseShellException();
 		}
 	}
@@ -216,10 +170,8 @@ public abstract class AbstractGSCommand implements Action {
 	 * @return formatted message as a String
 	 */
 	protected final String getFormattedMessage(final String msgName, final Color color, final Object... arguments) {
-		final String outputMessage = getFormattedMessage(
-				msgName, arguments);
-		return ShellUtils.getColorMessage(
-				outputMessage, color);
+		final String outputMessage = getFormattedMessage(msgName, arguments);
+		return ShellUtils.getColorMessage(outputMessage, color);
 	}
 
 	/**
@@ -245,42 +197,6 @@ public abstract class AbstractGSCommand implements Action {
 	 */
 	protected abstract Object doExecute()
 			throws Exception;
-
-	/**
-	 * Creates Properties object for the given service, with value for: com.gs.application.depends com.gs.service.type
-	 * com.gs.service.icon com.gs.service.network.protocolDescription
-	 * <p/>
-	 * in case the above properties are not null.
-	 *
-	 * @param serviceNamesString
-	 *            Service name
-	 * @param service
-	 *            Service object to use for the properties creation
-	 * @return Properties object
-	 */
-	protected final Properties createServiceContextProperties(final String serviceNamesString, final Service service) {
-		final Properties contextProperties = new Properties();
-
-		// contextProperties.setProperty("com.gs.application.services",
-		// serviceNamesString);
-		if (service.getDependsOn() != null) {
-			contextProperties.setProperty(
-					"com.gs.application.depends", service.getDependsOn().toString());
-		}
-		if (service.getType() != null) {
-			contextProperties.setProperty(
-					"com.gs.service.type", service.getType());
-		}
-		if (service.getIcon() != null) {
-			contextProperties.setProperty(
-					"com.gs.service.icon", service.getIcon());
-		}
-		if (service.getNetwork() != null) {
-			contextProperties.setProperty(
-					"com.gs.service.network.protocolDescription", service.getNetwork().getProtocolDescription());
-		}
-		return contextProperties;
-	}
 
 	/**
 	 * Gets the restAdminFacade.

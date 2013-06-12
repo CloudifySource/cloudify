@@ -4,6 +4,7 @@ package org.cloudifysource.shell.commands;
 import java.io.File;
 
 import org.cloudifysource.shell.ShellUtils;
+import org.cloudifysource.shell.exceptions.CLIStatusException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

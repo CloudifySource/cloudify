@@ -51,7 +51,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
 /**
- *
+ * Creates all the HTTP requests needed for the RestClient and handles the HTTP responses.
  * @author yael
  *
  */
