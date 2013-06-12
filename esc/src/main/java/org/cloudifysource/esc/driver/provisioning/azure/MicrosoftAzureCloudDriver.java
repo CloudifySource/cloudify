@@ -708,4 +708,8 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 		return null;
 	}
 
+	@Override
+	public void releaseCloudResources(long duration, TimeUnit unit) {
+		// TODO Auto-generated method stub
+	}
 }

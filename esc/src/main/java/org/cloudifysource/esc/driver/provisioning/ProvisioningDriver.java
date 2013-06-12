@@ -146,8 +146,8 @@ public interface ProvisioningDriver {
 	String getCloudName();
 
 	/*************
-	 * Called when the service that this provisioning implementation is responsible for scaling is undeployed. The
-	 * implementation is expected to release/close all relevant resources, such as thread pools, sockets, files, etc.
+	 * Called when this bean is no longer needed. Close any internal bean resources.
+	 * @see cleanupCloud() - for cleaning up cloud resources.
 	 */
 	void close();
 
@@ -159,5 +159,22 @@ public interface ProvisioningDriver {
 	 *            A class that implements ProvisioningDriverListner.
 	 */
 	void addListener(ProvisioningDriverListener listener);
-	
+
+	/**************
+	 * Called once when all service instances have been undeployed, and all machines have been stopped.
+	 * Implement cloud resource cleanup code for this service.
+	 * @param duration
+	 *            time to wait for the shutdown operation.
+	 * @param unit
+	 *            time unit for the shutdown operations
+	 *
+	 * @throws InterruptedException
+	 *             If the operation was interrupted.
+	 * @throws TimeoutException
+	 *             If the operation exceeded the given timeout.
+	 * @throws CloudProvisioningException
+	 *             If the operation encountered an error.
+	 */
+	void releaseCloudResources(long duration, TimeUnit unit)
+			throws InterruptedException, TimeoutException, CloudProvisioningException;
 }
