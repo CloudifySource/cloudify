@@ -161,8 +161,9 @@ public interface ProvisioningDriver {
 	void addListener(ProvisioningDriverListener listener);
 
 	/**************
-	 * Called once when all service instances have been undeployed, and all machines have been stopped.
-	 * Implement cloud resource cleanup code for this service.
+	 * Called after service has uninstalled.
+	 * Used to implement cloud resource cleanup for this service.
+	 * 
 	 * @param duration
 	 *            time to wait for the shutdown operation.
 	 * @param unit
@@ -175,6 +176,6 @@ public interface ProvisioningDriver {
 	 * @throws CloudProvisioningException
 	 *             If the operation encountered an error.
 	 */
-	void releaseCloudResources(long duration, TimeUnit unit)
+	void onServiceUninstalled(long duration, TimeUnit unit)
 			throws InterruptedException, TimeoutException, CloudProvisioningException;
 }
