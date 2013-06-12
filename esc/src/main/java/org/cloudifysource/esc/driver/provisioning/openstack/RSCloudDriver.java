@@ -702,4 +702,10 @@ public class RSCloudDriver extends CloudDriverSupport implements ProvisioningDri
 	public Object getComputeContext() {
 		return null;
 	}
+
+	@Override
+	public void releaseCloudResources(long duration, TimeUnit unit) {
+		// TODO Auto-generated method stub
+		
+	}
 }

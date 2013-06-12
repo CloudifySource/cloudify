@@ -1027,6 +1027,11 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	
 	@Override
 	public void cleanupMachineResources(long duration, TimeUnit timeUnit) throws ElasticMachineProvisioningException, InterruptedException, TimeoutException {
-		//TODO: Implement
+		try {
+			cloudifyProvisioning.releaseCloudResources(duration, timeUnit);
+		}
+		catch (Exception e) {
+			throw new ElasticMachineProvisioningException("Failed to cleanup cloud",e);
+		}
 	}
 }
