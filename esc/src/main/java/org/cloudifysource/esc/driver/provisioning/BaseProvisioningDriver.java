@@ -403,4 +403,9 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	protected abstract void handleProvisioningFailure(int numberOfManagementMachines,
 			int numberOfErrors, Exception firstCreationException, MachineDetails[] createdManagementMachines)
 					throws CloudProvisioningException;
+	@Override
+	public void releaseCloudResources(long duration, TimeUnit unit)
+			throws InterruptedException, TimeoutException, CloudProvisioningException {
+		
+	}
 }

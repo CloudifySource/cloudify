@@ -173,5 +173,10 @@ public class LocalCloudProvisioningDriver implements ProvisioningDriver {
 	public Object getComputeContext() {
 		return null;
 	}
+	
+	@Override
+	public void releaseCloudResources(long duration, TimeUnit unit) {
+		// TODO Auto-generated method stub
+	}
 
 }
