@@ -765,7 +765,7 @@
 			<arg line="pull" />
 		</exec>
 		<exec executable="git" dir="${esc.local.copy}">
-			<arg line="add ." />
+			<arg line="add src" />
 		</exec>
 		<exec executable="git" dir="${esc.local.copy}">
 			<arg value="commit" />
