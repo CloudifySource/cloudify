@@ -175,7 +175,7 @@ public class LocalCloudProvisioningDriver implements ProvisioningDriver {
 	}
 	
 	@Override
-	public void releaseCloudResources(long duration, TimeUnit unit) {
+	public void onServiceUninstalled(long duration, TimeUnit unit) {
 		// TODO Auto-generated method stub
 	}
 
