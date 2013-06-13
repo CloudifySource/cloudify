@@ -25,7 +25,6 @@ import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.CompleterValues;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.GigaShellMain;
 import org.cloudifysource.shell.ShellUtils;
@@ -55,9 +54,6 @@ public class UninstallApplication extends AdminAwareCommand implements NewRestCl
 
 	@Argument(index = 0, required = true, name = "The name of the application")
 	private String applicationName;
-	
-	private RestClient newRestClient = ((RestAdminFacade) getRestAdminFacade()).getNewRestClient();
-
 
 	/**
 	 * Gets all deployed applications' names.
@@ -125,12 +121,11 @@ public class UninstallApplication extends AdminAwareCommand implements NewRestCl
 		if (CloudifyConstants.MANAGEMENT_APPLICATION_NAME.equalsIgnoreCase(applicationName)) {
 			throw new CLIStatusException("cannot_uninstall_management_application");
 		}
-
         CLIApplicationUninstaller uninstaller = new CLIApplicationUninstaller();
         uninstaller.setApplicationName(applicationName);
         uninstaller.setAskOnTimeout(true);
         uninstaller.setInitialTimeout(timeoutInMinutes);
-		uninstaller.setRestClient(newRestClient);
+		uninstaller.setRestClient(((RestAdminFacade) getRestAdminFacade()).getNewRestClient());
         uninstaller.setSession(session);
         uninstaller.uninstall();
 

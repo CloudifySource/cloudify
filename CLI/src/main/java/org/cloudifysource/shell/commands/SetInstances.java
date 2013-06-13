@@ -68,7 +68,6 @@ public class SetInstances extends AdminAwareCommand implements NewRestClientComm
 	private static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out. "
 			+ "Try to increase the timeout using the -timeout flag";
 
-	private final RestClient newRestClient = ((RestAdminFacade) getRestAdminFacade()).getNewRestClient();
 	private final CLIEventsDisplayer displayer = new CLIEventsDisplayer();
 	
 	@Override
@@ -129,6 +128,8 @@ public class SetInstances extends AdminAwareCommand implements NewRestClientComm
 
 	@Override
 	public Object doExecuteNewRestClient() throws Exception {
+
+		final RestClient newRestClient = ((RestAdminFacade) getRestAdminFacade()).getNewRestClient();
 
 		final String applicationName = resolveApplicationName();
 

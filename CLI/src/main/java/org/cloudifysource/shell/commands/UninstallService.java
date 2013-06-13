@@ -25,7 +25,6 @@ import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.CompleterValues;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.rest.RestAdminFacade;
 import org.cloudifysource.shell.rest.inspect.CLIServiceUninstaller;
@@ -53,8 +52,6 @@ public class UninstallService extends AdminAwareCommand implements NewRestClient
 
 	@Argument(index = 0, required = true, name = "service-name")
 	private String serviceName;
-
-	private RestClient newRestClient = ((RestAdminFacade) getRestAdminFacade()).getNewRestClient();
 
 	/**
 	 * Gets all services installed on the default application.
@@ -111,12 +108,11 @@ public class UninstallService extends AdminAwareCommand implements NewRestClient
         if (!askUninstallConfirmationQuestion()) {
             return getFormattedMessage("uninstall_aborted");
         }
-
         CLIServiceUninstaller uninstaller = new CLIServiceUninstaller();
         uninstaller.setApplicationName(getCurrentApplicationName());
         uninstaller.setAskOnTimeout(true);
         uninstaller.setInitialTimeout(timeoutInMinutes);
-		uninstaller.setRestClient(newRestClient);
+		uninstaller.setRestClient(((RestAdminFacade) getRestAdminFacade()).getNewRestClient());
         uninstaller.setServiceName(serviceName);
         uninstaller.setSession(session);
         uninstaller.uninstall();

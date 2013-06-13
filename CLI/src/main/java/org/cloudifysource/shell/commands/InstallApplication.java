@@ -125,7 +125,6 @@ public class InstallApplication extends AdminAwareCommand implements NewRestClie
 	private String debugModeString = DebugModes.INSTEAD.getName();
 
 	private CLIEventsDisplayer displayer = new CLIEventsDisplayer();
-	private RestClient newRestClient = ((RestAdminFacade) getRestAdminFacade()).getNewRestClient();
 
 	/**
 	 * {@inheritDoc}
@@ -365,6 +364,7 @@ public class InstallApplication extends AdminAwareCommand implements NewRestClie
 		
 		final File packedFile = nameAndPackedFileResolver.getPackedFile();
 		//upload relevant application deployment files 
+		RestClient newRestClient = ((RestAdminFacade) getRestAdminFacade()).getNewRestClient();
 		final String packedFileKey = ShellUtils.uploadToRepo(newRestClient, packedFile, displayer);
 		final String overridesFileKey = ShellUtils.uploadToRepo(newRestClient, overrides, displayer);
 		final String cloudOverridesFileKey = ShellUtils.uploadToRepo(newRestClient, cloudOverrides, displayer);

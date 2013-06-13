@@ -130,8 +130,7 @@ public class InstallService extends AdminAwareCommand implements NewRestClientCo
 	private String debugModeString = DebugModes.INSTEAD.getName();
 
 	private CLIEventsDisplayer displayer = new CLIEventsDisplayer();
-	private RestClient newRestClient = ((RestAdminFacade) getRestAdminFacade()).getNewRestClient();
-    
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -459,6 +458,7 @@ public class InstallService extends AdminAwareCommand implements NewRestClientCo
 
 	@Override
 	public Object doExecuteNewRestClient() throws Exception {
+		RestClient newRestClient = ((RestAdminFacade) getRestAdminFacade()).getNewRestClient();
         NameAndPackedFileResolver nameAndPackedFileResolver = getResolver(recipe);
         serviceName = nameAndPackedFileResolver.getName();
         File packedFile = nameAndPackedFileResolver.getPackedFile();
