@@ -72,8 +72,8 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	protected Cloud cloud;
 	protected ProvisioningDriverClassContext context;
 
-	protected static final java.util.logging.Logger logger = java.util.logging.Logger
-			.getLogger(BaseProvisioningDriver.class.getName());
+	protected final java.util.logging.Logger logger = java.util.logging.Logger
+			.getLogger(this.getClass().getName());
 
 	protected final List<ProvisioningDriverListener> eventsListenersList = new LinkedList<ProvisioningDriverListener>();
 	protected Boolean cleanRemoteDirectoryOnStart = false;
@@ -168,7 +168,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	}
 
 
-	private static void logServerDetails(final MachineDetails machineDetails, final File tempFile) {
+	private void logServerDetails(final MachineDetails machineDetails, final File tempFile) {
 		if (logger.isLoggable(Level.FINE)) {
 			final String nodePrefix = "[" + machineDetails.getMachineId() + "] ";
 			logger.fine(nodePrefix + "Cloud Server is allocated.");
@@ -381,7 +381,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	 *            the message arguments
 	 * @return the formatted message according to the message key.
 	 */
-	protected static String getFormattedMessage(final ResourceBundle messageBundle, final String msgName, 
+	protected String getFormattedMessage(final ResourceBundle messageBundle, final String msgName, 
 			final Object... arguments) {
 		final String message = messageBundle.getString(msgName);
 		if (message == null) {
