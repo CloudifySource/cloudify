@@ -12,13 +12,21 @@ service {
 	
 //		install { throw new Exception("This is a failure test") }
 		
-		start "run.groovy" 
+		preStart {
+			new File(context.serviceDirectory + "/marker.txt").delete()
+		}
+		start ([
+			"Win.*" : "run.bat" ,
+			"Lin.*" : "run.sh"])
 		
 		
 		startDetection {
+			def file = new File(context.serviceDirectory + "/marker.txt")
+			println "Checking if file exists: " + file
 			new File(context.serviceDirectory + "/marker.txt").exists()
 		}
 		
+		/**
 		locator {
 			println "Sleeping for 5 secs"
 			sleep(5000)
@@ -29,6 +37,7 @@ service {
 			println "LOCATORS GOT: " + pids
 			return pids;
 		}
+		**/
 	}
 
 	

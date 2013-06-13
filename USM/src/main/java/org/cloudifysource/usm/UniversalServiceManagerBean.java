@@ -49,6 +49,7 @@ import org.cloudifysource.dsl.context.kvstorage.AttributesFacadeImpl;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyConstants.USMState;
+import org.cloudifysource.dsl.internal.space.ServiceInstanceAttemptData;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.dsl.utils.ServiceUtils.FullServiceName;
 import org.cloudifysource.usm.dsl.DSLEntryExecutor;
@@ -101,6 +102,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		ClusterInfoAware, ServiceMonitorsProvider, ServiceDetailsProvider,
 		InvocableService, MemberAliveIndicator, BeanLevelPropertiesAware {
 
+	private static final int MANAGEMENT_SPACE_LOOKUP_TIMEOUT = 10;
 	private static final int DEFAULT_MONITORS_CACHE_EXPIRATION_TIMEOUT = 5000;
 	private static final int THREAD_POOL_SIZE = 5;
 	private static final int STOP_DETECTION_INTERVAL_SECS = 5;
@@ -161,7 +163,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	private int fileTailerIntervalSecs = FILE_TAILER_INTERVAL_SECS_DEFAULT;
 
 	// asynchronous installation
-	private boolean asyncInstall = false;
+	private boolean asyncInstall = true;
 	private List<Long> serviceProcessPIDs;
 
 	// monitors accessor and thread-safe cache.
@@ -170,6 +172,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	private GigaSpace managementSpace;
 	private int retries;
 	private int currentAttempt;
+	private ServiceInstanceAttemptData instanceAttemptData;
 
 	/********
 	 * The USM Bean entry point. This is where processing of a service instance starts.
@@ -189,6 +192,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		this.myPid = this.sigar.getPid();
 
 		final boolean existingProcessFound = checkForPIDFile();
+		initRetryData();
 
 		initManagementSpace();
 
@@ -196,6 +200,44 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		initEvents();
 
 		reset(existingProcessFound);
+	}
+
+	private void initRetryData() {
+		retries = this.usmLifecycleBean.getConfiguration().getService().getRetries();
+		logger.info("Retry limit for this service is: " + retries + ". Retry in use: " + isRetryLimitUsed());
+	}
+
+	private boolean isRetryLimitUsed() {
+		return (retries != -1);
+	}
+
+	private void writeRetryData() {
+		if (!isRetryLimitUsed()) {
+			return;
+		}
+
+		if (this.instanceAttemptData == null) {
+			this.instanceAttemptData = createInstanceAttemptDataTemplate();
+			instanceAttemptData.setCurrentAttemptNumber(2);
+		} else {
+			this.instanceAttemptData.setCurrentAttemptNumber(this.instanceAttemptData.getCurrentAttemptNumber() + 1);
+		}
+
+		logger.info("Writing attempt data to space with instance number: "
+				+ this.instanceAttemptData.getCurrentAttemptNumber());
+		this.managementSpace.write(this.instanceAttemptData);
+
+	}
+
+	private void clearRetryData() {
+		retries = this.usmLifecycleBean.getConfiguration().getService().getRetries();
+
+		if (retries == -1) {
+			return;
+		}
+
+		ServiceInstanceAttemptData template = createInstanceAttemptDataTemplate();
+		this.managementSpace.clear(template);
 	}
 
 	private boolean isRetryLimitExceeded() {
@@ -208,29 +250,33 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		currentAttempt = getCurrentAttemptNumber();
 		logger.info("Current attempt number is: " + currentAttempt);
 
-		return (currentAttempt > retries);
+		return currentAttempt > retries;
 
 	}
 
 	private int getCurrentAttemptNumber() {
-		USMInstanceAttemptData template = new USMInstanceAttemptData();
+		final ServiceInstanceAttemptData template = createInstanceAttemptDataTemplate();
 
-		FullServiceName fullName = ServiceUtils.getFullServiceName(this.clusterName);
+		instanceAttemptData = this.managementSpace.read(template);
+		if (instanceAttemptData == null) {
+			return 1;
+		} else {
+			return instanceAttemptData.getCurrentAttemptNumber();
+		}
+
+	}
+
+	private ServiceInstanceAttemptData createInstanceAttemptDataTemplate() {
+		final ServiceInstanceAttemptData template = new ServiceInstanceAttemptData();
+
+		final FullServiceName fullName = ServiceUtils.getFullServiceName(this.clusterName);
 
 		template.setApplicationName(fullName.getApplicationName());
 		template.setGscPid(this.myPid);
 		template.setServiceName(fullName.getServiceName());
 		template.setInstanceId(this.instanceId);
-
-		final USMInstanceAttemptData data = this.managementSpace.read(template);
-		if (data == null) {
-			return 1;
-		} else {
-			return data.getCurrentAttemptNumber();
-		}
-
+		return template;
 	}
-
 
 	/**********
 	 * Bean shutdown method, responsible for shutting down the external service and releasing all resource.
@@ -308,11 +354,16 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 							.getAttributes())
 							.getManagementSpace();
 		} else {
-			Admin admin = USMUtils.getAdmin();
-			Space space = admin.getSpaces().getSpaceByName(CloudifyConstants.MANAGEMENT_SPACE_NAME);
+			final Admin admin = USMUtils.getAdmin();
+			// Space space = admin.getSpaces().getSpaceByName(CloudifyConstants.MANAGEMENT_SPACE_NAME);
+			// if (space == null) {
+			Space space = admin.getSpaces().waitFor(CloudifyConstants.MANAGEMENT_SPACE_NAME,
+					MANAGEMENT_SPACE_LOOKUP_TIMEOUT, TimeUnit.SECONDS);
+			// }
+
 			if (space == null) {
 				throw new USMException(
-						"Failed to locate management space in environment - USM initialization cannot continue");
+						"Failed to locate management space - USM initialization cannot continue");
 			}
 			this.managementSpace = space.getGigaSpace();
 
@@ -369,7 +420,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 	private void allocateStorage() throws USMException, TimeoutException {
 
-		Service service = getUsmLifecycleBean().getConfiguration().getService();
+		final Service service = getUsmLifecycleBean().getConfiguration().getService();
 		final String storageTemplateName = service.getStorage().getTemplate();
 
 		if (StringUtils.isNotBlank(storageTemplateName)) {
@@ -390,7 +441,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 					final String id = storage.createVolume(storageTemplateName);
 					getUsmLifecycleBean().log("Volume created with id " + id);
 					// flag this volume as static. this is to identify it when deallocating on shutdown.
-					ServiceVolume newServiceVolume = managementSpace.readById(ServiceVolume.class, id);
+					final ServiceVolume newServiceVolume = managementSpace.readById(ServiceVolume.class, id);
 					logger.fine("Flagging service volume with id " + id + " to be static storage.");
 					managementSpace.change(newServiceVolume, new ChangeSet().set("dynamic", false));
 					getUsmLifecycleBean().log("Attaching volume to device " + storageTemplate.getDeviceName());
@@ -456,7 +507,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 	private void deAllocateStorage() throws USMException, TimeoutException {
 
-		Service service = getUsmLifecycleBean().getConfiguration().getService();
+		final Service service = getUsmLifecycleBean().getConfiguration().getService();
 		final String storageTemplateName = service.getStorage().getTemplate();
 
 		if (StringUtils.isNotBlank(storageTemplateName)) {
@@ -478,7 +529,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 					getUsmLifecycleBean().log("De-allocating storage");
 					logger.fine("Detected an existing volume for this service upon de-allocation. found in state : "
 							+ serviceVolume.getState());
-					StorageTemplate template = storage.getTemplate(storageTemplateName);
+					final StorageTemplate template = storage.getTemplate(storageTemplateName);
 					final boolean deleteStorage = template.isDeleteOnExit();
 					logger.fine("Storage will be deleted = " + deleteStorage);
 					switch (serviceVolume.getState()) {
@@ -535,7 +586,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	}
 
 	private ServiceVolume getServiceVolumeFromSpace(final ServiceContext serviceContext) {
-		ServiceVolume serviceVolume = new ServiceVolume();
+		final ServiceVolume serviceVolume = new ServiceVolume();
 		serviceVolume.setApplicationName(serviceContext.getApplicationName());
 		serviceVolume.setServiceName(serviceContext.getServiceName());
 		serviceVolume.setIp(serviceContext.getBindAddress());
@@ -786,7 +837,11 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 				waitForDependencies();
 			}
 			launch();
-		} catch (USMException e) {
+
+			// install finished correctly - clear attempt data
+			clearRetryData();
+
+		} catch (final USMException e) {
 
 			if (!this.selfHealing) {
 				// This exception is intentionally swallowed so the USM will not be reloaded by the GSM
@@ -808,6 +863,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 						e);
 				this.state = USMState.ERROR;
 			} else {
+				writeRetryData();
 				throw e;
 			}
 		}
@@ -1556,7 +1612,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	}
 
 	private Exception shutdownUSMException;
-	private String[] dependencies;
+	private String[] dependencies = new String[0];
 
 	/******************
 	 * Self healing allows a service instance to attempt a retry in case of a failure. If self healing is disabled, the

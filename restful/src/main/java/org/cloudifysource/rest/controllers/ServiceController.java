@@ -103,14 +103,13 @@ import org.cloudifysource.dsl.internal.packaging.FileAppender;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
+import org.cloudifysource.dsl.internal.space.ServiceInstanceAttemptData;
 import org.cloudifysource.dsl.internal.tools.ServiceDetailsHelper;
 import org.cloudifysource.dsl.rest.response.ApplicationDescription;
 import org.cloudifysource.dsl.rest.response.ControllerDetails;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.esc.driver.provisioning.CloudifyMachineProvisioningConfig;
 import org.cloudifysource.rest.ResponseConstants;
-import org.cloudifysource.security.CloudifyAuthorizationDetails;
-import org.cloudifysource.security.CustomPermissionEvaluator;
 import org.cloudifysource.rest.util.ApplicationDescriptionFactory;
 import org.cloudifysource.rest.util.ApplicationInstallerRunnable;
 import org.cloudifysource.rest.util.IsolationUtils;
@@ -124,6 +123,8 @@ import org.cloudifysource.restDoclet.annotations.PossibleResponseStatus;
 import org.cloudifysource.restDoclet.annotations.PossibleResponseStatuses;
 import org.cloudifysource.restclient.GSRestClient;
 import org.cloudifysource.restclient.RestException;
+import org.cloudifysource.security.CloudifyAuthorizationDetails;
+import org.cloudifysource.security.CustomPermissionEvaluator;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.hyperic.sigar.Sigar;
 import org.jgrapht.DirectedGraph;
@@ -1402,7 +1403,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			final CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
 			permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
 		}
-		
+
 		validateGsmState();
 
 		final int before = processingUnit.getNumberOfInstances();
@@ -1696,7 +1697,7 @@ public class ServiceController implements ServiceDetailsProvider {
 								logger.info("Removing application service scope attributes for service " + serviceName);
 								deleteServiceAttributes(applicationName,
 										serviceName);
-								
+
 
 							}
 						} catch (final Exception e) {
@@ -1719,7 +1720,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			((InternalAdmin) admin).scheduleAdminOperation(undeployTask);
 
 		}
-		
+
 		final UUID lifecycleEventContainerID = startPollingForApplicationUninstallLifecycleEvents(
 				applicationName, uninstallOrder, timeoutInMinutes, undeployTask);
 
@@ -1740,22 +1741,31 @@ public class ServiceController implements ServiceDetailsProvider {
 				new ApplicationCloudifyAttribute(applicationName, null, null);
 		gigaSpace.takeMultiple(applicationAttributeTemplate);
 	}
-	
+
 	private void deleteServiceAttributes(final String applicationName,
 			final String serviceName) {
 		deleteServiceInstanceAttributes(applicationName, serviceName, null);
 		final ServiceCloudifyAttribute serviceAttributeTemplate =
 				new ServiceCloudifyAttribute(applicationName, serviceName, null, null);
 		gigaSpace.takeMultiple(serviceAttributeTemplate);
+
+		// Delete instance attempt data related to this service
+		ServiceInstanceAttemptData template = new ServiceInstanceAttemptData();
+		template.setApplicationName(applicationName);
+		template.setServiceName(serviceName);
+
+		ServiceInstanceAttemptData[] attempts = gigaSpace.takeMultiple(template);
+		logger.info("Removed " + attempts.length + " instance attempts from management space");
+
 	}
-	
+
 	private void deleteServiceInstanceAttributes(String applicationName,
 			String serviceName, Integer instanceId) {
 		final InstanceCloudifyAttribute instanceAttributesTemplate =
 				new InstanceCloudifyAttribute(applicationName, serviceName, instanceId, null, null);
 		gigaSpace.takeMultiple(instanceAttributesTemplate);
 	}
-	
+
 
 	private List<ProcessingUnit> createUninstallOrder(
 			final ProcessingUnit[] pus, final String applicationName) {
@@ -1894,7 +1904,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			@RequestParam(value = "debugEvents", required = false) final String debugEvents,
 			@RequestParam(value = "debugMode", required = false) final String debugMode)
 			throws IOException, DSLException, RestErrorException {
-		
+
 		validateGsmState();
 		boolean actualSelfHealing = true;
 		if (selfHealing != null && !selfHealing) {
@@ -1933,7 +1943,7 @@ public class ServiceController implements ServiceDetailsProvider {
 				if (!isGsmStateValid) {
 					int gsmCount = admin.getGridServiceManagers().getManagers().length;
 					logger.warning("Not all gsm instances are intact. Found " + gsmCount);
-					throw new RestErrorException(ResponseConstants.NOT_ALL_GSM_INSTANCES_RUNNING, 
+					throw new RestErrorException(ResponseConstants.NOT_ALL_GSM_INSTANCES_RUNNING,
 							numManagementMachines, gsmCount);
 				}
 			}
@@ -3286,9 +3296,9 @@ public class ServiceController implements ServiceDetailsProvider {
 						applicationName)
 				.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups)
 				.name(serviceName);
-        
+
 		setSpringProfilesActive(deployment, puConfig.getSpringProfilesActive());
-        		
+
         if (cloud != null) {
             deployment.addCommandLineArgument("-D" + CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY + "="
                     + cloud.getConfiguration().getComponents().getUsm().getPortRange());
@@ -3347,7 +3357,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	private void setSpringProfilesActive(final ElasticDeploymentTopology deployment, final String profiles) {
 		if (StringUtils.isNotBlank(profiles)) {
-			//note that cloudify uses the SPRING_PROFILES_ACTIVE env variable, but this 
+			//note that cloudify uses the SPRING_PROFILES_ACTIVE env variable, but this
 			//system property overrides it
 			deployment.commandLineArgument("-Dspring.profiles.active="+profiles);
 		}
@@ -3373,7 +3383,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			final boolean locationAware,
 			final File cloudOverrides) throws IOException, AdminException,
 			TimeoutException, DSLException {
-		
+
 		if (cloudOverrides != null) {
 			logger.info("cloudOverrides: " + FileUtils.readFileToString(cloudOverrides));
 		}
@@ -3398,9 +3408,9 @@ public class ServiceController implements ServiceDetailsProvider {
 				.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS, authGroups)
 				.highlyAvailable(puConfig.getSla().getHighlyAvailable())
 				.singleMachineDeployment();
-        
+
 		setSpringProfilesActive(deployment, puConfig.getSpringProfilesActive());
-                
+
         if (cloud != null) {
             deployment.addCommandLineArgument("-D" + CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY + "="
                     + cloud.getConfiguration().getComponents().getUsm().getPortRange());

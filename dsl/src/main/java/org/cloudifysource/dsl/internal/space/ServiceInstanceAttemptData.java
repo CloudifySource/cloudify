@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
+ * Copyright (c) 2013 GigaSpaces Technologies Ltd. All rights reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 
-package org.cloudifysource.usm;
+package org.cloudifysource.dsl.internal.space;
 
 import com.gigaspaces.annotation.pojo.SpaceClass;
 import com.gigaspaces.annotation.pojo.SpaceId;
@@ -26,7 +26,7 @@ import com.gigaspaces.annotation.pojo.SpaceId;
  *
  */
 @SpaceClass
-public class USMInstanceAttemptData {
+public class ServiceInstanceAttemptData {
 
 	private String uid;
 	private Long gscPid;
@@ -35,7 +35,7 @@ public class USMInstanceAttemptData {
 	private Integer instanceId;
 	private Integer currentAttemptNumber;
 
-	public USMInstanceAttemptData() {
+	public ServiceInstanceAttemptData() {
 
 	}
 
@@ -87,5 +87,13 @@ public class USMInstanceAttemptData {
 	public void setInstanceId(final Integer instanceId) {
 		this.instanceId = instanceId;
 	}
+
+	@Override
+	public String toString() {
+		return "ServiceInstanceAttemptData [uid=" + uid + ", gscPid=" + gscPid + ", applicationName=" + applicationName
+				+ ", serviceName=" + serviceName + ", instanceId=" + instanceId + ", currentAttemptNumber="
+				+ currentAttemptNumber + "]";
+	}
+
 
 }

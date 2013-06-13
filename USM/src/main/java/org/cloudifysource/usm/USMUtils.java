@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.usm;
 
@@ -46,9 +43,9 @@ import com.gigaspaces.internal.sigar.SigarHolder;
 
 /*********
  * Utility class for the USM package.
- * 
+ *
  * @author barakme
- * 
+ *
  */
 public final class USMUtils {
 
@@ -65,11 +62,14 @@ public final class USMUtils {
 	 * Marks a file as executable by the operating system. On windows, always returns true. Otherwise, attempts will be
 	 * made to mark the file as executable using Java 6 API, if possible. If not, will attempt to use sigar. If this
 	 * fails, a chmod command will be executed.
-	 * 
-	 * @param sigar an instance of sigar.
-	 * @param file the file to make as executable.
+	 *
+	 * @param sigar
+	 *            an instance of sigar.
+	 * @param file
+	 *            the file to make as executable.
 	 * @return true if the file was successfully marked as executable, false otherwise.
-	 * @throws USMException in case of an error.
+	 * @throws USMException
+	 *             in case of an error.
 	 */
 	public static boolean markFileAsExecutable(final Sigar sigar, final File file)
 			throws USMException {
@@ -167,8 +167,9 @@ public final class USMUtils {
 
 	/*******
 	 * Returns true if current process is a GSC.
-	 * 
-	 * @param ctx the spring application context.
+	 *
+	 * @param ctx
+	 *            the spring application context.
 	 * @return .
 	 */
 	public static boolean isRunningInGSC(final ApplicationContext ctx) {
@@ -177,8 +178,9 @@ public final class USMUtils {
 
 	/*************
 	 * Return's the working directory of a PU.
-	 * 
-	 * @param ctx the spring application context.
+	 *
+	 * @param ctx
+	 *            the spring application context.
 	 * @return the working directory.
 	 */
 	public static File getPUWorkDir(final ApplicationContext ctx) {
@@ -242,7 +244,7 @@ public final class USMUtils {
 
 	/***********
 	 * Returns a cached admin instance.
-	 * 
+	 *
 	 * @return the admin API instance.
 	 */
 	public static synchronized Admin getAdmin() {
@@ -252,6 +254,8 @@ public final class USMUtils {
 
 		final AdminFactory factory = new AdminFactory();
 		factory.useDaemonThreads(true);
+		// useful for unit tests
+		factory.discoverUnmanagedSpaces();
 		admin = factory.createAdmin();
 
 		logger.info("Created new Admin Object with groups: " + Arrays.toString(admin.getGroups()) + " and Locators: "
@@ -260,13 +264,28 @@ public final class USMUtils {
 		return admin;
 	}
 
+	/*****************
+	 * Clears the currently running admin instance, if one exists.
+	 */
+	public static synchronized void clearAdmin() {
+		if (admin == null) {
+			return;
+		}
+
+		admin.close();
+		admin = null;
+	}
+
 	/*********
 	 * Returns the list of parent processes, starting by the child pid and ending with the current pid.
-	 * 
-	 * @param childPid the list starting point.
-	 * @param myPid the curennt process pid.
+	 *
+	 * @param childPid
+	 *            the list starting point.
+	 * @param myPid
+	 *            the curennt process pid.
 	 * @return the pid list.
-	 * @throws USMException in case of an error.
+	 * @throws USMException
+	 *             in case of an error.
 	 */
 	public static List<Long> getProcessParentChain(final long childPid, final long myPid)
 			throws USMException {
@@ -300,10 +319,12 @@ public final class USMUtils {
 
 	/******
 	 * Returns the parent pid for the given pid.
-	 * 
-	 * @param pid the process pid.
+	 *
+	 * @param pid
+	 *            the process pid.
 	 * @return the parent pid for the given pid.
-	 * @throws USMException in case of an error.
+	 * @throws USMException
+	 *             in case of an error.
 	 */
 	public static long getParentPid(final long pid)
 			throws USMException {
@@ -320,10 +341,12 @@ public final class USMUtils {
 
 	/*********
 	 * Checks, using Sigar, is a given process is alive.
-	 * 
-	 * @param pid the process pid.
+	 *
+	 * @param pid
+	 *            the process pid.
 	 * @return true if the process is alive (i.e. not stopped or zombie).
-	 * @throws USMException in case of an error.
+	 * @throws USMException
+	 *             in case of an error.
 	 */
 	public static boolean isProcessAlive(final long pid)
 			throws USMException {
@@ -353,8 +376,9 @@ public final class USMUtils {
 	/***********
 	 * Given a map, returns a new map where the values are numbers, matching entries from the original list which were
 	 * numbers or strings that can be parsed as numbers. Other entries are discarded.
-	 * 
-	 * @param map the original map.
+	 *
+	 * @param map
+	 *            the original map.
 	 * @return the numbers map.
 	 */
 	// converts a map of type <String, Object> to a Map of <String, Number>
@@ -377,7 +401,7 @@ public final class USMUtils {
 
 	/**********
 	 * Closes the cached admin instance.
-	 * 
+	 *
 	 */
 	public static synchronized void shutdownAdmin() {
 		if (admin == null) {
@@ -390,8 +414,9 @@ public final class USMUtils {
 
 	/*********
 	 * Returns the exit code of the given process handle, or null if the process has not terminated.
-	 * 
-	 * @param processToCheck the process.
+	 *
+	 * @param processToCheck
+	 *            the process.
 	 * @return the exit code, or null.
 	 */
 	public static Integer getProcessExitCode(final Process processToCheck) {

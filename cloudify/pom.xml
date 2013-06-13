@@ -15,6 +15,7 @@
 		<cloudifyVersion>${project.version}</cloudifyVersion>
 		<springSecurityVersion>3.0.7.RELEASE</springSecurityVersion>
 		<sigarVersion>1.6.5</sigarVersion>
+		<sigarDistributionVersion>1.6.5.132</sigarDistributionVersion>		
 		<groovyVersion>1.8.6</groovyVersion>
 	</properties>
 
@@ -33,6 +34,11 @@
 				<updatePolicy>always</updatePolicy>
 				<checksumPolicy>warn</checksumPolicy>
 			</snapshots>
+		</repository>
+		<repository>
+			<id>thirdparty-uploads</id>
+			<name>JBoss Thirdparty Uploads</name>
+			<url>https://repository.jboss.org/nexus/content/repositories/thirdparty-uploads</url>
 		</repository>
 	</repositories>
 	<pluginRepositories>
