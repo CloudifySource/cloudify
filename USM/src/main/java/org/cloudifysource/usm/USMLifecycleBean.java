@@ -629,7 +629,7 @@ public class USMLifecycleBean implements ClusterInfoAware {
 				final List<Long> processIDs = processLocator.getProcessIDs();
 				if (processIDs.isEmpty()) {
 					logger.warning("A process locator returned no process IDs. "
-							+ "If this is normal, you can ignote this warning. "
+							+ "If this is normal, you can ignore this warning. "
 							+ "Otherwise, check that your process locator is correctly configured");
 
 				}
