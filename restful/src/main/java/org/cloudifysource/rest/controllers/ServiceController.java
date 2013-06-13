@@ -2381,6 +2381,14 @@ public class ServiceController implements ServiceDetailsProvider {
 				cloudExternalProcessMemoryInMB = calculateExternalProcessMemory(cloud, template);
 			} else {
 				cloudExternalProcessMemoryInMB = IsolationUtils.getInstanceMemoryMB(service);
+				long usmRequiredMemoryInMB = MemoryUnit.toMegaBytes(
+						cloud.getConfiguration().getComponents().getUsm().getMaxMemory());
+				if (usmRequiredMemoryInMB >= cloudExternalProcessMemoryInMB) {
+					throw new IllegalArgumentException("the usm required memory " 
+							+ usmRequiredMemoryInMB
+							+ " can not be more then the total memory defined for a service instance "
+							+ cloudExternalProcessMemoryInMB);
+				}
 			}
 
 			logger.info("Creating cloud machine provisioning config. Template remote directory is: "
@@ -2545,7 +2553,7 @@ public class ServiceController implements ServiceDetailsProvider {
 				.getReservedMemoryCapacityPerMachineInMB();
 		final int safteyMargin = 100; // get rid of this constant. see
 		// CLOUDIFY-297
-		final long cloudExternalProcessMemoryInMB = machineMemoryMB
+		long cloudExternalProcessMemoryInMB = machineMemoryMB
 				- reservedMemoryCapacityPerMachineInMB - safteyMargin;
 		if (cloudExternalProcessMemoryInMB <= 0) {
 			throw new DSLException("Cloud template machineMemoryMB ("
@@ -2564,6 +2572,11 @@ public class ServiceController implements ServiceDetailsProvider {
 				+ "cloudExternalProcessMemoryInMB = cloud.machineMemoryMB - "
 				+ "cloud.reservedMemoryCapacityPerMachineInMB" + " = "
 				+ cloudExternalProcessMemoryInMB);
+		
+		//USM can not require more memory then the maximum total memory available.
+		long usmRequiredMemoryInMB = MemoryUnit.toMegaBytes(
+										cloud.getConfiguration().getComponents().getUsm().getMaxMemory());
+		cloudExternalProcessMemoryInMB = Math.max(cloudExternalProcessMemoryInMB, usmRequiredMemoryInMB);
 		return cloudExternalProcessMemoryInMB;
 	}
 
