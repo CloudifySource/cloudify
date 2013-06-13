@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -41,12 +41,15 @@ import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.context.IsLocalCloudUtils;
 import org.cloudifysource.dsl.internal.packaging.CloudConfigurationHolder;
 import org.cloudifysource.dsl.utils.ServiceUtils;
+import org.cloudifysource.restclient.utils.NewRestClientUtils;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.EnvironmentUtils;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.exceptions.CLIException;
 import org.cloudifysource.shell.exceptions.CLIStatusException;
+import org.cloudifysource.shell.rest.RestAdminFacade;
+import org.cloudifysource.shell.rest.inspect.CLIApplicationUninstaller;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
 import org.openspaces.admin.AdminFactory;
@@ -73,7 +76,7 @@ import com.j_spaces.kernel.Environment;
 /**
  * @author rafi, barakm, adaml, noak
  * @since 2.0.0
- *
+ * 
  *        This class handles the start up and shut down of the cloud components - management components (LUS, GSM, ESM),
  *        containers (GSCs) and an agent.
  */
@@ -162,7 +165,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	/**
 	 * Sets verbose mode.
-	 *
+	 * 
 	 * @param verbose
 	 *            mode (true - on, false - off)
 	 */
@@ -172,8 +175,8 @@ public class LocalhostGridAgentBootstrapper {
 
 	/**
 	 * Sets the lookup groups.
-	 *
-	 *
+	 * 
+	 * 
 	 * @param lookupGroups
 	 *            lookup groups
 	 */
@@ -183,7 +186,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	/**
 	 * Sets the lookup locators.
-	 *
+	 * 
 	 * @param lookupLocators
 	 *            lookup locators
 	 */
@@ -193,7 +196,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	/**
 	 * Sets the nic address.
-	 *
+	 * 
 	 * @param nicAddress
 	 *            nic address
 	 */
@@ -203,7 +206,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	/**
 	 * Sets the number of minutes between each progress check.
-	 *
+	 * 
 	 * @param progressInSeconds
 	 *            number of seconds
 	 */
@@ -213,7 +216,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	/**
 	 * Sets the admin facade to work with.
-	 *
+	 * 
 	 * @param adminFacade
 	 *            Admin facade object
 	 */
@@ -223,7 +226,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	/**
 	 * Sets web services limitation mode (i.e. activation of webui and REST).
-	 *
+	 * 
 	 * @param noWebServices
 	 *            web services limitation mode (true - not active, false - active web services)
 	 */
@@ -233,7 +236,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	/**
 	 * Sets management space limitation mode.
-	 *
+	 * 
 	 * @param noManagementSpace
 	 *            noManagementSpace limitation mode (true - management space will not be installed, false - it will be
 	 *            installed)
@@ -244,7 +247,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	/**
 	 * Sets whether to wait for the web UI installation to complete when starting management components.
-	 *
+	 * 
 	 * @param waitForWebui
 	 *            waitForWebui mode (true - wait, false - return without waiting).
 	 */
@@ -254,7 +257,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	/**
 	 * Sets the availability mode of the space - if a backup space is required for the space to become available.
-	 *
+	 * 
 	 * @param notHighlyAvailableManagementSpace
 	 *            high-availability mode (true - the space will be available without a backup space, false - a backup
 	 *            space is required).
@@ -265,7 +268,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	/**
 	 * Gets the availability mode of the space.
-	 *
+	 * 
 	 * @return high-availability mode (true - the space is available when a single instance is ready, false - a backup
 	 *         space is required for the space to become available).
 	 */
@@ -276,8 +279,8 @@ public class LocalhostGridAgentBootstrapper {
 	/**
 	 * Enables force teardown. The force flag will terminate the gs agent without forcing uninstall on the currently
 	 * deployed applications.
-	 *
-	 *
+	 * 
+	 * 
 	 * @param force
 	 *            Boolean flag.
 	 */
@@ -288,7 +291,7 @@ public class LocalhostGridAgentBootstrapper {
 	/**
 	 * Starts management processes (LUS, GSM, ESM) on a local cloud, and waits until the requested service installations
 	 * complete (space, webui, REST), or until the timeout is reached.
-	 *
+	 * 
 	 * @param securityProfile
 	 *            set security profile (nonsecure/secure/ssl)
 	 * @param securityFilePath
@@ -358,7 +361,7 @@ public class LocalhostGridAgentBootstrapper {
 	/**
 	 * Starts management processes (LUS, GSM, ESM) and waits until the requested service installations complete (space,
 	 * webui, REST), or until the timeout is reached. The cloud is not a local cloud.
-	 *
+	 * 
 	 * @param securityProfile
 	 *            set security profile (nonsecure/secure/ssl)
 	 * @param securityFilePath
@@ -404,7 +407,7 @@ public class LocalhostGridAgentBootstrapper {
 	}
 
 	private void redeployManagement() throws CLIException {
-		ManagementRedeployer redeployer = new ManagementRedeployer();
+		final ManagementRedeployer redeployer = new ManagementRedeployer();
 		try {
 			redeployer.run(cloud.getConfiguration().getPersistentStoragePath(), Environment.getHomeDirectory());
 		} catch (final IOException e) {
@@ -416,7 +419,7 @@ public class LocalhostGridAgentBootstrapper {
 	/**
 	 * Shuts down the local agent, if exists, and waits until shutdown is complete or until the timeout is reached. If
 	 * management processes (GSM, ESM, LUS) are still active, the agent is not shutdown and a CLIException is thrown.
-	 *
+	 * 
 	 * @param force
 	 *            Force the agent to shut down even if the GSC still runs active services
 	 * @param timeout
@@ -441,7 +444,7 @@ public class LocalhostGridAgentBootstrapper {
 	/**
 	 * Shuts down the local agent, management processes (GSM, ESM, LUS) and GSC. Waits until shutdown is complete or
 	 * until the timeout is reached. Active services are forced to shut down.
-	 *
+	 * 
 	 * @param timeout
 	 *            number of {@link TimeUnit}s to wait
 	 * @param timeunit
@@ -463,7 +466,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	/**
 	 * Shuts down the local cloud, and waits until shutdown is complete or until the timeout is reached.
-	 *
+	 * 
 	 * @param timeout
 	 *            number of {@link TimeUnit}s to wait
 	 * @param timeunit
@@ -524,6 +527,22 @@ public class LocalhostGridAgentBootstrapper {
 		final String uninstallMessage = ShellUtils.getMessageBundle().getString(
 				"uninstalling_applications_before_teardown");
 		publishEvent(uninstallMessage);
+
+		if (NewRestClientUtils.isNewRestClientEnabled()) {
+			uninstallNewRestClient(applicationsList, timeout, timeunit, applicationsExist);
+		} else {
+			uninstall(applicationsList, timeout, timeunit, applicationsExist);
+		}
+
+	}
+
+	private void uninstall(
+			final Collection<String> applicationsList, 
+			final long timeout, 
+			final TimeUnit timeunit, 
+			final boolean applicationsExist)
+			throws InterruptedException, TimeoutException, CLIException {
+		
 		for (final String appName : applicationsList) {
 			try {
 				if (!appName.equals(MANAGEMENT_APPLICATION)) {
@@ -558,6 +577,33 @@ public class LocalhostGridAgentBootstrapper {
 			publishEvent(ShellUtils.getMessageBundle().getString("all_apps_removed_before_teardown"));
 			logger.fine(ShellUtils.getMessageBundle().getString("all_apps_removed_before_teardown"));
 		}
+
+	}
+	
+	private void uninstallNewRestClient(
+			final Collection<String> applicationsList, 
+			final long timeout, 
+			final TimeUnit timeunit, 
+			final boolean applicationsExist) throws CLIException {
+		for (final String application : applicationsList) {
+            if (!application.equals(MANAGEMENT_APPLICATION)) {
+                CLIApplicationUninstaller uninstaller = new CLIApplicationUninstaller();
+                uninstaller.setRestClient(((RestAdminFacade) adminFacade).getNewRestClient());
+                uninstaller.setApplicationName(application);
+                uninstaller.setAskOnTimeout(false);
+                uninstaller.setInitialTimeout((int) timeout);
+                try {
+                    uninstaller.uninstall();
+                } catch (final Exception e) {
+                    if (force) {
+                        logger.warning("Failed uninstalling application " + application
+                                + ". Teardown will continue");
+                    } else {
+                        throw new CLIException(e.getMessage(), e);
+                    }
+                }
+            }
+        }
 	}
 
 	private void waitForUninstallApplications(final long timeout, final TimeUnit timeunit) throws InterruptedException,
@@ -598,7 +644,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	/**
 	 * Shuts down the local agent, if exists, and waits until shutdown is complete or until the timeout is reached.
-	 *
+	 * 
 	 * @param allowManagement
 	 *            Allow the agent to shut down even the management processes (GSM, ESM, LUS) it started are still active
 	 * @param allowContainers
@@ -704,7 +750,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	/**
 	 * Shuts down the given agent, and waits until shutdown is complete or until the timeout is reached.
-	 *
+	 * 
 	 * @param agent
 	 *            The agent to shutdown
 	 * @param timeout
@@ -821,7 +867,7 @@ public class LocalhostGridAgentBootstrapper {
 	/**
 	 * Starts management processes (LUS, GSM, ESM), and waits until the requested service installations complete (space,
 	 * webui, REST), or until the timeout is reached.
-	 *
+	 * 
 	 * @param gsAgentArgs
 	 *            GS agent start-up switches
 	 * @param securityProfile
@@ -972,7 +1018,7 @@ public class LocalhostGridAgentBootstrapper {
 		String lrmiPortRangeCommandLineArgument = "";
 		if (!isLocalCloud) {
 			lrmiPortRangeCommandLineArgument = "-D" + CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY + "=";
-			String portRange = System.getenv().get(CloudifyConstants.GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR);
+			final String portRange = System.getenv().get(CloudifyConstants.GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR);
 			if (org.apache.commons.lang.StringUtils.isEmpty(portRange)) {
 				throw new IllegalArgumentException("Could not find gsc lrmi port range variable in environment.");
 			}
@@ -985,9 +1031,9 @@ public class LocalhostGridAgentBootstrapper {
 			final boolean isSecureConnection, final GridServiceAgent agent,
 			final List<AbstractManagementServiceInstaller> waitForManagementServices)
 			throws CLIException {
-		String gscLrmiCommandLineArg = getGscLrmiCommandLineArg();
+		final String gscLrmiCommandLineArg = getGscLrmiCommandLineArg();
 		final String webuiMemory = getWebServiceMemory(CloudifyConstants.WEBUI_MAX_MEMORY_ENVIRONMENT_VAR);
-		int webuiPort = getWebservicePort(CloudifyConstants.WEBUI_PORT_ENV_VAR, isSecureConnection);
+		final int webuiPort = getWebservicePort(CloudifyConstants.WEBUI_PORT_ENV_VAR, isSecureConnection);
 
 		final ManagementWebServiceInstaller webuiInstaller = new ManagementWebServiceInstaller();
 		webuiInstaller.setAdmin(agent.getAdmin());
@@ -1083,7 +1129,7 @@ public class LocalhostGridAgentBootstrapper {
 				}
 			}
 		} else {
-			String portAsString = System.getenv().get(portEnvVriable);
+			final String portAsString = System.getenv().get(portEnvVriable);
 			if (org.apache.commons.lang.StringUtils.isBlank(portAsString)) {
 				throw new IllegalStateException("Could not find web-service port variable in environment");
 			}
@@ -1106,7 +1152,7 @@ public class LocalhostGridAgentBootstrapper {
 	/**
 	 * This method assumes that the admin has been supplied with this.lookupLocators and this.lookupGroups and that it
 	 * applied the defaults if these were null.
-	 *
+	 * 
 	 * @param admin
 	 */
 	private void setLookupDefaults(final Admin admin) {
@@ -1123,7 +1169,7 @@ public class LocalhostGridAgentBootstrapper {
 	/**
 	 * Converts the given locators to a String of comma-delimited locator names. The locator names are of this format:
 	 * <locator_host>:<locator_port>
-	 *
+	 * 
 	 * @param locators
 	 *            an array of {@link LookupLocator} objects to convert to String
 	 * @return A comma-delimited list of lookup locators
@@ -1140,7 +1186,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	/**
 	 * Starts an agent on the local host. If an agent is already running, a CLIException is thrown.
-	 *
+	 * 
 	 * @param securityProfile
 	 *            set security profile (nonsecure/secure/ssl)
 	 * @param keystorePassword
@@ -1537,7 +1583,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	/**********
 	 * Registers an event listener for installation events.
-	 *
+	 * 
 	 * @param listener
 	 *            the listener.
 	 */

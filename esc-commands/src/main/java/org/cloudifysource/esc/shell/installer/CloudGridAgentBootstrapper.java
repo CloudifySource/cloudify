@@ -67,11 +67,14 @@ import org.cloudifysource.esc.shell.listener.CliAgentlessInstallerListener;
 import org.cloudifysource.esc.shell.listener.CliProvisioningDriverListener;
 import org.cloudifysource.esc.util.CalcUtils;
 import org.cloudifysource.esc.util.Utils;
+import org.cloudifysource.restclient.utils.NewRestClientUtils;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.exceptions.CLIException;
 import org.cloudifysource.shell.exceptions.CLIStatusException;
+import org.cloudifysource.shell.rest.RestAdminFacade;
+import org.cloudifysource.shell.rest.inspect.CLIApplicationUninstaller;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.openspaces.admin.gsa.GSAReservationId;
@@ -610,9 +613,21 @@ public class CloudGridAgentBootstrapper {
 
 		final long startTime = System.currentTimeMillis();
 		final long millisToEnd = end - startTime;
+		
+		if (NewRestClientUtils.isNewRestClientEnabled()) {
+			uninstallNewRestClient(applicationsList, millisToEnd);
+		} else {
+			uninstall(applicationsList, millisToEnd);
+		}
+		
+
+
+	}
+
+	private void uninstall(Collection<String> applicationsList, long millisToEnd) 
+			throws CLIException, InterruptedException, TimeoutException {
 		final int minutesToEnd = (int) TimeUnit.MILLISECONDS
 				.toMinutes(millisToEnd);
-
 		final Map<String, String> lifeCycleEventContainersIdsByApplicationName = new HashMap<String, String>();
 
 		if (applicationsList.size() > 0) {
@@ -633,6 +648,30 @@ public class CloudGridAgentBootstrapper {
 			logger.info("Waiting for application " + entry.getValue() + " to uninstall.");
 			adminFacade.waitForLifecycleEvents(entry.getKey(), minutesToEnd, CloudifyConstants.TIMEOUT_ERROR_MESSAGE);
 		}
+		
+	}
+
+	private void uninstallNewRestClient(Collection<String> applicationsList, long millisToEnd) 
+			throws CLIException {
+		 for (final String application : applicationsList) {
+	            if (!application.equals(MANAGEMENT_APPLICATION)) {
+	                CLIApplicationUninstaller uninstaller = new CLIApplicationUninstaller();
+	                uninstaller.setRestClient(((RestAdminFacade) adminFacade).getNewRestClient());
+	                uninstaller.setApplicationName(application);
+	                uninstaller.setAskOnTimeout(false);
+	                uninstaller.setInitialTimeout((int) millisToEnd);
+	                try {
+	                    uninstaller.uninstall();
+	                } catch (final Exception e) {
+	                    if (force) {
+	                        logger.warning("Failed uninstalling application " + application
+	                                + ". Teardown will continue");
+	                    } else {
+	                        throw new CLIException(e.getMessage(), e);
+	                    }
+	                }
+	            }
+	        }
 	}
 
 	private MachineDetails[] startManagememntProcesses(final MachineDetails[] machines, final String securityProfile,
