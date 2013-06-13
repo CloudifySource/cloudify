@@ -1132,7 +1132,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	 *            the message arguments
 	 * @return the formatted message according to the message key.
 	 */
-	protected static String getFormattedMessage(final String msgName, final Object... arguments) {
+	protected String getFormattedMessage(final String msgName, final Object... arguments) {
 		return getFormattedMessage(getDefaultProvisioningDriverMessageBundle(), msgName, arguments);
 	}
 	
