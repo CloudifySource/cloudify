@@ -604,4 +604,19 @@ public class ServiceParsingTest {
 					e.getMessage().contains("The stop detection field only supports execution of closures"));
 		}
 	}
+
+	@Test
+	public void testInvalidProperties() {
+
+		final File serviceDir = new File(TEST_PARSING_RESOURCE_BASE + "invalidProperties");
+
+		try {
+			Service service = ServiceReader.getServiceFromDirectory(serviceDir).getService();
+			System.out.println(service);
+			System.out.println("retries: " + service.getRetries());
+			Assert.fail("Expected parsing to fail");
+		} catch (Exception e) {
+			Assert.assertTrue("Invalid error message", e.getMessage().contains("Error converting from"));
+		}
+	}
 }

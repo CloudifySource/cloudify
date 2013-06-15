@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.AppSharedIsolationSLADescriptor;
@@ -119,6 +120,9 @@ public abstract class BaseDslScript extends Script {
 	// DSL Initializer meta data
 	private static Map<String, DSLObjectInitializerData> dslObjectInitializersByName = null;
 
+	public BaseDslScript() {
+		BeanUtilsBean.getInstance().getConvertUtils().register(true, false, 0);
+	}
 	@Override
 	public void setProperty(final String name, final Object value) {
 
@@ -139,6 +143,7 @@ public abstract class BaseDslScript extends Script {
 		}
 
 	}
+
 
 	private boolean isDuplicatePropertyAllowed(final Object value) {
 		// Application allows duplicate service values.
@@ -219,7 +224,7 @@ public abstract class BaseDslScript extends Script {
 			throw new DSLValidationRuntimeException(e);
 		} catch (final Exception e) {
 			throw new IllegalArgumentException("Failed to set property " + name + " of Object " + object
-					+ " to value: " + value, e);
+					+ " to value: " + value + ". Error was: " + e.getMessage(), e);
 		}
 
 		checkForApplicationServiceBlockNameParameter(name, value);
