@@ -33,6 +33,7 @@ import org.cloudifysource.dsl.entry.StringExecutableEntry;
 import org.cloudifysource.dsl.internal.BaseDslScript;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.dsl.scalingrules.HighThresholdDetails;
 import org.cloudifysource.dsl.scalingrules.LowThresholdDetails;
 import org.cloudifysource.dsl.scalingrules.ScalingRuleDetails;
@@ -590,4 +591,17 @@ public class ServiceParsingTest {
 
 	}
 
+	@Test
+	public void testStopDetectionWithScript() {
+
+		final File serviceFile = new File(TEST_PARSING_RESOURCE_BASE + "misc/stopDetectionScript-service.groovy");
+
+		try {
+			ServiceReader.getServiceFromFile(serviceFile);
+			Assert.fail("Expected parsing to fail");
+		} catch (PackagingException e) {
+			Assert.assertTrue("Unexpected error message: " + e.getMessage(),
+					e.getMessage().contains("The stop detection field only supports execution of closures"));
+		}
+	}
 }

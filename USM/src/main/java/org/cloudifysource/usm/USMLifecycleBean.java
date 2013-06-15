@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.usm;
 
@@ -201,16 +198,21 @@ public class USMLifecycleBean implements ClusterInfoAware {
 		}
 	}
 
-    public void log(final String message) {
-        if (eventLogger.isLoggable(Level.INFO)) {
-            eventLogger.info(eventPrefix + message);
-        }
-    }
+	/*******
+	 * Published a USM lifecycle log.
+	 * @param message the log message.
+	 */
+	public void log(final String message) {
+		if (eventLogger.isLoggable(Level.INFO)) {
+			eventLogger.info(eventPrefix + message);
+		}
+	}
 
 	/*******
 	 * Logs the start failed event.
 	 *
-	 * @param exceptionMessage start failure description.
+	 * @param exceptionMessage
+	 *            start failure description.
 	 */
 	public void logProcessStartFailureEvent(final String exceptionMessage) {
 		if (eventLogger.isLoggable(Level.INFO)) {
@@ -241,7 +243,8 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	/*********
 	 * Fires the pre-stop event.
 	 *
-	 * @param reason .
+	 * @param reason
+	 *            .
 	 * @throws USMException .
 	 */
 	public void firePreStop(final StopReason reason)
@@ -254,7 +257,8 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	/*********
 	 * Fires the stop event.
 	 *
-	 * @param reason .
+	 * @param reason
+	 *            .
 	 * @throws USMException .
 	 */
 	public void fireStop(final StopReason reason)
@@ -263,7 +267,6 @@ public class USMLifecycleBean implements ClusterInfoAware {
 				LifecycleEvents.STOP, this.stopListeners, reason);
 
 	}
-
 
 	public String getOutputReaderLoggerName() {
 		return configuration.getService().getName() + "-stdout";
@@ -276,8 +279,10 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	/***********
 	 * Fires an event.
 	 *
-	 * @param reason the start reason.
-	 * @throws USMException if an event listener failed.
+	 * @param reason
+	 *            the start reason.
+	 * @throws USMException
+	 *             if an event listener failed.
 	 */
 	public void firePostStart(final StartReason reason)
 			throws USMException {
@@ -288,8 +293,10 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	/***********
 	 * Fires an event.
 	 *
-	 * @param reason the start reason.
-	 * @throws USMException if an event listener failed.
+	 * @param reason
+	 *            the start reason.
+	 * @throws USMException
+	 *             if an event listener failed.
 	 */
 	public void firePreStart(final StartReason reason)
 			throws USMException {
@@ -301,7 +308,8 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	/***********
 	 * Executes the install phase.
 	 *
-	 * @throws USMException in case of an error.
+	 * @throws USMException
+	 *             in case of an error.
 	 */
 	public void install()
 			throws USMException {
@@ -320,7 +328,8 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	/***********
 	 * Fires an event.
 	 *
-	 * @throws USMException if an event listener failed.
+	 * @throws USMException
+	 *             if an event listener failed.
 	 */
 	public void firePostInstall()
 			throws USMException {
@@ -331,7 +340,8 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	/***********
 	 * Fires an event.
 	 *
-	 * @throws USMException if an event listener failed.
+	 * @throws USMException
+	 *             if an event listener failed.
 	 */
 	public void fireShutdown()
 			throws USMException {
@@ -342,7 +352,8 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	/***********
 	 * Fires an event.
 	 *
-	 * @throws USMException if an event listener failed.
+	 * @throws USMException
+	 *             if an event listener failed.
 	 */
 	public void firePreInstall()
 			throws USMException {
@@ -418,7 +429,8 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	/***********
 	 * Fires an event.
 	 *
-	 * @throws USMException if an event listener failed.
+	 * @throws USMException
+	 *             if an event listener failed.
 	 */
 	public void fireInit()
 			throws USMException {
@@ -429,8 +441,10 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	/***********
 	 * Fires an event.
 	 *
-	 * @param reason the stop reason.
-	 * @throws USMException if an event listener failed.
+	 * @param reason
+	 *            the stop reason.
+	 * @throws USMException
+	 *             if an event listener failed.
 	 */
 	public void firePostStop(final StopReason reason)
 			throws USMException {
@@ -441,7 +455,8 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	/***********
 	 * Fires an event.
 	 *
-	 * @throws USMException if an event listener failed.
+	 * @throws USMException
+	 *             if an event listener failed.
 	 */
 	public void firePreServiceStart()
 			throws USMException {
@@ -452,7 +467,8 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	/***********
 	 * Fires an event.
 	 *
-	 * @throws USMException if an event listener failed.
+	 * @throws USMException
+	 *             if an event listener failed.
 	 */
 	public void firePreServiceStop()
 			throws USMException {
@@ -522,6 +538,7 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	public PreStopListener[] getPreStopListeners() {
 		return this.preStopListeners;
 	}
+
 	public StopListener[] getStopListeners() {
 		return this.stopListeners;
 	}
@@ -618,7 +635,8 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	 * Returns the list of Process IDs calculated by this service's process locators.
 	 *
 	 * @return the list of PIDs.
-	 * @throws USMException if one of the locators failed to execute.
+	 * @throws USMException
+	 *             if one of the locators failed to execute.
 	 */
 	public List<Long> getServiceProcesses()
 			throws USMException {
@@ -670,10 +688,13 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	 * Executes all start detection implementations, until all have passed or a timeout is reached. Once a start
 	 * detector passes, it is not executed again.
 	 *
-	 * @param launchedProcess the process launched by the service's 'start' implementation.
+	 * @param launchedProcess
+	 *            the process launched by the service's 'start' implementation.
 	 * @return true if liveness test passed, false if the timeout is reached without the tests passing.
-	 * @throws USMException if a start detector failed, or if the 'start' process exited with a non-zero exit code.
-	 * @throws TimeoutException if a start detector implementation timed out.
+	 * @throws USMException
+	 *             if a start detector failed, or if the 'start' process exited with a non-zero exit code.
+	 * @throws TimeoutException
+	 *             if a start detector implementation timed out.
 	 */
 	public boolean isProcessLivenessTestPassed(final Process launchedProcess)
 			throws USMException, TimeoutException {
@@ -684,7 +705,10 @@ public class USMLifecycleBean implements ClusterInfoAware {
 		}
 
 		final long startTime = System.currentTimeMillis();
-		final long endTime = startTime + TimeUnit.SECONDS.toMillis(configuration.getService().getLifecycle().getStartDetectionTimeoutSecs());
+		final long endTime =
+				startTime
+						+ TimeUnit.SECONDS.toMillis(configuration.getService().getLifecycle()
+								.getStartDetectionTimeoutSecs());
 		int currentTestIndex = 0;
 
 		// indicates if the process launched by START (if it exitst) is still running
@@ -738,7 +762,8 @@ public class USMLifecycleBean implements ClusterInfoAware {
 			}
 
 			try {
-				Thread.sleep(TimeUnit.SECONDS.toMillis(configuration.getService().getLifecycle().getStartDetectionIntervalSecs()));
+				Thread.sleep(TimeUnit.SECONDS.toMillis(configuration.getService().getLifecycle()
+						.getStartDetectionIntervalSecs()));
 			} catch (final InterruptedException e) {
 				throw new USMException("Interruped while waiting for start detection", e);
 			}
@@ -829,7 +854,8 @@ public class USMLifecycleBean implements ClusterInfoAware {
 	/********
 	 * Sorts the event arrays and initializes them.
 	 *
-	 * @param usm .
+	 * @param usm
+	 *            .
 	 */
 	public void initEvents(final UniversalServiceManagerBean usm) {
 

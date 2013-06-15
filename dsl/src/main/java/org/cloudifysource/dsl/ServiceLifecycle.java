@@ -1,24 +1,24 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.dsl;
 
 import java.io.Serializable;
 
+import org.cloudifysource.dsl.entry.ClosureExecutableEntry;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
+import org.cloudifysource.dsl.internal.DSLValidationContext;
+import org.cloudifysource.dsl.internal.DSLValidationException;
 
 /*************
  * Domain POJO of the service lifecycle, part of the Service Recipe declaration. Non-null Elements in the lifecycle POJO
@@ -28,15 +28,15 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
  * code that executes in-process 3. Map<String, String> - Where keys are Java regular expressions and values are command
  * lines (as in 1). The entry to be executed is the first one where the key regex matches the operating system name of
  * the host running the service. Common keys include 'Win.*', 'Linux.*', etc.
- * 
+ *
  * See the documentation for examples.
- * 
+ *
  * @author barakme.
  * @since 2.0.0
- * 
+ *
  */
 @CloudifyDSLEntity(name = "lifecycle", clazz = ServiceLifecycle.class, allowInternalNode = true, allowRootNode = true,
-parent = "service")
+		parent = "service")
 public class ServiceLifecycle implements Serializable {
 
 	private static final int DEFAULT_START_DETECTION_INTERVAL_SECONDS = 5;
@@ -44,7 +44,7 @@ public class ServiceLifecycle implements Serializable {
 	private static final int DEFAULT_START_DETECTION_SECONDS = 90;
 
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 1L;
 
@@ -245,4 +245,13 @@ public class ServiceLifecycle implements Serializable {
 		this.stopDetection = stopDetection;
 	}
 
+	@DSLValidation
+	void validateStopDetectorIsClosure(final DSLValidationContext validationContext)
+			throws DSLValidationException {
+		if ((this.stopDetection != null)
+				&& (!(this.stopDetection instanceof ClosureExecutableEntry))) {
+			throw new DSLValidationException(
+					"The stop detection field only supports execution of closures");
+		}
+	}
 }
