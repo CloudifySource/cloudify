@@ -62,13 +62,20 @@ public class ApplicationDescriptionFactory {
      * returns an application description POJO.
      *
      * @param applicationName
-     *            the application name.
+     *            	The application name.
      * @return the application description.
+     * @throws ResourceNotFoundException 
+     * 				Thrown if a matching application was not found
      */
-    public ApplicationDescription getApplicationDescription(final String applicationName) {
+    public ApplicationDescription getApplicationDescription(final String applicationName) 
+    		throws ResourceNotFoundException {
 
         final Application application = admin.getApplications().getApplication(applicationName);
 
+        if (application == null) {
+        	throw new ResourceNotFoundException(applicationName);
+        }
+        
         return getApplicationDescription(application);
     }
 

@@ -842,10 +842,8 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (app == null) {
 			throw new RestErrorException(FAILED_TO_LOCATE_APP, applicationName);
 		}
-		final ApplicationDescriptionFactory appDescriptionFactory = new ApplicationDescriptionFactory(
-				admin);
-		final ApplicationDescription applicationDescription = appDescriptionFactory
-				.getApplicationDescription(applicationName);
+		final ApplicationDescriptionFactory appDescriptionFactory = new ApplicationDescriptionFactory(admin);
+		final ApplicationDescription applicationDescription = appDescriptionFactory.getApplicationDescription(app);
 		final List<ApplicationDescription> applicationDescriptionList = new ArrayList<ApplicationDescription>();
 		applicationDescriptionList.add(applicationDescription);
 		return successStatus(applicationDescriptionList);
