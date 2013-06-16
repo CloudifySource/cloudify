@@ -50,11 +50,9 @@ public abstract class AbstractClientSideExceptionHandler implements ClientSideEx
             final String stackTrace = getVerbose();
             if (stackTrace != null) {
                 return getFormattedMessage() + " : " + stackTrace;
-            } else {
-                return getFormattedMessage();
             }
-        } else {
-            return getFormattedMessage();
+			return getFormattedMessage();
         }
+		return getFormattedMessage();
     }
 }

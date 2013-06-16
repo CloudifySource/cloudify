@@ -80,12 +80,12 @@ public class CLIServiceUninstaller {
 
         ServiceDescription serviceDescription = 
         		restClient.getServiceDescription(applicationName, serviceName);
-        final int nextEventId = getNextEventId(restClient, serviceDescription.getDeploymentId());
-        int currentNumberOfRunningInstances = serviceDescription.getInstanceCount();
 
         restClient.uninstallService(applicationName, serviceName, initialTimeout);
 
 
+        final int nextEventId = getNextEventId(restClient, serviceDescription.getDeploymentId());
+        int currentNumberOfRunningInstances = serviceDescription.getInstanceCount();
         ServiceUninstallationProcessInspector inspector =
                 new ServiceUninstallationProcessInspector(
                         restClient,

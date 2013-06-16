@@ -64,8 +64,6 @@ public class ApplicationDescriptionFactory {
      * @param applicationName
      *            the application name.
      * @return the application description.
-     * @throws ResourceNotFoundException
-     *             thrown if one or more of the expected zones were not found.
      */
     public ApplicationDescription getApplicationDescription(final String applicationName) {
 
@@ -80,8 +78,6 @@ public class ApplicationDescriptionFactory {
      * @param application
      *            the application name.
      * @return the application description.
-     * @throws ResourceNotFoundException
-     *             thrown if one or more of the expected zones were not found.
      */
     public ApplicationDescription getApplicationDescription(final Application application) {
 
@@ -114,13 +110,17 @@ public class ApplicationDescriptionFactory {
         List<ServiceDescription> serviceDescriptionList = new ArrayList<ServiceDescription>();
         final ProcessingUnits pus = app.getProcessingUnits();
         for (final ProcessingUnit pu : pus) {
-            final String absolutePuName = pu.getName();
-            final ServiceDescription serviceDescription = getServiceDescription(absolutePuName, applicationName);
+            final ServiceDescription serviceDescription = getServiceDescription(pu);
             serviceDescriptionList.add(serviceDescription);
         }
         return serviceDescriptionList;
     }
 
+    /**
+     * Gets the {@link ServiceDescription} object of the given processingUnit.
+     * @param processingUnit the processingUnit
+     * @return {@link ServiceDescription} object.
+     */
     public ServiceDescription getServiceDescription(final ProcessingUnit processingUnit) {
         int plannedNumberOfInstances, numberOfServiceInstances;
         DeploymentState serviceState;
@@ -157,13 +157,12 @@ public class ApplicationDescriptionFactory {
      *
      * @param absolutePuName
      *            The full service name (<application name>.<service name>)
-     * @param applicationName
-     *            The name of the application that contains this service
      * @return A populated service description object
      * @throws ResourceNotFoundException
-     *             Thrown if a matching zone was not found
+     *             Thrown if a matching service was not found
      */
-    public ServiceDescription getServiceDescription(final String absolutePuName, final String applicationName) {
+    public ServiceDescription getServiceDescription(final String absolutePuName) 
+    		throws ResourceNotFoundException {
 
         Zone zone;
         ProcessingUnit processingUnit = null;
@@ -185,7 +184,7 @@ public class ApplicationDescriptionFactory {
         }
 
         if (processingUnit == null) {
-            return null;
+           throw new ResourceNotFoundException(absolutePuName);
         }
 
         return getServiceDescription(processingUnit);

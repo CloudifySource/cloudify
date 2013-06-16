@@ -1064,7 +1064,7 @@ public class DeploymentsController extends BaseRestController {
       		new ApplicationDescriptionFactory(restConfig.getAdmin());
 
       return appDescriptionFactory.
-      		getServiceDescription(ServiceUtils.getAbsolutePUName(appName, serviceName), appName);
+      		getServiceDescription(ServiceUtils.getAbsolutePUName(appName, serviceName));
   }
   
   /**
