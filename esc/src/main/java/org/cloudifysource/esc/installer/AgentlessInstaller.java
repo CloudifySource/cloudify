@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -259,7 +258,8 @@ public class AgentlessInstaller {
 		}
 
 		final String springProfiles = createSpringProfilesString(details);
-		final EnvironmentFileBuilder builder = new EnvironmentFileBuilder(details.getScriptLanguage())
+		final EnvironmentFileBuilder builder = new EnvironmentFileBuilder(details.getScriptLanguage(),
+												details.getExtraRemoteEnvironmentVariables())
 				.exportVar(LUS_IP_ADDRESS_ENV, details.getLocator())
 				.exportVar(GSA_MODE_ENV, details.isManagement() ? "lus" : "agent")
 				.exportVar(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR, springProfiles)
@@ -269,9 +269,9 @@ public class AgentlessInstaller {
 						CloudifyConstants.CLOUDIFY_CLOUD_MACHINE_IP_ADDRESS_ENV,
 						details.isBindToPrivateIp() ? details.getPrivateIp()
 								: details.getPublicIp())
-				.exportVarWithQuotes(CloudifyConstants.CLOUDIFY_LINK_ENV,
+				.exportVar(CloudifyConstants.CLOUDIFY_LINK_ENV,
 						details.getCloudifyUrl())
-				.exportVarWithQuotes(CloudifyConstants.CLOUDIFY_OVERRIDES_LINK_ENV,
+				.exportVar(CloudifyConstants.CLOUDIFY_OVERRIDES_LINK_ENV,
 						details.getOverridesUrl())
 				.exportVar(WORKING_HOME_DIRECTORY_ENV, remoteDirectory)
 				.exportVar(CloudifyConstants.GIGASPACES_AUTH_GROUPS, authGroups)
@@ -324,11 +324,6 @@ public class AgentlessInstaller {
 			builder.exportVar(CloudifyConstants.KEYSTORE_FILE_ENV_VAR, details.getRemoteDir()
 					+ "/" + CloudifyConstants.KEYSTORE_FILE_NAME);
 			builder.exportVar(CloudifyConstants.KEYSTORE_PASSWORD_ENV_VAR, details.getKeystorePassword());
-		}
-
-		final Set<Entry<String, String>> entries = details.getExtraRemoteEnvironmentVariables().entrySet();
-		for (final Entry<String, String> entry : entries) {
-			builder.exportVar(entry.getKey(), entry.getValue());
 		}
 
 		final String fileContents = builder.toString();

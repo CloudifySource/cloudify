@@ -253,9 +253,9 @@ public final class Utils {
 					gridCommandBuilder.getLusCommandlineArgs(componentsConfig.getDiscovery(), lookupLocatorsString);
 			final String gsmCommandlineArgs = gridCommandBuilder.getGsmCommandlineArgs(cloud, lookupLocatorsString,
 					componentsConfig.getDeployer(), componentsConfig.getDiscovery());
-			details.setEsmCommandlineArgs('"' + esmCommandlineArgs + '"');
-			details.setLusCommandlineArgs('"' + lusCommandlineArgs + '"');
-			details.setGsmCommandlineArgs('"' + gsmCommandlineArgs + '"');
+			details.setEsmCommandlineArgs(esmCommandlineArgs);
+			details.setLusCommandlineArgs(lusCommandlineArgs);
+			details.setGsmCommandlineArgs(gsmCommandlineArgs);
 
 			// setting management services LRMI port range.
 			details.setGscLrmiPortRange(componentsConfig.getUsm().getPortRange());
@@ -268,8 +268,8 @@ public final class Utils {
 		} else {
 			details.setConnectedToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
 		}
-		details.setGsaCommandlineArgs('"' + gridCommandBuilder.getAgentCommandlineArgs(componentsConfig.getAgent(),
-				details.isManagement() ? MANAGEMENT_ZONE : details.getZones()) + '"');
+		details.setGsaCommandlineArgs(gridCommandBuilder.getAgentCommandlineArgs(componentsConfig.getAgent(),
+				details.isManagement() ? MANAGEMENT_ZONE : details.getZones()));
 
 		// Add all template custom data fields starting with 'installer.' to the
 		// installation details
