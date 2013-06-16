@@ -24,17 +24,11 @@ import org.openspaces.admin.gsc.GridServiceContainer;
  *
  * container - the GridServiceContainer this matcher will match logs from. <br></br>
  * deploymentId - the operation if this matcher was deidcated to. <br></br>
- * isUndeploy - whther or not the operation was a deploy or undeploy operation.
- * this is important since we need to create different matchers for different operation types<br></br>
  */
 public class LogEntryMatcherProviderKey {
 
     private GridServiceContainer container;
     private String deploymentId;
-
-    public GridServiceContainer getContainer() {
-        return container;
-    }
 
     public void setContainer(final GridServiceContainer container) {
         this.container = container;
@@ -59,14 +53,9 @@ public class LogEntryMatcherProviderKey {
 
         LogEntryMatcherProviderKey that = (LogEntryMatcherProviderKey) o;
 
-        if (!container.getUid().equals(that.container.getUid())) {
-            return false;
-        }
-        if (!deploymentId.equals(that.deploymentId)) {
-            return false;
-        }
+        return container.getUid().equals(that.container.getUid())
+                && deploymentId.equals(that.deploymentId);
 
-        return true;
     }
 
     @Override

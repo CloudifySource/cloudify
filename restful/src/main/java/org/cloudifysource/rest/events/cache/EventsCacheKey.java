@@ -22,18 +22,18 @@ package org.cloudifysource.rest.events.cache;
  * <br/><br/>
  *
  * Key for the events cache. containing just the deployment id for now.
- * The deployment id is a unique string identifying the deployment, contained at installation time.
+ * The deployment id is a unique string identifying the deployment, retained at installation time.
  */
 public class EventsCacheKey {
 
-    private String operationId;
+    private String deploymentId;
 
     public EventsCacheKey(final String deploymentId) {
-        this.operationId = deploymentId;
+        this.deploymentId = deploymentId;
     }
 
-    public String getOperationId() {
-        return operationId;
+    public String getDeploymentId() {
+        return deploymentId;
     }
 
     @Override
@@ -47,20 +47,17 @@ public class EventsCacheKey {
 
         EventsCacheKey that = (EventsCacheKey) o;
 
-        if (!operationId.equals(that.operationId)) {
-            return false;
-        }
+        return deploymentId.equals(that.deploymentId);
 
-        return true;
     }
 
     @Override
     public int hashCode() {
-        return operationId.hashCode();
+        return deploymentId.hashCode();
     }
 
     @Override
     public String toString() {
-        return "EventsCacheKey{" + "operationId='" + operationId + '\'' + '}';
+        return "EventsCacheKey{" + "deploymentId='" + deploymentId + '\'' + '}';
     }
 }

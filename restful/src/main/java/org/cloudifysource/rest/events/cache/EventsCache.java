@@ -49,14 +49,24 @@ public class EventsCache {
 
     private final LoadingCache<EventsCacheKey, EventsCacheValue> eventsLoadingCache;
     private final LogEntryMatcherProvider matcherProvider;
+    private int cacheExpirationPeriod = CACHE_EXPIRATION_MINUTES;
+    private TimeUnit cacheExpirationTimeunit = TimeUnit.MINUTES;
+
+    public void setCacheExpirationPeriod(int cacheExpirationPeriod) {
+        this.cacheExpirationPeriod = cacheExpirationPeriod;
+    }
+
+    public void setCacheExpirationTimeunit(TimeUnit cacheExpirationTimeunit) {
+        this.cacheExpirationTimeunit = cacheExpirationTimeunit;
+    }
 
     public EventsCache(final Admin admin) {
 
-        final EventsCacheLoader loader = new EventsCacheLoader(admin);
+        final EventsCacheLoader loader = new EventsCacheLoader(new AdminBasedGridServiceContainerProvider(admin));
 
         this.matcherProvider = loader.getMatcherProvider();
         this.eventsLoadingCache = CacheBuilder.newBuilder()
-                .expireAfterAccess(CACHE_EXPIRATION_MINUTES, TimeUnit.MINUTES)
+                .expireAfterAccess(cacheExpirationPeriod, cacheExpirationTimeunit)
                 .removalListener(new RemovalListener<Object, Object>() {
 
                     @Override

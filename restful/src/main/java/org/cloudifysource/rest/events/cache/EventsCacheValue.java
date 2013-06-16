@@ -39,10 +39,6 @@ public class EventsCacheValue {
         return processingUnits;
     }
 
-    public void setProcessingUnits(Set<ProcessingUnit> processingUnits) {
-        this.processingUnits = processingUnits;
-    }
-
     public DeploymentEvents getEvents() {
         return events;
     }

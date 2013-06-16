@@ -24,9 +24,7 @@ import org.cloudifysource.rest.events.EventsUtils;
 import org.cloudifysource.rest.events.LogEntryMatcherProvider;
 import org.cloudifysource.rest.events.LogEntryMatcherProviderKey;
 import org.cloudifysource.rest.exceptions.ResourceNotFoundException;
-import org.openspaces.admin.Admin;
 import org.openspaces.admin.gsc.GridServiceContainer;
-import org.openspaces.admin.pu.ProcessingUnit;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -52,12 +50,12 @@ public class EventsCacheLoader extends CacheLoader<EventsCacheKey, EventsCacheVa
     private static final Logger logger = Logger.getLogger(EventsCacheLoader.class.getName());
 
     private final LogEntryMatcherProvider matcherProvider;
-    private final Admin admin;
+    private final GridServiceContainerProvider containerProvider;
 
-    public EventsCacheLoader(final Admin admin) {
+    public EventsCacheLoader(final GridServiceContainerProvider containerProvider) {
 
-        this.admin = admin;
         this.matcherProvider = new LogEntryMatcherProvider();
+        this.containerProvider = containerProvider;
     }
 
     @Override
@@ -70,14 +68,14 @@ public class EventsCacheLoader extends CacheLoader<EventsCacheKey, EventsCacheVa
 
         // initial load. no events are present in the cache for this deployment.
         // iterate over all container and retrieve logs from logs cache.
-        Set<GridServiceContainer> containersForDeployment = EventsUtils.getContainersForDeployment(
-                key.getOperationId(), admin);
+        Set<GridServiceContainer> containersForDeployment = containerProvider.getContainersForDeployment(
+                key.getDeploymentId());
 
         if (containersForDeployment == null) {
-            throw new ResourceNotFoundException("Deployment with id " + key.getOperationId());
+            throw new ResourceNotFoundException("Deployment with id " + key.getDeploymentId());
         }
 
-        int index = 0;
+        int index = -1;
         for (GridServiceContainer container : containersForDeployment) {
 
             LogEntryMatcherProviderKey logEntryMatcherProviderKey = createKey(container, key);
@@ -87,7 +85,7 @@ public class EventsCacheLoader extends CacheLoader<EventsCacheKey, EventsCacheVa
                 if (logEntry.isLog()) {
                     DeploymentEvent event = EventsUtils.logToEvent(logEntry,
                             logEntries.getHostName(), logEntries.getHostAddress());
-                    event.setIndex(index++);
+                    event.setIndex(++index);
                     events.getEvents().add(event);
                 }
             }
@@ -110,16 +108,16 @@ public class EventsCacheLoader extends CacheLoader<EventsCacheKey, EventsCacheVa
 
         // pickup any new containers along with the old ones
         Set<GridServiceContainer> containersForDeployment = new HashSet<GridServiceContainer>();
-        for (ProcessingUnit pu : oldValue.getProcessingUnits()) {
-            containersForDeployment.addAll(EventsUtils.getContainersForProcessingUnit(pu));
-        }
+
+        containersForDeployment.addAll(containerProvider.getContainersForDeployment(key.getDeploymentId()));
+
         if (containersForDeployment.isEmpty()) {
         	// get containers by the deployment id
-        	containersForDeployment = EventsUtils.getContainersForDeployment(
-                    key.getOperationId(), admin);
+        	containersForDeployment = containerProvider.getContainersForDeployment(
+                    key.getDeploymentId());
         }
         if (!containersForDeployment.isEmpty()) {
-            int index = oldValue.getLastEventIndex();
+            int index = oldValue.getLastEventIndex() + 1;
             for (GridServiceContainer container : containersForDeployment) {
 
                 // this will give us just the new logs.
@@ -139,7 +137,7 @@ public class EventsCacheLoader extends CacheLoader<EventsCacheKey, EventsCacheVa
 
             // update refresh time.
             oldValue.setLastRefreshedTimestamp(System.currentTimeMillis());
-            oldValue.setLastEventIndex(index);
+            oldValue.setLastEventIndex(index - 1);
         }
         return Futures.immediateFuture(oldValue);
     }
@@ -151,7 +149,7 @@ public class EventsCacheLoader extends CacheLoader<EventsCacheKey, EventsCacheVa
     private LogEntryMatcherProviderKey createKey(final GridServiceContainer container,
                                                  final EventsCacheKey key) {
         LogEntryMatcherProviderKey logEntryMatcherProviderKey = new LogEntryMatcherProviderKey();
-        logEntryMatcherProviderKey.setDeploymentId(key.getOperationId());
+        logEntryMatcherProviderKey.setDeploymentId(key.getDeploymentId());
         logEntryMatcherProviderKey.setContainer(container);
         return logEntryMatcherProviderKey;
     }

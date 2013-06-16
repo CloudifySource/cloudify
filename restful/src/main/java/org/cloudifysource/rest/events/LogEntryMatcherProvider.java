@@ -55,7 +55,7 @@ public class LogEntryMatcherProvider {
 
                         // continuousMatcher is always the one with the USM event logger prefix.
                         LogEntryMatcher continuousMatcher = EventsUtils.createUSMEventLoggerMatcher();
-                        LogEntryMatcher initialMatcher = EventsUtils.createUSMEventLoggerMatcher();;
+                        LogEntryMatcher initialMatcher = EventsUtils.createUSMEventLoggerMatcher();
                         return new ContinuousLogEntryMatcher(initialMatcher, continuousMatcher);
                     }
                 });
@@ -66,11 +66,11 @@ public class LogEntryMatcherProvider {
      * @param key - the specified key.
      */
     public void removeAll(final EventsCacheKey key) {
-        System.out.println(EventsUtils.getThreadId() + "Removing matcher for key " + key);
+        logger.fine(EventsUtils.getThreadId() + "Removing matcher for key " + key);
 
         for (LogEntryMatcherProviderKey logMatcherKey
                 : new HashSet<LogEntryMatcherProviderKey>(matcherCache.asMap().keySet())) {
-            if (logMatcherKey.getDeploymentId().equals(key.getOperationId())) {
+            if (logMatcherKey.getDeploymentId().equals(key.getDeploymentId())) {
                 matcherCache.asMap().remove(logMatcherKey);
             }
         }
