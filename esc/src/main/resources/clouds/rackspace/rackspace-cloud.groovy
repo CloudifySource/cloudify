@@ -110,9 +110,7 @@ cloud {
 						// Optional. Overrides to default cloud driver behavior.
 						// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
 						overrides ([
-							"jclouds.keystone.credential-type":"RAX-KSKEY:apiKeyCredentials",
-							"openstack.endpoint":openstackEndpoint + tenantId,
-							"openstack.identity.endpoint":openstackIdentityEndpoint
+							"jclouds.keystone.credential-type":"RAX-KSKEY:apiKeyCredentials"
 						])
 						
 						// enable sudo.
