@@ -2383,7 +2383,7 @@ public class ServiceController implements ServiceDetailsProvider {
 				cloudExternalProcessMemoryInMB = IsolationUtils.getInstanceMemoryMB(service);
 				long usmRequiredMemoryInMB = MemoryUnit.toMegaBytes(
 						cloud.getConfiguration().getComponents().getUsm().getMaxMemory());
-				if (usmRequiredMemoryInMB >= cloudExternalProcessMemoryInMB) {
+				if (usmRequiredMemoryInMB > cloudExternalProcessMemoryInMB) {
 					throw new IllegalArgumentException("the usm required memory " 
 							+ usmRequiredMemoryInMB
 							+ " can not be more then the total memory defined for a service instance "
