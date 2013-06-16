@@ -452,11 +452,11 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 
 		final ServiceDetails details = alldetails.get("jee-container");
 		final String host = details.getAttributes().get("host").toString();
-		final String port = details.getAttributes().get("port").toString();
+		final int port = Integer.parseInt(details.getAttributes().get("port").toString());
 		final String ctx = details.getAttributes().get("context-path").toString();
-		final String url = ShellUtils.getRestProtocol(isSecureConnection) + "://" + host + ":" + port + ctx;
+
 		try {
-			return new URL(url);
+			return new URL(ShellUtils.getRestProtocol(isSecureConnection), host, port, ctx);
 		} catch (final MalformedURLException e) {
 			// this is a bug since we formed the URL correctly
 			throw new IllegalStateException(e);
