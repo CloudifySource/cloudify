@@ -326,7 +326,7 @@ public class AgentlessInstaller {
 			builder.exportVar(CloudifyConstants.KEYSTORE_PASSWORD_ENV_VAR, details.getKeystorePassword());
 		}
 
-		final String fileContents = builder.toString();
+		final String fileContents = builder.build().toString();
 
 		final File tempFolder = Utils.createTempFolder();
 		final File tempFile = new File(tempFolder, builder.getEnvironmentFileName());

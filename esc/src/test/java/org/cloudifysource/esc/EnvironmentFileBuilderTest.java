@@ -48,7 +48,7 @@ public class EnvironmentFileBuilderTest {
 		linuxEnvFileBuilder.exportVar(INTERNAL_ENV_VAR_1, INTERNAL_ENV_VALUE_1);
 		//add a value to an env var that is contained in the external environment var map.
 		linuxEnvFileBuilder.exportVar(EXTERNAL_ENV_VAR_1, TESTING_VALUE);
-		String environment = linuxEnvFileBuilder.toString();
+		String environment = linuxEnvFileBuilder.build().toString();
 		
 		assertLinuxValidEnvVarString(environment);
 		
@@ -63,7 +63,7 @@ public class EnvironmentFileBuilderTest {
 		windowsEnvFileBuilder.exportVar(INTERNAL_ENV_VAR_1, INTERNAL_ENV_VALUE_1);
 		//add a value to an env var that is contained in the external environment var map.
 		windowsEnvFileBuilder.exportVar(EXTERNAL_ENV_VAR_1, TESTING_VALUE);
-		String environment = windowsEnvFileBuilder.toString();
+		String environment = windowsEnvFileBuilder.build().toString();
 		
 		assertWindowsValidEnvVarString(environment);
 		

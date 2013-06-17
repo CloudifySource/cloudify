@@ -164,17 +164,28 @@ public class EnvironmentFileBuilder {
 		if (append) {
 			actualValue = appendValue(name, value);
 		}
-		
-		final String externalValue = externalEnvVars.get(name);
-		if (!StringUtils.isEmpty(externalValue)) {
-			actualValue = appendExternalValue(name, actualValue, externalValue);
-			appendedExternalEnvVars.add(name);
-		}
+		// appends the external value, if exists, to the end of the env var.
+		// External values override any values that were added via exportVar.
+		actualValue = appendExternalValue(name, actualValue);
 		
 		return addValue(name, actualValue);
 	}
 
-	EnvironmentFileBuilder addValue(final String name, final String value) {
+	private String appendExternalValue(final String name, final String actualValue) {
+		String externalValue = externalEnvVars.get(name);
+		String finalValue = actualValue;
+		if (!StringUtils.isEmpty(externalValue)) {
+			// remove surrounding quotes
+			if (externalValue.startsWith("\'") && externalValue.endsWith("\'")) {
+				externalValue = externalValue.substring(1, externalValue.length() - 1);
+			}
+			finalValue = actualValue + ' ' + externalValue;
+		}
+		appendedExternalEnvVars.add(name);
+		return finalValue;
+	}
+
+	private EnvironmentFileBuilder addValue(final String name, final String value) {
 		String actualValue = value;
 		switch (this.scriptLanguage) {
 		case LINUX_SHELL:
@@ -208,19 +219,6 @@ public class EnvironmentFileBuilder {
 		return this;
 	}
 
-	private String appendExternalValue(final String name, final String value, final String extValue) {
-		String finalValue = value;
-		String externalValue = externalEnvVars.get(name);
-		if (!StringUtils.isEmpty(externalValue)) {
-			// remove surrounding quotes
-			if (externalValue.startsWith("\'") && externalValue.endsWith("\'")) {
-				externalValue = externalValue.substring(1, externalValue.length() - 1);
-			}
-			finalValue = value + ' ' + externalValue;
-		}
-		return finalValue;
-	}
-
 	private String appendValue(final String name, final String value) {
 		switch (this.scriptLanguage) {
 		case LINUX_SHELL:
@@ -234,15 +232,24 @@ public class EnvironmentFileBuilder {
 		}
 
 	}
+	
+	public EnvironmentFileBuilder build() {
+		//add only environment vars that were not appended to existing vars.
+		for (Map.Entry<String, String> entry : externalEnvVars.entrySet()) { 
+			String name = entry.getKey();
+			if (!appendedExternalEnvVars.contains(name)) {
+				String value = entry.getValue();
+				if (!StringUtils.isEmpty(value)) {
+					addValue(name, value);
+				}
+				this.appendedExternalEnvVars.add(name);
+			}
+		}
+		return this;
+	}
 
 	@Override
 	public String toString() {
-		//add only environment vars that were not appended to existing vars.
-		for (Map.Entry<String, String> entry : externalEnvVars.entrySet()) { 
-			if (!appendedExternalEnvVars.contains(entry.getKey())) {
-				addValue(entry.getKey(), entry.getValue());
-			}
-		}
 		return sb.toString();
 	}
 
