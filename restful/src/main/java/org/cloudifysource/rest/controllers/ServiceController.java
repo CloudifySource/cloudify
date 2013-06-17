@@ -454,7 +454,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	/**
-	 * Get the dump of all the processing units.
+	 * Get the dump of all the services.
 	 *
 	 * @param fileSizeLimit
 	 *            .
@@ -1366,7 +1366,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *            map that holds a timeout value for this action.
 	 * @return success status map if succeeded, else returns an error status.
 	 * @throws RestErrorException
-	 *             When service processing unit not found or failed to add the instance.
+	 *             When service not found or failed to add the instance.
 	 */
 	@JsonResponseExample(status = "success")
 	@JsonRequestExample(requestBody = "{\"timeout\":5 , \"authGroups\":\"myAuthGroups\"}")
@@ -1417,7 +1417,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 *
-	 * Decrements the Processing unit instance number of the specified service.
+	 * Decrements the service instance number of the specified service.
 	 *
 	 * @param applicationName
 	 *            The application name where the service resides.
