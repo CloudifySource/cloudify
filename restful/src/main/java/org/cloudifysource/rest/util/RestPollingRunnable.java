@@ -19,11 +19,14 @@ import static com.gigaspaces.log.LogEntryMatchers.regex;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
@@ -109,6 +112,8 @@ public class RestPollingRunnable implements Runnable {
 	private FutureTask<Boolean> undeployTask;
 
 	private Exception deploymentExecutionException;
+	
+	private Set<String> failedServiceInstallationList = new HashSet<String>();
 
 	private static final Logger logger = Logger
 			.getLogger(RestPollingRunnable.class.getName());
@@ -298,6 +303,14 @@ public class RestPollingRunnable implements Runnable {
 						"Polling task ended unexpectedly. Reason: "
 								+ e.getMessage(), e);
 				setExecutionException(e);
+			} else if (!this.failedServiceInstallationList.isEmpty()) {
+				// Some service installations finished with errors.
+				String[] failedServiceNames = this.failedServiceInstallationList.toArray(
+						new String[failedServiceInstallationList.size()]);
+				final Exception ex = new ExecutionException(
+						"Errors occurred during installation of services: " 
+						+ Arrays.toString(failedServiceNames), e);
+				setExecutionException(ex);
 			} else {
 				logger.log(Level.INFO, "Polling task ended successfully.");
 			}
@@ -343,6 +356,9 @@ public class RestPollingRunnable implements Runnable {
 			removeEndedServicesFromPollingList(serviceName,
 					plannedNumberOfInstances, numberOfServiceInstances,
 					numberOfFailedInstances);
+			if (numberOfFailedInstances != 0) {
+				this.failedServiceInstallationList.add(serviceName);
+			}
 		}
 	}
 
