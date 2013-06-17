@@ -33,6 +33,8 @@
 				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS', 'ROLE_VIEWERS')" />
 			<sec:intercept-url pattern="/attributes/**" requires-channel="https"
 				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS')" />
+			<sec:intercept-url pattern="/**/deployments/testrest" requires-channel="https" 
+				access="permitAll" />
 			<sec:intercept-url pattern="/**/deployments/**" requires-channel="https"
 				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS')" />	
 			<sec:intercept-url pattern="/**" requires-channel="https" access="isFullyAuthenticated()" />
