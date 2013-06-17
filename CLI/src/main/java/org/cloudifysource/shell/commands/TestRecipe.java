@@ -483,7 +483,7 @@ public class TestRecipe extends AbstractGSCommand {
 		final String gsHome = Environment.getHomeDirectory();
 		final String[] commandParams =
 				{ "-Dcom.gs.home=" + gsHome, "-Dorg.hyperic.sigar.path=" + gsHome + "/lib/platform/sigar",
-						"-Dcom.gs.usm.RecipeShutdownTimeout=" + timeout,
+						"-D" + CloudifyConstants.TEST_RECIPE_TIMEOUT_SYSPROP + "=" + timeout,
 						IntegratedProcessingUnitContainer.class.getName(), "-cluster", "id=1", "total_members=1" };
 		final CommandLine cmdLine = new CommandLine(javaPath);
 

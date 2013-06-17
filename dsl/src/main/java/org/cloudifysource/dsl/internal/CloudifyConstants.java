@@ -413,6 +413,8 @@ public final class CloudifyConstants {
     // uninstall-service constants
     public static final String UNDEPLOYED_SUCCESSFULLY_EVENT = "Internal event - undeployed successfully";
 
+    // system property passed in test-recipe command
+    public static final String TEST_RECIPE_TIMEOUT_SYSPROP = "com.gs.usm.RecipeShutdownTimeout";
     // CHECKSTYLE:ON
 }
 

@@ -362,10 +362,16 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 			// }
 
 			if (space == null) {
-				throw new USMException(
-						"Failed to locate management space - USM initialization cannot continue");
+				// this is only valid in test-recipe
+				final String testRecipeIndicator = System.getProperty(CloudifyConstants.TEST_RECIPE_TIMEOUT_SYSPROP);
+				if(StringUtils.isBlank(testRecipeIndicator)) {
+					throw new USMException(
+							"Failed to locate management space - USM initialization cannot continue");
+				}
+			} else {
+				this.managementSpace = space.getGigaSpace();
 			}
-			this.managementSpace = space.getGigaSpace();
+			
 
 		}
 	}
@@ -682,7 +688,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	private void checkForRecipeTestEnvironment() {
 
 		final String timeoutValue = System
-				.getProperty("com.gs.usm.RecipeShutdownTimeout");
+				.getProperty(CloudifyConstants.TEST_RECIPE_TIMEOUT_SYSPROP);
 		if (timeoutValue == null) {
 			return;
 		}
