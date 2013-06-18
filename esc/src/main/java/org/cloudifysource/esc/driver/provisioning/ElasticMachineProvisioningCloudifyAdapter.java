@@ -1031,7 +1031,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			cloudifyProvisioning.onServiceUninstalled(duration, timeUnit);
 		}
 		catch (Exception e) {
-			throw new ElasticMachineProvisioningException("Failed to cleanup cloud",e);
+			throw new ElasticMachineProvisioningException("Failed to cleanup machine resources: " + e.getMessage(), e);
 		}
 	}
 }
