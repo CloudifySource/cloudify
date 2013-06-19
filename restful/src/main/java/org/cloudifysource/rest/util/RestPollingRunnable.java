@@ -356,7 +356,7 @@ public class RestPollingRunnable implements Runnable {
 			removeEndedServicesFromPollingList(serviceName,
 					plannedNumberOfInstances, numberOfServiceInstances,
 					numberOfFailedInstances);
-			if (numberOfFailedInstances != 0) {
+			if (numberOfFailedInstances != 0 && !isUninstall) {
 				this.failedServiceInstallationList.add(serviceName);
 			}
 		}
