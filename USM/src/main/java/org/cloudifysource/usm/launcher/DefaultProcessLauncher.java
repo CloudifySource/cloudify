@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -40,6 +40,7 @@ import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.LifecycleEvents;
 import org.cloudifysource.dsl.entry.ClosureExecutableEntry;
@@ -68,9 +69,9 @@ import com.j_spaces.kernel.PlatformVersion;
 /*************
  * The default process launcher implementation, used by the USM to launch external processes. Includes OS specific code
  * to modify a command line according to standard command line conventions.
- *
+ * 
  * @author barakme
- *
+ * 
  */
 public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware, BeanLevelPropertiesAware {
 
@@ -130,9 +131,9 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 	/**********
 	 * An interface for a Filename filter implementation that looks for alternative executables.
-	 *
+	 * 
 	 * @author barakme
-	 *
+	 * 
 	 */
 	private interface AlternativeExecutableFileNameFilter extends FilenameFilter {
 
@@ -845,11 +846,16 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 		} else {
 
-
 			modifyCommandLine(modifiedCommandLineParams, workingDir, outputFile, errorFile, event);
 		}
 
-
+		// JDK7 on Windows Specific modifications
+		// See CLOUDIFY-1787 for more details.
+		File tempBatchFile = null;
+		if (shouldModifyCommandLineForJDK7(outputFile)) {
+			tempBatchFile = createTempFileForJDK7(workingDir);
+			modifyCommandLineForJDK7ProcessBuilder(modifiedCommandLineParams, outputFile, workingDir, tempBatchFile);
+		}
 
 		final String modifiedCommandLine =
 				org.springframework.util.StringUtils.collectionToDelimitedString(modifiedCommandLineParams,
@@ -893,6 +899,48 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		throw ex;
 	}
 
+	private File createTempFileForJDK7(File workingDir) throws USMException {
+		try {
+			final File file = File.createTempFile("ProcessLauncherScript", ".bat", workingDir);
+			file.deleteOnExit();
+			return file;
+		} catch (IOException e) {
+			throw new USMException("Failed to create temporary batch file for command execution. Error was: "
+					+ e.getMessage(), e);
+		}
+	}
+
+	private void modifyCommandLineForJDK7ProcessBuilder(
+			List<String> modifiedCommandLineParams, File outputFile, File workingDir, File tempFile) {
+
+		// write the command to a batch file
+		final String actualCommand = StringUtils.join(modifiedCommandLineParams, " ");
+		try {
+
+			FileUtils.writeStringToFile(tempFile, "@" + actualCommand);
+
+			modifiedCommandLineParams.clear();
+			modifiedCommandLineParams.addAll(Arrays.asList(WINDOWS_BATCH_FILE_PREFIX_PARAMS));
+			modifiedCommandLineParams.add(tempFile.getAbsolutePath());
+		} catch (IOException e) {
+			throw new IllegalStateException("Unable to create a temp file for script launching: " + e.getMessage(), e);
+		}
+
+	}
+
+	
+	private boolean shouldModifyCommandLineForJDK7(File outputFile) {
+		if (!ServiceUtils.isWindows()) {
+			// issue is only relevant on windows.
+			return false;
+		}
+
+		if (outputFile == null) {
+			// if redirect to file is not used, there is no need to change anything.
+			return false;
+		}
+		return true;
+	}
 	private void appendMessageToFile(final String msg, final File file)
 			throws IOException {
 		FileWriter writer = null;
@@ -1017,7 +1065,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	 * Converts the specified environment variables to system properties. Each environment variable is expected to have
 	 * this value pattern: -DsystemPropertyName=systemPropertyValue or this: -DsystemPropertyName=systemPropertyValue
 	 * -DAnotherSystemPropertyName=anotherSystemPropertyValue
-	 *
+	 * 
 	 * @param envVarsList
 	 * @return
 	 */

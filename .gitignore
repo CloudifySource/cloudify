@@ -164,3 +164,6 @@ cloudify/.idea/*
 /cloudify/tmp
 /cloudify/xap.files.tmp.dir
 target
+.settings
+.classpath
+.project
