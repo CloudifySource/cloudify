@@ -685,8 +685,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		final Set<CustomNode> managementNodes = new HashSet<CustomNode>();
 
 		for (final CustomNode node : allNodesByTemplateName) {
-			final String ip = node.getPrivateIP();
-			if (ips.contains(ip)) {
+			if (ips.contains(node.getPrivateIP()) || ips.contains(node.getHostName())) {
 				managementNodes.add(node);
 			}
 		}
