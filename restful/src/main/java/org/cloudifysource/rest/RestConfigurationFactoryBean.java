@@ -66,6 +66,7 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
         Cloud cloud = readCloud();
         config.setAdmin(admin);
         if (cloud != null) {
+        	config.setCloud(cloud);
             initCloudTemplates();
             CloudCompute cloudCompute = cloud.getCloudCompute();
             if (cloudCompute.getTemplates().isEmpty()) {
@@ -78,7 +79,6 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
             String managementTemplateName = cloud.getConfiguration().getManagementMachineTemplate();
             config.setManagementTemplateName(managementTemplateName);
             config.setManagementTemplate(cloudCompute.getTemplates().get(managementTemplateName));
-            config.setCloud(cloud);
             config.setTemporaryFolderPath(CloudifyConstants.REST_FOLDER);
         } else {
             logger.info("Service Controller is running in local cloud mode");
