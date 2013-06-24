@@ -13,6 +13,7 @@
 package org.cloudifysource.shell.commands;
 
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.felix.gogo.commands.Action;
@@ -20,6 +21,7 @@ import org.apache.felix.gogo.commands.Option;
 import org.apache.felix.service.command.CommandSession;
 import org.apache.karaf.shell.console.CloseShellException;
 import org.cloudifysource.restclient.exceptions.RestClientException;
+import org.cloudifysource.restclient.exceptions.RestClientHttpException;
 import org.cloudifysource.restclient.utils.NewRestClientUtils;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
@@ -31,6 +33,7 @@ import org.cloudifysource.shell.exceptions.handlers.CLIStatusExceptionHandler;
 import org.cloudifysource.shell.exceptions.handlers.ClientSideExceptionHandler;
 import org.cloudifysource.shell.exceptions.handlers.InterruptedExceptionHandler;
 import org.cloudifysource.shell.exceptions.handlers.RestClientExceptionHandler;
+import org.cloudifysource.shell.exceptions.handlers.RestClientHttpExceptionHandler;
 import org.cloudifysource.shell.exceptions.handlers.ThrowableHandler;
 import org.fusesource.jansi.Ansi.Color;
 
@@ -86,9 +89,15 @@ public abstract class AbstractGSCommand implements Action {
             // if so, execute this command using the new rest client.
             if (this instanceof NewRestClientCommand 
             		&& NewRestClientUtils.isNewRestClientEnabled()) {
-            	 return ((NewRestClientCommand) this).doExecuteNewRestClient();
+            	if (logger.isLoggable(Level.FINE)) {
+            		logger.fine("executing " + this.getClass().getName() + " command using the new rest client.");
+            	}
+            	return ((NewRestClientCommand) this).doExecuteNewRestClient();
             }
             // else, execute this command using the old rest client.
+        	if (logger.isLoggable(Level.FINE)) {
+        		logger.fine("executing " + this.getClass().getName() + " command using the old rest client.");
+        	}
             return doExecute();
         } catch (final CLIStatusException e) {
             handle(new CLIStatusExceptionHandler(e), e);
