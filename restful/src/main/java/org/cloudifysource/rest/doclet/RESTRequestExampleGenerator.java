@@ -16,9 +16,11 @@
  *******************************************************************************/
 package org.cloudifysource.rest.doclet;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang.ClassUtils;
 import org.cloudifysource.dsl.rest.request.InstallApplicationRequest;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
 import org.cloudifysource.dsl.rest.request.SetApplicationAttributesRequest;
@@ -26,8 +28,12 @@ import org.cloudifysource.dsl.rest.request.SetServiceAttributesRequest;
 import org.cloudifysource.dsl.rest.request.SetServiceInstanceAttributesRequest;
 import org.cloudifysource.dsl.rest.request.SetServiceInstancesRequest;
 import org.cloudifysource.dsl.rest.request.UpdateApplicationAttributeRequest;
-import org.cloudifysource.restDoclet.exampleGenerators.IDocExampleGenerator;
+import org.cloudifysource.restDoclet.exampleGenerators.IDocRequestExampleGenerator;
+import org.cloudifysource.restDoclet.exampleGenerators.PrimitiveExampleValues;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.sun.javadoc.Type;
 
 /**
  * 
@@ -35,15 +41,24 @@ import org.codehaus.jackson.map.ObjectMapper;
  * @since 2.6.0
  *
  */
-public class RESTRequestExampleGenerator implements IDocExampleGenerator {
+public class RESTRequestExampleGenerator implements IDocRequestExampleGenerator {
 	private static final Logger logger = Logger.getLogger(RESTRequestExampleGenerator.class.getName());
-
+	
 	@Override
-	public String generateExample(final Class<?> clazz) throws Exception {
-		Object requestBodyParam = getRequestExample(clazz);
-		return new ObjectMapper().writeValueAsString(requestBodyParam);
+	public String generateRequestExample(final List<Type> parameterTypes) 
+			throws Exception {
+		String result = "";
+		for (Type type : parameterTypes) {			
+			Class<?> clazz = ClassUtils.getClass(type.qualifiedTypeName());
+			Object requestBodyParam = getRequestExample(clazz);
+			String jsonStr = new ObjectMapper().writeValueAsString(requestBodyParam);
+			result += jsonStr;
+			result += System.getProperty("line.separator");
+		}
+		return result;
+		
 	}
-
+	
 	private Object getRequestExample(final Class<?> clazz) 
 			throws InstantiationException, IllegalAccessException {
 		Object example = null;
@@ -93,15 +108,24 @@ public class RESTRequestExampleGenerator implements IDocExampleGenerator {
 			setServiceInstancesRequest.setLocationAware(false);
 			setServiceInstancesRequest.setTimeout(RESTExamples.getTimeoutMinutes());
 			example = setServiceInstancesRequest;
+		} else if (MultipartFile.class.isAssignableFrom(clazz)) {
+			example = "file's content";
+		} else if (clazz.isPrimitive()) {
+			example = PrimitiveExampleValues.getValue(clazz);
+		} else if (clazz.equals(String.class)) {
+			example = "string";
 		} else {
-			String msg = "Missing instantiation of class " + clazz + " for generating request example.";
-			logger.warning(msg);
-			throw new IllegalArgumentException(msg);
-//			logger.warning("There is not special treatment for class [" + clazz.getName() 
-//					+ "], creating default example.");
-//			example = clazz.newInstance();
+			String className = clazz.getName();
+			logger.warning("Missing custom instantiation of class " + className 
+					+ " for generating request example, using newInstance instead.");
+			try {
+				return clazz.newInstance();
+			} catch (Exception e) {
+				String errMsg = "failed to instantiate " + className;
+				logger.warning(errMsg);
+				throw new IllegalArgumentException(errMsg);
+			}
 		}
 		return example;
 	}
-
 }

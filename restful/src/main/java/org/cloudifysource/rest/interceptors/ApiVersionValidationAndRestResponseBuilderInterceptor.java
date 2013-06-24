@@ -1,3 +1,18 @@
+/*******************************************************************************
+ * Copyright (c) 2013 GigaSpaces Technologies Ltd. All rights reserved
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
 package org.cloudifysource.rest.interceptors;
 
 import java.util.Locale;
@@ -7,6 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.commons.collections.MapUtils;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.rest.response.Response;
 import org.cloudifysource.rest.controllers.RestErrorException;
@@ -30,6 +46,7 @@ import com.j_spaces.kernel.PlatformVersion;
  */
 public class ApiVersionValidationAndRestResponseBuilderInterceptor extends HandlerInterceptorAdapter {
 
+	
     private static final String CURRENT_API_VERSION = PlatformVersion.getVersion();
 
     @Autowired(required = true)
@@ -60,8 +77,8 @@ public class ApiVersionValidationAndRestResponseBuilderInterceptor extends Handl
     public void postHandle(final HttpServletRequest request,
                            final HttpServletResponse response, final Object handler,
                            final ModelAndView modelAndView) throws Exception {
-
-        Object model = filterModel(modelAndView.getModel());
+    	
+        Object model = filterModel(modelAndView);
         modelAndView.clear();
         response.setContentType(MediaType.APPLICATION_JSON);
         if (model instanceof Response<?>) {
@@ -80,12 +97,18 @@ public class ApiVersionValidationAndRestResponseBuilderInterceptor extends Handl
             response.getOutputStream().write(responseBodyStr.getBytes());
             response.getOutputStream().close();
         }
+
     }
 
     // returns the actual model returned by the contorller.
     // this implementation assumes the model consists of just one object and a BindingResult.
     // TODO eli - check how to make a more robust filter.
-    private Object filterModel(final Map<String, Object> model) {
+    private Object filterModel(final ModelAndView modelAndView) {
+    	String viewName = modelAndView.getViewName();
+    	Map<String, Object> model = modelAndView.getModel();
+    	if (MapUtils.isEmpty(model)) {
+    		return viewName;
+    	}
         for (Map.Entry<String, Object> entry : model.entrySet()) {
             Object value = entry.getValue();
             if (!(value instanceof BindingResult)) {

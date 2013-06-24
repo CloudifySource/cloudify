@@ -16,8 +16,11 @@
  *******************************************************************************/
 package org.cloudifysource.rest.doclet;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang.ClassUtils;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.rest.response.ApplicationDescription;
 import org.cloudifysource.dsl.rest.response.DeleteApplicationAttributeResponse;
@@ -39,8 +42,12 @@ import org.cloudifysource.dsl.rest.response.UninstallApplicationResponse;
 import org.cloudifysource.dsl.rest.response.UninstallServiceResponse;
 import org.cloudifysource.dsl.rest.response.UpdateApplicationAttributeResponse;
 import org.cloudifysource.dsl.rest.response.UploadResponse;
-import org.cloudifysource.restDoclet.exampleGenerators.IDocExampleGenerator;
+import org.cloudifysource.restDoclet.exampleGenerators.IDocResponseExampleGenerator;
+import org.cloudifysource.restDoclet.exampleGenerators.PrimitiveExampleValues;
 import org.codehaus.jackson.map.ObjectMapper;
+
+import com.sun.javadoc.ParameterizedType;
+import com.sun.javadoc.Type;
 
 /**
  * 
@@ -48,15 +55,15 @@ import org.codehaus.jackson.map.ObjectMapper;
  * @since 2.6.0
  *
  */
-public class RESTResposneExampleGenerator implements IDocExampleGenerator {
+public class RESTResposneExampleGenerator implements IDocResponseExampleGenerator {
 
 	private static final Logger logger = Logger.getLogger(RESTResposneExampleGenerator.class.getName());
 
 	@Override
-	public String generateExample(final Class<?> clazz) throws Exception {	
-		Object response = getExample(clazz);
+	public String generateResponseExample(final Type type) throws Exception {	
+
 		Response<Object> responseWrapper = new Response<Object>();
-		responseWrapper.setResponse(response);
+		responseWrapper.setResponse(getExample(type));
 		responseWrapper.setStatus("Success");
 		responseWrapper.setMessage("Operation completed successfully");
 		responseWrapper.setMessageId(CloudifyMessageKeys.OPERATION_SUCCESSFULL.getName());
@@ -64,9 +71,10 @@ public class RESTResposneExampleGenerator implements IDocExampleGenerator {
 		return new ObjectMapper().writeValueAsString(responseWrapper);
 	}
 
-	private Object getExample(final Class<?> clazz) 
-			throws InstantiationException, IllegalAccessException {
+	private Object getExample(final Type type) 
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		Object example;
+		Class<?> clazz = ClassUtils.getClass(type.qualifiedTypeName());
 
 		// create the example instance 
 		if (DeleteApplicationAttributeResponse.class.equals(clazz)) {
@@ -134,7 +142,7 @@ public class RESTResposneExampleGenerator implements IDocExampleGenerator {
 			applicationDescription.setAuthGroups(RESTExamples.getAuthGroups());
 			applicationDescription.setServicesDescription(RESTExamples.getServicesDescription());
 			example = applicationDescription;
-		} else if (ServiceInstanceDetails.class.equals(clazz)){
+		} else if (ServiceInstanceDetails.class.equals(clazz)) {
 			ServiceInstanceDetails serviceInstanceDetails = new ServiceInstanceDetails();
 			
 			String appName = RESTExamples.getAppName();
@@ -156,13 +164,31 @@ public class RESTResposneExampleGenerator implements IDocExampleGenerator {
 			example = serviceInstanceDetails;
 		} else if (ServiceDescription.class.equals(clazz)) {
 			example = RESTExamples.getServicesDescription();
+		}  else if (clazz.isPrimitive()) {
+			example = PrimitiveExampleValues.getValue(clazz);
+		} else if (String.class.equals(clazz)) {
+			example = "string";
+		} else if (ParameterizedType.class.isAssignableFrom(type.getClass())) {
+			List<Object> list = new LinkedList<Object>();
+			if (List.class.isAssignableFrom(clazz)) {
+				ParameterizedType parameterizedType = (ParameterizedType) type;
+				Type paramType = parameterizedType.typeArguments()[0];
+				list.add(getExample(paramType));
+				list.add(getExample(paramType));
+				list.add(getExample(paramType));
+			} 
+			example = list;
 		} else {
-			String msg = "Missing instantiation of class " + clazz + " for generating response example.";
-			logger.warning(msg);
-			throw new IllegalArgumentException(msg);
-//			logger.warning("There is not special treatment for class [" 
-//					+ clazz.getName() + "], creating default example.");
-//			example = clazz.newInstance();
+			String className = clazz.getName();
+			logger.warning("Missing custom instantiation of class " + className 
+					+ " for generating response example, using newInstance instead.");
+			try {
+				return clazz.newInstance();
+			} catch (Exception e) {
+				String errMsg = "failed to instantiate " + className;
+				logger.warning(errMsg);
+				throw new IllegalArgumentException(errMsg);
+			}
 		}
 		return example;
 	}

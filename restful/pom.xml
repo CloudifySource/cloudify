@@ -500,7 +500,7 @@
 									<version>2.6.0-SNAPSHOT</version>
 								</additionalDependency>
 							</additionalDependencies>
-							<additionalJOption><![CDATA[-requestExample org.cloudifysource.rest.doclet.RESTRequestExampleGenerator -responseExample org.cloudifysource.rest.doclet.RESTResposneExampleGenerator]]></additionalJOption>
+							<additionalJOption><![CDATA[-requestExample org.cloudifysource.rest.doclet.RESTRequestExampleGenerator -responseExample org.cloudifysource.rest.doclet.RESTResposneExampleGenerator -requestBodyParamFilter org.cloudifysource.rest.doclet.RequestBodyParamFilter]]></additionalJOption>
 
 						</configuration>
 					</execution>

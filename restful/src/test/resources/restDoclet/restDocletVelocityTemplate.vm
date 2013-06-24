@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+		<title>Cloudify $version REST API</title>
+		<link href=$docCssPath media="screen" type="text/css" rel="stylesheet" />
+	</head>
+	<body>
+		#########################################################
+		## Controllers   
+		#########################################################
+		#foreach($docController in $controllers)
+			<div class="header">
+				<h1>$docController.getName()</h1>
+				<p class="excerpt">Mapping of URIs that begin with $docController.getUri()</p>
+				#if($docController.getDescription() && !$docController.getDescription().isEmpty())
+					<p>$docController.getDescription()</p>
+				#end
+			</div>
+			<div class="separator"></div>
+			#########################################################
+			## Methods 
+			#########################################################
+			#foreach($docMethod in $docController.getMethods().values())
+				#set($methodUri = $docController.getUri() + $docMethod.getUri())
+				<h2 id="REST_API-$methodUri"><a class="permalink" title="Get a permanent link to this section" href="#REST_API-$methodUri">$methodUri</a></h2>				
+				#if($docMethod.getDescription() && !$docMethod.getDescription().isEmpty())
+					<p><font color="#f7681a">$docMethod.getDescription()</font></p>
+				#end
+				## http methods 
+				<h3>HTTP Methods</h3>
+				#foreach($httpMethod in $docMethod.getHttpMethods())
+					#set($httpMethodName = $httpMethod.getHttpMethodName())
+					<h4>$httpMethodName</h4>
+					#if($httpMethod.getDescription() && !$httpMethod.getDescription().isEmpty())
+						<p>$httpMethod.getDescription()</p>
+					#end
+					#########################################################
+					## Parameters 
+					#########################################################
+					#set($params = $httpMethod.getAnnotatedParams())
+					#if($params && !$params.isEmpty())
+						<h3>Parameters</h3>
+						<table>
+							<tr>
+								<th>Type</th>
+								<th>Name</th>
+								<th>Description</th>
+								<th>Mandatory</th>
+								<th>Parameter type</th>
+								<th>Default value</th>
+							</tr>
+							#foreach($docParameter in $params)
+								<tr>
+									<td>$docParameter.getType().simpleTypeName()</td>
+									#if($docParameter.getRequestParamAnnotation() && $docParameter.getRequestParamAnnotation().getValue() && !$docParameter.getRequestParamAnnotation().getValue().isEmpty())
+										<td>$docParameter.getRequestParamAnnotation().getValue()</td>
+									#else
+										<td>$docParameter.getName()</td>
+									#end
+									#if($docParameter.getDescription())
+										<td>$docParameter.getDescription().replace(".", "")</td>
+									#else
+										<td></td> 
+									#end
+									<td>$docParameter.isRequired()</td>
+									<td>$docParameter.getLocation()</td>
+									#if($docParameter.getDefaultValue())
+										<td>$docParameter.getDefaultValue()</td>
+									#else
+										<td></td>
+									#end
+								</tr>
+							#end
+						</table>
+					#end
+					#########################################################
+					## Request 
+					#########################################################
+					#set($requestExample = $httpMethod.getRequestExample())
+					#if($requestExample) 
+						<h3>Request</h3>
+							<div class="panel">
+								<div class="panelHeader">
+									Request body for a $httpMethodName on $methodUri
+								</div>
+								<div class="panelContent">
+									<pre class="code">$requestExample</pre>
+								</div>
+							</div>
+						#set($jsonRequest = $httpMethod.getJsonRequestExample())
+						#if($jsonRequest && !$jsonRequest.isEmpty())
+							#if($request.getComments() && !$request.getComments().isEmpty())
+								<p>$request.getComments()</p>
+							#end
+						#end
+					#else
+						<p>Request has no body.</p>
+					#end
+					#########################################################
+					## Response 
+					#########################################################
+					#set($responseExample = $httpMethod.getResponseExample())					
+					#if($responseExample)
+						<h3>Response</h3>
+							<div class="panel">
+								<div class="panelHeader">
+									Response to a $httpMethodName on $methodUri
+								</div>	
+								<div class="panelContent">
+										<pre class="code">$responseExample</pre>
+								</div>
+							</div>
+						#set($jsonResponse = $httpMethod.getJsonResponseExample())
+						#if($jsonResponse && !$jsonResponse.isEmpty())
+							#if($jsonResponse.getComments() && !$jsonResponse.getComments().isEmpty())
+								<p>$response.getComments()</p>
+							#end
+						#end
+					#else	
+						<p>Response has no body.</p>
+					#end
+					#if($httpMethod.getPossibleResponseStatuses() && !$httpMethod.getPossibleResponseStatuses().isEmpty())
+						#set($possibleResponses = $httpMethod.getPossibleResponseStatuses())
+						<ul>
+						#foreach($docResponseStatus in $possibleResponses)
+							#if($docResponseStatus.getDescription() && !$docResponseStatus.getDescription().isEmpty())
+								<li>Returns "$docResponseStatus.getCode() $docResponseStatus.getCodeName()" - $docResponseStatus.getDescription().</li>
+							#else
+								<li>Returns "$docResponseStatus.getCode() $docResponseStatus.getCodeName()".</li>
+							#end
+						#end
+						</ul>
+					#end
+				#end
+			#end
+		#end
+	</body>
+</html>
