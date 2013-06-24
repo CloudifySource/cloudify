@@ -21,6 +21,7 @@ import org.apache.felix.gogo.commands.Option;
 import org.apache.felix.service.command.CommandSession;
 import org.apache.karaf.shell.console.CloseShellException;
 import org.cloudifysource.restclient.exceptions.RestClientException;
+import org.cloudifysource.restclient.exceptions.RestClientHttpException;
 import org.cloudifysource.restclient.utils.NewRestClientUtils;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
@@ -32,6 +33,7 @@ import org.cloudifysource.shell.exceptions.handlers.CLIStatusExceptionHandler;
 import org.cloudifysource.shell.exceptions.handlers.ClientSideExceptionHandler;
 import org.cloudifysource.shell.exceptions.handlers.InterruptedExceptionHandler;
 import org.cloudifysource.shell.exceptions.handlers.RestClientExceptionHandler;
+import org.cloudifysource.shell.exceptions.handlers.RestClientHttpExceptionHandler;
 import org.cloudifysource.shell.exceptions.handlers.ThrowableHandler;
 import org.fusesource.jansi.Ansi.Color;
 
@@ -101,6 +103,8 @@ public abstract class AbstractGSCommand implements Action {
             handle(new CLIStatusExceptionHandler(e), e);
         } catch (final CLIException e) {
             handle(new CLIExceptionHandler(e), e);
+        } catch (final RestClientHttpException e) {
+            handle(new RestClientHttpExceptionHandler(e), e);
         } catch (final RestClientException e) {
             handle(new RestClientExceptionHandler(e), e);
         } catch (final InterruptedException e) {

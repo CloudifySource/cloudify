@@ -19,9 +19,11 @@ package org.cloudifysource.restclient;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.http.HttpEntity;
@@ -80,7 +82,7 @@ public class RestClientExecutor {
 			this.urlStr += FORWARD_SLASH;
 		}
 	}
-
+	
 	/**
 	 * Executes HTTP post over REST on the given (relative) URL with the given postBody.
 	 *
@@ -112,7 +114,7 @@ public class RestClientExecutor {
 		}
 		return post(url, responseTypeReference, stringEntity);
 	}
-
+	
 	/**
 	 *
 	 * @param relativeUrl
@@ -138,7 +140,6 @@ public class RestClientExecutor {
 		final FileBody fileBody = new FileBody(fileToPost);
 		multipartEntity.addPart(partName, fileBody);
 		return post(relativeUrl, responseTypeReference, multipartEntity);
-
 	}
 
 	/**
@@ -279,9 +280,11 @@ public class RestClientExecutor {
     				lastException = null;
     				break;
     			} catch (IOException e) {
-    				logger.finer("Execute get request to " + request.getURI()
-    						+ ". try number " + (i + 1) + " out of " + GET_TRIALS_NUM
-    						+ ", error is " + e.getMessage());
+    				if (logger.isLoggable(Level.FINER)) {
+    					logger.finer("Execute get request to " + request.getURI()
+    							+ ". try number " + (i + 1) + " out of " + GET_TRIALS_NUM
+    							+ ", error is " + e.getMessage());
+    				}
     				lastException = e;
     			}
     		}
@@ -291,7 +294,7 @@ public class RestClientExecutor {
     					lastException,
     					request.getURI());
     		}
-    		checkForError(httpResponse);
+    		checkForError(httpResponse, request.getURI());
     		return getResponseObject(responseTypeReference, httpResponse);
     	} finally {
     		request.abort();
@@ -299,7 +302,7 @@ public class RestClientExecutor {
     }
 
 	private void checkForError(
-			final HttpResponse response)
+			final HttpResponse response, final URI requestUri)
 					throws RestClientException {
 		StatusLine statusLine = response.getStatusLine();
 		final int statusCode = statusLine.getStatusCode();
@@ -327,7 +330,7 @@ public class RestClientExecutor {
                 		statusCode,
                 		reasonPhrase,
                 		responseBody,
-                		RestClientMessageKeys.HTTP_FAILURE.getName());
+                		RestClientMessageKeys.HTTP_FAILURE.getName(), requestUri);
             }
         }
 	}

@@ -18,6 +18,7 @@ import java.security.KeyStore;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -224,17 +225,19 @@ public class RestClient {
 	public UploadResponse upload(final String fileName, final File file) throws RestClientException {
 		validateFile(file);
 		final String finalFileName = fileName == null ? file.getName() : fileName;
-		logger.fine("uploading file " + file.getAbsolutePath() + " with name " + finalFileName);
+        if (logger.isLoggable(Level.FINE)) {
+        	logger.fine("uploading file " + file.getAbsolutePath() + " with name " + finalFileName);
+        }
 		final String uploadUrl = getFormattedUrl(
 				versionedUploadControllerUrl, 
 				UPLOAD_URL_FORMAT, 
 				finalFileName);				
 		final UploadResponse response = executor.postFile(uploadUrl, file, CloudifyConstants.UPLOAD_FILE_PARAM_NAME,
-				new TypeReference<Response<UploadResponse>>() {
-		});
+				new TypeReference<Response<UploadResponse>>() { });		
 		return response;
 	}
-
+	
+	
 	/**
 	 * Provides access to life cycle events of a service.
 	 * 

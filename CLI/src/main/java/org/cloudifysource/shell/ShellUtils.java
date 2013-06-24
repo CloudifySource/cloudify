@@ -607,7 +607,16 @@ public final class ShellUtils {
 		return formattedURL;
 	}
 	
-    public static String uploadToRepo(RestClient client, final File file, CLIEventsDisplayer displayer) 
+	/**
+	 * Uploads a file.
+	 * @param client 
+	 * @param file 
+	 * @param displayer 
+	 * @return upload key
+	 * @throws RestClientException 
+	 * @throws CLIException 
+	 */
+    public static String uploadToRepo(final RestClient client, final File file, final CLIEventsDisplayer displayer) 
     		throws RestClientException, CLIException {
         if (file != null) {
             if (!file.isFile()) {

@@ -701,20 +701,18 @@ public class GSRestClient {
 	 *
 	 * @param relativeUrl
 	 *            The URL to post to.
-	 * @param file
-	 *            The file to send (example: <SOME PATH>/tomcat.zip).
+	 * @param additionalFiles
+	 *            The files to send (example: <SOME PATH>/tomcat.zip).
 	 * @param props
 	 *            The properties of this POST action (example: com.gs.service.type=WEB_SERVER)
-	 * @param cloudOverrides
-	 *            A file containing override properties to be used by the cloud driver upon installation.
-	 * @param params
+	 * @param params 
 	 *            as a map of names and values.
 	 * @return The response object from the REST server
 	 * @throws RestException
 	 *             Reporting failure to post the file.
 	 */
 	public final Object postFiles(final String relativeUrl, final Properties props,
-			final Map<String, String> params, Map<String, File> additionalFiles)
+			final Map<String, String> params, final Map<String, File> additionalFiles)
 			throws RestException {
 		final MultipartEntity reqEntity = new MultipartEntity();
 
