@@ -21,7 +21,6 @@ import org.apache.felix.gogo.commands.Option;
 import org.apache.felix.service.command.CommandSession;
 import org.apache.karaf.shell.console.CloseShellException;
 import org.cloudifysource.restclient.exceptions.RestClientException;
-import org.cloudifysource.restclient.exceptions.RestClientHttpException;
 import org.cloudifysource.restclient.utils.NewRestClientUtils;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
@@ -33,7 +32,6 @@ import org.cloudifysource.shell.exceptions.handlers.CLIStatusExceptionHandler;
 import org.cloudifysource.shell.exceptions.handlers.ClientSideExceptionHandler;
 import org.cloudifysource.shell.exceptions.handlers.InterruptedExceptionHandler;
 import org.cloudifysource.shell.exceptions.handlers.RestClientExceptionHandler;
-import org.cloudifysource.shell.exceptions.handlers.RestClientHttpExceptionHandler;
 import org.cloudifysource.shell.exceptions.handlers.ThrowableHandler;
 import org.fusesource.jansi.Ansi.Color;
 
