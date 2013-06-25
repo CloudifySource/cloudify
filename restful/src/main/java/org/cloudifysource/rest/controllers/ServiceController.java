@@ -110,6 +110,7 @@ import org.cloudifysource.dsl.rest.response.ControllerDetails;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.esc.driver.provisioning.CloudifyMachineProvisioningConfig;
 import org.cloudifysource.rest.ResponseConstants;
+import org.cloudifysource.rest.RestConfiguration;
 import org.cloudifysource.rest.util.ApplicationDescriptionFactory;
 import org.cloudifysource.rest.util.ApplicationInstallerRunnable;
 import org.cloudifysource.rest.util.IsolationUtils;
@@ -164,13 +165,11 @@ import org.openspaces.admin.space.ElasticSpaceDeployment;
 import org.openspaces.admin.zone.config.AtLeastOneZoneConfig;
 import org.openspaces.admin.zone.config.AtLeastOneZoneConfigurer;
 import org.openspaces.core.GigaSpace;
-import org.openspaces.core.context.GigaSpaceContext;
 import org.openspaces.core.util.MemoryUnit;
 import org.openspaces.pu.service.CustomServiceDetails;
 import org.openspaces.pu.service.ServiceDetails;
 import org.openspaces.pu.service.ServiceDetailsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PostFilter;
@@ -232,11 +231,11 @@ public class ServiceController implements ServiceDetailsProvider {
 	 */
 	private final Set<String> eventsSet = new HashSet<String>();
 
-	@Autowired(required = true)
+	@Autowired
+	private RestConfiguration restConfig;
 	private Admin admin;
 	@Autowired(required = false)
 	private CustomPermissionEvaluator permissionEvaluator;
-	@GigaSpaceContext(name = "gigaSpace")
 	private GigaSpace gigaSpace;
 
 	private Cloud cloud = null;
@@ -256,9 +255,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	// "summary", "network", "thread", "log", "processingUnits;"
 	// };
 	private String defaultTemplateName;
-
-	@Value("${restful.temporaryFolder}")
-	private String temporaryFolder;
+	private File restTemporaryFolder;
 
 	/**
 	 * Initializing the cloud configuration. Executed by Spring after the object is instantiated and the dependencies
@@ -266,42 +263,12 @@ public class ServiceController implements ServiceDetailsProvider {
 	 */
 	@PostConstruct
 	public void init() {
-		logger.info("Initializing service controller cloud configuration");
-		this.cloud = readCloud();
-		if (cloud != null) {
-			initCloudTemplates();
-			if (this.cloud.getCloudCompute().getTemplates().isEmpty()) {
-				throw new IllegalArgumentException(
-						"No templates defined in cloud configuration!");
-			}
-			this.defaultTemplateName = this.cloud.getCloudCompute().getTemplates().keySet()
-					.iterator().next();
-			logger.info("Setting default template name to: "
-					+ defaultTemplateName
-					+ ". This template will be used for services that do not specify an explicit template");
-
-			this.managementTemplate = this.cloud.getCloudCompute().getTemplates().get(
-					this.cloud.getConfiguration()
-							.getManagementMachineTemplate());
-		} else {
-			logger.info("Service Controller is running in local cloud mode");
-		}
-
-		/**
-		 * Sets the folder used for temporary files. The value can be set in the configuration file
-		 * ("config.properties"), otherwise the system's default setting will apply.
-		 */
-		try {
-			if (StringUtils.isBlank(temporaryFolder)) {
-				temporaryFolder = getTempFolderPath();
-			}
-		} catch (final IOException e) {
-			logger.log(Level.SEVERE,
-					"ServiceController failed to locate temp directory", e);
-			throw new IllegalStateException(
-					"ServiceController failed to locate temp directory", e);
-		}
-
+		gigaSpace = restConfig.getGigaSpace();
+		admin = restConfig.getAdmin();
+		cloud = restConfig.getCloud();
+		defaultTemplateName = restConfig.getDefaultTemplateName();
+		managementTemplate = restConfig.getManagementTemplate();
+		restTemporaryFolder = restConfig.getRestTempFolder();
 		startLifecycleLogsCleanupTask();
 	}
 
@@ -526,8 +493,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	private byte[] getDumpRawData(final DumpResult dump,
 			final long fileSizeLimit) throws IOException, RestServiceException {
-		final File target = File.createTempFile("dump", ".zip", new File(
-				this.temporaryFolder));
+		final File target = File.createTempFile("dump", ".zip", restTemporaryFolder);
 		target.deleteOnExit();
 
 		dump.download(target, null);
@@ -604,24 +570,6 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		logger.info("Successfully loaded cloud configuration file from management space");
 		return cloudConfiguration;
-	}
-
-	private void initCloudTemplates() {
-		final File additionalTemplatesFolder = new File(cloudConfigurationDir,
-				CloudifyConstants.ADDITIONAL_TEMPLATES_FOLDER_NAME);
-		logger.info("initCloudTemplates - Adding templates from folder: "
-				+ additionalTemplatesFolder.getAbsolutePath());
-		if (!additionalTemplatesFolder.exists()) {
-			logger.info("initCloudTemplates - no templates to add from folder: "
-					+ additionalTemplatesFolder.getAbsolutePath());
-			return;
-		}
-		File[] listFiles = additionalTemplatesFolder.listFiles();
-		ComputeTemplatesReader reader = new ComputeTemplatesReader();
-		List<ComputeTemplate> addedTemplates = reader.addAdditionalTemplates(cloud, listFiles);
-		logger.info("initCloudTemplates - Added the following templates: " + addedTemplates);
-		lastTemplateFileNum.addAndGet(listFiles.length);
-
 	}
 
 	private final ScheduledExecutorService lifecycleEventsCleaner = Executors
@@ -2239,7 +2187,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 		final ApplicationInstallerRunnable installer =
 				new ApplicationInstallerRunnable(this, result, applicationName, applicationOverridesFile, authGroups,
-				services, this.cloud, selfHealing,cloudOverrides,
+				services, this.cloud, selfHealing, cloudOverrides,
 				debugAll, debugEvents, debugModeString);
 
 		logger.log(Level.INFO, "Starting to poll for " + applicationName + " installation lifecycle events.");
@@ -2275,28 +2223,11 @@ public class ServiceController implements ServiceDetailsProvider {
 		if (srcFile == null) {
 			return null;
 		}
-		final File tempFile = new File(temporaryFolder,
+		final File tempFile = new File(restTemporaryFolder,
 				srcFile.getOriginalFilename());
 		srcFile.transferTo(tempFile);
 		tempFile.deleteOnExit();
 		return tempFile;
-	}
-
-	/**
-	 * Creates a randomly-named file in the system's default temp folder, just to get the path. The file is deleted
-	 * immediately.
-	 *
-	 * @return The path to the system's default temp folder
-	 */
-	private String getTempFolderPath() throws IOException {
-		/*
-		 * long tmpNum = new SecureRandom().nextLong(); if (tmpNum == Long.MIN_VALUE) { tmpNum = 0; // corner case }
-		 * else { tmpNum = Math.abs(tmpNum); }
-		 */
-		final File tempFile = File.createTempFile("GS__", null);
-		tempFile.delete();
-		tempFile.mkdirs();
-		return tempFile.getParent();
 	}
 
 	private void doDeploy(

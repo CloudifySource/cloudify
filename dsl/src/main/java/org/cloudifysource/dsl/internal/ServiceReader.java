@@ -73,7 +73,7 @@ public final class ServiceReader {
 	 * @param parentDir 
 	 * 			The directory in which the projectDir is to be created, 
 	 * 			or null if the default temporary-file directory is to be used.
-	 * @return
+	 * @return  .
 	 * @throws IOException if failed to create or delete the extract to directory 
 	 * 			or if failed to unzip the zipFile.
 	 */

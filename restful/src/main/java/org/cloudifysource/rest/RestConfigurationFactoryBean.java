@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.compute.CloudCompute;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
@@ -30,6 +31,7 @@ import org.openspaces.core.GigaSpace;
 import org.openspaces.core.context.GigaSpaceContext;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,6 +53,9 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
     @Autowired(required = true)
     protected Admin admin;
 
+	@Value("${restful.temporaryFolder}")
+	private String temporaryFolder;
+	
     @Override
     public RestConfiguration getObject() throws Exception {
         config = new RestConfiguration();
@@ -62,9 +67,10 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
      * Initialize all needed fields in RestConfiguration.
      */
     public void initRestConfiguration() {
-        logger.info("Initializing service controller cloud configuration");
-        Cloud cloud = readCloud();
+        logger.info("Initializing cloud configuration");
+        config.setGigaSpace(gigaSpace);
         config.setAdmin(admin);
+        Cloud cloud = readCloud();
         if (cloud != null) {
         	config.setCloud(cloud);
             initCloudTemplates();
@@ -79,12 +85,21 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
             String managementTemplateName = cloud.getConfiguration().getManagementMachineTemplate();
             config.setManagementTemplateName(managementTemplateName);
             config.setManagementTemplate(cloudCompute.getTemplates().get(managementTemplateName));
-            config.setTemporaryFolderPath(CloudifyConstants.REST_FOLDER);
+    		File restTempFolder;
+            if (!StringUtils.isEmpty(temporaryFolder)) {
+            	restTempFolder = new File(temporaryFolder);
+    		} else {
+    			restTempFolder = new File(CloudifyConstants.REST_FOLDER);
+    		}
+            restTempFolder.mkdirs();
+            restTempFolder.deleteOnExit();
+			config.setRestTempFolder(restTempFolder);
+
         } else {
-            logger.info("Service Controller is running in local cloud mode");
+            logger.info("running in local cloud mode");
         }
     }
-
+	
     private Cloud readCloud() {
         logger.info("Loading cloud configuration");
 

@@ -16,7 +16,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 
-import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.internal.packaging.FileAppender;
 import org.cloudifysource.dsl.internal.packaging.Packager;
@@ -25,18 +24,34 @@ import org.cloudifysource.rest.controllers.RestErrorException;
 /**
  * 
  * @author yael
+ * @since 2.6.0
  * 
  */
 public class PropertiesOverridesMerger {
 
 	private static final String DEFAULT_MERGED_FILE_NAME = "mergedPropertiesFile.properties";
+	
+	/**
+	 * The merge destination file.
+	 * This field is mandatory.
+	 */
+	private File destMergeFile;
+	/**
+	 * The name of the updated zip file.
+	 */
 	private String rePackFileName;
+	/**
+	 * The folder to re-pack after merging.
+	 * This field is mandatory.
+	 */
 	private File rePackFolder;
+	/**
+	 * The original packed file, return from merge if no merge was needed. 
+	 */
 	private File originPackedFile;
 	private File applicationPropertiesFile;
 	private File servicePropertiesFile;
 	private File overridesFile;
-	private File destMergeFile;
 
 	public void setRePackFileName(final String rePackFileName) {
 		this.rePackFileName = rePackFileName;
@@ -69,14 +84,11 @@ public class PropertiesOverridesMerger {
 	 * @throws org.cloudifysource.rest.controllers.RestErrorException .
 	 */
 	public File merge() throws RestErrorException {
-		if (destMergeFile == null) {
-			throw new RestErrorException(CloudifyMessageKeys.DEST_MERGE_FILE_MISSING.getName());
-		}
-		updateDefaultValues(originPackedFile);
 		// check if merge is necessary
 		if (applicationPropertiesFile == null && overridesFile == null) {
 			return originPackedFile;
 		}
+		validateValues(originPackedFile);
 		try {
 			// append application properties, service properties and overrides files
 			LinkedHashMap<File, String> mergeFilesAndComments = new LinkedHashMap<File, String>();
@@ -94,12 +106,20 @@ public class PropertiesOverridesMerger {
 		}
 	}
 
-	private void updateDefaultValues(final File originPackedFile) {
+	private void validateValues(final File originPackedFile) throws RestErrorException {
+		if (destMergeFile == null) {
+			throw new RestErrorException(CloudifyMessageKeys.DEST_MERGE_FILE_MISSING.getName());
+		}
 		if (rePackFileName == null) {
-			rePackFileName = originPackedFile.getName();
+			String originName = originPackedFile.getName();
+			String shortOriginName = originName;
+			if (originName.endsWith(".zip")) {
+				shortOriginName = originName.split("//.zip")[0];
+			}
+			rePackFileName = shortOriginName + "_repack.zip";
 		}
 		if (rePackFolder == null) {
-			rePackFolder = new File(CloudifyConstants.REST_FOLDER + File.separator);
+			throw new RestErrorException(CloudifyMessageKeys.REPACKED_MERGE_FOLDER_MISSING.getName());
 		}
 	}
 

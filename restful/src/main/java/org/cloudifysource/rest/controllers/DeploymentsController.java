@@ -71,7 +71,6 @@ import org.cloudifysource.dsl.rest.response.GetServiceAttributesResponse;
 import org.cloudifysource.dsl.rest.response.GetServiceInstanceAttributesResponse;
 import org.cloudifysource.dsl.rest.response.InstallApplicationResponse;
 import org.cloudifysource.dsl.rest.response.InstallServiceResponse;
-import org.cloudifysource.dsl.rest.response.Response;
 import org.cloudifysource.dsl.rest.response.ServiceDescription;
 import org.cloudifysource.dsl.rest.response.ServiceDetails;
 import org.cloudifysource.dsl.rest.response.ServiceInstanceDetails;
@@ -96,7 +95,6 @@ import org.cloudifysource.rest.events.cache.EventsCache;
 import org.cloudifysource.rest.events.cache.EventsCacheKey;
 import org.cloudifysource.rest.events.cache.EventsCacheValue;
 import org.cloudifysource.rest.exceptions.ResourceNotFoundException;
-import org.cloudifysource.rest.interceptors.ApiVersionValidationAndRestResponseBuilderInterceptor;
 import org.cloudifysource.rest.repo.UploadRepo;
 import org.cloudifysource.rest.util.ApplicationDescriptionFactory;
 import org.cloudifysource.rest.util.IsolationUtils;
@@ -1433,7 +1431,7 @@ public class DeploymentsController extends BaseRestController {
 		try {
 			// unzip srcFile into a new directory named absolutePuName under baseDir.
 			final File baseDir =
-					new File(restConfig.getTemporaryFolderPath(), CloudifyConstants.EXTRACTED_FILES_FOLDER_NAME);
+					new File(restConfig.getRestTempFolder(), CloudifyConstants.EXTRACTED_FILES_FOLDER_NAME);
 			baseDir.mkdirs();
 			baseDir.deleteOnExit();
 			serviceDir = ServiceReader.extractProjectFileToDir(srcFile, absolutePuName, baseDir);

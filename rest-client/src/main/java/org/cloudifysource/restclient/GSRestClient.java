@@ -751,7 +751,6 @@ public class GSRestClient {
 
 		final HttpPost httppost = new HttpPost(getFullUrl(relativeUrl));
 		httppost.setEntity(reqEntity);
-
 		return executeHttpMethod(httppost);
 	}
 
@@ -795,11 +794,11 @@ public class GSRestClient {
 		FileWriter writer = null;
 		try {
 			tempFile = File.createTempFile("uploadTemp", ".tmp");
+			tempFile.deleteOnExit();
 			writer = new FileWriter(tempFile, true);
 			if (props != null) {
 				props.store(writer, "");
 			}
-			tempFile.deleteOnExit();
 
 		} finally {
 			if (writer != null) {

@@ -29,6 +29,7 @@ import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.packaging.CloudConfigurationHolder;
 import org.cloudifysource.rest.util.RestPollingRunnable;
 import org.openspaces.admin.Admin;
+import org.openspaces.core.GigaSpace;
 
 /**
  *
@@ -38,6 +39,7 @@ import org.openspaces.admin.Admin;
 public class RestConfiguration {
 
     private static final int THREAD_POOL_SIZE = 20;
+    private GigaSpace gigaSpace;
     private Admin admin;
     private Cloud cloud = null;
     private CloudConfigurationHolder cloudConfigurationHolder;
@@ -46,7 +48,7 @@ public class RestConfiguration {
     private ComputeTemplate managementTemplate;
     private String managementTemplateName;
     private final AtomicInteger lastTemplateFileNum = new AtomicInteger(0);
-    private String temporaryFolderPath;
+    private File restTempFolder;
     /**
      * A set containing all of the executed lifecycle events. used to avoid duplicate prints.
      */
@@ -82,6 +84,14 @@ public class RestConfiguration {
                 }
             });
 
+	public GigaSpace getGigaSpace() {
+		return gigaSpace;
+	}
+
+	public void setGigaSpace(final GigaSpace gigaSpace) {
+		this.gigaSpace = gigaSpace;
+	}
+	
     public Admin getAdmin() {
         return admin;
     }
@@ -142,12 +152,12 @@ public class RestConfiguration {
         return lastTemplateFileNum;
     }
 
-    public String getTemporaryFolderPath() {
-        return temporaryFolderPath;
+    public File getRestTempFolder() {
+        return restTempFolder;
     }
 
-    public void setTemporaryFolderPath(final String temporaryFolderPath) {
-        this.temporaryFolderPath = temporaryFolderPath;
+    public void setRestTempFolder(final File restTempFolder) {
+        this.restTempFolder = restTempFolder;
     }
 
     public Set<String> getEventsSet() {
