@@ -79,7 +79,8 @@
 	<property name="cloudify.parent.pom.file" value="${basedir}/pom.xml"/>
 	<property name="streaming-bigdata.pom.file" value="${recipes.local.copy}/apps/streaming-bigdata/pom.xml"/>
 	<property name="s3.cloudify.publish.folder" value="${cloudify.version}-SNAPSHOT"/>
-	
+	<property name="s3.gs.packages.publish.folder" value="${gs.version}-SNAPSHOT"/>
+
 	<fileset id="all-poms-fileset" dir="${basedir}/../" includes="**/pom.xml" excludes="**/tmp/**" />
 	
 	<condition property="recipes.available" value="true">
@@ -834,8 +835,8 @@
 	<target name="download.zip" unless="appropriate.xap.zip.present">
 		<loadproperties srcfile="${build.properties.file}"/>
 		<mkdir dir="${xap.files.tmp.dir}" /> 
-		<echo message="Please wait. Downloading ${cloudify.cdn.publish.url}/com/gigaspaces/${s3.gs.publish.folder}/gigaspaces-xap-premium-${gs.version}-ga-b${gs.build.number}.zip." />
-		<get verbose="true" src="${cloudify.cdn.publish.url}/com/gigaspaces/xap-core/${s3.gs.publish.folder}/${xap.zip.name}" dest="${xap.files.tmp.dir}"/>
+		<echo message="Please wait. Downloading ${cloudify.cdn.publish.url}/com/gigaspaces/${s3.gs.packages.publish.folder}/gigaspaces-xap-premium-${gs.version}-ga-b${gs.build.number}.zip." />
+		<get verbose="true" src="${cloudify.cdn.publish.url}/com/gigaspaces/xap-core/${s3.gs.packages.publish.folder}/${xap.zip.name}" dest="${xap.files.tmp.dir}"/>
 	</target>
 	
 	<target name="cloudify.install">
