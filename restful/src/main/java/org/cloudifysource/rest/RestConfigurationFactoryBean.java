@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.compute.CloudCompute;
@@ -85,22 +86,34 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
             String managementTemplateName = cloud.getConfiguration().getManagementMachineTemplate();
             config.setManagementTemplateName(managementTemplateName);
             config.setManagementTemplate(cloudCompute.getTemplates().get(managementTemplateName));
-    		File restTempFolder;
-            if (!StringUtils.isEmpty(temporaryFolder)) {
-            	restTempFolder = new File(temporaryFolder);
-    		} else {
-    			restTempFolder = new File(CloudifyConstants.REST_FOLDER);
-    		}
-            restTempFolder.mkdirs();
-            restTempFolder.deleteOnExit();
-			config.setRestTempFolder(restTempFolder);
+			config.setRestTempFolder(createRestTempFolder());
 
         } else {
             logger.info("running in local cloud mode");
         }
     }
 	
-    private Cloud readCloud() {
+    private File createRestTempFolder() {
+		File restTempFolder;
+    	if (!StringUtils.isEmpty(temporaryFolder)) {
+        	restTempFolder = new File(temporaryFolder);
+		} else {
+			restTempFolder = new File(CloudifyConstants.REST_FOLDER);
+		}
+        if (restTempFolder.exists()) {
+        	try {
+				FileUtils.deleteDirectory(restTempFolder);
+			} catch (IOException e) {
+				logger.warning("failed to delete rest template folder [" + restTempFolder.getAbsolutePath() + "]");
+				e.printStackTrace();
+			}
+        }
+        restTempFolder.mkdirs();
+        restTempFolder.deleteOnExit();
+        return restTempFolder;
+	}
+
+	private Cloud readCloud() {
         logger.info("Loading cloud configuration");
 
         CloudConfigurationHolder cloudConfigurationHolder = getCloudConfigurationFromManagementSpace();
