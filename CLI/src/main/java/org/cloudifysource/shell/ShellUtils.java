@@ -608,13 +608,13 @@ public final class ShellUtils {
 	}
 	
 	/**
-	 * Uploads a file.
-	 * @param client 
-	 * @param file 
-	 * @param displayer 
-	 * @return upload key
-	 * @throws RestClientException 
-	 * @throws CLIException 
+	 * uploads a file to repository using the pre-configured client.
+	 * @param client .
+	 * @param file .
+	 * @param displayer .
+	 * @return the returned upload key
+	 * @throws RestClientException .
+	 * @throws CLIException .
 	 */
     public static String uploadToRepo(final RestClient client, final File file, final CLIEventsDisplayer displayer) 
     		throws RestClientException, CLIException {
@@ -627,5 +627,6 @@ public final class ShellUtils {
         }
         return null;
     }
+
 
 }

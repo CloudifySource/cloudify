@@ -34,6 +34,8 @@ import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 
+import org.cloudifysource.dsl.utils.IPUtils;
+
 /**
  * Generic fetcher for external-process JMX data.
  *
@@ -125,6 +127,7 @@ public class JmxGenericClient {
 
 	}
 
+	
 	public void setTargets(final List<JmxAttribute> list) {
 		// Sort the input list by bean name and attribute Name
 		Collections.sort(list);
@@ -133,8 +136,8 @@ public class JmxGenericClient {
 
 		JmxBeanAttributes current = null;
 		for (final JmxAttribute jmxAttribute : list) {
-			if (current == null ||
-					!jmxAttribute.getObjectName().equals(current.getObjectName())) {
+			if (current == null 
+					|| !jmxAttribute.getObjectName().equals(current.getObjectName())) {
 				current = new JmxBeanAttributes(jmxAttribute.getObjectName());
 				this.targetList.add(current);
 			}
@@ -144,6 +147,7 @@ public class JmxGenericClient {
 
 		this.numOfTargets = list.size();
 	}
+	
 
 	public ArrayList<JmxAttribute> getData() {
 
@@ -167,7 +171,8 @@ public class JmxGenericClient {
 
 			return resultList;
 		} catch (final Exception e) {
-			final String msg = "Failed to fetch JMX values for " + host + ":" + port + ". Error: " + e;
+			final String msg = "Failed to fetch JMX values for " + IPUtils.getSafeIpAddress(host) + ":" + port 
+					+ ". Error: " + e;
 			logger.severe(msg);
 		} finally {
 			if (jmxc != null) {
@@ -180,6 +185,7 @@ public class JmxGenericClient {
 		return null;
 	}
 
+	
 	protected void handleJMXBean(final ArrayList<JmxAttribute> resultList, final MBeanServerConnection mbsc,
 			final JmxBeanAttributes t)
 			throws MalformedObjectNameException {
@@ -213,8 +219,8 @@ public class JmxGenericClient {
 	}
 
     /**
-     * Create a jmx client
-     * @return    a jmx client
+     * Create a jmx client.
+     * @return a jmx client
      */
 	private JMXServiceURL createJMXServiceURL() {
 		try {
@@ -244,6 +250,7 @@ public class JmxGenericClient {
 
 	}
 
+	
 	public Map<String, Object> getAttributes() {
 
 		final ArrayList<JmxAttribute> resArr = getData();

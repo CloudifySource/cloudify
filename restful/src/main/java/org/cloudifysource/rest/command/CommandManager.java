@@ -15,11 +15,14 @@
  *******************************************************************************/
 package org.cloudifysource.rest.command;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.cloudifysource.dsl.utils.IPUtils;
 import org.springframework.web.servlet.HandlerMapping;
 /**
  * CommandManager creates and runs commands, each command
@@ -45,7 +48,7 @@ public class CommandManager {
 	 * @param request - the commands request 
 	 * @param root - the root command's object
 	 */
-	public CommandManager(HttpServletRequest request, Object root){
+	public CommandManager(final HttpServletRequest request, final Object root) {
 	    final String prefix = "/admin/";
         String executionPath = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
         if (executionPath.endsWith("/")) {
@@ -54,8 +57,18 @@ public class CommandManager {
         if (!executionPath.startsWith(prefix)) {
             throw new IllegalArgumentException("Bad request URL " + request.getRequestURL());
         }
-        String restUrl = "http://" + request.getLocalAddr() + ":" + request.getLocalPort() + request.getContextPath();
-        this.commandURL = restUrl + executionPath;
+        
+        try {
+        	String protocol = IPUtils.getRestProtocol();
+            //String restUrl = "http://" + request.getLocalAddr() + ":" + request.getLocalPort() 
+        	//	+ request.getContextPath();
+        	URL restUrl = new URL(protocol, request.getLocalAddr(), request.getLocalPort(), request.getContextPath());
+        	 this.commandURL = restUrl + executionPath;
+        } catch (MalformedURLException e) {
+        	// this is a bug since we formed the URL correctly
+        	throw new IllegalStateException(e);
+        }
+       
         initilizeCommandList(executionPath.substring(prefix.length()), root);
 	}
 	

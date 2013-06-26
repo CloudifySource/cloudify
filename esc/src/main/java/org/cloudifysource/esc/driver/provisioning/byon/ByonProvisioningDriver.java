@@ -44,7 +44,7 @@ import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
 import org.cloudifysource.esc.util.FileUtils;
-import org.cloudifysource.esc.util.IPUtils;
+import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.esc.util.Utils;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
@@ -471,8 +471,13 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 		return existingManagementServers;
 	}
+	
 
-	Integer getLusPort() {
+	/**
+	 * Gets The configured lus port, or the default if no port is configured.
+	 * @return the lus port.
+	 */
+	protected Integer getLusPort() {
 		Integer discoveryPort = cloud.getConfiguration().getComponents().getDiscovery().getDiscoveryPort();
 		if (discoveryPort == null) {
 			discoveryPort = CloudifyConstants.DEFAULT_LUS_PORT;
@@ -480,9 +485,9 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		return discoveryPort;
 	}
 
+	
 	private void stopAgentAndWait(final int expectedGsmCount, final String ipAddress)
-			throws TimeoutException,
-			InterruptedException {
+			throws TimeoutException, InterruptedException {
 
 		if (admin == null) {
 			final Integer discoveryPort = getLusPort();
@@ -493,7 +498,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		// GridServiceAgent agent = agentsMap.get(ipAddress);
 		GSA agent = null;
 		for (final Entry<String, GridServiceAgent> agentEntry : agentsMap.entrySet()) {
-			if (agentEntry.getKey().equalsIgnoreCase(ipAddress)) {
+			if (IPUtils.isSameIpv6Address(agentEntry.getKey(), ipAddress)
+					|| agentEntry.getKey().equalsIgnoreCase(ipAddress)) {
 				agent = ((InternalGridServiceAgent) agentEntry.getValue()).getGSA();
 			}
 		}
@@ -529,8 +535,14 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		MachineDetails machineDetails = null;
 		try {
 			machineDetails = createMachineDetailsFromNode(cloudNode);
+
+			String keyFile = "";
+			if (machineDetails.getKeyFile() != null) {
+				keyFile = machineDetails.getKeyFile().getAbsolutePath();
+			}
+			
 			FileUtils.deleteFileSystemObjects(machineDetails.getPrivateAddress(), machineDetails.getRemoteUsername(),
-					machineDetails.getRemotePassword(), machineDetails.getKeyFile().getAbsolutePath(), cloudifyItems,
+					machineDetails.getRemotePassword(), keyFile, cloudifyItems,
 					machineDetails.getFileTransferMode());
 		} catch (final Exception e) {
 			if (machineDetails != null) {

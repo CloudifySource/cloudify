@@ -23,6 +23,7 @@ import com.gigaspaces.security.directory.UserDetails;
 
 import net.jini.core.discovery.LookupLocator;
 
+import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.rest.SecurityPropagation;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
@@ -69,7 +70,7 @@ public class AdminFactoryBean implements FactoryBean, InitializingBean, Disposab
 	        LookupLocator[] locators = admin.getLocators();
 	        String[] locatorStrings = new String[locators.length];
 	        for (int i = 0; i < locators.length; i++) {
-	        	locatorStrings[i] = locators[i].getHost() + ":" + locators[i].getPort();
+	        	locatorStrings[i] = IPUtils.getSafeIpAddress(locators[i].getHost()) + ":" + locators[i].getPort();
 	        }
 	        logger.info("Admin using lookup locators=" + Arrays.toString(locatorStrings)
 	        		+ " groups=" + Arrays.toString(admin.getGroups()));

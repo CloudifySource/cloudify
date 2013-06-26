@@ -40,6 +40,7 @@ import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.context.IsLocalCloudUtils;
 import org.cloudifysource.dsl.internal.packaging.CloudConfigurationHolder;
+import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.restclient.utils.NewRestClientUtils;
 import org.cloudifysource.shell.AdminFacade;
@@ -355,7 +356,7 @@ public class LocalhostGridAgentBootstrapper {
 		if (nicAddress == null) {
 			throw new IllegalStateException("nicAddress cannot be null");
 		}
-		return nicAddress + ":" + lusPort;
+		return IPUtils.getSafeIpAddress(nicAddress) + ":" + lusPort;
 	}
 
 	/**
@@ -1178,7 +1179,7 @@ public class LocalhostGridAgentBootstrapper {
 		final List<String> trimmedLocators = new ArrayList<String>();
 		if (locators != null) {
 			for (final LookupLocator locator : locators) {
-				trimmedLocators.add(locator.getHost() + ":" + locator.getPort());
+				trimmedLocators.add(IPUtils.getSafeIpAddress(locator.getHost()) + ":" + locator.getPort());
 			}
 		}
 		return StringUtils.collectionToDelimitedString(trimmedLocators, ",");

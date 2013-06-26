@@ -35,6 +35,7 @@ import org.cloudifysource.dsl.cloud.GridComponents;
 import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
@@ -84,10 +85,10 @@ public final class Utils {
 	 *             Indicated the thread was interrupted while waiting
 	 */
 	public static Admin getAdminObject(final String managementIP, final int expectedGsmCount, final Integer lusPort)
-			throws TimeoutException,
-			InterruptedException {
+			throws TimeoutException, InterruptedException {
+
 		final AdminFactory adminFactory = new AdminFactory();
-		adminFactory.addLocator(managementIP + ":" + lusPort);
+		adminFactory.addLocator(IPUtils.getSafeIpAddress(managementIP) + ":" + lusPort);
 		final Admin admin = adminFactory.createAdmin();
 		GridServiceManagers gsms = admin.getGridServiceManagers();
 		final long end = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(ADMIN_API_TIMEOUT);

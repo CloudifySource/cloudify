@@ -107,6 +107,7 @@ import org.cloudifysource.dsl.internal.space.ServiceInstanceAttemptData;
 import org.cloudifysource.dsl.internal.tools.ServiceDetailsHelper;
 import org.cloudifysource.dsl.rest.response.ApplicationDescription;
 import org.cloudifysource.dsl.rest.response.ControllerDetails;
+import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.esc.driver.provisioning.CloudifyMachineProvisioningConfig;
 import org.cloudifysource.rest.ResponseConstants;
@@ -4964,7 +4965,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	private GSRestClient createRestClient(final String host, final String port, final String username,
 			final String password) throws RestException, MalformedURLException {
 		final String protocol = getRestProtocol(permissionEvaluator != null);
-		final String baseUrl = protocol + "://" + host + ":" + port;
+		final String baseUrl = protocol + "://" + IPUtils.getSafeIpAddress(host) + ":" + port;
 		final String versionName = PlatformVersion.getVersion() + "-Cloudify-" + PlatformVersion.getMilestone();
 		return new GSRestClient(new UsernamePasswordCredentials(username, password), new URL(baseUrl), versionName);
 	}
