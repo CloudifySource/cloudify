@@ -10,12 +10,13 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlRootElement(name = "Deployment")
-@XmlType(propOrder = { "name", "deploymentSlot", "privateId", "status",
+@XmlType(propOrder = { "name", "deploymentSlot", "deploymentName", "privateId", "status",
 		"label" , "roleInstanceList" , "roleList", "virtualNetworkName" , "hostedServiceName" })
 public class Deployment {
 
 	private String name;
 	private String deploymentSlot;
+	private String deploymentName;
 	private String privateId;
 	private String status;
 	private String label;
@@ -68,6 +69,15 @@ public class Deployment {
 
 	public void setDeploymentSlot(final String slot) {
 		this.deploymentSlot = slot;
+	}
+	
+	@XmlElement(name = "DeploymentName")
+	public String getDeploymentName() {
+		return deploymentName;
+	}
+	
+	public void setDeploymentName(String deploymentName) {
+		this.deploymentName = deploymentName;
 	}
 	
 	@XmlElement(name = "PrivateID")

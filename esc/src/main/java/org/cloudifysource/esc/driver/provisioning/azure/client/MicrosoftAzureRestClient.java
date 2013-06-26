@@ -392,6 +392,7 @@ public class MicrosoftAzureRestClient {
 	 */
 	public RoleDetails createVirtualMachineDeployment(
 			final CreatePersistentVMRoleDeploymentDescriptor deplyomentDesc,
+			final boolean isWindows,
 			final long endTime) throws MicrosoftAzureException,
 			TimeoutException, InterruptedException {
 
@@ -424,16 +425,15 @@ public class MicrosoftAzureRestClient {
 				deplyomentDesc.setHostedServiceName(serviceName);
 				deplyomentDesc.setDeploymentName(serviceName);
 
-				deployment = requestBodyBuilder.buildDeployment(deplyomentDesc);
+				deployment = requestBodyBuilder.buildDeployment(deplyomentDesc,isWindows);
 
 				String xmlRequest = MicrosoftAzureModelUtils.marshall(
 						deployment, false);
-
 				logger.fine(getThreadIdentity() + "Launching virtual machine : "
 						+ deplyomentDesc.getRoleName());
-
 				ClientResponse response = doPost("/services/hostedservices/"
 						+ serviceName + "/deployments", xmlRequest);
+				
 				String requestId = extractRequestId(response);
 				waitForRequestToFinish(requestId, endTime);
 				logger.fine(getThreadIdentity() + "About to release lock " + pendingRequest.hashCode());

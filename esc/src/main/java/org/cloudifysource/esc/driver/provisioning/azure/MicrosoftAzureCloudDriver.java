@@ -16,6 +16,9 @@ import java.util.logging.Logger;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.dsl.cloud.FileTransferModes;
+import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
+import org.cloudifysource.dsl.cloud.ScriptLanguages;
 import org.cloudifysource.esc.driver.provisioning.CloudDriverSupport;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
@@ -24,7 +27,18 @@ import org.cloudifysource.esc.driver.provisioning.azure.client.CreatePersistentV
 import org.cloudifysource.esc.driver.provisioning.azure.client.MicrosoftAzureException;
 import org.cloudifysource.esc.driver.provisioning.azure.client.MicrosoftAzureRestClient;
 import org.cloudifysource.esc.driver.provisioning.azure.client.RoleDetails;
-import org.cloudifysource.esc.driver.provisioning.azure.model.*;
+import org.cloudifysource.esc.driver.provisioning.azure.model.AttachedTo;
+import org.cloudifysource.esc.driver.provisioning.azure.model.Deployment;
+import org.cloudifysource.esc.driver.provisioning.azure.model.Disk;
+import org.cloudifysource.esc.driver.provisioning.azure.model.Disks;
+import org.cloudifysource.esc.driver.provisioning.azure.model.HostedService;
+import org.cloudifysource.esc.driver.provisioning.azure.model.HostedServices;
+import org.cloudifysource.esc.driver.provisioning.azure.model.InputEndpoint;
+import org.cloudifysource.esc.driver.provisioning.azure.model.InputEndpoints;
+import org.cloudifysource.esc.installer.InstallationDetails;
+import org.cloudifysource.esc.installer.InstallerException;
+import org.cloudifysource.esc.installer.remoteExec.RemoteExecutor;
+import org.cloudifysource.esc.installer.remoteExec.RemoteExecutorFactory;
 
 /***************************************************************************************
  * A custom Cloud Driver implementation for provisioning machines on Azure.
@@ -43,10 +57,12 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 	private static final String AZURE_PFX_FILE = "azure.pfx.file";
 	private static final String AZURE_PFX_PASSWORD = "azure.pfx.password";
 	private static final String AZURE_ENDPOINTS = "azure.endpoints";
+	private static final String AZURE_FIREWALL_PORTS = "azure.firewall.ports";
 
 	// Custom cloud DSL properties
 	private static final String AZURE_WIRE_LOG = "azure.wireLog";
 	private static final String AZURE_DEPLOYMENT_SLOT = "azure.deployment.slot";
+	private static final String AZURE_DEPLOYMENT_NAME = "azure.deployment.name";
 	private static final String AZURE_AFFINITY_LOCATION = "azure.affinity.location";
 	private static final String AZURE_NETOWRK_ADDRESS_SPACE = "azure.address.space";
 	private static final String AZURE_AFFINITY_GROUP = "azure.affinity.group";
@@ -74,6 +90,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 
 	// Arguments per template
 	private String deploymentSlot;
+	private String deploymentName;
 	private String imageName;
 	private String userName;
 	private String password;
@@ -81,12 +98,22 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 	private String pathToPfxFile;
 	private String pfxPassword;
 	private String availabilitySet;
+	private FileTransferModes fileTransferMode;
+	private RemoteExecutionModes remoteExecutionMode;
+	private ScriptLanguages scriptLanguage;
+	
 	private List<Map<String, String>> endpoints;
+	private List<Map<String, String>> firewallPorts;
 
 	private static final int WEBUI_PORT = 8099;
 	private static final int REST_PORT = 8100;
 	private static final int SSH_PORT = 22;
 
+	// Commands template
+	String COMMAND_OPEN_FIREWALL_PORT = "netsh firewall set portopening";
+	String COMMAND_ACTIVATE_SHARING = "netsh advfirewall firewall set rule group=\\\"File and Printer Sharing\\\" new enable=yes";
+	private static final long DEFAULT_COMMAND_TIMEOUT = 15 * 60 * 1000; // 2 minutes
+	
 	private static final Logger logger = Logger
 			.getLogger(MicrosoftAzureCloudDriver.class.getName());
 	private static final long CLEANUP_TIMEOUT = 60 * 1000 * 5; // five minutes
@@ -137,16 +164,56 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 		}
 		this.deploymentSlot = (String) this.template.getCustom().get(
 				AZURE_DEPLOYMENT_SLOT);
+		this.deploymentName = (String) this.template.getCustom().get(
+				AZURE_DEPLOYMENT_NAME);
 		if (deploymentSlot == null) {
 			deploymentSlot = "Staging";
 		}
-		this.endpoints = (List<Map<String, String>>) this.template.getCustom()
-				.get(AZURE_ENDPOINTS);
+		
+		// Test endpoints / firewall port for winrm at least 5985
+		this.endpoints = (List<Map<String, String>>) this.template.getCustom().get(AZURE_ENDPOINTS);
+		boolean winRmEndpoint = false;
+		String endPointPort = "";
+		for (Map<String, String> endpointMap : endpoints) {
+			endPointPort = endpointMap.get("port");
+			if ( !endPointPort.contains("-") && RemoteExecutionModes.WINRM.getDefaultPort() == Integer.parseInt(endPointPort) )
+				winRmEndpoint = true;
+		}
+		if (endpoints == null || !winRmEndpoint) {
+			throw new IllegalArgumentException("Custom field '"
+					+ AZURE_ENDPOINTS + "' must be set at least with WinRM port "+RemoteExecutionModes.WINRM.getDefaultPort());
+		}
+		
+		// handeling firewall ports for manager machine (8100 & 8099)
+		if ( this.management ) {
+			this.firewallPorts = (List<Map<String, String>>) this.template.getCustom().get(AZURE_FIREWALL_PORTS);
+			boolean cloudifyWebuiPort = false;
+			boolean cloudifyRestApiPort = false;
+			String port;
+			for (Map<String, String> firewallPort : firewallPorts) {
+				port = firewallPort.get("port");
+				if( !port.contains("-") ) {
+					int p = Integer.parseInt(port);
+					if ( p == WEBUI_PORT )
+						cloudifyWebuiPort = true;
+					if ( p == REST_PORT )
+						cloudifyRestApiPort = true;
+				}
+					
+			}
+			if (firewallPorts == null || !(cloudifyWebuiPort &&cloudifyRestApiPort)) {
+				throw new IllegalArgumentException("Custom field '"
+						+ AZURE_FIREWALL_PORTS + "' must be set at least with " + WEBUI_PORT + " and " + REST_PORT);
+			}
+		}
 
 		this.imageName = this.template.getImageId();
 		this.userName = this.template.getUsername();
 		this.password = this.template.getPassword();
 		this.size = this.template.getHardwareId();
+		this.fileTransferMode = this.template.getFileTransfer();
+		this.remoteExecutionMode = this.template.getRemoteExecution();
+		this.scriptLanguage = this.template.getScriptLanguage();
 
 		this.subscriptionId = this.cloud.getUser().getUser();
 
@@ -222,6 +289,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			desc = new CreatePersistentVMRoleDeploymentDescriptor();
 			desc.setRoleName(serverNamePrefix + "_role");
 			desc.setDeploymentSlot(deploymentSlot);
+			desc.setDeploymentName(deploymentName);
 			desc.setImageName(imageName);
 			desc.setAvailabilitySetName(availabilitySet);
 			desc.setAffinityGroup(affinityGroup);
@@ -236,10 +304,10 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			desc.setUserName(userName);
 
 			logger.info("Launching a new virtual machine");
-
+			boolean isWindows = isWindowsVM();
 			roleAddressDetails = azureClient.createVirtualMachineDeployment(
-					desc, endTime);
-
+					desc, isWindows, endTime);
+			
 			machineDetails.setPrivateAddress(roleAddressDetails.getPrivateIp());
 			machineDetails.setPublicAddress(roleAddressDetails.getPublicIp());
 			machineDetails.setMachineId(roleAddressDetails.getId());
@@ -251,9 +319,65 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 					.getRemoteDirectory());
 			machineDetails.setRemotePassword(password);
 			machineDetails.setRemoteUsername(userName);
+			machineDetails.setRemoteExecutionMode(this.remoteExecutionMode);
+			machineDetails.setFileTransferMode(this.fileTransferMode);
+			machineDetails.setScriptLangeuage(this.scriptLanguage);
+			
+			// Open firewall ports needed for the template
+			openFirewallPorts(machineDetails);
+
 			return machineDetails;
 		} catch (final Exception e) {
 			throw new CloudProvisioningException(e);
+		}
+
+	}
+	
+	private void openFirewallPorts(MachineDetails machineDetails) throws InstallerException, TimeoutException, InterruptedException {
+		
+		final RemoteExecutor remoteExecutor = RemoteExecutorFactory.createRemoteExecutorProvider(RemoteExecutionModes.WINRM);
+
+		// InstallationDetails : Needed to executed remote command
+		String localBootstrapScript = this.template.getAbsoluteUploadDir();
+		InstallationDetails details = new InstallationDetails();
+		details.setUsername(userName);
+		details.setPassword(password);
+		details.setLocalDir(localBootstrapScript);
+		
+		// Activate sharing on remote machine
+		remoteExecutor.execute(machineDetails.getPublicAddress(), details, COMMAND_ACTIVATE_SHARING, DEFAULT_COMMAND_TIMEOUT);
+		
+		// Remote command to target : open all defined ports
+		String cmd = "";
+		if (this.firewallPorts != null) {
+			for (Map<String, String> firewallPortsMap : this.firewallPorts) {
+				String name = firewallPortsMap.get("name");
+				String protocol = firewallPortsMap.get("protocol");
+				
+				// Port could be a range à a simple one
+				// 7001 or 7001-7010  ([7001..7010])
+				String port = firewallPortsMap.get("port");
+				if (!"".equals(port) && port.contains("-")) {
+					String [] portsRange = port.split("-");
+					int portStart = Integer.parseInt(portsRange[0]);
+					int portEnd   = Integer.parseInt(portsRange[1]);
+					if ( portsRange.length == 2 && portStart <= portEnd ) {
+						// Opening from port portStart -> portEnd (with +1 increment)
+						for (int i=portStart; i<=portEnd; i++) {
+							cmd = COMMAND_OPEN_FIREWALL_PORT + " " + protocol + " " + i + " " + (name+i);
+							remoteExecutor.execute(machineDetails.getPublicAddress(), details, cmd, DEFAULT_COMMAND_TIMEOUT);
+						}
+					}
+				}
+				else {
+					// No port defined : skip
+					if ( !"".equals(port) ) {
+						int portNumber = Integer.parseInt(port);
+						cmd = COMMAND_OPEN_FIREWALL_PORT + " " + protocol + " " + portNumber + " " + name;
+						remoteExecutor.execute(machineDetails.getPublicAddress(), details, cmd, DEFAULT_COMMAND_TIMEOUT);
+					}
+				}
+			}
 		}
 
 	}
@@ -652,29 +776,57 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 		InputEndpoints inputEndpoints = new InputEndpoints();
 
 		// Add End Point for each port
-
 		if (this.endpoints != null) {
 			for (Map<String, String> endpointMap : this.endpoints) {
 				String name = endpointMap.get("name");
-				int port = Integer.parseInt(endpointMap.get("port"));
 				String protocol = endpointMap.get("protocol");
-				InputEndpoint endpoint = new InputEndpoint();
-				endpoint.setLocalPort(port);
-				endpoint.setPort(port);
-				endpoint.setName(name);
-				endpoint.setProtocol(protocol);
-				inputEndpoints.getInputEndpoints().add(endpoint);
+				
+				// Port could be a range à a simple one
+				// 7001 or 7001-7010  ([7001..7010])
+				String port = endpointMap.get("port");
+				if (!"".equals(port) && port.contains("-")) {
+					String [] portsRange = port.split("-");
+					int portStart = Integer.parseInt(portsRange[0]);
+					int portEnd   = Integer.parseInt(portsRange[1]);
+					if ( portsRange.length == 2 && portStart <= portEnd ) {
+						// Opening from port portStart -> portEnd (with +1 increment)
+						InputEndpoint endpoint = null;
+						for (int i=portStart; i<=portEnd; i++) {
+							endpoint = new InputEndpoint();
+							endpoint.setLocalPort(i);
+							endpoint.setPort(i);
+							endpoint.setName(name+i);
+							endpoint.setProtocol(protocol);
+							inputEndpoints.getInputEndpoints().add(endpoint);
+						}
+					}
+				}
+				else {
+					// No port defined : skip
+					if ( !"".equals(port) ) {
+						int portNumber = Integer.parseInt(port);
+						InputEndpoint endpoint = new InputEndpoint();
+						endpoint.setLocalPort(portNumber);
+						endpoint.setPort(portNumber);
+						endpoint.setName(name);
+						endpoint.setProtocol(protocol);
+						inputEndpoints.getInputEndpoints().add(endpoint);
+					}
+				}
+				
 
 			}
 		}
-
-		// open the SSH port on all vm's
-		InputEndpoint sshEndpoint = new InputEndpoint();
-		sshEndpoint.setLocalPort(SSH_PORT);
-		sshEndpoint.setPort(SSH_PORT);
-		sshEndpoint.setName("SSH");
-		sshEndpoint.setProtocol("TCP");
-		inputEndpoints.getInputEndpoints().add(sshEndpoint);
+		
+		// open the SSH port linux vm's only
+		if ( !isWindowsVM() ) {
+			InputEndpoint sshEndpoint = new InputEndpoint();
+			sshEndpoint.setLocalPort(SSH_PORT);
+			sshEndpoint.setPort(SSH_PORT);
+			sshEndpoint.setName("SSH");
+			sshEndpoint.setProtocol("TCP");
+			inputEndpoints.getInputEndpoints().add(sshEndpoint);
+		}
 
 		// open WEBUI and REST ports for management machines
 		if (this.management) {
@@ -694,6 +846,11 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			inputEndpoints.getInputEndpoints().add(restEndpoint);
 		}
 		return inputEndpoints;
+	}
+	
+	private Boolean isWindowsVM() {
+		return RemoteExecutionModes.WINRM.equals(this.remoteExecutionMode) 
+				|| ScriptLanguages.WINDOWS_BATCH.equals(this.scriptLanguage);
 	}
 
 	@Override

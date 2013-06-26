@@ -20,6 +20,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
@@ -61,6 +62,8 @@ public class PowershellClient {
 
 	private static final String[] POWERSHELL_INSTALLED_COMMAND = new String[] { "powershell.exe", "-inputformat",
 			"none", "-?" };
+
+	private static final String[] POWERSHELL_TRUST_HOST_WINRM =  new String [] {"cmd.exe","/c","winrm","set","winrm/config/client"};
 
 	private static final String POWERSHELL_CLIENT_SCRIPT = "bootstrap-client.ps1";
 
@@ -125,7 +128,6 @@ public class PowershellClient {
 		final String[] commandLineParts = { "powershell.exe", "-inputformat", "none", "-File",
 				clientScriptFile.getAbsolutePath(), "-target", target, "-password", quoteString(password), "-username",
 				quoteString(username), "-command", quoteString(command) };
-
 		return Arrays.asList(commandLineParts);
 	}
 
@@ -156,14 +158,17 @@ public class PowershellClient {
 			final String password, final String localDir) throws PowershellClientException, InterruptedException {
 
 		checkPowershellInstalled();
+		
 		final List<String> fullCommand = getPowershellCommandLine(targetHost, username, password, command, localDir);
-
+	
 		final ProcessBuilder pb = new ProcessBuilder(fullCommand);
 		pb.redirectErrorStream(true);
+		
+		// Put the target in trusted mode (!!! you've to be administrator for this command !!!)
+		enableTrustedHost(targetHost);
 
 		try {
 			final Process p = pb.start();
-
 			final String output = readProcessOutput(p, true);
 			final int exitCode = p.waitFor();
 			if (exitCode != 0) {
@@ -210,6 +215,26 @@ public class PowershellClient {
 		}
 
 		powerShellInstalled = Boolean.TRUE;
+	}
+	
+	private String enableTrustedHost(final String ipTarget) throws PowershellClientException, InterruptedException {
+			
+		List<String> cmd = new ArrayList<String>();
+		for ( String cmdElement : POWERSHELL_TRUST_HOST_WINRM)
+			cmd .add(cmdElement);
+
+		cmd.add("@{TrustedHosts=\""+ipTarget+"\"}"); 
+	
+		final ProcessBuilder trusCommand = new ProcessBuilder(cmd);
+	   
+		try {
+			final Process trusCmdResult = trusCommand.start();
+			final String output = readProcessOutput(trusCmdResult, true);
+			return output;
+		} catch (final IOException e) {
+			throw new PowershellClientException("Failed to enable trusted host for winrm command: " + e.getMessage(), e);
+		}
+		   
 	}
 
 }
