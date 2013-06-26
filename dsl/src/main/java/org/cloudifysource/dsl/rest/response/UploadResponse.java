@@ -29,7 +29,7 @@ public class UploadResponse {
 		return uploadKey;
 	}
 
-	public void setUploadKey(String uploadKey) {
+	public void setUploadKey(final String uploadKey) {
 		this.uploadKey = uploadKey;
 	}
 	

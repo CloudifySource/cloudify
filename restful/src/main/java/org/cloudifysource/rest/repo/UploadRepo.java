@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -62,8 +63,12 @@ public class UploadRepo {
         final CleanUploadDirRunnable cleanupThread =
                 new CleanUploadDirRunnable(restUploadDir, cleanupTimeoutMillis);
         executor = Executors.newSingleThreadScheduledExecutor();
-        executor.scheduleAtFixedRate(cleanupThread, 0, cleanupTimeoutMillis, TimeUnit.MILLISECONDS);
-
+        try {
+        	executor.scheduleAtFixedRate(cleanupThread, 0, cleanupTimeoutMillis, TimeUnit.MILLISECONDS);
+        } catch (RejectedExecutionException e) {
+        	logger.log(Level.WARNING, "failed to scheduled for execution - " + e.getMessage());
+        	throw e;
+        }
     }
 
     /**

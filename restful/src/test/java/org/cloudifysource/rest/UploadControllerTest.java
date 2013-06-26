@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.time.DateUtils;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.rest.response.Response;
@@ -155,17 +156,26 @@ public class UploadControllerTest extends ControllerTest {
         	File file = new File(TEST_FILE_PATH);
         	UploadResponse uploadResponse = uploadFile(file);
         	String uploadKey = uploadResponse.getUploadKey();
+        	System.out.println("uploaded file with key " + uploadKey);
         	Assert.assertNotNull(uploadKey);
         	File uploadedFile = assertUploadedFileExists(file, uploadKey);
         	String parentPath = uploadedFile.getParentFile().getAbsolutePath();
 
+        	System.out.println("sleeping for " 
+        	+ (TEST_CLEANUP_TIMOUT_MILLIS * 3) / DateUtils.MILLIS_PER_SECOND + " seconds");
         	Thread.sleep(TEST_CLEANUP_TIMOUT_MILLIS * 3);
-
         	File expectedToBeDeletedFolder = new File(parentPath);
-        	Assert.assertFalse(expectedToBeDeletedFolder.exists());
+        	System.out.println("validate that the folder [" 
+        			+ expectedToBeDeletedFolder.getAbsolutePath() + "] was deleted:");
+        	boolean exists = expectedToBeDeletedFolder.exists();
+        	System.out.println("The folder [" + expectedToBeDeletedFolder.getAbsolutePath() 
+        			+ "] (expected to be deleted at this point) " 
+        	+ (exists ? " exists" : " not exists."));
+			Assert.assertFalse(exists);
         } finally {
         	System.out.println("setting the cleanup timeout back to " + cleanupTimeoutMillis + " millis");
         	uploadRepo.resetTimeout(cleanupTimeoutMillis);
+        	System.out.println("timeout has been reset to " + uploadRepo.getCleanupTimeoutMillis() + " milliseconds");
         }
     }
 
@@ -185,21 +195,25 @@ public class UploadControllerTest extends ControllerTest {
             throws IOException {
         File restTempDir = new File(CloudifyConstants.REST_FOLDER);
         File uploadsFolder = new File(restTempDir, CloudifyConstants.UPLOADS_FOLDER_NAME);
-        Assert.assertNotNull(uploadsFolder);
         File uploadedFileDir = new File(uploadsFolder, uploadKey);
+        System.out.println("uploaded file's folder: " + uploadedFileDir.getAbsolutePath());
         Assert.assertNotNull(uploadedFileDir);
+        System.out.println("uploaded file's folder exists: " + uploadedFileDir.exists());
         Assert.assertTrue(uploadedFileDir.exists());
-        Assert.assertTrue(uploadedFileDir.isDirectory());
-        Assert.assertTrue(uploadedFileDir.exists());
+        System.out.println("uploaded file's folder isDirectory: " + uploadedFileDir.isDirectory());
         Assert.assertTrue(uploadedFileDir.isDirectory());
         File uploadedFile = new File(uploadedFileDir, UPLOADED_FILE_NAME);
         System.out.println("uploaded file " + uploadedFile.getAbsolutePath() 
         		+ (uploadedFile.exists() ? "" : " not") + " exists.");
-        Assert.assertNotNull(uploadedFile);
         Assert.assertTrue(uploadedFile.exists());
+        System.out.println("uploaded file isFile: " + uploadedFile.isFile());
         Assert.assertTrue(uploadedFile.isFile());
-        Assert.assertTrue(FileUtils.contentEquals(expectedFile, uploadedFile));
-
+        boolean contentEquals = FileUtils.contentEquals(expectedFile, uploadedFile);
+        System.out.println("uploaded file [" + uploadedFile.getAbsolutePath() 
+        		+ "] content is " + (contentEquals ? "" : "not") 
+        		+ " equal to the expected content [ of file - " 
+        		+ expectedFile.getAbsolutePath() + "]");
+		Assert.assertTrue(contentEquals);
         return uploadedFile;
     }
 
