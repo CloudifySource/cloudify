@@ -71,6 +71,8 @@ import org.cloudifysource.dsl.cloud.storage.StorageTemplate;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntryFactory;
 import org.cloudifysource.dsl.entry.ExecutableEntriesMap;
+import org.cloudifysource.dsl.internal.validators.DSLValidationFactory;
+import org.cloudifysource.dsl.internal.validators.DSLValidator;
 import org.cloudifysource.dsl.scalingrules.HighThresholdDetails;
 import org.cloudifysource.dsl.scalingrules.LowThresholdDetails;
 import org.cloudifysource.dsl.scalingrules.ScalingRuleDetails;
@@ -401,9 +403,11 @@ public abstract class BaseDslScript extends Script {
 		return result;
 	}
 
-	private void validateObject(final Object obj)
+	 
+	private void validateObject(final Object entity)
 			throws DSLValidationException {
 
+		final DSLValidator obj = DSLValidationFactory.getInstance().createValidator(entity);
 		final Method[] methods = obj.getClass().getDeclaredMethods();
 		for (final Method method : methods) {
 			if (method.getAnnotation(DSLValidation.class) != null) {
