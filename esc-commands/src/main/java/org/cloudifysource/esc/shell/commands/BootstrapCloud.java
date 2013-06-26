@@ -129,7 +129,6 @@ public class BootstrapCloud extends AbstractGSCommand {
 	private static final long TEN_K = 10 * FileUtils.ONE_KB;
 
 	private File defaultSecurityTargetFile;
-	private File defaultKeystoreTargetFile;
 
 	@Override
 	protected Object doExecute() throws Exception {
@@ -163,9 +162,6 @@ public class BootstrapCloud extends AbstractGSCommand {
 
 		defaultSecurityTargetFile = new File(providerDirectory + PATH_SEPARATOR
 				+ CloudifyConstants.SECURITY_FILE_NAME);
-
-		defaultKeystoreTargetFile = new File(providerDirectory + PATH_SEPARATOR
-				+ CloudifyConstants.KEYSTORE_FILE_NAME);
 
 		setSecurityMode();
 		copySecurityFiles(providerDirectory.getAbsolutePath());
@@ -228,7 +224,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 			if (cloudOverrides != null) {
 				cloudPropertiesFile.delete();
 			}
-			FileUtils.deleteDirectory(tempFolder);
+			FileUtils.deleteQuietly(tempFolder);
 			installer.close();
 			restoreLoggingLevel();
 		}
@@ -239,6 +235,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 		final File tempFile = File.createTempFile("cloud-", "");
 		tempFile.delete();
 		tempFile.mkdir();
+		tempFile.deleteOnExit();
 		return tempFile;
 	}
 

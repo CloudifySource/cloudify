@@ -66,6 +66,7 @@ import org.cloudifysource.esc.shell.ValidationContextImpl;
 import org.cloudifysource.esc.shell.listener.CliAgentlessInstallerListener;
 import org.cloudifysource.esc.shell.listener.CliProvisioningDriverListener;
 import org.cloudifysource.esc.util.CalcUtils;
+import org.cloudifysource.esc.util.ProvisioningDriverClassBuilder;
 import org.cloudifysource.esc.util.Utils;
 import org.cloudifysource.restclient.utils.NewRestClientUtils;
 import org.cloudifysource.shell.AdminFacade;
@@ -487,8 +488,8 @@ public class CloudGridAgentBootstrapper {
 	 */
 	private void createProvisioningDriver(final boolean performValidation) throws CLIException {
 		try {
-			provisioning = (ProvisioningDriver) Class.forName(
-					cloud.getConfiguration().getClassName()).newInstance();
+			final ProvisioningDriverClassBuilder builder = new ProvisioningDriverClassBuilder();
+			provisioning = builder.build(providerDirectory.getAbsolutePath(), cloud.getConfiguration().getClassName());
 		} catch (final ClassNotFoundException e) {
 			throw new CLIException(
 					"Failed to load provisioning class for cloud: "

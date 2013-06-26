@@ -38,6 +38,7 @@ import org.cloudifysource.esc.installer.EnvironmentFileBuilder;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.util.CalcUtils;
+import org.cloudifysource.esc.util.ProvisioningDriverClassBuilder;
 import org.cloudifysource.esc.util.Utils;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
@@ -805,8 +806,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 			// load the provisioning class and set it up
 			try {
-				this.cloudifyProvisioning =
-						(ProvisioningDriver) Class.forName(this.cloud.getConfiguration().getClassName()).newInstance();
+				ProvisioningDriverClassBuilder builder = new ProvisioningDriverClassBuilder();
+				this.cloudifyProvisioning = builder.build(cloudConfigDirectoryPath, this.cloud.getConfiguration().getClassName());
+//				this.cloudifyProvisioning =
+//						(ProvisioningDriver) Class.forName(this.cloud.getConfiguration().getClassName()).newInstance();
 
 				if (cloudifyProvisioning instanceof ProvisioningDriverClassContextAware) {
 					final ProvisioningDriverClassContext provisioningDriverContext =
