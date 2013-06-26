@@ -94,6 +94,11 @@
 			<version>2.2.0</version>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+		    <groupId>com.googlecode.java-ipv6</groupId>
+		    <artifactId>java-ipv6</artifactId>
+		    <version>0.13</version>
+		</dependency>
 		<!-- We want the rest client to be available by default to all recipes -->
 		<dependency>
 			<groupId>org.codehaus.groovy.modules.http-builder</groupId>

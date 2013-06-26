@@ -66,6 +66,7 @@ import org.cloudifysource.esc.shell.ValidationContextImpl;
 import org.cloudifysource.esc.shell.listener.CliAgentlessInstallerListener;
 import org.cloudifysource.esc.shell.listener.CliProvisioningDriverListener;
 import org.cloudifysource.esc.util.CalcUtils;
+import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.esc.util.Utils;
 import org.cloudifysource.restclient.utils.NewRestClientUtils;
 import org.cloudifysource.shell.AdminFacade;
@@ -805,10 +806,10 @@ public class CloudGridAgentBootstrapper {
 		final Integer port = cloud.getConfiguration().getComponents().getDiscovery().getDiscoveryPort();
 		final StringBuilder lookupSb = new StringBuilder();
 		for (final InstallationDetails detail : installations) {
-			final String ip = cloud.getConfiguration().isConnectToPrivateIp() ? detail
-					.getPrivateIp() : detail.getPublicIp();
+			String ipAddress = cloud.getConfiguration().isConnectToPrivateIp() 
+					? detail.getPrivateIp() : detail.getPublicIp();
 
-			lookupSb.append(ip).append(":").append(port).append(',');
+			lookupSb.append(IPUtils.getSafeIpAddress(ipAddress)).append(":").append(port).append(',');
 		}
 
 		lookupSb.setLength(lookupSb.length() - 1);

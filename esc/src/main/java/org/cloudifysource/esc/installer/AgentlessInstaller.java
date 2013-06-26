@@ -36,6 +36,7 @@ import org.cloudifysource.esc.installer.filetransfer.FileTransferFactory;
 import org.cloudifysource.esc.installer.remoteExec.RemoteExecutor;
 import org.cloudifysource.esc.installer.remoteExec.RemoteExecutorFactory;
 import org.cloudifysource.esc.util.CalcUtils;
+import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.esc.util.Utils;
 
 /************
@@ -101,8 +102,8 @@ public class AgentlessInstaller {
 	}
 
 	private static InetAddress waitForRoute(final CloudTemplateInstallerConfiguration installerConfiguration,
-			final String ip, final long endTime) throws InstallerException,
-			InterruptedException {
+			final String ip, final long endTime) throws InstallerException, InterruptedException {
+		
 		Exception lastException = null;
 		while (System.currentTimeMillis() < endTime) {
 
@@ -171,7 +172,10 @@ public class AgentlessInstaller {
 				}
 			}
 		}
-		throw new TimeoutException("Failed connecting to " + ip + ":" + port);
+		
+		//timeout was reached
+		String ipAddress = inetAddress.getHostAddress();	//if resolving fails we don't reach this line
+		throw new TimeoutException("Failed connecting to " + IPUtils.getSafeIpAddress(ipAddress) + ":" + port);
 
 	}
 
@@ -257,6 +261,8 @@ public class AgentlessInstaller {
 			authGroups = details.getAuthGroups();
 		}
 
+		String safePublicIpAddress = IPUtils.getSafeIpAddress(details.getPublicIp());
+		String safePrivateIpAddress = IPUtils.getSafeIpAddress(details.getPrivateIp());
 		final String springProfiles = createSpringProfilesString(details);
 		final EnvironmentFileBuilder builder = new EnvironmentFileBuilder(details.getScriptLanguage(),
 												details.getExtraRemoteEnvironmentVariables())
@@ -267,23 +273,22 @@ public class AgentlessInstaller {
 						details.isNoWebServices() ? "true" : "false")
 				.exportVar(
 						CloudifyConstants.CLOUDIFY_CLOUD_MACHINE_IP_ADDRESS_ENV,
-						details.isBindToPrivateIp() ? details.getPrivateIp()
-								: details.getPublicIp())
+						details.isBindToPrivateIp() ? safePrivateIpAddress : safePublicIpAddress)
 				.exportVar(CloudifyConstants.CLOUDIFY_LINK_ENV,
 						details.getCloudifyUrl())
 				.exportVar(CloudifyConstants.CLOUDIFY_OVERRIDES_LINK_ENV,
 						details.getOverridesUrl())
 				.exportVar(WORKING_HOME_DIRECTORY_ENV, remoteDirectory)
 				.exportVar(CloudifyConstants.GIGASPACES_AUTH_GROUPS, authGroups)
-				.exportVar(CloudifyConstants.GIGASPACES_AGENT_ENV_PRIVATE_IP, details.getPrivateIp())
-				.exportVar(CloudifyConstants.GIGASPACES_AGENT_ENV_PUBLIC_IP, details.getPublicIp())
+				.exportVar(CloudifyConstants.GIGASPACES_AGENT_ENV_PRIVATE_IP, safePrivateIpAddress)
+				.exportVar(CloudifyConstants.GIGASPACES_AGENT_ENV_PUBLIC_IP, safePublicIpAddress)
 				.exportVar(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME, details.getTemplateName())
 				.exportVar(CloudifyConstants.GIGASPACES_CLOUD_MACHINE_ID, details.getMachineId())
 				.exportVar(CloudifyConstants.CLOUDIFY_CLOUD_MACHINE_ID, details.getMachineId())
 				// maintain backwards compatibility for pre 2.3.0
-				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP, details.getPrivateIp())
+				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP, safePrivateIpAddress)
 				.exportVar(CloudifyConstants.CLOUDIFY_CLOUD_LOCATION_ID, details.getLocationId())
-				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP, details.getPublicIp());
+				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP, safePublicIpAddress);
 
 		if (details.getReservationId() != null) {
 			builder.exportVar(GSA_RESERVATION_ID_ENV, details.getReservationId().toString());

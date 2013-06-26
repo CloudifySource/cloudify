@@ -32,6 +32,7 @@ import java.util.logging.Level;
 import net.jini.discovery.Constants;
 
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.ShellUtils;
@@ -341,7 +342,9 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 		try {
 			final String serviceNameCapital = StringUtils.capitalize(serviceName);
 			final String localhost = Constants.getHostAddress();
-			logger.info(serviceNameCapital + " service will be available at: http://" + localhost + ":" + port);
+			String protocol = isSecureConnection ? "https" : "http";
+			logger.info(serviceNameCapital + " service will be available at: " + protocol + "://" 
+					+ IPUtils.getSafeIpAddress(localhost) + ":" + port);
 		} catch (final UnknownHostException e) {
 			throw new CLIException("Failed getting host address", e);
 		}

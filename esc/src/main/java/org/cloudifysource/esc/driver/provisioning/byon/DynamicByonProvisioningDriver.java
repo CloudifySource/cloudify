@@ -30,11 +30,11 @@ import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
-import org.cloudifysource.esc.util.IPUtils;
 
 /**
  *

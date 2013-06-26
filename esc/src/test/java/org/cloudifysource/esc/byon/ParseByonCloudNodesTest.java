@@ -31,7 +31,7 @@ import org.cloudifysource.esc.driver.provisioning.CustomNode;
 import org.cloudifysource.esc.driver.provisioning.byon.ByonProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.byon.CustomNodeImpl;
 import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverClassContext;
-import org.cloudifysource.esc.util.IPUtils;
+import org.cloudifysource.dsl.utils.IPUtils;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;

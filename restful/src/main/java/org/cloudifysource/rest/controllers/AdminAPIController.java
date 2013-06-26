@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.rest.command.CommandManager;
 import org.cloudifysource.rest.out.OutputDispatcher;
 import org.cloudifysource.rest.util.NotFoundHttpException;
@@ -140,7 +141,9 @@ public class AdminAPIController {
 			final HttpServletRequest httpServletRequest) {
 		final String host = httpServletRequest.getServerName();
 		final int port = httpServletRequest.getServerPort();
-		return "http://" + host + ":" + port;
+		String url = IPUtils.getRestProtocol() + "://" + IPUtils.getSafeIpAddress(host) 
+				+ ":" + port;
+		return url;
 	}
 
 	public Admin getAdmin() {

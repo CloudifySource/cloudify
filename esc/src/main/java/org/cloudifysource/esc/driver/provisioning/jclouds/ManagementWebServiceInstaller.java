@@ -27,6 +27,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.gsa.GridServiceAgent;
@@ -243,17 +244,19 @@ public class ManagementWebServiceInstaller {
 
 		final Map<String, ServiceDetails> alldetails = pui.getServiceDetailsByServiceId();
 
+		String protocol = IPUtils.getRestProtocol();
 		final ServiceDetails details = alldetails.get("jee-container");
 		final String host = details.getAttributes().get("host").toString();
-		final String port = details.getAttributes().get("port").toString();
+		final int port = Integer.parseInt(details.getAttributes().get("port").toString());
 		final String ctx = details.getAttributes().get("context-path").toString();
-		final String url = "http://" + host + ":" + port + ctx;
+
 		try {
-			return new URL(url);
+			return new URL(protocol, host, port, ctx);
 		} catch (final MalformedURLException e) {
 			// this is a bug since we formed the URL correctly
 			throw new IllegalStateException(e);
 		}
+
 	}
 
 	public static File getGSFile(File warFile) {
