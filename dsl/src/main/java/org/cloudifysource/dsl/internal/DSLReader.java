@@ -60,6 +60,9 @@ import org.openspaces.ui.UserInterface;
 
 public class DSLReader {
 
+	public DSLReader() {
+		
+	}
 	// Groovy DSL prefix, used for handling print and println correctly
 	private static final String GROOVY_SERVICE_PREFIX =
 			"Object.metaClass.println = {x->this.println(x)}; Object.metaClass.print =  {x->this.print(x)};";
