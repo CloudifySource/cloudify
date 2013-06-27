@@ -27,9 +27,11 @@ Build Instructions
 ```
 git clone https://github.com/CloudifySource/cloudify.git    
 ```
+	
 ```
 cd cloudify	
 ```
+	
 ```
 ant cloudify.zip	
 ```
