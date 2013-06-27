@@ -7,7 +7,7 @@ import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 
-public class ApplicationValidator implements DSLValidator {
+public class ApplicationValidator implements DSLValidator<Application> {
 
 	private Application application;
 	private String name;
@@ -31,8 +31,8 @@ public class ApplicationValidator implements DSLValidator {
 
 
 	@Override
-	public void setDSLEntity(Object dslEntity) {
-		this.application = (Application)dslEntity;
+	public void setDSLEntity(Application dslEntity) {
+		this.application = dslEntity;
 		this.name = application.getName();
 	}
 }
