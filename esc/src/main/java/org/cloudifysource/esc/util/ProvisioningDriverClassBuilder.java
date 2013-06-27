@@ -66,7 +66,7 @@ public class ProvisioningDriverClassBuilder {
 			final CompilerConfiguration gcc = new CompilerConfiguration();
 			//add lib folder to the groovy classpath.
 			gcc.getClasspath().add(libFolderPath);
-			File[] jarFiles = listJarFiles(cloudLibFolder);
+			final File[] jarFiles = listJarFiles(cloudLibFolder);
 			for (File file : jarFiles) {
 				// add all jars in folder to the classpath.
 				gcc.getClasspath().add(file.getAbsolutePath());
