@@ -44,7 +44,7 @@ Debugging the CLI without cloud plugin support
 1. To debug the CLI without plugin support
 ```
 cd cloudify/CLI/
-mvndebug �e compile exec:java
+mvndebug -e compile exec:java
 ```
 
 2. Connect the eclipse project to port 8000 and start the remote debugging.
