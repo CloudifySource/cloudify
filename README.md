@@ -25,16 +25,11 @@ Build Instructions
 1. make sure that you have git, ant and maven installed.
 2. In command line, run the following commands:    
 ```
-git clone https://github.com/CloudifySource/cloudify.git    
+git clone https://github.com/CloudifySource/cloudify.git
+cd cloudify
+ant cloudify.zip
 ```
-	
-```
-cd cloudify	
-```
-	
-```
-ant cloudify.zip	
-```
+
 3. The Cloudify distribution will be available under the 'cloudify/releases/build_BUILDNUMBER/' directory
 
 Import Cloudify to Eclipse
