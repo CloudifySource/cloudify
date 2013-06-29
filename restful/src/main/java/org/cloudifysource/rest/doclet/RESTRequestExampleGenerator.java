@@ -16,7 +16,6 @@
  *******************************************************************************/
 package org.cloudifysource.rest.doclet;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -28,7 +27,7 @@ import org.cloudifysource.dsl.rest.request.SetServiceAttributesRequest;
 import org.cloudifysource.dsl.rest.request.SetServiceInstanceAttributesRequest;
 import org.cloudifysource.dsl.rest.request.SetServiceInstancesRequest;
 import org.cloudifysource.dsl.rest.request.UpdateApplicationAttributeRequest;
-import org.cloudifysource.restDoclet.exampleGenerators.IDocRequestExampleGenerator;
+import org.cloudifysource.restDoclet.exampleGenerators.IDocExampleGenerator;
 import org.cloudifysource.restDoclet.exampleGenerators.PrimitiveExampleValues;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,21 +40,16 @@ import com.sun.javadoc.Type;
  * @since 2.6.0
  *
  */
-public class RESTRequestExampleGenerator implements IDocRequestExampleGenerator {
+public class RESTRequestExampleGenerator implements IDocExampleGenerator {
 	private static final Logger logger = Logger.getLogger(RESTRequestExampleGenerator.class.getName());
 	
 	@Override
-	public String generateRequestExample(final List<Type> parameterTypes) 
+	public String generateExample(final Type type) 
 			throws Exception {
-		String result = "";
-		for (Type type : parameterTypes) {			
-			Class<?> clazz = ClassUtils.getClass(type.qualifiedTypeName());
-			Object requestBodyParam = getRequestExample(clazz);
-			String jsonStr = new ObjectMapper().writeValueAsString(requestBodyParam);
-			result += jsonStr;
-			result += System.getProperty("line.separator");
-		}
-		return result;
+		Class<?> clazz = ClassUtils.getClass(type.qualifiedTypeName());
+		Object requestBodyParam = getRequestExample(clazz);
+		String jsonStr = new ObjectMapper().writeValueAsString(requestBodyParam);
+		return jsonStr;
 		
 	}
 	

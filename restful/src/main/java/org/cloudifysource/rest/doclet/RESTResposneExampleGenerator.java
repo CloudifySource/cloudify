@@ -42,7 +42,7 @@ import org.cloudifysource.dsl.rest.response.UninstallApplicationResponse;
 import org.cloudifysource.dsl.rest.response.UninstallServiceResponse;
 import org.cloudifysource.dsl.rest.response.UpdateApplicationAttributeResponse;
 import org.cloudifysource.dsl.rest.response.UploadResponse;
-import org.cloudifysource.restDoclet.exampleGenerators.IDocResponseExampleGenerator;
+import org.cloudifysource.restDoclet.exampleGenerators.IDocExampleGenerator;
 import org.cloudifysource.restDoclet.exampleGenerators.PrimitiveExampleValues;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -55,12 +55,12 @@ import com.sun.javadoc.Type;
  * @since 2.6.0
  *
  */
-public class RESTResposneExampleGenerator implements IDocResponseExampleGenerator {
+public class RESTResposneExampleGenerator implements IDocExampleGenerator {
 
 	private static final Logger logger = Logger.getLogger(RESTResposneExampleGenerator.class.getName());
 
 	@Override
-	public String generateResponseExample(final Type type) throws Exception {	
+	public String generateExample(final Type type) throws Exception {	
 
 		Response<Object> responseWrapper = new Response<Object>();
 		responseWrapper.setResponse(getExample(type));

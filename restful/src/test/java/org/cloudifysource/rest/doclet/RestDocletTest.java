@@ -16,9 +16,12 @@
 package org.cloudifysource.rest.doclet;
 
 import java.io.File;
+import java.io.IOException;
 
+import org.apache.commons.io.FileUtils;
 import org.cloudifysource.restDoclet.constants.RestDocConstants;
 import org.cloudifysource.restDoclet.generation.RestDoclet;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -35,9 +38,10 @@ public class RestDocletTest {
 			DOCLET_DIR_PATH + File.separator 
 			+ RestDocConstants.VELOCITY_TEMPLATE_FILE_NAME;
 	private static final String SOURCES_PATH = "src" + File.separator + "main" + File.separator + "java";
+	private static final String GENERATED_HTML_FILE_PATH = DOC_DEST_PATH;
 
 	@Test
-	public void test() {
+	public void test() throws IOException {
 		
 		com.sun.tools.javadoc.Main.execute(new String[] {
 				RestDocConstants.DOCLET_FLAG, RestDoclet.class.getName(),
@@ -51,6 +55,18 @@ public class RestDocletTest {
 				RestDocConstants.REQUEST_BODY_PARAM_FILTER_CLASS_FLAG, RequestBodyParamFilter.class.getName()
 				});
 
+		File html = getHtml();
+		String htmlString = FileUtils.readFileToString(html);
+		Assert.assertFalse(htmlString.contains(RestDocConstants.FAILED_TO_CREATE_REQUEST_EXAMPLE));
+		Assert.assertFalse(htmlString.contains(RestDocConstants.FAILED_TO_CREATE_REQUEST_EXAMPLE));
 	}
+
+	private File getHtml() {
+		File htmlFile = new File(GENERATED_HTML_FILE_PATH);
+		Assert.assertTrue(htmlFile.exists());
+		return htmlFile;
+	}
+	
+	
 
 }
