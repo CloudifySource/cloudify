@@ -23,7 +23,7 @@
 		<repository>
 			<id>org.openspaces</id>
 			<name>OpenSpaces</name>
-			<url>http://maven-repository.openspaces.org</url>
+			<url>https://s3-eu-west-1.amazonaws.com/gigaspaces-maven-repository-eu</url>
 			<releases>
 				<enabled>true</enabled>
 				<updatePolicy>daily</updatePolicy>
@@ -45,7 +45,7 @@
 		<pluginRepository>
 			<id>org.openspaces</id>
 			<name>OpenSpaces-Plugin</name>
-			<url>http://maven-repository.openspaces.org</url>
+			<url>https://s3-eu-west-1.amazonaws.com/gigaspaces-maven-repository-eu</url>
 			<releases>
 				<enabled>true</enabled>
 				<updatePolicy>daily</updatePolicy>
