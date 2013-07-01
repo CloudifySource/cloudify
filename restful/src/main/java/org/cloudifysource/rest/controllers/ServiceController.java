@@ -4124,7 +4124,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	private Map<String, Object> addTemplatesToCloud(final File templatesFolder)
 			throws RestErrorException, DSLException {
 
-		logger.log(Level.INFO, "[addTemplatesToCloud] - Adding templates to cloud.");
+		logger.log(Level.FINE, "[addTemplatesToCloud] - Adding templates to cloud.");
 
 		// read cloud templates from templates folder
 		final List<ComputeTemplateHolder> cloudTemplatesHolders = readCloudTemplates(templatesFolder);
@@ -4142,8 +4142,6 @@ public class ServiceController implements ServiceDetailsProvider {
 					+ templatesFolder.getAbsolutePath());
 		} else {
 			// at least one template was added, copy files from template folder to cloudTemplateFolder
-			logger.log(Level.INFO, "[addTemplatesToCloud] - templatesFolder is " + templatesFolder);
-			logger.log(Level.INFO, "[addTemplatesToCloud] - cloudConfigurationDir is " + cloudConfigurationDir);
 			logger.log(Level.INFO, "[addTemplatesToCloud] - Coping templates files from "
 					+ templatesFolder.getAbsolutePath() + " to " + cloudConfigurationDir.getAbsolutePath());
 			try {
