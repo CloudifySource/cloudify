@@ -214,18 +214,20 @@ public class ServiceController implements ServiceDetailsProvider {
 	private static final int LIFECYCLE_EVENT_POLLING_INTERVAL_SEC = 4;
 	private static final long LIFECYCLE_EVENT_CLEANUP_INTERVAL_SEC = 60;
 	private static final long MINIMAL_POLLING_TASK_EXPIRATION = 5 * 60 * 1000;
-
 	private static final String LOCALCLOUD_ZONE = "localcloud";
 	private static final String SHARED_ISOLATION_ID = "public";
+	private static final long TEN_K = 10 * FileUtils.ONE_KB;
+	private static final String FAILED_TO_ADD_TEMPLATES_KEY = "failed to add templates";
+	private static final String SUCCESSFULLY_ADDED_TEMPLATES_KEY = "successfully added templates";
+	private static final Logger logger = Logger.getLogger(ServiceController.class.getName());
+	private static final long DEFAULT_DUMP_FILE_SIZE_LIMIT = 5 * 1024 * 1024;
+	private static final String DEFAULT_DUMP_PROCESSORS = "summary, network, thread, log";
+	protected static final int MANAGEMENT_AGENT_SHUTDOWN_INTERNAL_SECONDS = 5;
 
 	private final Map<UUID, RestPollingRunnable> lifecyclePollingThreadContainer =
 			new ConcurrentHashMap<UUID, RestPollingRunnable>();
 	private final ExecutorService serviceUndeployExecutor = Executors
 			.newFixedThreadPool(10);
-	private static final long TEN_K = 10 * FileUtils.ONE_KB;
-	private static final String FAILED_TO_ADD_TEMPLATES_KEY = "failed to add templates";
-	private static final String SUCCESSFULLY_ADDED_TEMPLATES_KEY = "successfully added templates";
-
 	/**
 	 * A set containing all of the executed lifecycle events. used to avoid duplicate prints.
 	 */
@@ -233,23 +235,14 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	@Autowired
 	private RestConfiguration restConfig;
-	private Admin admin;
-	@Autowired(required = false)
+	
 	private CustomPermissionEvaluator permissionEvaluator;
+	private Admin admin;
 	private GigaSpace gigaSpace;
-
-	private Cloud cloud = null;
+	private Cloud cloud;
 	private CloudConfigurationHolder cloudConfigurationHolder;
 	private File cloudConfigurationDir;
 	private ComputeTemplate managementTemplate;
-	private final AtomicInteger lastTemplateFileNum = new AtomicInteger(0);
-
-	private static final Logger logger = Logger
-			.getLogger(ServiceController.class.getName());
-	private static final long DEFAULT_DUMP_FILE_SIZE_LIMIT = 5 * 1024 * 1024;
-
-	private static final String DEFAULT_DUMP_PROCESSORS = "summary, network, thread, log";
-	protected static final int MANAGEMENT_AGENT_SHUTDOWN_INTERNAL_SECONDS = 5;
 
 	// private static final String[] DEFAULT_DUMP_PROCESSORS = new String[] {
 	// "summary", "network", "thread", "log", "processingUnits;"
@@ -269,6 +262,10 @@ public class ServiceController implements ServiceDetailsProvider {
 		defaultTemplateName = restConfig.getDefaultTemplateName();
 		managementTemplate = restConfig.getManagementTemplate();
 		restTemporaryFolder = restConfig.getRestTempFolder();
+		cloudConfigurationDir = restConfig.getCloudConfigurationDir();
+		cloudConfigurationHolder = restConfig.getCloudConfigurationHolder();
+		permissionEvaluator = restConfig.getPermissionEvaluator();
+		
 		startLifecycleLogsCleanupTask();
 	}
 
@@ -4127,12 +4124,12 @@ public class ServiceController implements ServiceDetailsProvider {
 	private Map<String, Object> addTemplatesToCloud(final File templatesFolder)
 			throws RestErrorException, DSLException {
 
-		logger.log(Level.FINE, "[addTemplatesToCloud] - Adding templates to cloud.");
+		logger.log(Level.INFO, "[addTemplatesToCloud] - Adding templates to cloud.");
 
 		// read cloud templates from templates folder
 		final List<ComputeTemplateHolder> cloudTemplatesHolders = readCloudTemplates(templatesFolder);
 
-		logger.log(Level.FINE, "[addTemplatesToCloud] - Successfully read " + cloudTemplatesHolders.size()
+		logger.log(Level.INFO, "[addTemplatesToCloud] - Successfully read " + cloudTemplatesHolders.size()
 				+ " templates from folder - " + templatesFolder);
 
 		// adds the templates to the cloud's templates list, deletes the failed to added templates from the folder.
@@ -4145,7 +4142,9 @@ public class ServiceController implements ServiceDetailsProvider {
 					+ templatesFolder.getAbsolutePath());
 		} else {
 			// at least one template was added, copy files from template folder to cloudTemplateFolder
-			logger.log(Level.FINE, "[addTemplatesToCloud] - Coping templates files from "
+			logger.log(Level.INFO, "[addTemplatesToCloud] - templatesFolder is " + templatesFolder);
+			logger.log(Level.INFO, "[addTemplatesToCloud] - cloudConfigurationDir is " + cloudConfigurationDir);
+			logger.log(Level.INFO, "[addTemplatesToCloud] - Coping templates files from "
 					+ templatesFolder.getAbsolutePath() + " to " + cloudConfigurationDir.getAbsolutePath());
 			try {
 				final File localTemplatesDir = copyTemplateFilesToCloudConfigDir(templatesFolder);
@@ -4364,10 +4363,10 @@ public class ServiceController implements ServiceDetailsProvider {
 		final File templatesDirParent = getTemplatesFolder();
 		// create new templates folder - increment folder number until no folder
 		// with that name exist.
-		String folderName = "templates_" + lastTemplateFileNum.incrementAndGet();
+		String folderName = "templates_" + restConfig.getLastTemplateFileNum().incrementAndGet();
 		File copiedtemplatesFolder = new File(templatesDirParent, folderName);
 		while (copiedtemplatesFolder.exists()) {
-			folderName = "templates_" + lastTemplateFileNum.incrementAndGet();
+			folderName = "templates_" + restConfig.getLastTemplateFileNum().incrementAndGet();
 			copiedtemplatesFolder = new File(templatesDirParent, folderName);
 		}
 		copiedtemplatesFolder.mkdir();
@@ -4376,7 +4375,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			return copiedtemplatesFolder;
 		} catch (final IOException e) {
 			FileUtils.deleteDirectory(copiedtemplatesFolder);
-			lastTemplateFileNum.decrementAndGet();
+			restConfig.getLastTemplateFileNum().decrementAndGet();
 			throw e;
 		}
 	}

@@ -132,7 +132,6 @@ import org.openspaces.admin.pu.elastic.config.ManualCapacityScaleConfigurer;
 import org.openspaces.admin.pu.elastic.topology.ElasticDeploymentTopology;
 import org.openspaces.admin.space.ElasticSpaceDeployment;
 import org.openspaces.core.GigaSpace;
-import org.openspaces.core.context.GigaSpaceContext;
 import org.openspaces.core.util.MemoryUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -144,6 +143,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import com.sun.mail.iap.Response;
 
 /**
  * This controller is responsible for retrieving information about deployments. It is also the entry point for deploying
@@ -171,48 +172,31 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping(value = "/{version}/deployments")
 public class DeploymentsController extends BaseRestController {
 
-	private static final Logger logger = Logger
-			.getLogger(DeploymentsController.class.getName());
-
+	private static final Logger logger = Logger.getLogger(DeploymentsController.class.getName());
 	private static final int MAX_NUMBER_OF_EVENTS = 100;
-
 	private static final int REFRESH_INTERVAL_MILLIS = 500;
-
 	private static final int DEPLOYMENT_TIMEOUT_SECONDS = 60;
-
 	private static final int WAIT_FOR_MANAGED_TIMEOUT_SECONDS = 10;
-
 	private static final int LOCAL_CLOUD_INSTANCE_MEMORY_MB = 512;
-
-	@GigaSpaceContext(name = "gigaSpace")
-	protected GigaSpace gigaSpace;
-
-	@Autowired
-	private UploadRepo repo;
 
 	@Autowired
 	private RestConfiguration restConfig;
-
+	@Autowired
+	private UploadRepo repo;
 	@Autowired
 	private InstallServiceValidator[] installServiceValidators = new InstallServiceValidator[0];
-
 	@Autowired
 	private final UninstallServiceValidator[] uninstallServiceValidators = new UninstallServiceValidator[0];
-
 	@Autowired
 	private final InstallApplicationValidator[] installApplicationValidators = new InstallApplicationValidator[0];
-
 	@Autowired
 	private final UninstallApplicationValidator[] uninstallApplicationValidators = new UninstallApplicationValidator[0];
-
 	@Autowired
 	private final SetServiceInstancesValidator[] setServiceInstancesValidators = new SetServiceInstancesValidator[0];
 
-	@Autowired(required = false)
+	protected GigaSpace gigaSpace;
 	private CustomPermissionEvaluator permissionEvaluator;
-
 	private final ExecutorService serviceUndeployExecutor = Executors.newFixedThreadPool(10);
-
 	private EventsCache eventsCache;
 	private ControllerHelper controllerHelper;
 
@@ -221,6 +205,8 @@ public class DeploymentsController extends BaseRestController {
 	 */
 	@PostConstruct
 	public void init() {
+		gigaSpace = restConfig.getGigaSpace();
+		permissionEvaluator = restConfig.getPermissionEvaluator();
 		this.eventsCache = new EventsCache(restConfig.getAdmin());
 		this.controllerHelper = new ControllerHelper(gigaSpace, restConfig.getAdmin());
 	}

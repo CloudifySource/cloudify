@@ -28,6 +28,7 @@ import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.packaging.CloudConfigurationHolder;
 import org.cloudifysource.rest.util.RestPollingRunnable;
+import org.cloudifysource.security.CustomPermissionEvaluator;
 import org.openspaces.admin.Admin;
 import org.openspaces.core.GigaSpace;
 
@@ -49,7 +50,9 @@ public class RestConfiguration {
     private String managementTemplateName;
     private final AtomicInteger lastTemplateFileNum = new AtomicInteger(0);
     private File restTempFolder;
-    /**
+	private CustomPermissionEvaluator permissionEvaluator;
+
+	/**
      * A set containing all of the executed lifecycle events. used to avoid duplicate prints.
      */
     private final Set<String> eventsSet = new HashSet<String>();
@@ -175,5 +178,13 @@ public class RestConfiguration {
     public ExecutorService getExecutorService() {
         return executorService;
     }
+
+	public CustomPermissionEvaluator getPermissionEvaluator() {
+		return permissionEvaluator;
+	}
+
+	public void setPermissionEvaluator(final CustomPermissionEvaluator permissionEvaluator) {
+		this.permissionEvaluator = permissionEvaluator;
+	}
 
 }
