@@ -237,6 +237,7 @@ public final class IPUtils {
 	public static boolean validateIPAddress(final String ipAddress) {
 		boolean valid = false;
 
+
 		if (isIPv6Address(ipAddress)) {
 			// if we're here - this is valid IPv6 address
 			valid = true;
@@ -307,7 +308,62 @@ public final class IPUtils {
 		}
 	}
 	
-	
+	/**
+	 * Validates a connection can be made to the given address on any port in the given port range,
+	 * within the given time limit.
+	 * 
+	 * @param ipAddress
+	 *            The IP address to connect to
+	 * @param lowestPort
+	 *            The lowest port number in the port range to use
+	 * @param highestPort
+	 *            The highest port number in the port range to use
+	 * @param timeout
+	 *            The time to wait before timing out, in seconds
+	 * @throws UnknownHostException
+	 *             Reports the IP address of the host could not be determined.
+	 * @throws IOException
+	 *             Reports an I/O error occurs when creating the socket.
+	 * @throws SecurityException
+	 *             Reports a failure to connect or resolve the given address.
+	 */
+	public static void validateConnection(final String ipAddress, final int lowestPort, final int highestPort, 
+			final int timeout) throws UnknownHostException, IOException, SecurityException {
+
+		if (lowestPort > highestPort) {
+			throw new IllegalArgumentException("Invalid port range: " + lowestPort + "-" + highestPort + ". The "
+					+ " lowest port must be smaller than the highest port in the range.");
+		}
+		
+		boolean connectionEstablished = false;
+		Exception lastException = null;
+		
+		for (int port = lowestPort; port <= highestPort && !connectionEstablished; port++) {
+			try {
+				validateConnection(ipAddress, port);
+				connectionEstablished = true;
+			} catch (UnknownHostException uhe) {
+				// the hostname couldn't be resolved into an InetAddress
+				// no need to try other ports
+				throw uhe;
+			} catch (SecurityException se) {
+				// a security manager is present and permission to resolve the host name is denied
+				// no need to try other ports
+				throw se;
+			} catch (Exception e) {
+				// failed to connect on the given port, try the next one
+				lastException = e;
+				continue;
+			}
+		}
+		
+		if (!connectionEstablished) {
+			throw new IOException("Failed to connect to host " + ipAddress + " on any port in the range " + lowestPort
+					+ "-" + highestPort, lastException);			
+		}
+	}
+
+
 	/**
 	 * Safely casts long to int.
 	 * 
@@ -333,7 +389,6 @@ public final class IPUtils {
 		}
 		return intValue;
 	}
-	
 
 	/**
 	 * Resolves IP address to host name.
@@ -420,10 +475,10 @@ public final class IPUtils {
 	 * @return True if the two addresses represent the same address, False
 	 *         otherwise.
 	 */
-	private static boolean isSameIpv6Address(final String address1, final String address2) {
+	public static boolean isSameIpv6Address(final String address1, final String address2) {
 
 		boolean adressesEquals = false;
-		
+
 		try {
 			final IPv6Address iPv6Address1 = IPv6Address.fromString(address1);
 			final IPv6Address iPv6Address2 = IPv6Address.fromString(address2);
@@ -496,7 +551,6 @@ public final class IPUtils {
 	 * @return an IP address, "safe" for concatenation.
 	 */
 	public static String getSafeIpAddress(final String ipAddress) {
-		
 		String safeIpAddress;
 		try {
 			String strippedIp = StringUtils.strip(ipAddress, "[]");
@@ -507,25 +561,22 @@ public final class IPUtils {
 			//this is not a valid IPv6 address, assume this is IPv4 or host name, leave as is
 			safeIpAddress = ipAddress;
 		}
-		
+
 		return safeIpAddress;
 	}
-	
-	
+
 	/**
 	 * Gets the relevant rest protocol, considering the SPRING_PROFILES_ACTIVE environment variable.
 	 * @return https if the rest server is secured, http otherwise.
 	 */
 	public static String getRestProtocol() {
-		
 		String protocol = "https";
 		if (StringUtils.isBlank(SPRING_SECURITY_PROFILE) 
 				|| SPRING_SECURITY_PROFILE.contains(SPRING_PROFILE_NON_SECURE)) {
 			//security is off
 			protocol = "http";
 		}
-		
+
 		return protocol;		
 	}
-
 }
