@@ -389,7 +389,7 @@ public class RestPollingRunnable implements Runnable {
 		servicesLifecycleEventDetailes = new ArrayList<Map<String, String>>();
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(
 				this.applicationName, serviceName);
-		logger.log(Level.FINE, "Polling for lifecycle events on service: "
+		logger.log(Level.FINEST, "Polling for lifecycle events on service: "
 				+ absolutePuName);
 		final Zone zone = admin.getZones().getByName(absolutePuName);
 		if (zone == null) {
@@ -403,7 +403,7 @@ public class RestPollingRunnable implements Runnable {
 		final LogEntryMatcher matcher = regex(regex);
 		for (final GridServiceContainer container : zone
 				.getGridServiceContainers()) {
-			logger.log(Level.FINE,
+			logger.log(Level.FINEST,
 					"Polling GSC with uid: " + container.getUid());
 
 			final Date pollingStartTime = getGSCSamplingStartTime(container);
