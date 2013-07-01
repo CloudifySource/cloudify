@@ -16,8 +16,8 @@
 package org.cloudifysource.esc.driver.provisioning.byon;
 
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.esc.driver.provisioning.CustomNode;
-import org.cloudifysource.esc.util.IPUtils;
 
 import java.net.UnknownHostException;
 
