@@ -144,8 +144,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.sun.mail.iap.Response;
-
 /**
  * This controller is responsible for retrieving information about deployments. It is also the entry point for deploying
  * services and application. <br>
@@ -1087,8 +1085,7 @@ public class DeploymentsController extends BaseRestController {
 	 */
 	@RequestMapping(value = "/{deploymentId}/description", method = RequestMethod.GET)
 	public List<ServiceDescription> getServiceDescriptionListByDeploymentId(
-			@PathVariable final String deploymentId)
-			throws ResourceNotFoundException {
+			@PathVariable final String deploymentId) {
 
 		final ApplicationDescriptionFactory appDescriptionFactory =
 				new ApplicationDescriptionFactory(restConfig.getAdmin());
