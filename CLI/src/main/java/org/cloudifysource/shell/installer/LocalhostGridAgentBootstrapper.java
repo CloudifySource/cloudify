@@ -50,6 +50,8 @@ import org.cloudifysource.shell.exceptions.CLIException;
 import org.cloudifysource.shell.exceptions.CLIStatusException;
 import org.cloudifysource.shell.rest.RestAdminFacade;
 import org.cloudifysource.shell.rest.inspect.CLIApplicationUninstaller;
+import org.cloudifysource.shell.validators.CloudifyMachineValidator;
+import org.cloudifysource.shell.validators.CloudifyMachineValidatorsFactory;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
 import org.openspaces.admin.AdminFactory;
@@ -332,6 +334,7 @@ public class LocalhostGridAgentBootstrapper {
 		}
 	}
 
+	
 	private void setDefaultNicAddress() throws CLIException {
 
 		if (nicAddress == null) {
@@ -399,12 +402,22 @@ public class LocalhostGridAgentBootstrapper {
 
 		setDefaultNicAddress();
 
+		try {
+			List<CloudifyMachineValidator> validatorsList = CloudifyMachineValidatorsFactory.getValidators();
+			for (CloudifyMachineValidator cloudifyMachineValidator : validatorsList) {
+				cloudifyMachineValidator.validate();
+			}
+		} catch (Exception e) {
+			//TODO noak handle this
+		}
+
 		// if re-bootstrapping a persistent manager, replace rest and webui with new version
 		redeployManagement();
 
 		startManagementOnLocalhostAndWaitInternal(CLOUD_MANAGEMENT_ARGUMENTS, securityProfile, securityFilePath,
 				username, password, keystoreFilePath, keystorePassword, timeout, timeunit, false);
 	}
+
 
 	private void redeployManagement() throws CLIException {
 		final ManagementRedeployer redeployer = new ManagementRedeployer();
@@ -1214,7 +1227,7 @@ public class LocalhostGridAgentBootstrapper {
 		final Admin admin = createAdmin();
 		try {
 			setLookupDefaults(admin);
-
+			
 			try {
 				waitForExistingAgent(admin, WAIT_EXISTING_AGENT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 				throw new CLIException("Agent already running on local machine. Use shutdown-agent first.");
