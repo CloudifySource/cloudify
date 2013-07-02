@@ -310,8 +310,6 @@ public final class IPUtils {
 	 *            The lowest port number in the port range to use
 	 * @param highestPort
 	 *            The highest port number in the port range to use
-	 * @param timeout
-	 *            The time to wait before timing out, in seconds
 	 * @throws UnknownHostException
 	 *             Reports the IP address of the host could not be determined.
 	 * @throws IOException
@@ -319,8 +317,8 @@ public final class IPUtils {
 	 * @throws SecurityException
 	 *             Reports a failure to connect or resolve the given address.
 	 */
-	public static void validateConnection(final String ipAddress, final int lowestPort, final int highestPort, 
-			final int timeout) throws UnknownHostException, IOException, SecurityException {
+	public static void validateConnectionInPortRange(final String ipAddress, final int lowestPort, 
+			final int highestPort) throws UnknownHostException, IOException, SecurityException {
 
 		if (lowestPort > highestPort) {
 			throw new IllegalArgumentException("Invalid port range: " + lowestPort + "-" + highestPort + ". The "
@@ -351,7 +349,7 @@ public final class IPUtils {
 		
 		if (!connectionEstablished) {
 			throw new IOException("Failed to connect to host " + ipAddress + " on any port in the range " + lowestPort
-					+ "-" + highestPort, lastException);			
+					+ "-" + highestPort + ", reported error: " + lastException.getMessage(), lastException);			
 		}
 	}
 
@@ -434,12 +432,12 @@ public final class IPUtils {
 	}
 
 	/**
-	 * Removes the interface part of the given IP address, if found. Examples:
-	 * [fe80::9da2:25f7:86ce:cddb%45] will be returned as
-	 * fe80::9da2:25f7:86ce:cddb] fe80::9da2:25f7:86ce:cddb%45 will be return as
-	 * fe80::9da2:25f7:86ce:cddb [fe80::9da2:25f7:86ce:cddb] will be return as
-	 * [fe80::9da2:25f7:86ce:cddb] fe80::9da2:25f7:86ce:cddb will be return as
-	 * fe80::9da2:25f7:86ce:cddb
+	 * Removes the interface part of the given IP address, if found.
+	 * Examples:
+	 * [fe80::9da2:25f7:86ce:cddb%45] will be returned as [fe80::9da2:25f7:86ce:cddb]
+	 * fe80::9da2:25f7:86ce:cddb%45 will be returned as fe80::9da2:25f7:86ce:cddb
+	 * [fe80::9da2:25f7:86ce:cddb] will be returned as [fe80::9da2:25f7:86ce:cddb]
+	 * fe80::9da2:25f7:86ce:cddb will be returned as fe80::9da2:25f7:86ce:cddb
 	 * 
 	 * @param ipAddress
 	 *            The ipAddress to parse
@@ -566,6 +564,26 @@ public final class IPUtils {
 		}
 
 		return safeIpAddress;
+	}
+	
+	/**
+	 * Gets the host name / address from a full address.
+	 * Examples:
+	 * [fe80::9da2:25f7:86ce:cddb%45]:4174 will be returned as fe80::9da2:25f7:86ce:cddb
+	 * [fe80::9da2:25f7:86ce:cddb]:4174 will be returned as fe80::9da2:25f7:86ce:cddb
+	 * mylocalhost:4174 will be returned as mylocalhost
+	 * 127.0.0.1:4174 will be returned as 127.0.0.1
+	 * 127.0.0.1 will be returned as 127.0.0.1
+	 * @param ipAddress the address to parse
+	 * @return only the host name / address part from the full address.
+	 */
+	public static String getHostFromFullAddress(final String ipAddress) {
+		String host = ipAddress;
+		host = StringUtils.substringAfter(host, "[");
+		host = StringUtils.substringBefore(host, "]");
+		host = StringUtils.substringBefore(host, NETWORK_INTERFACE_SEPARATOR);
+		
+		return host;
 	}
 
 

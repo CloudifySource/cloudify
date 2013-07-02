@@ -328,6 +328,7 @@ public final class CloudifyConstants {
     public static final String WEBUI_MAX_MEMORY_ENVIRONMENT_VAR = "WEBUI_MAX_MEMORY_ENVIRONMENT_VAR";
     public static final String REST_MAX_MEMORY_ENVIRONMENT_VAR = "REST_MAX_MEMORY_ENVIRONMENT_VAR";
     public static final String GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR = "GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR";
+    public static final String LUS_IP_ADDRESS_ENV = "LUS_IP_ADDRESS";    
 
     /*********************
      * service grid components configuration.

@@ -61,8 +61,6 @@ public class AgentlessInstaller {
 
 	private static final String NO_WEB_SERVICES_ENV = "NO_WEB_SERVICES";
 
-	private static final String LUS_IP_ADDRESS_ENV = "LUS_IP_ADDRESS";
-
 	private static final String WORKING_HOME_DIRECTORY_ENV = "WORKING_HOME_DIRECTORY";
 
 	private static final String GSA_RESERVATION_ID_ENV = "GSA_RESERVATION_ID";
@@ -260,7 +258,7 @@ public class AgentlessInstaller {
 		final String springProfiles = createSpringProfilesString(details);
 		final EnvironmentFileBuilder builder = new EnvironmentFileBuilder(details.getScriptLanguage(),
 												details.getExtraRemoteEnvironmentVariables())
-				.exportVar(LUS_IP_ADDRESS_ENV, details.getLocator())
+				.exportVar(CloudifyConstants.LUS_IP_ADDRESS_ENV, details.getLocator())
 				.exportVar(GSA_MODE_ENV, details.isManagement() ? "lus" : "agent")
 				.exportVar(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR, springProfiles)
 				.exportVar(NO_WEB_SERVICES_ENV,

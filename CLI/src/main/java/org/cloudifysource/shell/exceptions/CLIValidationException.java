@@ -16,7 +16,6 @@
 package org.cloudifysource.shell.exceptions;
 
 import org.apache.commons.lang.StringUtils;
-import org.cloudifysource.restclient.ErrorStatusException;
 
 /**
  * @author noak
@@ -29,16 +28,10 @@ public class CLIValidationException extends CLIException {
 
 	private static final long serialVersionUID = -399277091070772297L;
 	private final String reasonCode;
+	private final String verboseData;
 	private final Object[] args;
 
-	private final String verboseData;
 
-	public CLIValidationException(final ErrorStatusException restException) {
-		super("reasonCode: " + restException.getReasonCode(), restException);
-		this.args = restException.getArgs();
-		this.reasonCode = restException.getReasonCode();
-		this.verboseData = restException.getVerboseData();
-	}
 
 	/**
 	 * Constructor.
@@ -92,17 +85,22 @@ public class CLIValidationException extends CLIException {
 	public Object[] getArgs() {
 		return args;
 	}
+	
+	/**
+	 * Gets the verbose data.
+	 * @return verbose data
+	 */
+	public String getVerboseData() {
+		return verboseData;
+	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public String toString() {
-		return "CLIStatusException, reason code: " + reasonCode + ", message arguments: "
+		return "CLIValidationException, reason code: " + reasonCode + ", message arguments: "
 				+ StringUtils.join(args, ", ");
 	}
 
-	public String getVerboseData() {
-		return verboseData;
-	}
 }
