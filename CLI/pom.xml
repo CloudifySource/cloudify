@@ -163,11 +163,11 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
-                            <appendAssemblyId>false</appendAssemblyId>
-                            <descriptorRefs>
-                                <descriptorRef>jar-with-dependencies</descriptorRef>
-                            </descriptorRefs>
-                            <archive>
+                          <appendAssemblyId>false</appendAssemblyId>
+                          <descriptors>
+                          		<descriptor>src/main/assembly/assembly.xml</descriptor>
+                          </descriptors>
+                           <archive>
                                 <manifest>
                                     <mainClass>${mainClass}</mainClass>
                                     <addClasspath>true</addClasspath>
