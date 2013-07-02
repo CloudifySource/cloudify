@@ -165,7 +165,7 @@ public class PowershellClient {
 		pb.redirectErrorStream(true);
 		
 		// Put the target in trusted mode (!!! you've to be administrator for this command !!!)
-		enableTrustedHost(targetHost);
+		// Setting trustedHosts is done in bootstrap-client.ps1 (init local machine to run a remote command)
 
 		try {
 			final Process p = pb.start();
@@ -215,26 +215,6 @@ public class PowershellClient {
 		}
 
 		powerShellInstalled = Boolean.TRUE;
-	}
-	
-	private String enableTrustedHost(final String ipTarget) throws PowershellClientException, InterruptedException {
-			
-		List<String> cmd = new ArrayList<String>();
-		for ( String cmdElement : POWERSHELL_TRUST_HOST_WINRM)
-			cmd .add(cmdElement);
-
-		cmd.add("@{TrustedHosts=\""+ipTarget+"\"}"); 
-	
-		final ProcessBuilder trusCommand = new ProcessBuilder(cmd);
-	   
-		try {
-			final Process trusCmdResult = trusCommand.start();
-			final String output = readProcessOutput(trusCmdResult, true);
-			return output;
-		} catch (final IOException e) {
-			throw new PowershellClientException("Failed to enable trusted host for winrm command: " + e.getMessage(), e);
-		}
-		   
 	}
 
 }

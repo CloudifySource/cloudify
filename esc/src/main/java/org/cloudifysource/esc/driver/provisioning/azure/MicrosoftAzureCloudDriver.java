@@ -185,8 +185,9 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 		}
 		
 		// handeling firewall ports for manager machine (8100 & 8099)
-		if ( this.management ) {
-			this.firewallPorts = (List<Map<String, String>>) this.template.getCustom().get(AZURE_FIREWALL_PORTS);
+		List<Map<String, String>> listPorts = (List<Map<String, String>>) this.template.getCustom().get(AZURE_FIREWALL_PORTS);
+		if ( listPorts != null ) {
+			this.firewallPorts = listPorts;
 			boolean cloudifyWebuiPort = false;
 			boolean cloudifyRestApiPort = false;
 			String port;
@@ -201,9 +202,9 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 				}
 					
 			}
-			if (firewallPorts == null || !(cloudifyWebuiPort &&cloudifyRestApiPort)) {
+			if (this.management && (firewallPorts == null || !(cloudifyWebuiPort &&cloudifyRestApiPort))) {
 				throw new IllegalArgumentException("Custom field '"
-						+ AZURE_FIREWALL_PORTS + "' must be set at least with " + WEBUI_PORT + " and " + REST_PORT);
+						+ AZURE_FIREWALL_PORTS + "' must be set at least with " + WEBUI_PORT + " and " + REST_PORT + " for a management machine");
 			}
 		}
 
@@ -346,15 +347,18 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 		
 		// Activate sharing on remote machine
 		remoteExecutor.execute(machineDetails.getPublicAddress(), details, COMMAND_ACTIVATE_SHARING, DEFAULT_COMMAND_TIMEOUT);
-		
+
 		// Remote command to target : open all defined ports
 		String cmd = "";
 		if (this.firewallPorts != null) {
+
+			logger.info("Opening firewall (" +  this.firewallPorts.size() + ") ports on " + machineDetails.getPublicAddress());
+
 			for (Map<String, String> firewallPortsMap : this.firewallPorts) {
 				String name = firewallPortsMap.get("name");
 				String protocol = firewallPortsMap.get("protocol");
 				
-				// Port could be a range à a simple one
+				// Port could be a range or a simple one
 				// 7001 or 7001-7010  ([7001..7010])
 				String port = firewallPortsMap.get("port");
 				if (!"".equals(port) && port.contains("-")) {
@@ -742,7 +746,6 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 
 		/*
 		 * (non-Javadoc)
-		 *
 		 * @see java.lang.Runnable#run()
 		 */
 		@Override
@@ -781,7 +784,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 				String name = endpointMap.get("name");
 				String protocol = endpointMap.get("protocol");
 				
-				// Port could be a range à a simple one
+				// Port could be a range or a simple one
 				// 7001 or 7001-7010  ([7001..7010])
 				String port = endpointMap.get("port");
 				if (!"".equals(port) && port.contains("-")) {
