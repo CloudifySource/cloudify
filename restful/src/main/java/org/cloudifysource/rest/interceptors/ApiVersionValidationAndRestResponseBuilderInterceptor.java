@@ -17,6 +17,7 @@ package org.cloudifysource.rest.interceptors;
 
 import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -30,6 +31,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
@@ -46,6 +48,8 @@ import com.j_spaces.kernel.PlatformVersion;
  */
 public class ApiVersionValidationAndRestResponseBuilderInterceptor extends HandlerInterceptorAdapter {
 
+	private static final Logger logger = Logger
+			.getLogger(ApiVersionValidationAndRestResponseBuilderInterceptor.class.getName());
 	
     private static final String CURRENT_API_VERSION = PlatformVersion.getVersion();
 
@@ -78,7 +82,7 @@ public class ApiVersionValidationAndRestResponseBuilderInterceptor extends Handl
                            final HttpServletResponse response, final Object handler,
                            final ModelAndView modelAndView) throws Exception {
     	
-        Object model = filterModel(modelAndView);
+        Object model = filterModel(modelAndView, handler);
         modelAndView.clear();
         response.setContentType(MediaType.APPLICATION_JSON);
         if (model instanceof Response<?>) {
@@ -100,21 +104,50 @@ public class ApiVersionValidationAndRestResponseBuilderInterceptor extends Handl
 
     }
 
-    // returns the actual model returned by the contorller.
-    // this implementation assumes the model consists of just one object and a BindingResult.
-    // TODO eli - check how to make a more robust filter.
-    private Object filterModel(final ModelAndView modelAndView) {
-    	String viewName = modelAndView.getViewName();
+
+    /**
+     * Filters the modelAndView object and retrieves the actual object returned by the controller.
+     * This implementation assumes the model consists of just one returned object and a BindingResult.
+     * If the model is empty, the supported return types are String (the view name) or void.
+     */
+    private Object filterModel(final ModelAndView modelAndView, final Object handler) 
+    	throws RestErrorException {
+    	
+    	Object methodReturnObject = null;
     	Map<String, Object> model = modelAndView.getModel();
-    	if (MapUtils.isEmpty(model)) {
-    		return viewName;
-    	}
-        for (Map.Entry<String, Object> entry : model.entrySet()) {
-            Object value = entry.getValue();
-            if (!(value instanceof BindingResult)) {
-                return value;
+    	
+    	if (MapUtils.isNotEmpty(model)) {
+    		// the model is not empty. The return value is the first value that is not a BindingResult
+    		for (Map.Entry<String, Object> entry : model.entrySet()) {
+                Object value = entry.getValue();
+                if (!(value instanceof BindingResult)) {
+                	methodReturnObject = value;
+                	break;
+                }
             }
-        }
-        return null;
+    		if (methodReturnObject == null) {
+    			logger.warning("return object not found in model: " + model.toString());
+    			throw new RestErrorException("return object not found in model: " + model.toString());
+    		}
+    	} else {
+    		// the model is empty, this means the return type is String or void
+    		if (handler instanceof HandlerMethod) {
+        		Class<?> returnType = ((HandlerMethod) handler).getMethod().getReturnType();
+        		if (returnType == Void.TYPE) {
+        			methodReturnObject = null;
+        		} else if (returnType == String.class) {
+        			String viewName = modelAndView.getViewName();
+        			methodReturnObject = viewName;
+        		} else {
+        			logger.warning("return type not supported: " + returnType);
+        			throw new RestErrorException("return type not supported: " + returnType);
+        		}
+        	} else {
+        		logger.warning("handler object is not a HandlerMethod: " + handler);
+    			throw new RestErrorException("handler object is not a HandlerMethod: " + handler);
+        	}
+    	}
+    	
+        return methodReturnObject;
     }
 }
