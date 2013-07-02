@@ -150,6 +150,21 @@ public enum CloudifyErrorMessages {
 	 * REST API not connected.
 	 */
 	REST_NOT_CONNECTED("not_connected", 0),
+	
+	/**
+	 * Port validation aborted because the host could not be resolved.
+	 */
+	PORT_VALIDATION_ABORTED_UNKNOWN_HOST("port_validation_aborted_unknown_host", 0),
+	
+	/**
+	 * Port validation aborted because an I/O error occurred when creating the socket or connecting.
+	 */
+	PORT_VALIDATION_ABORTED_IO_ERROR("port_validation_aborted_io_error", 1),
+	
+	/**
+	 * Port validation aborted because a security manager exists and permission to resolve the host name is denied.
+	 */
+	PORT_VALIDATION_ABORTED_NO_PERMISSION("port_validation_aborted_no_permission", 1),
 
 	MANAGEMENT_SERVERS_WAITING_FOR_SHUTDOWN("shutdown_managers_initiated", 1),
 
