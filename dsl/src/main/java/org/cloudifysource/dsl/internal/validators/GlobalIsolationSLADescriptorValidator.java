@@ -6,13 +6,13 @@ import org.cloudifysource.dsl.GlobalIsolationSLADescriptor;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 
-public class GlobalIsolationSLADescriptorValidator implements DSLValidator<GlobalIsolationSLADescriptor> {
+public class GlobalIsolationSLADescriptorValidator implements DSLValidator {
 
 	private GlobalIsolationSLADescriptor entity;
 
 	@Override
-	public void setDSLEntity(GlobalIsolationSLADescriptor dslEntity) {
-		this.entity = dslEntity;
+	public void setDSLEntity(final Object dslEntity) {
+		this.entity = (GlobalIsolationSLADescriptor) dslEntity;
 	}
 
 	@DSLValidation

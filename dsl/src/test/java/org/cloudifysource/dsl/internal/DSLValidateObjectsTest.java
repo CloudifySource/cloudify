@@ -9,6 +9,8 @@ import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.cloud.AgentComponent;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.UsmComponent;
+import org.cloudifysource.dsl.internal.validators.AgentComponentValidator;
+import org.cloudifysource.dsl.internal.validators.UsmComponentValidator;
 import org.junit.Test;
 
 /**
@@ -47,10 +49,12 @@ private final static String SERVICE_PATH = "testResources/simple/simple-service.
 	@Test
 	public void testGridComponentValidation() {
 		final AgentComponent agentComponent = new AgentComponent();
+		final AgentComponentValidator agentComponentValidator = new AgentComponentValidator();
+		agentComponentValidator.setDSLEntity(agentComponent);
 		agentComponent.setMaxMemory("128u");
 		
 		try {
-			agentComponent.validateMemory(new DSLValidationContext());
+			agentComponentValidator.validateMemory(new DSLValidationContext());
 			Assert.fail("invalid memory passed dsl validation");
 		} catch (final DSLValidationException e) {
 			// OK - the invalid memory format caused the exception
@@ -58,14 +62,14 @@ private final static String SERVICE_PATH = "testResources/simple/simple-service.
 		
 		agentComponent.setMaxMemory("128m");
 		try {
-			agentComponent.validateMemory(new DSLValidationContext());
+			agentComponentValidator.validateMemory(new DSLValidationContext());
 		} catch (final DSLValidationException e) {
 			Assert.fail("legit memory failed dsl validation");
 		}
 
 		agentComponent.setPort(124);
 		try {
-			agentComponent.validatePort(new DSLValidationContext());
+			agentComponentValidator.validatePort(new DSLValidationContext());
 			Assert.fail("invalid port passed dsl validation");
 		} catch (final DSLValidationException e) {
 			//OK - port is not in the port range.
@@ -73,22 +77,24 @@ private final static String SERVICE_PATH = "testResources/simple/simple-service.
 		
 		agentComponent.setPort(7000);
 		try {
-			agentComponent.validateMemory(new DSLValidationContext());
+			agentComponentValidator.validateMemory(new DSLValidationContext());
 		} catch (final DSLValidationException e) {
 			Assert.fail("legit port failed dsl validation");
 		}
 		
 		UsmComponent usmComponent = new UsmComponent();
+		UsmComponentValidator usmComponentValidator = new UsmComponentValidator();
+		usmComponentValidator.setDSLEntity(usmComponent);
 		usmComponent.setPortRange("7000-7100");
 		try {
-			usmComponent.validatePortRange(new DSLValidationContext());
+			usmComponentValidator.validatePortRange(new DSLValidationContext());
 		} catch (final DSLValidationException e) {
 			Assert.fail("legit port range failed dsl validation");
 		}
 		
 		usmComponent.setPortRange("700q-7100");
 		try {
-			usmComponent.validatePortRange(new DSLValidationContext());
+			usmComponentValidator.validatePortRange(new DSLValidationContext());
 			Assert.fail("invalid port range passed dsl validation");
 		} catch (final DSLValidationException e) {
 			//OK
@@ -96,7 +102,7 @@ private final static String SERVICE_PATH = "testResources/simple/simple-service.
 		
 		usmComponent.setPortRange("7100-7000");
 		try {
-			usmComponent.validatePortRange(new DSLValidationContext());
+			usmComponentValidator.validatePortRange(new DSLValidationContext());
 			Assert.fail("invalid port range passed dsl validation");
 		} catch (final DSLValidationException e) {
 			//OK
@@ -104,7 +110,7 @@ private final static String SERVICE_PATH = "testResources/simple/simple-service.
 		
 		usmComponent.setPortRange("102-700");
 		try {
-			usmComponent.validatePortRange(new DSLValidationContext());
+			usmComponentValidator.validatePortRange(new DSLValidationContext());
 			Assert.fail("invalid port range passed dsl validation");
 		} catch (final DSLValidationException e) {
 			//OK

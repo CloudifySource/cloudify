@@ -1,6 +1,6 @@
 package org.cloudifysource.dsl.internal.validators;
 
-public interface DSLValidator<T> {
+public interface DSLValidator {
 
-	public void setDSLEntity(final T dslEntity);
+	public void setDSLEntity(final Object dslEntity);
 }

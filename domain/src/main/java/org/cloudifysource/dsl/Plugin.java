@@ -17,7 +17,7 @@ package org.cloudifysource.dsl;
 
 import java.util.Map;
 
-import org.cloudifysource.dsl.context.ServiceContext;
+import org.omg.IOP.ServiceContext;
 
 /***********
  * All USM plugins implementation should implement this interface.
