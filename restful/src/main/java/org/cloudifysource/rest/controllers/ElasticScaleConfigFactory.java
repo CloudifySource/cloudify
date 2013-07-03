@@ -1,5 +1,6 @@
 package org.cloudifysource.rest.controllers;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,7 @@ import java.util.logging.Logger;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
+import org.cloudifysource.dsl.internal.statistics.StatisticsConfigAdapter;
 import org.cloudifysource.dsl.scalingrules.ScalingRuleDetails;
 import org.cloudifysource.dsl.statistics.AbstractStatisticsDetails;
 import org.cloudifysource.dsl.statistics.ServiceStatisticsDetails;
@@ -23,6 +25,7 @@ import org.openspaces.admin.pu.elastic.config.EagerScaleConfig;
 import org.openspaces.admin.pu.elastic.config.EagerScaleConfigurer;
 import org.openspaces.admin.pu.elastic.config.ManualCapacityScaleConfig;
 import org.openspaces.admin.pu.elastic.config.ManualCapacityScaleConfigurer;
+import org.openspaces.admin.pu.statistics.InstancesStatisticsConfig;
 import org.openspaces.admin.pu.statistics.LastSampleTimeWindowStatisticsConfig;
 import org.openspaces.admin.pu.statistics.ProcessingUnitStatisticsId;
 import org.openspaces.admin.zone.config.AnyZonesConfig;
@@ -85,6 +88,10 @@ public final class ElasticScaleConfigFactory {
 	 * @param locationAware .
 	 * @return a @{link AutomaticCapacityScaleConfig} based on the specified
 	 *         service and memory.
+	 * @throws InvocationTargetException 
+	 * @throws ClassNotFoundException 
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
 	 * @throws DSLException .
 	 */
 	public static AutomaticCapacityScaleConfig createAutomaticCapacityScaleConfig(
@@ -211,8 +218,15 @@ public final class ElasticScaleConfigFactory {
 			final ProcessingUnitStatisticsId statisticsId = new ProcessingUnitStatisticsId();
 			statisticsId.setMonitor(CloudifyConstants.USM_MONITORS_SERVICE_ID);
 			statisticsId.setMetric(serviceStatistics.getMetric());
-			statisticsId.setInstancesStatistics(serviceStatistics
-					.getInstancesStatistics().createInstancesStatistics());
+			StatisticsConfigAdapter adapter = new StatisticsConfigAdapter();
+			InstancesStatisticsConfig instanceStatistics;
+			try {
+				instanceStatistics = adapter.createInstanceStatistics(serviceStatistics
+						.getInstancesStatistics().createInstancesStatistics());
+				statisticsId.setInstancesStatistics(instanceStatistics);
+			} catch (Exception e) {
+				throw new DSLException("Failed instantiating instance statistics.", e);
+			}
 
 			if (serviceStatistics.getMovingTimeRangeInSeconds() <= service
 					.getSamplingPeriodInSeconds()) {
@@ -225,13 +239,15 @@ public final class ElasticScaleConfigFactory {
 				statisticsId
 						.setTimeWindowStatistics(new LastSampleTimeWindowStatisticsConfig());
 			} else {
-				statisticsId
-						.setTimeWindowStatistics(serviceStatistics
-								.getTimeStatistics()
-								.createTimeWindowStatistics(
-										serviceStatistics
-												.getMovingTimeRangeInSeconds(),
-										TimeUnit.SECONDS));
+				org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig timeWindowStatistics;
+				try {
+					timeWindowStatistics = adapter.createTimeWindowStatistics(serviceStatistics.getTimeStatistics()
+					.createTimeWindowStatistics(serviceStatistics.getMovingTimeRangeInSeconds(),
+							TimeUnit.SECONDS));
+				} catch (Exception e) {
+					throw new DSLException("Failed instantiating time window statistics.", e);
+				}
+				statisticsId.setTimeWindowStatistics(timeWindowStatistics);
 			}
 
 			statisticsId.setAgentZones(new AnyZonesConfig());

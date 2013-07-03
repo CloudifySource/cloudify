@@ -4,6 +4,7 @@ import java.util.HashMap;
 
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
+import org.cloudifysource.dsl.internal.validators.ComputeTemplateValidator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,6 +29,8 @@ public class CloudTemplateTest {
 	public void testValidateDefaultValues_1()
 			throws Exception {
 		final ComputeTemplate fixture = new ComputeTemplate();
+		ComputeTemplateValidator fixtureValidator = new ComputeTemplateValidator();
+		fixtureValidator.setDSLEntity(fixture);
 		fixture.setRemoteExecution(RemoteExecutionModes.SSH);
 		fixture.setImageId("");
 		fixture.setOptions(new HashMap());
@@ -42,7 +45,7 @@ public class CloudTemplateTest {
 		fixture.setPassword("");
 		fixture.setMachineMemoryMB(1);
 
-		fixture.validateDefaultValues(new DSLValidationContext());
+		fixtureValidator.validateDefaultValues(new DSLValidationContext());
 
 		// add additional test code here
 		// unverified
@@ -59,6 +62,8 @@ public class CloudTemplateTest {
 	public void testValidateDefaultValues_2()
 			throws Exception {
 		final ComputeTemplate fixture = new ComputeTemplate();
+		ComputeTemplateValidator fixtureValidator = new ComputeTemplateValidator();
+		fixtureValidator.setDSLEntity(fixture);
 		fixture.setRemoteExecution(RemoteExecutionModes.SSH);
 		fixture.setImageId("");
 		fixture.setOptions(new HashMap());
@@ -73,7 +78,7 @@ public class CloudTemplateTest {
 		fixture.setPassword("");
 		fixture.setMachineMemoryMB(1);
 
-		fixture.validateDefaultValues(new DSLValidationContext());
+		fixtureValidator.validateDefaultValues(new DSLValidationContext());
 
 		// add additional test code here
 		// unverified
@@ -90,6 +95,8 @@ public class CloudTemplateTest {
 	public void testValidateDefaultValues_3()
 			throws Exception {
 		final ComputeTemplate fixture = new ComputeTemplate();
+		ComputeTemplateValidator fixtureValidator = new ComputeTemplateValidator();
+		fixtureValidator.setDSLEntity(fixture);
 		fixture.setRemoteExecution(RemoteExecutionModes.SSH);
 		fixture.setImageId("");
 		fixture.setOptions(new HashMap());
@@ -104,7 +111,7 @@ public class CloudTemplateTest {
 		fixture.setPassword("");
 		fixture.setMachineMemoryMB(1);
 
-		fixture.validateDefaultValues(new DSLValidationContext());
+		fixtureValidator.validateDefaultValues(new DSLValidationContext());
 
 		// add additional test code here
 		// unverified

@@ -14,11 +14,8 @@ package org.cloudifysource.dsl;
 
 import java.io.Serializable;
 
-import org.cloudifysource.dsl.entry.ClosureExecutableEntry;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
-import org.cloudifysource.dsl.internal.DSLValidationContext;
-import org.cloudifysource.dsl.internal.DSLValidationException;
 
 /*************
  * Domain POJO of the service lifecycle, part of the Service Recipe declaration. Non-null Elements in the lifecycle POJO
@@ -243,15 +240,5 @@ public class ServiceLifecycle implements Serializable {
 
 	public void setStopDetection(final ExecutableDSLEntry stopDetection) {
 		this.stopDetection = stopDetection;
-	}
-
-	@DSLValidation
-	void validateStopDetectorIsClosure(final DSLValidationContext validationContext)
-			throws DSLValidationException {
-		if ((this.stopDetection != null)
-				&& (!(this.stopDetection instanceof ClosureExecutableEntry))) {
-			throw new DSLValidationException(
-					"The stop detection field only supports execution of closures");
-		}
 	}
 }

@@ -18,8 +18,6 @@ package org.cloudifysource.dsl;
 import java.io.Serializable;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
-import org.cloudifysource.dsl.internal.DSLValidationContext;
-import org.cloudifysource.dsl.internal.DSLValidationException;
 
 /**
  * Configuration of network elements of a specific service.
@@ -64,23 +62,4 @@ public class ServiceNetwork implements Serializable {
 	public void setProtocolDescription(final String protocolDescription) {
 		this.protocolDescription = protocolDescription;
 	}
-
-	@DSLValidation
-	void checkPortValue(final DSLValidationContext validationContext)
-			throws DSLValidationException {
-		if (port <= 0) {
-			throw new DSLValidationException("The port value of the network block must be a positive integer.");
-		}
-	}
-
-	@DSLValidation
-	void checkDescription(final DSLValidationContext validationContext)
-			throws DSLValidationException {
-		if (this.protocolDescription == null) {
-			throw new DSLValidationException("The protocol description can't be an empty value");
-		}
-
-		
-	}
-
 }

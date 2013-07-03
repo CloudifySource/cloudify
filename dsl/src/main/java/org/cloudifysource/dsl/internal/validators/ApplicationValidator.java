@@ -7,11 +7,15 @@ import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 
-public class ApplicationValidator implements DSLValidator<Application> {
+public class ApplicationValidator implements DSLValidator {
 
 	private Application application;
-	private String name;
 	
+	
+	@Override
+	public void setDSLEntity(final Object dslEntity) {
+		this.application = (Application) dslEntity;
+	}
 	
 	/**
 	 * Validates that the name property exists and is not empty or invalid.
@@ -19,20 +23,13 @@ public class ApplicationValidator implements DSLValidator<Application> {
 	 * @throws DSLValidationException
 	 */
 	@DSLValidation
-	void validateName(final DSLValidationContext validationContext) 
+	public void validateName(final DSLValidationContext validationContext) 
 			throws DSLValidationException {
-		if (StringUtils.isBlank(name)) {
+		if (StringUtils.isBlank(application.getName())) {
 			throw new DSLValidationException("Application.validateName: The application's name " 
-					+ (name == null ? "is missing" : "is empty"));
+					+ (application.getName() == null ? "is missing" : "is empty"));
 		}
-		
-		DSLUtils.validateRecipeName(name);
+		DSLUtils.validateRecipeName(application.getName());
 	}
 
-
-	@Override
-	public void setDSLEntity(Application dslEntity) {
-		this.application = dslEntity;
-		this.name = application.getName();
-	}
 }

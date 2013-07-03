@@ -17,12 +17,8 @@
 package org.cloudifysource.dsl;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
-import org.cloudifysource.dsl.internal.DSLValidationContext;
-import org.cloudifysource.dsl.internal.DSLValidationException;
 
 /**
  * 
@@ -74,30 +70,6 @@ public class IsolationSLA implements Serializable {
 
 	public void setDedicated(final DedicatedIsolationSLADescriptor dedicated) {
 		this.dedicated = dedicated;
-	}
-	
-	@DSLValidation
-	void validateDefaultValues(final DSLValidationContext validationContext)
-			throws DSLValidationException {
-		
-		List<Object> notNulls = new ArrayList<Object>();
-		
-		if (global != null) {
-			notNulls.add(global);
-		}
-		if (dedicated != null) {
-			notNulls.add(global);
-		}
-		if (appShared != null) {
-			notNulls.add(global);
-		}
-		if (tenantShared != null) {
-			notNulls.add(global);
-		}
-		
-		if (notNulls.size() > 1) {
-			throw new DSLValidationException("cannot define two types of isolation sla's. please choose one");
-		}
 	}
 
 	@Override

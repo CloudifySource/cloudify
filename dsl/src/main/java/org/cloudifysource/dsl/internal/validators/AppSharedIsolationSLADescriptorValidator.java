@@ -6,22 +6,25 @@ import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 
 
-public class AppSharedIsolationSLADescriptorValidator  implements DSLValidator<AppSharedIsolationSLADescriptor>  {
+public class AppSharedIsolationSLADescriptorValidator 
+									extends SharedIsolationSLADescriptorValidator implements DSLValidator {
 
 	private AppSharedIsolationSLADescriptor entity;
 
 	@Override
-	public void setDSLEntity(AppSharedIsolationSLADescriptor dslEntity) {
-		this.entity = dslEntity;
+	public void setDSLEntity(final Object dslEntity) {
+		super.setDSLEntity(dslEntity);
+		this.entity = (AppSharedIsolationSLADescriptor) dslEntity;
 	}
 	
 	@DSLValidation
 	void validateDefaultValues(final DSLValidationContext validationContext)
 			throws DSLValidationException {
 
+		
 		super.validateDefaultValues(validationContext);
 		
-		if (isUseManagement()) {
+		if (entity.isUseManagement()) {
 			throw new DSLValidationException("isUseManagement can only be true for isolationSLA of type 'global'");
 		}
 		

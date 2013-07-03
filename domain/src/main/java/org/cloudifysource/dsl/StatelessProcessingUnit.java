@@ -16,8 +16,6 @@
 package org.cloudifysource.dsl;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
-import org.cloudifysource.dsl.internal.DSLValidationContext;
-import org.cloudifysource.dsl.internal.DSLValidationException;
 
 /**
  * Defines an elastic processing unit deployment that does not contain a space. The stateless Processing unit
@@ -59,22 +57,4 @@ public class StatelessProcessingUnit extends ServiceProcessingUnit {
 		this.springProfilesActive = springProfiles;
 		
 	}
-
-	@DSLValidation
-	void validateStatelessSLA(final DSLValidationContext validationContext) 
-			throws DSLValidationException {
-		final Sla sla = getSla();
-		if (sla != null) {
-			if (sla.getMemoryCapacity() != null) {
-				throw new DSLValidationException(
-						"memoryCapacity SLA is not supported in this service");
-			}
-			if (sla.getMaxMemoryCapacity() != null) {
-				throw new DSLValidationException(
-						"maxMemoryCapacity SLA is not supported in this service");
-			}
-		}
-	}
-	
-
 }
