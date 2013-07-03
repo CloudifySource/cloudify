@@ -141,6 +141,8 @@ public abstract class AbstractGSCommand implements Action {
 			session.put(Constants.LAST_COMMAND_EXCEPTION, t);
 			throw new CloseShellException();
 		}
+		
+		// TODO noa - handle exit with exit codes, might need to use System.exit here
 	}
 
 	/**

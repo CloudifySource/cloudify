@@ -152,12 +152,38 @@ public enum CloudifyErrorMessages {
 	REST_NOT_CONNECTED("not_connected", 0),
 	
 	/**
-	 * Port validation aborted because the host could not be resolved.
+	 * Host name and address validation aborted because the host could not be resolved.
 	 */
-	PORT_VALIDATION_ABORTED_UNKNOWN_HOST("port_validation_aborted_unknown_host", 0),
+	HOST_VALIDATION_ABORTED_UNKNOWN_HOST("host_validation_aborted_unknown_host", 1),
 	
 	/**
-	 * Port validation aborted because an I/O error occurred when creating the socket or connecting.
+	 * Host name and address validation aborted aborted because a security manager exists and permission to resolve 
+	 * the host name is denied.
+	 */
+	HOST_VALIDATION_ABORTED_NO_PERMISSION("host_validation_aborted_no_permission", 1),
+	
+	/**
+	 * NIC validation aborted because the host could not be resolved.
+	 */
+	NIC_VALIDATION_ABORTED_UNKNOWN_HOST("nic_validation_aborted_unknown_host", 1),
+	
+	/**
+	 * NIC validation aborted because an I/O error occurred when creating the socket or connecting to it.
+	 */
+	NIC_VALIDATION_ABORTED_IO_ERROR("port_validation_aborted_io_error", 1),
+	
+	/**
+	 * NIC validation aborted because a security manager exists and doesn't allow the operation.
+	 */
+	NIC_VALIDATION_ABORTED_NO_PERMISSION("port_validation_aborted_no_permission", 1),
+	
+	/**
+	 * Port validation aborted because the host could not be resolved.
+	 */
+	PORT_VALIDATION_ABORTED_UNKNOWN_HOST("port_validation_aborted_unknown_host", 1),
+	
+	/**
+	 * Port validation aborted because an I/O error occurred when creating the socket or connecting to it.
 	 */
 	PORT_VALIDATION_ABORTED_IO_ERROR("port_validation_aborted_io_error", 1),
 	
@@ -165,6 +191,22 @@ public enum CloudifyErrorMessages {
 	 * Port validation aborted because a security manager exists and permission to resolve the host name is denied.
 	 */
 	PORT_VALIDATION_ABORTED_NO_PERMISSION("port_validation_aborted_no_permission", 1),
+	
+	/**
+	 * The lus connection validation was aborted because the host could not be resolved.
+	 */
+	LUS_CONNECTION_VALIDATION_ABORTED_UNKNOWN_HOST("lus_connection_validation_aborted_unknown_host", 1),
+	
+	/**
+	 * The lus connection validation was aborted because an I/O error occurred when creating the socket or connecting.
+	 */
+	LUS_CONNECTION_VALIDATION_ABORTED_IO_ERROR("lus_connection_validation_aborted_io_error", 3),
+	
+	/**
+	 * The lus connection validation was aborted because a security manager exists and permission to resolve 
+	 * the host name is denied.
+	 */
+	LUS_CONNECTION_VALIDATION_ABORTED_NO_PERMISSION("lus_connection_validation_aborted_no_permission", 3),
 
 	MANAGEMENT_SERVERS_WAITING_FOR_SHUTDOWN("shutdown_managers_initiated", 1),
 
