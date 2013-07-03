@@ -18,6 +18,7 @@ package org.cloudifysource.dsl.utils;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
@@ -45,6 +46,7 @@ public final class IPUtils {
 	private static final int IPV4_PARTS = 4;
 
 	private static final String NETWORK_INTERFACE_SEPARATOR = "%";
+	private static final String PORT_SEPARATOR = ":";
 
 	//security constants
 	private static final String SPRING_ACTIVE_PROFILE_ENV_VAR = "SPRING_PROFILES_ACTIVE";
@@ -352,6 +354,31 @@ public final class IPUtils {
 					+ "-" + highestPort + ", reported error: " + lastException.getMessage(), lastException);			
 		}
 	}
+	
+	/**
+	 * Validates the specified host port is free.
+	 * @param host the host to validate
+	 * @param port the port to validate
+	 * @throws IOException indicates an I/O error occurs when creating the socket or connecting to it.
+	 * @throws SecurityException .
+	 */
+	public static void validatePortIsFree(final String host, final int port) throws IOException,
+	SecurityException {
+		ServerSocket serverSocket = null;
+		try {
+			InetSocketAddress socketAddress = new InetSocketAddress(host, port);
+			serverSocket = new ServerSocket();
+			serverSocket.bind(socketAddress);
+		} finally {
+			if (serverSocket != null) {
+				try {
+					serverSocket.close();
+				} catch (Exception e) {
+					//ignore
+				}
+			}
+		}
+	}
 
 
 	/**
@@ -567,7 +594,7 @@ public final class IPUtils {
 	}
 	
 	/**
-	 * Gets the host name / address from a full address.
+	 * Gets the host name/address from a full address.
 	 * Examples:
 	 * [fe80::9da2:25f7:86ce:cddb%45]:4174 will be returned as fe80::9da2:25f7:86ce:cddb
 	 * [fe80::9da2:25f7:86ce:cddb]:4174 will be returned as fe80::9da2:25f7:86ce:cddb
@@ -579,11 +606,45 @@ public final class IPUtils {
 	 */
 	public static String getHostFromFullAddress(final String ipAddress) {
 		String host = ipAddress;
-		host = StringUtils.substringAfter(host, "[");
-		host = StringUtils.substringBefore(host, "]");
-		host = StringUtils.substringBefore(host, NETWORK_INTERFACE_SEPARATOR);
+		
+		if (host.indexOf(PORT_SEPARATOR) > -1) {
+			host = StringUtils.substringBeforeLast(host, PORT_SEPARATOR);
+		}
+		
+		if (host.indexOf("[") > -1) {
+			host = StringUtils.substringAfter(host, "[");
+		}
+		
+		if (host.indexOf("]") > -1) {
+			host = StringUtils.substringBefore(host, "]");
+		}
+		
+		if (host.indexOf(NETWORK_INTERFACE_SEPARATOR) > -1) {
+			host = StringUtils.substringBefore(host, NETWORK_INTERFACE_SEPARATOR);
+		}
+		
 		
 		return host;
+	}
+	
+	/**
+	 * Gets the port number from a full address.
+	 * @param ipAddress the address to parse
+	 * @return the port included in the full address, as int.
+	 */
+	public static int getPortFromFullAddress(final String ipAddress) {
+		
+		int port;
+		String address = ipAddress;
+
+		if (address.indexOf(PORT_SEPARATOR) == -1) {
+			throw new IllegalArgumentException("Port not found in address: " + ipAddress);
+		}
+		address = StringUtils.substringAfterLast(address, PORT_SEPARATOR);
+		
+		port = Integer.parseInt(address);
+		
+		return port;
 	}
 
 

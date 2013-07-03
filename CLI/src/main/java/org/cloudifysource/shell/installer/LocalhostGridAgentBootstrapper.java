@@ -403,12 +403,13 @@ public class LocalhostGridAgentBootstrapper {
 		setDefaultNicAddress();
 
 		try {
-			List<CloudifyMachineValidator> validatorsList = CloudifyMachineValidatorsFactory.getValidators();
+			List<CloudifyMachineValidator> validatorsList = CloudifyMachineValidatorsFactory.getValidators(nicAddress);
 			for (CloudifyMachineValidator cloudifyMachineValidator : validatorsList) {
 				cloudifyMachineValidator.validate();
 			}
 		} catch (Exception e) {
 			//TODO noak handle this
+			// throw exception with error code
 		}
 
 		// if re-bootstrapping a persistent manager, replace rest and webui with new version
