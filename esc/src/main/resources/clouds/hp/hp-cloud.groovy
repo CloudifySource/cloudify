@@ -146,6 +146,48 @@ cloud {
 						// optional. A native command line to be executed before the cloudify agent is started.
 						// initializationCommand "echo Cloudify agent is about to start"
 	
+					},
+					SMALL_UBUNTU : computeTemplate{
+						// Mandatory. Image ID.
+						imageId ubuntuImageId
+						
+						// file transfer protocol
+						fileTransfer org.cloudifysource.dsl.cloud.FileTransferModes.SFTP
+						
+						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
+						remoteDirectory "/home/ubuntu/gs-files"
+						// Mandatory. Amount of RAM available to machine.
+						machineMemoryMB 1600
+						// Mandatory. Hardware ID.
+						hardwareId hardwareId
+						// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
+						localDirectory "upload"
+						// Optional. Name of key file to use for authenticating to the remote machine. Remove this line if key files
+						// are not used.
+						keyFile keyFile
+	
+						username "ubuntu"
+						// Additional template options.
+						// When used with the default driver, the option names are considered
+						// method names invoked on the TemplateOptions object with the value as the parameter.
+						options ([
+									"securityGroupNames" : [securityGroup]as String[],
+									"keyPairName" : keyPair,
+									"generateKeyPair": false,
+									"autoAssignFloatingIp": false
+								])
+	
+						// Optional. Overrides to default cloud driver behavior.
+						// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
+						overrides ([
+							"jclouds.keystone.credential-type":"apiAccessKeyCredentials"
+						])
+	
+						// enable sudo.
+						privileged true
+	
+						// optional. A native command line to be executed before the cloudify agent is started.
+						// initializationCommand "echo Cloudify agent is about to start"
 					}
 	
 	
