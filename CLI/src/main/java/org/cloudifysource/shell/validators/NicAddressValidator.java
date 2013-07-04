@@ -58,7 +58,7 @@ public class NicAddressValidator implements CloudifyMachineValidator {
 			}
 			IPUtils.validatePortIsFree(nicAddress, 0);
 		} catch (UnknownHostException uhe) {
-			// thrown if the IP address of the host could not be determined.
+			// thrown if the host could not be determined.
 			throw new CLIValidationException(uhe, CloudifyErrorMessages.NIC_VALIDATION_ABORTED_UNKNOWN_HOST.getName(), 
 					uhe.getMessage());
 		} catch (IOException ioe) {

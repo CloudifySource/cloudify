@@ -81,11 +81,9 @@ public class PortAvailabilityValidator implements CloudifyMachineValidator {
 		int lowestPort = Integer.parseInt(lowestPortStr);
 		int highestPort = Integer.parseInt(highestPortStr);
 		
-		IPUtils.validatePortIsFree(Constants.getHostAddress(), 0);
-		
 		try {
 			// TODO handle not range, specific port
-			IPUtils.validateConnectionInPortRange(Constants.getHostAddress(), lowestPort, highestPort);
+			IPUtils.validatePortIsFreeInRange(Constants.getHostAddress(), lowestPort, highestPort);
 		} catch (UnknownHostException uhe) {
 			// thrown if the IP address of the host could not be determined.
 			throw new CLIValidationException(uhe, CloudifyErrorMessages.PORT_VALIDATION_ABORTED_UNKNOWN_HOST.getName(),

@@ -311,15 +311,14 @@ public final class IPUtils {
 	}
 	
 	/**
-	 * Validates a connection can be made to the given address on any port in the given port range,
-	 * within the given time limit.
+	 * Validates the at least one port in the specified range is free on the given host.
 	 * 
-	 * @param ipAddress
-	 *            The IP address to connect to
+	 * @param host
+	 *            the host to validate
 	 * @param lowestPort
-	 *            The lowest port number in the port range to use
+	 *            The lowest port number in the port range to validate
 	 * @param highestPort
-	 *            The highest port number in the port range to use
+	 *            The highest port number in the port range to validate
 	 * @throws UnknownHostException
 	 *             Reports the IP address of the host could not be determined.
 	 * @throws IOException
@@ -327,7 +326,7 @@ public final class IPUtils {
 	 * @throws SecurityException
 	 *             Reports a failure to connect or resolve the given address.
 	 */
-	public static void validateConnectionInPortRange(final String ipAddress, final int lowestPort, 
+	public static void validatePortIsFreeInRange(final String host, final int lowestPort, 
 			final int highestPort) throws UnknownHostException, IOException, SecurityException {
 
 		if (lowestPort > highestPort) {
@@ -340,31 +339,31 @@ public final class IPUtils {
 		
 		for (int port = lowestPort; port <= highestPort && !connectionEstablished; port++) {
 			try {
-				validateConnection(ipAddress, port);
+				validatePortIsFree(host, port);
 				connectionEstablished = true;
 			} catch (UnknownHostException uhe) {
 				// the hostname couldn't be resolved into an InetAddress
 				// no need to try other ports
 				throw uhe;
 			} catch (SecurityException se) {
-				// a security manager is present and permission to resolve the host name is denied
+				// a security manager is present and permission is denied
 				// no need to try other ports
 				throw se;
 			} catch (Exception e) {
-				// failed to connect on the given port, try the next one
+				// validation failed, try the next port
 				lastException = e;
 				continue;
 			}
 		}
 		
 		if (!connectionEstablished) {
-			throw new IOException("Failed to connect to host " + ipAddress + " on any port in the range " + lowestPort
-					+ "-" + highestPort + ", reported error: " + lastException.getMessage(), lastException);			
+			throw new IOException("Failed to find any free ports in the range " + lowestPort + "-" + highestPort 
+					+ " on host " + host + ", reported error: " + lastException.getMessage(), lastException);			
 		}
 	}
 	
 	/**
-	 * Validates the specified host port is free.
+	 * Validates the specified port is free on the given host.
 	 * @param host the host to validate
 	 * @param port the port to validate
 	 * @throws IOException indicates an I/O error occurs when creating the socket or connecting to it.
@@ -657,5 +656,29 @@ public final class IPUtils {
 		}
 
 		return protocol;		
+	}
+	
+	/**
+	 * Validates the given String as a port range.
+	 * @param portRange the port range to validate
+	 * @return True - is the given string is a valid port range, False otherwise.
+	 */
+	public static boolean isValidPortRange(final String portRange) {
+		boolean valid = false;
+		
+		return valid;
+	}
+	
+	/**
+	 * Validates the given number as a port number.
+	 * A valid port value is between 0 and 65535.
+	 * A port number of zero will let the system pick up an ephemeral port in a bind operation.
+	 * @param portNumber the port number to validate
+	 * @return True - is the given number is a valid port number, False otherwise.
+	 */
+	public static boolean isValidPortNumber(final int portNumber) {
+		boolean valid = false;
+		
+		return valid;
 	}
 }
