@@ -65,6 +65,10 @@ cloud {
 					SMALL_LINUX : computeTemplate{
 						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
 						remoteDirectory "/tmp/gs-files"
+						
+						// File transfer mode.
+						fileTransfer org.cloudifysource.dsl.cloud.FileTransferModes.SCP
+					
 						// Optional. template-generic credentials. Can be overridden by specific credentials on each node, in the nodesList section.
 						username "tgrid"
 						password "tgrid"
