@@ -3,7 +3,7 @@ package org.cloudifysource.dsl.statistics;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TimeWindowStatisticsConfig {
+public class TimeWindowStatisticsConfig extends AbstractConfig {
 
 	private Map<String, String> properties = new HashMap<String, String>();
 

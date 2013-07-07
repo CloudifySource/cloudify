@@ -34,6 +34,8 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.AppSharedIsolationSLADescriptor;
 import org.cloudifysource.dsl.Application;
+import org.cloudifysource.dsl.BalanceGauge;
+import org.cloudifysource.dsl.BarLineChart;
 import org.cloudifysource.dsl.ComputeDetails;
 import org.cloudifysource.dsl.DSLValidation;
 import org.cloudifysource.dsl.DataGrid;
@@ -42,6 +44,7 @@ import org.cloudifysource.dsl.ExecutableEntriesMap;
 import org.cloudifysource.dsl.GlobalIsolationSLADescriptor;
 import org.cloudifysource.dsl.IsolationSLA;
 import org.cloudifysource.dsl.Memcached;
+import org.cloudifysource.dsl.MetricGroup;
 import org.cloudifysource.dsl.MirrorProcessingUnit;
 import org.cloudifysource.dsl.PluginDescriptor;
 import org.cloudifysource.dsl.Service;
@@ -52,6 +55,8 @@ import org.cloudifysource.dsl.StatefulProcessingUnit;
 import org.cloudifysource.dsl.StatelessProcessingUnit;
 import org.cloudifysource.dsl.StorageDetails;
 import org.cloudifysource.dsl.TenantSharedIsolationSLADescriptor;
+import org.cloudifysource.dsl.UserInterface;
+import org.cloudifysource.dsl.WidgetGroup;
 import org.cloudifysource.dsl.cloud.AgentComponent;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.CloudConfiguration;
@@ -79,11 +84,6 @@ import org.cloudifysource.dsl.scalingrules.ScalingRuleDetails;
 import org.cloudifysource.dsl.statistics.PerInstanceStatisticsDetails;
 import org.cloudifysource.dsl.statistics.ServiceStatisticsDetails;
 import org.cloudifysource.dsl.utils.RecipePathResolver;
-import org.openspaces.ui.BalanceGauge;
-import org.openspaces.ui.BarLineChart;
-import org.openspaces.ui.MetricGroup;
-import org.openspaces.ui.UserInterface;
-import org.openspaces.ui.WidgetGroup;
 
 /*************
  * Base class for DSL files.
@@ -408,6 +408,9 @@ public abstract class BaseDslScript extends Script {
 			throws DSLValidationException {
 
 		final DSLValidator obj = DSLValidationFactory.getInstance().createValidator(entity);
+		if (obj == null) {
+			return;
+		}
 		final Method[] methods = obj.getClass().getDeclaredMethods();
 		for (final Method method : methods) {
 			if (method.getAnnotation(DSLValidation.class) != null) {

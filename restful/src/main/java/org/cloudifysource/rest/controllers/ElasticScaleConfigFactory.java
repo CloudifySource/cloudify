@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 import org.cloudifysource.dsl.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
-import org.cloudifysource.dsl.internal.statistics.StatisticsConfigAdapter;
+import org.cloudifysource.dsl.internal.statistics.OpenspacesDomainAdapter;
 import org.cloudifysource.dsl.scalingrules.ScalingRuleDetails;
 import org.cloudifysource.dsl.statistics.AbstractStatisticsDetails;
 import org.cloudifysource.dsl.statistics.ServiceStatisticsDetails;
@@ -218,7 +218,7 @@ public final class ElasticScaleConfigFactory {
 			final ProcessingUnitStatisticsId statisticsId = new ProcessingUnitStatisticsId();
 			statisticsId.setMonitor(CloudifyConstants.USM_MONITORS_SERVICE_ID);
 			statisticsId.setMetric(serviceStatistics.getMetric());
-			StatisticsConfigAdapter adapter = new StatisticsConfigAdapter();
+			OpenspacesDomainAdapter adapter = new OpenspacesDomainAdapter();
 			InstancesStatisticsConfig instanceStatistics;
 			try {
 				instanceStatistics = adapter.createInstanceStatistics(serviceStatistics

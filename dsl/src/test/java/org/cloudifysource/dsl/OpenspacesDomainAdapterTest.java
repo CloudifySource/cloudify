@@ -2,7 +2,7 @@ package org.cloudifysource.dsl;
 
 import java.lang.reflect.InvocationTargetException;
 
-import org.cloudifysource.dsl.internal.statistics.StatisticsConfigAdapter;
+import org.cloudifysource.dsl.internal.statistics.OpenspacesDomainAdapter;
 import org.cloudifysource.dsl.statistics.AverageInstancesStatisticsConfig;
 import org.cloudifysource.dsl.statistics.AverageTimeWindowStatisticsConfig;
 import org.cloudifysource.dsl.statistics.CpuPercentageTimeWindowStatisticsConfig;
@@ -24,9 +24,9 @@ import org.openspaces.admin.pu.statistics.InstancesStatisticsConfig;
  * @author adaml
  *
  */
-public class StatisticsConfigAdapterTest {
+public class OpenspacesDomainAdapterTest {
 
-	private StatisticsConfigAdapter configFactory = new StatisticsConfigAdapter();
+	private OpenspacesDomainAdapter configFactory = new OpenspacesDomainAdapter();
 	
 	@Test
 	public void testPercentileInstancesStatisticsConfig() 
@@ -34,7 +34,7 @@ public class StatisticsConfigAdapterTest {
 			ClassNotFoundException, InvocationTargetException {
 		PercentileInstancesStatisticsConfig config = new PercentileInstancesStatisticsConfig();
 		config.setPercentile(10);
-		InstancesStatisticsConfig instanceStatistics = configFactory.createInstanceStatistics(config);
+		InstancesStatisticsConfig instanceStatistics = (InstancesStatisticsConfig)configFactory.createStatisticsConfig(config);
 		Assert.assertTrue("InstanceStatistics is expected to be instanceof PercentileInstancesStatisticsConfig",
 				instanceStatistics instanceof org.openspaces.admin.pu.statistics.PercentileInstancesStatisticsConfig);
 		org.openspaces.admin.pu.statistics.PercentileInstancesStatisticsConfig percentileConfig =
@@ -47,7 +47,7 @@ public class StatisticsConfigAdapterTest {
 			throws InstantiationException, IllegalAccessException, 
 			ClassNotFoundException, InvocationTargetException {
 		AverageInstancesStatisticsConfig config = new AverageInstancesStatisticsConfig();
-		InstancesStatisticsConfig instanceStatistics = configFactory.createInstanceStatistics(config);
+		InstancesStatisticsConfig instanceStatistics = (InstancesStatisticsConfig)configFactory.createStatisticsConfig(config);
 		Assert.assertTrue("InstanceStatistics is expected to be instanceof AverageInstancesStatisticsConfig",
 				instanceStatistics instanceof org.openspaces.admin.pu.statistics.AverageInstancesStatisticsConfig);
 	}
@@ -57,7 +57,7 @@ public class StatisticsConfigAdapterTest {
 			throws InstantiationException, IllegalAccessException, 
 			ClassNotFoundException, InvocationTargetException {
 		EachSingleInstanceStatisticsConfig config = new EachSingleInstanceStatisticsConfig();
-		InstancesStatisticsConfig instanceStatistics = configFactory.createInstanceStatistics(config);
+		InstancesStatisticsConfig instanceStatistics = (InstancesStatisticsConfig)configFactory.createStatisticsConfig(config);
 		Assert.assertTrue("InstanceStatistics is expected to be instanceof EachSingleInstanceStatisticsConfig",
 				instanceStatistics instanceof org.openspaces.admin.pu.statistics.EachSingleInstanceStatisticsConfig);
 	}
@@ -67,7 +67,7 @@ public class StatisticsConfigAdapterTest {
 			throws InstantiationException, IllegalAccessException, 
 			ClassNotFoundException, InvocationTargetException {
 		MaximumInstancesStatisticsConfig config = new MaximumInstancesStatisticsConfig();
-		InstancesStatisticsConfig instanceStatistics = configFactory.createInstanceStatistics(config);
+		InstancesStatisticsConfig instanceStatistics = (InstancesStatisticsConfig)configFactory.createStatisticsConfig(config);
 		Assert.assertTrue("InstanceStatistics is expected to be instanceof MaximumInstancesStatisticsConfig",
 				instanceStatistics instanceof org.openspaces.admin.pu.statistics.MaximumInstancesStatisticsConfig);
 	}
@@ -77,7 +77,7 @@ public class StatisticsConfigAdapterTest {
 			throws InstantiationException, IllegalAccessException, 
 			ClassNotFoundException, InvocationTargetException {
 		MinimumInstancesStatisticsConfig config = new MinimumInstancesStatisticsConfig();
-		InstancesStatisticsConfig instanceStatistics = configFactory.createInstanceStatistics(config);
+		InstancesStatisticsConfig instanceStatistics = (InstancesStatisticsConfig)configFactory.createStatisticsConfig(config);
 		Assert.assertTrue("InstanceStatistics is expected to be instanceof MinimumInstancesStatisticsConfig",
 				instanceStatistics instanceof org.openspaces.admin.pu.statistics.MinimumInstancesStatisticsConfig);
 	}
@@ -88,7 +88,7 @@ public class StatisticsConfigAdapterTest {
 			ClassNotFoundException, InvocationTargetException {
 		TimeWindowStatisticsConfig config = new AverageTimeWindowStatisticsConfig();
 		org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig timeWindowStatistics = 
-				configFactory.createTimeWindowStatistics(config);
+				(org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig)configFactory.createStatisticsConfig(config);
 		assertDefaultTimeWindowValues(timeWindowStatistics);
 		Assert.assertTrue("InstanceStatistics is expected to be instanceof AverageTimeWindowStatisticsConfig",
 				timeWindowStatistics instanceof org.openspaces.admin.pu.statistics.AverageTimeWindowStatisticsConfig);
@@ -110,7 +110,7 @@ public class StatisticsConfigAdapterTest {
 			ClassNotFoundException, InvocationTargetException {
 		TimeWindowStatisticsConfig config = new CpuPercentageTimeWindowStatisticsConfig();
 		org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig timeWindowStatistics = 
-				configFactory.createTimeWindowStatistics(config);
+				(org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig)configFactory.createStatisticsConfig(config);
 		assertDefaultTimeWindowValues(timeWindowStatistics);
 		Assert.assertTrue("InstanceStatistics is expected to be instanceof CpuPercentageTimeWindowStatisticsConfig",
 				timeWindowStatistics instanceof org.openspaces.admin.pu.statistics.CpuPercentageTimeWindowStatisticsConfig);
@@ -122,7 +122,7 @@ public class StatisticsConfigAdapterTest {
 			ClassNotFoundException, InvocationTargetException {
 		TimeWindowStatisticsConfig config = new MaximumTimeWindowStatisticsConfig();
 		org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig timeWindowStatistics = 
-				configFactory.createTimeWindowStatistics(config);
+				(org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig)configFactory.createStatisticsConfig(config);
 		
 		assertDefaultTimeWindowValues(timeWindowStatistics);
 		Assert.assertTrue("InstanceStatistics is expected to be instanceof MaximumTimeWindowStatisticsConfig",
@@ -135,7 +135,7 @@ public class StatisticsConfigAdapterTest {
 			ClassNotFoundException, InvocationTargetException {
 		TimeWindowStatisticsConfig config = new MinimumTimeWindowStatisticsConfig();
 		org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig timeWindowStatistics = 
-				configFactory.createTimeWindowStatistics(config);
+				(org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig)configFactory.createStatisticsConfig(config);
 		
 		assertDefaultTimeWindowValues(timeWindowStatistics);
 		Assert.assertTrue("InstanceStatistics is expected to be instanceof MinimumTimeWindowStatisticsConfig",
@@ -148,7 +148,7 @@ public class StatisticsConfigAdapterTest {
 			ClassNotFoundException, InvocationTargetException {
 		TimeWindowStatisticsConfig config = new PercentileTimeWindowStatisticsConfig();
 		org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig timeWindowStatistics = 
-				configFactory.createTimeWindowStatistics(config);
+				(org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig)configFactory.createStatisticsConfig(config);
 		
 		assertDefaultTimeWindowValues(timeWindowStatistics);
 		Assert.assertTrue("InstanceStatistics is expected to be instanceof PercentileTimeWindowStatisticsConfig",
@@ -161,7 +161,7 @@ public class StatisticsConfigAdapterTest {
 			ClassNotFoundException, InvocationTargetException {
 		TimeWindowStatisticsConfig config = new ThroughputTimeWindowStatisticsConfig();
 		org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig timeWindowStatistics = 
-				configFactory.createTimeWindowStatistics(config);
+				(org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig)configFactory.createStatisticsConfig(config);
 		
 		assertDefaultTimeWindowValues(timeWindowStatistics);
 		Assert.assertTrue("InstanceStatistics is expected to be instanceof ThroughputTimeWindowStatisticsConfig",

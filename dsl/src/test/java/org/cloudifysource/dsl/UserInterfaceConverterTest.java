@@ -18,19 +18,17 @@
 package org.cloudifysource.dsl;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+
+import javax.activation.UnsupportedDataTypeException;
 
 import junit.framework.Assert;
 
 import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.dsl.internal.statistics.OpenspacesDomainAdapter;
 import org.cloudifysource.dsl.utils.UserInterfaceConverter;
 import org.junit.Test;
-import org.openspaces.ui.BarLineChart;
-import org.openspaces.ui.MetricGroup;
-import org.openspaces.ui.Unit;
-import org.openspaces.ui.UserInterface;
-import org.openspaces.ui.Widget;
-import org.openspaces.ui.WidgetGroup;
 
 public class UserInterfaceConverterTest {
 
@@ -70,7 +68,8 @@ public class UserInterfaceConverterTest {
 			throws Exception {
 		Service wigetlessServiceFile = ServiceReader.readService(new File(NO_WIDGETS_SERVICE_FILE_PATH));
 
-		UserInterface convertedUserInterface = getConvertedObject(wigetlessServiceFile);
+		org.openspaces.ui.UserInterface convertedUserInterface = getConvertedObject(wigetlessServiceFile);
+		
 
 		//assert all the groups in the groovy are accounted for.
 		Assert.assertEquals("Expected number of metric groups was not met." 
@@ -86,7 +85,7 @@ public class UserInterfaceConverterTest {
 				+ " expected " + totalNumOfMetrics 
 				, convertedUserInterface.getWidgetGroups().size(), totalNumOfMetrics);
 
-		for (WidgetGroup widgetGroup : convertedUserInterface.getWidgetGroups()) {
+		for (org.openspaces.ui.WidgetGroup widgetGroup : convertedUserInterface.getWidgetGroups()) {
 			//each metric should have 2 widgets. assert name as-well
 			Assert.assertEquals("Expected number of widgets per widget group was not met."
 					+ widgetGroup.getName() + " group has " + widgetGroup.getWidgets().size()
@@ -97,7 +96,7 @@ public class UserInterfaceConverterTest {
 		//extract to method test overrides by metric def
 		assertOverriddenMetricAxisYUnitAndDefaultValues(convertedUserInterface);
 		
-		for (MetricGroup metricGroup : convertedUserInterface.getMetricGroups()) {
+		for (org.openspaces.ui.MetricGroup metricGroup : convertedUserInterface.getMetricGroups()) {
 			for (Object metric : metricGroup.getMetrics()) {
 				Assert.assertTrue("Not all metrices in the converted UserInterface object are null", 
 						metric instanceof String);
@@ -115,7 +114,7 @@ public class UserInterfaceConverterTest {
 			throws Exception {
 		Service widgetlessServiceFile = ServiceReader.readService(new File(SERVICE_WITH_WIDGETS_FILE_PATH));
 		
-		UserInterface convertedUserInterface = getConvertedObject(widgetlessServiceFile);
+		org.openspaces.ui.UserInterface convertedUserInterface = getConvertedObject(widgetlessServiceFile);
 
 		//assert all the groups in the groovy are accounted for.
 		Assert.assertEquals("Expected number of metrics was not met." 
@@ -132,7 +131,7 @@ public class UserInterfaceConverterTest {
 		//assert metric override via metrics was not used.
 		assertMetricOverrideNotUsed(convertedUserInterface);
 		
-		for (MetricGroup metricGroup : convertedUserInterface.getMetricGroups()) {
+		for (org.openspaces.ui.MetricGroup metricGroup : convertedUserInterface.getMetricGroups()) {
 			for (Object metric : metricGroup.getMetrics()) {
 				Assert.assertTrue("Not all metrices in the converted UserInterface object are null", 
 						metric instanceof String);
@@ -140,18 +139,22 @@ public class UserInterfaceConverterTest {
 		}
 	}
 	
-	private UserInterface getConvertedObject(final Service wigetlessServiceFile) {
-		UserInterface ui = wigetlessServiceFile.getUserInterface();
+	private org.openspaces.ui.UserInterface getConvertedObject(final Service wigetlessServiceFile) 
+			throws IllegalAccessException, InvocationTargetException, UnsupportedDataTypeException {
+		final UserInterface ui = wigetlessServiceFile.getUserInterface();
+		final OpenspacesDomainAdapter adapter = new OpenspacesDomainAdapter();
+		//convert to openspaces ui object
+		org.openspaces.ui.UserInterface convertUserInterfaceObject = adapter.createOpenspacesUIObject(ui);
+		//convert to allow default ui option
 		UserInterfaceConverter converter = new UserInterfaceConverter();
-		UserInterface convertedUserInterface = converter.convertUserInterface(ui);
-		return convertedUserInterface;
+		return converter.convertUserInterface(convertUserInterfaceObject);
 	}
 	
 	private void assertMetricOverrideNotUsed(
-			final UserInterface convertedUserInterface) {
-		for (WidgetGroup widgetGroup : convertedUserInterface.getWidgetGroups()) {
+			final org.openspaces.ui.UserInterface convertedUserInterface) {
+		for (org.openspaces.ui.WidgetGroup widgetGroup : convertedUserInterface.getWidgetGroups()) {
 			String widgetGroupName = widgetGroup.getName();
-			for (Widget widget : widgetGroup.getWidgets()) {
+			for (org.openspaces.ui.Widget widget : widgetGroup.getWidgets()) {
 
 				if (widget instanceof BarLineChart) {
 					if (widgetGroupName.equals(EXISTING_WIDGET_TESTING_GROUP_NAME)) {
@@ -165,10 +168,10 @@ public class UserInterfaceConverterTest {
 	}
 
 	private void assertOverriddenMetricAxisYUnitAndDefaultValues(
-			final UserInterface convertedUserInterface) {
-		for (WidgetGroup widgetGroup : convertedUserInterface.getWidgetGroups()) {
+			final org.openspaces.ui.UserInterface convertedUserInterface) {
+		for (org.openspaces.ui.WidgetGroup widgetGroup : convertedUserInterface.getWidgetGroups()) {
 			String widgetGroupName = widgetGroup.getName();
-			for (Widget widget : widgetGroup.getWidgets()) {
+			for (org.openspaces.ui.Widget widget : widgetGroup.getWidgets()) {
 
 				if (widget instanceof BarLineChart) {
 					if (widgetGroupName.equals(OVERRIDDEN_MATRIC_AXISY_WIDGET_GROUP_NAME)) {
@@ -185,9 +188,9 @@ public class UserInterfaceConverterTest {
 		}
 	}
 
-	private int getTotalNumberOfMetrics(final List<MetricGroup> metricGroups) {
+	private int getTotalNumberOfMetrics(final List<org.openspaces.ui.MetricGroup> list) {
 		int totalNumberOfMetrics = 0;
-		for (MetricGroup metricGroup : metricGroups) {
+		for (org.openspaces.ui.MetricGroup metricGroup : list) {
 			totalNumberOfMetrics += metricGroup.getMetrics().size();
 		}
 		return totalNumberOfMetrics;

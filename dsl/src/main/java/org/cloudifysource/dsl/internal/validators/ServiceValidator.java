@@ -9,13 +9,13 @@ import org.cloudifysource.dsl.DSLValidation;
 import org.cloudifysource.dsl.IsolationSLA;
 import org.cloudifysource.dsl.MetricGroup;
 import org.cloudifysource.dsl.Service;
+import org.cloudifysource.dsl.Unit;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 import org.cloudifysource.dsl.internal.ServiceTierType;
 import org.cloudifysource.dsl.scalingrules.ScalingRuleDetails;
-import org.openspaces.ui.Unit;
 
 public class ServiceValidator implements DSLValidator {
 
@@ -182,7 +182,7 @@ public class ServiceValidator implements DSLValidator {
 						if (!(((List) metric).get(1) instanceof Unit)) {
 							throw new DSLValidationException("the defined metric " + metric.toString() + " is invalid."
 									+
-									" metric axisYUnit should be of type org.openspaces.ui.Unit");
+									" metric axisYUnit should be of type org.cloudifysource.dsl.Unit");
 						}
 						if (!(((List) metric).size() == 2)) {
 							throw new DSLValidationException("the defined metric " + metric.toString() + " is invalid."

@@ -1,5 +1,6 @@
 package org.cloudifysource.dsl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
@@ -8,8 +9,8 @@ import org.cloudifysource.dsl.internal.CloudifyDSLEntity;
 allowRootNode = false, parent = "service")
 public class UserInterface {
 	
-	private List<MetricGroup> metricGroups;
-	private List<WidgetGroup> widgetGroups;
+	private List<MetricGroup> metricGroups = new ArrayList<MetricGroup>();
+	private List<WidgetGroup> widgetGroups = new ArrayList<WidgetGroup>();
 	
 	public List<MetricGroup> getMetricGroups() {
 		return metricGroups;
