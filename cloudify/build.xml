@@ -239,7 +239,7 @@
 	
 	 <target name="update.recipes.tag" if="release.build">
         <echo message="Updating recipes tag in : ${tmp.dir}/${cloudify.installation.dir}/config/cloudify-webui-context-override.xml ..."/>
-    	<replaceregexp match="&lt;!-- property name=&quot;branch&quot; value=&quot;(.*)&quot; /--&gt;" replace="&lt;property name=&quot;branch&quot; value=&quot;/refs/tags/${scm.tag}&quot; /&gt;">
+    	<replaceregexp match="&lt;!-- property name=&quot;branch&quot; value=&quot;(.*)&quot; /--&gt;" replace="&lt;property name=&quot;branch&quot; value=&quot;refs/tags/${scm.tag}&quot; /&gt;">
     		<fileset dir="${tmp.dir}/${cloudify.installation.dir}/config" includes="**/*.xml"/>
     	</replaceregexp>
     </target>
