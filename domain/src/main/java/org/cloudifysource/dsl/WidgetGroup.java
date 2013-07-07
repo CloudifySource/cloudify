@@ -10,7 +10,7 @@ public class WidgetGroup {
 
     private String name;
     private String title;
-	private List<?> widgets;
+	private List<Widget> widgets;
 	public String getName() {
 		return name;
 	}
@@ -23,10 +23,10 @@ public class WidgetGroup {
 	public void setTtile(String title){
 	    this.title = title;
 	}
-	public <T> List<T> getWidgets() {
-		return (List<T>) widgets;
+	public List<Widget> getWidgets() {
+		return (List<Widget>) widgets;
 	}
-	public <T> void setWidgets(List<T> widgets) {
+	public void setWidgets(List<Widget> widgets) {
 		this.widgets = widgets;
 	}
 }

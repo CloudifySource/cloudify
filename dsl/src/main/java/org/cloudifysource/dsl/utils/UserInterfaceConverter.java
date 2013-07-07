@@ -64,7 +64,7 @@ public class UserInterfaceConverter {
 
 		if (metricGroups != null) {
 			//metrics defined but no widgets
-			if (widgetGroups == null) {
+			if (widgetGroups == null || widgetGroups.isEmpty()) {
 				userInterfaceObject.setWidgetGroups(getDefaultWidgetGroups(metricGroups));
 			} else {
 				userInterfaceObject.setWidgetGroups(widgetGroups);

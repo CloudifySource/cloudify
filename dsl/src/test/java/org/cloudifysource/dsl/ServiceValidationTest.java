@@ -18,11 +18,13 @@ package org.cloudifysource.dsl;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
 import junit.framework.Assert;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
@@ -31,8 +33,6 @@ import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.dsl.internal.validators.ServiceValidator;
 import org.junit.Test;
-import org.openspaces.ui.Unit;
-import org.openspaces.ui.UserInterface;
 
 /**
  * Test Service DSL Validations.
@@ -302,10 +302,18 @@ public class ServiceValidationTest {
 					+ SERVICE_WITH_ICON_PATH + ": " + e.getMessage());
 		}
 	}
+	
+	private UserInterface createOpenspacesUIObject(
+			org.cloudifysource.dsl.UserInterface userInterface) 
+					throws IllegalAccessException, InvocationTargetException {
+		UserInterface ui = new UserInterface();
+		BeanUtils.copyProperties(ui, userInterface);
+		return ui;
+	}
 
 	@Test
 	public void testBadUserInterfaceDef() 
-			throws PackagingException, DSLException {
+			throws PackagingException, DSLException, IllegalAccessException, InvocationTargetException {
 
 		Service service = ServiceReader.readService(new File(SERVICE_WITH_VALID_USER_INTERFACE));
 		ServiceValidator serviceValidator = new ServiceValidator();
@@ -318,7 +326,7 @@ public class ServiceValidationTest {
 			fail("Validation of a valid User Interface object failed");
 		}
 		validationContext.setFilePath(SERVICE_WITH_INVALID_USER_INTERFACE);
-		UserInterface userInterface = service.getUserInterface();
+		UserInterface userInterface = createOpenspacesUIObject(service.getUserInterface());
 		
 		//we change the UserInterface object a few times and run a validation test on it.
 

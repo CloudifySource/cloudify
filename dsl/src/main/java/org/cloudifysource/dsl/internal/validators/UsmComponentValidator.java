@@ -12,6 +12,7 @@ public class UsmComponentValidator extends GridComponentValidator implements DSL
 
 	@Override
 	public void setDSLEntity(Object dslEntity) {
+		super.setDSLEntity(dslEntity);
 		this.entity = (UsmComponent) dslEntity;
 	}
 	

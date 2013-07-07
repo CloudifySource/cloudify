@@ -7,7 +7,9 @@ import java.io.File;
 import java.util.ArrayList;
 
 import org.apache.commons.validator.routines.UrlValidator;
+import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.dsl.internal.validators.CloudProviderValidator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,6 +72,9 @@ public class CloudProviderTest {
 	public void testEditionInCloudifyUrl()
 			throws Exception {
 		final CloudProvider fixture = new CloudProvider();
+		CloudProviderValidator fixtureValidator = new CloudProviderValidator();
+		fixtureValidator.setDSLEntity(fixture);
+		fixtureValidator.validateCloudifyUrl(new DSLValidationContext());
 		fixture.setMachineNamePrefix("");
 		fixture.setReservedMemoryCapacityPerMachineInMB(1);
 		fixture.setProvider("");

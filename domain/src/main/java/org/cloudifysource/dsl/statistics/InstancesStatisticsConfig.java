@@ -1,5 +1,5 @@
 package org.cloudifysource.dsl.statistics;
 
-public class InstancesStatisticsConfig {
+public class InstancesStatisticsConfig extends AbstractConfig {
 
 }

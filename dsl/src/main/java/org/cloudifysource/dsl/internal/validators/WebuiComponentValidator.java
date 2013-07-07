@@ -12,6 +12,7 @@ public class WebuiComponentValidator extends GridComponentValidator implements D
 
 	@Override
 	public void setDSLEntity(Object dslEntity) {
+		super.setDSLEntity(dslEntity);
 		this.entity = (WebuiComponent) dslEntity;
 	}
 	//Important: this is a special case where if the port is not initialized, we initialize it here. 
