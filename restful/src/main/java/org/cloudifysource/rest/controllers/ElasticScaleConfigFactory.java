@@ -28,6 +28,7 @@ import org.openspaces.admin.pu.elastic.config.ManualCapacityScaleConfigurer;
 import org.openspaces.admin.pu.statistics.InstancesStatisticsConfig;
 import org.openspaces.admin.pu.statistics.LastSampleTimeWindowStatisticsConfig;
 import org.openspaces.admin.pu.statistics.ProcessingUnitStatisticsId;
+import org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig;
 import org.openspaces.admin.zone.config.AnyZonesConfig;
 import org.openspaces.core.util.MemoryUnit;
 
@@ -221,7 +222,7 @@ public final class ElasticScaleConfigFactory {
 			OpenspacesDomainAdapter adapter = new OpenspacesDomainAdapter();
 			InstancesStatisticsConfig instanceStatistics;
 			try {
-				instanceStatistics = adapter.createInstanceStatistics(serviceStatistics
+				instanceStatistics = (InstancesStatisticsConfig) adapter.createStatisticsConfig(serviceStatistics
 						.getInstancesStatistics().createInstancesStatistics());
 				statisticsId.setInstancesStatistics(instanceStatistics);
 			} catch (Exception e) {
@@ -241,7 +242,7 @@ public final class ElasticScaleConfigFactory {
 			} else {
 				org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig timeWindowStatistics;
 				try {
-					timeWindowStatistics = adapter.createTimeWindowStatistics(serviceStatistics.getTimeStatistics()
+					timeWindowStatistics = (TimeWindowStatisticsConfig) adapter.createStatisticsConfig(serviceStatistics.getTimeStatistics()
 					.createTimeWindowStatistics(serviceStatistics.getMovingTimeRangeInSeconds(),
 							TimeUnit.SECONDS));
 				} catch (Exception e) {

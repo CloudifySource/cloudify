@@ -27,9 +27,9 @@ import java.util.logging.Level;
 import javax.annotation.PostConstruct;
 
 import org.cloudifysource.dsl.LifecycleEvents;
-import org.cloudifysource.dsl.Plugin;
 import org.cloudifysource.dsl.PluginDescriptor;
 import org.cloudifysource.dsl.Service;
+import org.cloudifysource.dsl.context.Plugin;
 import org.cloudifysource.dsl.context.ServiceContext;
 import org.cloudifysource.dsl.entry.ClosureExecutableEntry;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntry;

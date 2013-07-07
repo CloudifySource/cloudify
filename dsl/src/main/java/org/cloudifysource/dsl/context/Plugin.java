@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.dsl;
+package org.cloudifysource.dsl.context;
 
 import java.util.Map;
-
-import org.omg.IOP.ServiceContext;
 
 /***********
  * All USM plugins implementation should implement this interface.
