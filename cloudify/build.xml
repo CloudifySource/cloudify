@@ -204,28 +204,28 @@
             replace="${cloudify.milestone.field}=${cloudify.milestone}"/>
 		
 		<replaceregexp file="${build.properties.file}"
-	         match="${gs.version.field}=(.*)"
-	         replace="${gs.version.field}=${gs.version}"/>
+	        match="${gs.version.field}=(.*)"
+	      	replace="${gs.version.field}=${gs.version}"/>
 
 	    <replaceregexp file="${build.properties.file}"
-	         match="${gs.milestone.field}=(.*)"
-	         replace="${gs.milestone.field}=${gs.milestone}"/>
+	        match="${gs.milestone.field}=(.*)"
+	        replace="${gs.milestone.field}=${gs.milestone}"/>
 
 	    <replaceregexp file="${build.properties.file}"
-	         match="${gs.build.number.field}=(.*)"
-	         replace="${gs.build.number.field}=${gs.build.number}"/>
+	        match="${gs.build.number.field}=(.*)"
+	        replace="${gs.build.number.field}=${gs.build.number}"/>
 	   	
 	   	<replaceregexp file="${build.properties.file}"
-	   	            match="${s3.gs.publish.folder.field}=(.*)"
-	   	            replace="${s3.gs.publish.folder.field}=${s3.gs.publish.folder}"/>
+	   	    match="${s3.gs.publish.folder.field}=(.*)"
+	   	    replace="${s3.gs.publish.folder.field}=${s3.gs.publish.folder}"/>
 		
 		<replaceregexp file="${cloudify.parent.pom.file}"
-			   	            match="&lt;${gs.version.tag}&gt;(.*)&lt;/${gs.version.tag}&gt;"
-			   	            replace="&lt;${gs.version.tag}&gt;${s3.gs.publish.folder}&lt;/${gs.version.tag}&gt;"/>
+			match="&lt;${gs.version.tag}&gt;(.*)&lt;/${gs.version.tag}&gt;"
+			replace="&lt;${gs.version.tag}&gt;${s3.gs.publish.folder}&lt;/${gs.version.tag}&gt;"/>
 		
 		<replaceregexp file="${streaming-bigdata.pom.file}"
-					   	            match="&lt;${gs.version.tag}&gt;(.*)&lt;/${gs.version.tag}&gt;"
-					   	            replace="&lt;${gs.version.tag}&gt;${s3.gs.publish.folder}&lt;/${gs.version.tag}&gt;"/>
+			match="&lt;${gs.version.tag}&gt;(.*)&lt;/${gs.version.tag}&gt;"
+			replace="&lt;${gs.version.tag}&gt;${s3.gs.publish.folder}&lt;/${gs.version.tag}&gt;"/>
 
    </target>
 	
@@ -236,7 +236,15 @@
     		<fileset dir="${tmp.dir}/${cloudify.installation.dir}" includes="**/*.sh, **/*.bat, **/*.xml"/>
     	</replaceregexp>
     </target>
-
+	
+	 <target name="update.recipes.tag" if="release.build">
+        <echo message="Updating recipes tag in : ${tmp.dir}/${cloudify.installation.dir}/config/cloudify-webui-context-override.xml ..."/>
+    	<replaceregexp match="&lt;!-- property name=&quot;branch&quot; value=&quot;(.*)&quot; /--&gt;" replace="&lt;property name=&quot;branch&quot; value=&quot;/refs/tags/${scm.tag}&quot; /&gt;">
+    		<fileset dir="${tmp.dir}/${cloudify.installation.dir}/config" includes="**/*.xml"/>
+    	</replaceregexp>
+    </target>
+	
+	
     <macrodef name="add.cloudify.modules">
     	<attribute name="installation.dir" default="${tmp.dir}/${cloudify.installation.dir}" />
     	<sequential>
@@ -356,7 +364,7 @@
 	<target name="replace.xap.content.with.cloudify.related">
 		<copy todir="${tmp.dir}/${cloudify.installation.dir}" file="${gigaspaces.related.folder}/START_HERE.htm" overwrite="true"/>
 			    	
-    	<!-- replace dynamic_props.js in gs-webui war. WAS task doesn't update exisitng warfile 
+    	<!-- replace dynamic_props.js in gs-webui war. WAR task doesn't update exisitng warfile 
     		properly if the files that are intended to be added to warfile already appear in it. This is the reason for 
     		temp file creation. -->
     	<war warfile="${tmp.dir}/${cloudify.installation.dir}/tools/gs-webui/tmp.${gs.webui.war}" needxmlfile="false">
@@ -391,6 +399,7 @@
     	<ant target="remove.xap.related.modules" />
         <ant target="update.lus.groups"/>
         <add.cloudify.modules/>
+		<ant target="update.recipes.tag"/>
 		<ant target="fetch.recipes.cloudify" />
     	<ant target="replace.xap.content.with.cloudify.related"/>
     	<ant target="replace.cloudify.notice"/>
