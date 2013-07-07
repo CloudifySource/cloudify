@@ -22,7 +22,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 
-import org.cloudifysource.dsl.Plugin;
+import org.cloudifysource.dsl.context.Plugin;
 import org.cloudifysource.dsl.context.ServiceContext;
 
 /***************
