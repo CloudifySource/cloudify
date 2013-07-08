@@ -237,17 +237,24 @@ public final class IPUtils {
 	public static boolean validateIPAddress(final String ipAddress) {
 		boolean valid = false;
 
-		// a simple split by dots (.), escaped.
-		final String[] ipParts = ipAddress.split("\\.");
-		if (ipParts.length == IPV4_PARTS) {
-			for (final String part : ipParts) {
-				final int intValue = Integer.parseInt(part);
-				if (intValue < 0 || intValue > IP_BYTE_RANGE - 1) {
-					break;
+		if (isIPv6Address(ipAddress)) {
+			// if we're here - this is valid IPv6 address
+			valid = true;
+		} else {
+			// a simple split by dots (.), escaped.
+			final String[] ipParts = ipAddress.split("\\.");
+			if (ipParts.length == IPV4_PARTS) {
+				for (final String part : ipParts) {
+					final int intValue = Integer.parseInt(part);
+					if (intValue < 0 || intValue > IP_BYTE_RANGE - 1) {
+						valid = false;
+						break;
+					}
+					valid = true;
 				}
-				valid = true;
 			}
 		}
+		
 		return valid;
 	}
 
@@ -454,22 +461,27 @@ public final class IPUtils {
 	
 	/**
 	 * Chechs if the given address is an IPv6 address.
-	 * @param address IP address
+	 * @param ipAddress IP address
 	 * @return True is the address represents and IPv6 address, False otherwise
 	 */
-	/*public static boolean isIPv6Address(final String address) {
+	public static boolean isIPv6Address(final String ipAddress) {
 		
 		boolean isIPv6 = false;
 		
+		String strippedIp = StringUtils.strip(ipAddress, "[]");
+		if (strippedIp.indexOf(NETWORK_INTERFACE_SEPARATOR) > -1) {
+			strippedIp = StringUtils.substringBefore(strippedIp, NETWORK_INTERFACE_SEPARATOR);
+		}
+		
 		try {
-			IPv6Address.fromString(address);
+			IPv6Address.fromString(strippedIp);
 			isIPv6 = true;
 		} catch (IllegalArgumentException e) {
 			//this is not a valid IPv6 address
 		}
 
 		return isIPv6;
-	}*/
+	}
 	
 	/**
 	 * Surrounds with brackets if this is an IPv6 address.

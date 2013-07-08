@@ -17,11 +17,12 @@ import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -30,11 +31,14 @@ import java.util.logging.Level;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.dsl.cloud.FileTransferModes;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.rest.response.ControllerDetails;
+import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.esc.byon.ByonDeployer;
+import org.cloudifysource.esc.byon.ByonUtils;
 import org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.CustomNode;
@@ -43,8 +47,9 @@ import org.cloudifysource.esc.driver.provisioning.ManagementLocator;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
+import org.cloudifysource.esc.driver.provisioning.validation.ValidationMessageType;
+import org.cloudifysource.esc.driver.provisioning.validation.ValidationResultType;
 import org.cloudifysource.esc.util.FileUtils;
-import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.esc.util.Utils;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
@@ -74,6 +79,9 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	private static final String CLOUD_NODES_LIST = "nodesList";
 	private static final String CLEAN_GS_FILES_ON_SHUTDOWN = "cleanGsFilesOnShutdown";
 	private static final String CLOUDIFY_ITEMS_TO_CLEAN = "itemsToClean";
+	// TODO: should it be volatile?
+	private static ResourceBundle byonProvisioningDriverMessageBundle;
+
 
 	private boolean cleanGsFilesOnShutdown = false;
 	private List<String> cloudifyItems;
@@ -81,53 +89,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	private Integer restPort;
 
 
-	@SuppressWarnings("unchecked")
-	private void addTemplatesToDeployer(final ByonDeployer deployer, final Map<String, ComputeTemplate> templatesMap)
-			throws Exception {
-		List<Map<String, String>> nodesList = null;
-		for (final String templateName : templatesMap.keySet()) {
-			final Map<String, Object> customSettings = cloud.getCloudCompute()
-					.getTemplates().get(templateName).getCustom();
-			if (customSettings != null) {
-				final List<Map<Object, Object>> originalNodesList =
-						(List<Map<Object, Object>>) customSettings.get(CLOUD_NODES_LIST);
-
-				nodesList = convertToStringMap(originalNodesList);
-			}
-			if (nodesList == null) {
-				publishEvent(CloudifyErrorMessages.MISSING_NODES_LIST.getName(), templateName);
-				throw new CloudProvisioningException(
-						"Failed to create BYON cloud deployer, invalid configuration for tempalte "
-								+ templateName + " - missing nodes list.");
-			}
-			deployer.addNodesList(templateName, templatesMap.get(templateName), nodesList);
-		}
-	}
-
-	/*******
-	 * It is easy to accidentally create GStrings instead of String in a groovy file. This will auto correct the problem
-	 * for byon node definitions by calling the toString() methods for map keys and values.
-	 *
-	 * @param originalNodesList
-	 *            .
-	 * @return the
-	 */
-	private List<Map<String, String>> convertToStringMap(final List<Map<Object, Object>> originalNodesList) {
-		List<Map<String, String>> nodesList;
-		nodesList = new LinkedList<Map<String, String>>();
-
-		for (final Map<Object, Object> originalMap : originalNodesList) {
-			final Map<String, String> newMap = new LinkedHashMap<String, String>();
-			final Set<Entry<Object, Object>> entries = originalMap.entrySet();
-			for (final Entry<Object, Object> entry : entries) {
-				newMap.put(entry.getKey().toString(), entry.getValue().toString());
-			}
-			nodesList.add(newMap);
-
-		}
-		return nodesList;
-	}
-
+	
 	@Override
 	protected void initDeployer(final Cloud cloud) {
 		try {
@@ -154,6 +116,26 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		}
 		setCustomSettings(cloud);
 	}
+	
+
+	@SuppressWarnings("unchecked")
+	private void addTemplatesToDeployer(final ByonDeployer deployer, final Map<String, ComputeTemplate> templatesMap)
+			throws Exception {
+		List<Map<String, String>> nodesList = null;
+		
+		for (Entry<String, ComputeTemplate> templateEntry : templatesMap.entrySet()) {
+			String templateName = templateEntry.getKey();
+			try {
+				nodesList = ByonUtils.getTemplateNodesList(templateEntry.getValue());
+			} catch (CloudProvisioningException e) {
+				publishEvent(CloudifyErrorMessages.MISSING_NODES_LIST.getName(), templateName);
+				throw new CloudProvisioningException("Failed to create BYON cloud deployer, invalid configuration for "
+						+ "tempalte " + templateName + ", reported error: " + e.getMessage(), e);
+			}
+			deployer.addNodesList(templateName, templatesMap.get(templateName), nodesList);
+		}
+	}
+	
 
 	/**********
 	 * .
@@ -675,7 +657,46 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	@Override
 	public void validateCloudConfiguration(final ValidationContext validationContext) 
 			throws CloudProvisioningException {
-		// TODO Auto-generated method stub
+		// if the hosts list include IPv6 addresses - verify the file transfer protocol is SCP
+		validationContext.validationOngoingEvent(ValidationMessageType.GROUP_VALIDATION_MESSAGE,
+				getFormattedMessage("validating_all_templates"));
+		
+		ComputeTemplate template = null;
+		boolean ipv6Used = false;
+		Map<String, ComputeTemplate> templatesMap = cloud.getCloudCompute().getTemplates();
+		
+		for (Entry<String, ComputeTemplate> templateEntry : templatesMap.entrySet()) {
+			ipv6Used = false;
+			String templateName = templateEntry.getKey();
+			template = templateEntry.getValue();
+			
+			validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+					getFormattedMessage("validating_template", templateName));
+			try {
+				List<CustomNode> nodes = ByonUtils.parseCloudNodes(template);
+				for (CustomNode node : nodes) {
+					if (StringUtils.isNotBlank(node.getPrivateIP()) && IPUtils.isIPv6Address(node.getPrivateIP())) {
+						ipv6Used = true;
+						break;
+					}
+				}
+				
+				if (ipv6Used) {
+					//verify file transfer is set to SCP
+					FileTransferModes fileTransferMode = template.getFileTransfer();
+					if (fileTransferMode == null || !fileTransferMode.equals(FileTransferModes.SCP)) {
+						throw new CloudProvisioningException("Invalid file transfer set for template " 
+							+ templateName + ". Templates that use IPv6 addresses must use SCP for file transer.");
+					}
+				}
+				validationContext.validationEventEnd(ValidationResultType.OK);
+			} catch (CloudProvisioningException e) {
+				validationContext.validationEventEnd(ValidationResultType.ERROR);
+				throw new CloudProvisioningException("Invalid configuration for template " + templateName 
+						+ ", reported error: " + e.getMessage(), e);
+			}
+		}
+
 	}
 
 	@Override
@@ -726,6 +747,32 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		}
 		
 		md.setKeyFile(keyFile);
+	}
+	
+	/**
+	 * returns the message as it appears in the ByonProvisioningDriver message bundle.
+	 *
+	 * @param msgName
+	 *            the message key as it is defined in the message bundle.
+	 * @param arguments
+	 *            the message arguments
+	 * @return the formatted message according to the message key.
+	 */
+	protected String getFormattedMessage(final String msgName, final Object... arguments) {
+		return getFormattedMessage(getByonProvisioningDriverMessageBundle(), msgName, arguments);
+	}
+	
+	/**
+	 * Returns the message bundle of this cloud driver.
+	 *
+	 * @return the message bundle of this cloud driver.
+	 */
+	protected static ResourceBundle getByonProvisioningDriverMessageBundle() {
+		if (byonProvisioningDriverMessageBundle == null) {
+			byonProvisioningDriverMessageBundle = ResourceBundle.getBundle("ByonProvisioningDriverMessages",
+					Locale.getDefault());
+		}
+		return byonProvisioningDriverMessageBundle;
 	}
 
 
