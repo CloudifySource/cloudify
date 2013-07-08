@@ -3934,13 +3934,12 @@ public class ServiceController implements ServiceDetailsProvider {
 					throw new RestErrorException(CloudifyErrorMessages.FAILED_TO_ADD_TEMPLATES.getName(),
 							failedToAddTemplatesByHost);
 
-				} else {
-					logger.log(Level.WARNING, "[addTemplates] - Failed to add the following templates (by host): "
-							+ failedToAddTemplatesByHost + ".\nSuccessfully added templates (by host): "
-							+ addedTemplatesByHost);
-					throw new RestErrorException(CloudifyErrorMessages.PARTLY_FAILED_TO_ADD_TEMPLATES.getName(),
-							failedToAddTemplatesByHost, addedTemplatesByHost);
 				}
+				logger.log(Level.WARNING, "[addTemplates] - Failed to add the following templates (by host): "
+						+ failedToAddTemplatesByHost + ".\nSuccessfully added templates (by host): "
+						+ addedTemplatesByHost);
+				throw new RestErrorException(CloudifyErrorMessages.PARTLY_FAILED_TO_ADD_TEMPLATES.getName(),
+						failedToAddTemplatesByHost, addedTemplatesByHost);
 			}
 
 			logger.log(Level.INFO, "[addTemplates] - Successfully added templates: " + addedTemplatesByHost.toString());

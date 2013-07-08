@@ -92,7 +92,6 @@ import org.cloudifysource.rest.events.cache.EventsCache;
 import org.cloudifysource.rest.events.cache.EventsCacheKey;
 import org.cloudifysource.rest.events.cache.EventsCacheValue;
 import org.cloudifysource.rest.exceptions.ResourceNotFoundException;
-import org.cloudifysource.rest.interceptors.ApiVersionValidationAndRestResponseBuilderInterceptor;
 import org.cloudifysource.rest.repo.UploadRepo;
 import org.cloudifysource.rest.util.ApplicationDescriptionFactory;
 import org.cloudifysource.rest.util.IsolationUtils;
@@ -144,6 +143,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.sun.mail.iap.Response;
+
 /**
  * This controller is responsible for retrieving information about deployments. It is also the entry point for deploying
  * services and application. <br>
@@ -160,7 +161,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  * 500 - Unexpected exception<br>
  * <br>
  * 
- * @see {@link ApiVersionValidationAndRestResponseBuilderInterceptor}
+ * @see {@link org.cloudifysource.rest.interceptors.ApiVersionValidationAndRestResponseBuilderInterceptor}
  * @author elip , ahmadm
  * @since 2.5.0
  * 
@@ -895,8 +896,7 @@ public class DeploymentsController extends BaseRestController {
 		// this validation should only happen on install service.
 		String uploadKey = request.getServiceFolderUploadKey();
 		if (StringUtils.isBlank(uploadKey)) {
-			throw new RestErrorException(CloudifyMessageKeys.UPLOAD_KEY_PARAMETER_MISSING.getName(),
-					absolutePuName);
+			throw new RestErrorException(CloudifyMessageKeys.UPLOAD_KEY_PARAMETER_MISSING.getName());
 		}
 
 		// get service folder
@@ -1081,7 +1081,6 @@ public class DeploymentsController extends BaseRestController {
 	 * @param deploymentId
 	 *            The deployment id.
 	 * @return The services description.
-	 * @throws ResourceNotFoundException .
 	 */
 	@RequestMapping(value = "/{deploymentId}/description", method = RequestMethod.GET)
 	public List<ServiceDescription> getServiceDescriptionListByDeploymentId(
@@ -1166,7 +1165,6 @@ public class DeploymentsController extends BaseRestController {
 						final long undeployTimeout = TimeUnit.MINUTES.toMillis(timeoutInMinutes)
 								- (System.currentTimeMillis() - startTime);
 						try {
-							// TODO: move this to constant
 							if (processingUnit.waitForManaged(WAIT_FOR_MANAGED_TIMEOUT_SECONDS,
 									TimeUnit.SECONDS) == null) {
 								logger.log(Level.WARNING,

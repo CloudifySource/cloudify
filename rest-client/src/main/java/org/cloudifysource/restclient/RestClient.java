@@ -35,13 +35,19 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.rest.request.AddTemplatesInternalRequest;
+import org.cloudifysource.dsl.rest.request.AddTemplatesRequest;
 import org.cloudifysource.dsl.rest.request.InstallApplicationRequest;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
 import org.cloudifysource.dsl.rest.request.SetServiceInstancesRequest;
+import org.cloudifysource.dsl.rest.response.AddTemplatesResponse;
+import org.cloudifysource.dsl.rest.response.AddTemplatesToPUResponse;
 import org.cloudifysource.dsl.rest.response.ApplicationDescription;
 import org.cloudifysource.dsl.rest.response.DeploymentEvents;
+import org.cloudifysource.dsl.rest.response.GetTemplateResponse;
 import org.cloudifysource.dsl.rest.response.InstallApplicationResponse;
 import org.cloudifysource.dsl.rest.response.InstallServiceResponse;
+import org.cloudifysource.dsl.rest.response.ListTemplatesResponse;
 import org.cloudifysource.dsl.rest.response.Response;
 import org.cloudifysource.dsl.rest.response.ServiceDescription;
 import org.cloudifysource.dsl.rest.response.UninstallApplicationResponse;
@@ -68,6 +74,7 @@ public class RestClient {
 
 	private static final String UPLOAD_CONTROLLER_URL = "/upload/";
 	private static final String DEPLOYMENT_CONTROLLER_URL = "/deployments/";
+	private static final String TEMPLATES_CONTROLLER_URL = "/templates/";
 
 	private static final String INSTALL_SERVICE_URL_FORMAT = "%s/services/%s";
 	private static final String INSTALL_APPLICATION_URL_FORMAT = "%s";
@@ -76,6 +83,12 @@ public class RestClient {
 	private static final String GET_SERVICE_DESCRIPTION_URL_FORMAT = "%s/service/%s/description";
 	private static final String GET_SERVICES_DESCRIPTION_URL_FORMAT = "%s/description";
 	private static final String GET_APPLICATION_DESCRIPTION_URL_FORMAT = "applications/%s/description";
+	private static final String ADD_TEMPALTES_INTERNAL_URL_FORMAT = "internal";
+	private static final String ADD_TEMPALTES_URL_FORMAT = "";
+	private static final String GET_TEMPALTE_URL_FORMAT = "%s";
+	private static final String LIST_TEMPALTES_URL_FORMAT = "";
+	private static final String REMOVE_TEMPALTE_URL_FORMAT = "%s";
+	private static final String REMOVE_TEMPALTE_INTERNAL_URL_FORMAT = "internal/%s";
 
 	private static final String SET_INSTANCES_URL_FORMAT = "%s/services/%s/count";
 	private static final String GET_LAST_EVENT_URL_FORMAT = "%s/events/last/";
@@ -83,6 +96,7 @@ public class RestClient {
 	private final RestClientExecutor executor;
 	private String versionedDeploymentControllerUrl;
 	private String versionedUploadControllerUrl;
+	private String versionedTemplatesControllerUrl;
 
 	public RestClient(final URL url,
 			final String username,
@@ -91,7 +105,7 @@ public class RestClient {
 
 		versionedDeploymentControllerUrl = apiVersion + DEPLOYMENT_CONTROLLER_URL;
 		versionedUploadControllerUrl = apiVersion + UPLOAD_CONTROLLER_URL;
-
+		versionedTemplatesControllerUrl = apiVersion + TEMPLATES_CONTROLLER_URL;
 		this.executor = createExecutor(url, apiVersion);
 
 		setCredentials(username, password);
@@ -231,9 +245,13 @@ public class RestClient {
 		final String uploadUrl = getFormattedUrl(
 				versionedUploadControllerUrl, 
 				UPLOAD_URL_FORMAT, 
-				finalFileName);				
-		final UploadResponse response = executor.postFile(uploadUrl, file, CloudifyConstants.UPLOAD_FILE_PARAM_NAME,
-				new TypeReference<Response<UploadResponse>>() { });		
+				finalFileName);	
+		
+		final UploadResponse response = 
+				executor.postObject(
+						uploadUrl, 
+						file, 
+						new TypeReference<Response<UploadResponse>>() { });		
 		return response;
 	}
 	
@@ -438,6 +456,106 @@ public class RestClient {
 
 	private String getFormattedUrl(final String controllerUrl, final String format, final String... args) {
 		return controllerUrl + String.format(format, (Object[]) args);
+	}
+
+	/**
+	 * Executes a rest API call to get template.
+	 * 
+	 * @param templateName the name of the template to get.
+	 * @return GetTemplateResponse.
+	 * @throws RestClientException .
+	 */
+	public GetTemplateResponse getTemplate(final String templateName) 
+			throws RestClientException {
+		final String listTempaltesInternalUrl = getFormattedUrl(
+				versionedTemplatesControllerUrl, 
+				GET_TEMPALTE_URL_FORMAT,
+				templateName);
+		return executor.get(listTempaltesInternalUrl,
+				new TypeReference<Response<GetTemplateResponse>>() { });
+	}
+	
+	/**
+	 * Executes a rest API call to list templates.
+	 *  
+	 * @return ListTemplatesResponse.
+	 * @throws RestClientException .
+	 */
+	public ListTemplatesResponse listTemplates() throws RestClientException {
+		final String listTempaltesInternalUrl = getFormattedUrl(
+				versionedTemplatesControllerUrl, 
+				LIST_TEMPALTES_URL_FORMAT);
+		return executor.get(listTempaltesInternalUrl,
+				new TypeReference<Response<ListTemplatesResponse>>() { });
+	}
+	
+	/**
+	 * Executes a rest API call to add templates from a specific folder.
+	 *  
+	 * @param request contains the templates folder.
+	 * @return AddTemplatesResponse.
+	 * @throws RestClientException .
+	 */
+	public AddTemplatesResponse addTemplates(final AddTemplatesRequest request) 
+			throws RestClientException {
+		final String addTempaltesInternalUrl = getFormattedUrl(
+				versionedTemplatesControllerUrl, 
+				ADD_TEMPALTES_URL_FORMAT);
+		return executor.postObject(
+				addTempaltesInternalUrl, 
+				request, 
+				new TypeReference<Response<AddTemplatesResponse>>() { });
+	}
+	
+	/**
+	 * Executes a rest API call to add templates from a specific folder
+	 * to a specific host.
+	 *  
+	 * @param request contains the templates folder.
+	 * @return AddTemplatesResponse.
+	 * @throws RestClientException .
+	 */
+	public AddTemplatesToPUResponse addTemplatesInternal(final AddTemplatesInternalRequest request) 
+			throws RestClientException {
+		final String addTempaltesInternalUrl = getFormattedUrl(
+				versionedTemplatesControllerUrl, 
+				ADD_TEMPALTES_INTERNAL_URL_FORMAT);
+		return executor.postObject(
+				addTempaltesInternalUrl, 
+				request, 
+				new TypeReference<Response<AddTemplatesToPUResponse>>() { });
+	}
+	
+	/**
+	 * Executes a rest API call to remove template.
+	 * 
+	 * @param templateName the template's name to remove.
+	 * @throws RestClientException .
+	 */
+	public void removeTemplate(final String templateName) 
+			throws RestClientException {
+		final String removeTempalteUrl = getFormattedUrl(
+				versionedTemplatesControllerUrl, 
+				REMOVE_TEMPALTE_URL_FORMAT);
+		executor.delete(
+				removeTempalteUrl, 
+				new TypeReference<Response<Void>>() { });
+	}
+	
+	/**
+	 * Executes a rest API call to remove template from a specific host.
+	 * 
+	 * @param templateName the template's name to remove.
+	 * @throws RestClientException .
+	 */
+	public void removeTemplateInternal(final String templateName) 
+			throws RestClientException {
+		final String removeTempalteUrl = getFormattedUrl(
+				versionedTemplatesControllerUrl, 
+				REMOVE_TEMPALTE_INTERNAL_URL_FORMAT);
+		executor.delete(
+				removeTempalteUrl, 
+				new TypeReference<Response<Void>>() { });
 	}
 
 }

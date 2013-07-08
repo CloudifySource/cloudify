@@ -62,8 +62,11 @@ public enum CloudifyMessageKeys {
     
     APPLICATION_NAME_IS_ALREADY_IN_USE("application_name_is_alreay_in_use"),
 
-    APPLICATION_NAME_CONTAINS_INVALID_CHARS("application_name_contains_invalid_chars");
+    APPLICATION_NAME_CONTAINS_INVALID_CHARS("application_name_contains_invalid_chars"),
 
+    WRONG_TEMPLATES_UPLOAD_KEY("wrong_templates_upload_key");
+
+    
     private final String name;
 
     CloudifyMessageKeys(final String name) {
