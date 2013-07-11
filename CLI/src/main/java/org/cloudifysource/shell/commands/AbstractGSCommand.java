@@ -28,8 +28,10 @@ import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.exceptions.CLIException;
 import org.cloudifysource.shell.exceptions.CLIStatusException;
+import org.cloudifysource.shell.exceptions.CLIValidationException;
 import org.cloudifysource.shell.exceptions.handlers.CLIExceptionHandler;
 import org.cloudifysource.shell.exceptions.handlers.CLIStatusExceptionHandler;
+import org.cloudifysource.shell.exceptions.handlers.CLIValidationExceptionHandler;
 import org.cloudifysource.shell.exceptions.handlers.ClientSideExceptionHandler;
 import org.cloudifysource.shell.exceptions.handlers.InterruptedExceptionHandler;
 import org.cloudifysource.shell.exceptions.handlers.RestClientExceptionHandler;
@@ -101,6 +103,8 @@ public abstract class AbstractGSCommand implements Action {
             return doExecute();
         } catch (final CLIStatusException e) {
             handle(new CLIStatusExceptionHandler(e), e);
+        } catch (final CLIValidationException e) {
+            handle(new CLIValidationExceptionHandler(e), e);
         } catch (final CLIException e) {
             handle(new CLIExceptionHandler(e), e);
         } catch (final RestClientHttpException e) {
@@ -120,7 +124,12 @@ public abstract class AbstractGSCommand implements Action {
         if (logger.isLoggable(clientSideExceptionHandler.getLoggingLevel())) {
             logger.log(clientSideExceptionHandler.getLoggingLevel(), clientSideExceptionHandler.getMessage(verbose));
         }
-        raiseCloseShellExceptionIfNonInteractive(session, t);
+        
+        if (t instanceof CLIValidationException) {
+			System.exit(((CLIValidationException) t).getExitCode());
+		} else {
+			raiseCloseShellExceptionIfNonInteractive(session, t);			
+		}
     }
 
 
@@ -141,8 +150,6 @@ public abstract class AbstractGSCommand implements Action {
 			session.put(Constants.LAST_COMMAND_EXCEPTION, t);
 			throw new CloseShellException();
 		}
-		
-		// TODO noa - handle exit with exit codes, might need to use System.exit here
 	}
 
 	/**

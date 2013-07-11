@@ -35,6 +35,8 @@ import com.googlecode.ipv6.IPv6Address;
  */
 public final class IPUtils {
 
+	private static final int MAX_PORT_NUMBER = 65535;
+
 	// hidden constructor
 	private IPUtils() {
 	}
@@ -47,6 +49,7 @@ public final class IPUtils {
 
 	private static final String NETWORK_INTERFACE_SEPARATOR = "%";
 	private static final String PORT_SEPARATOR = ":";
+	private static final String PORT_RANGE_SEPARATOR = "-";
 
 	//security constants
 	private static final String SPRING_ACTIVE_PROFILE_ENV_VAR = "SPRING_PROFILES_ACTIVE";
@@ -354,6 +357,7 @@ public final class IPUtils {
 		}
 	}
 	
+	
 	/**
 	 * Validates the specified port is free on the given host.
 	 * @param host the host to validate
@@ -366,6 +370,31 @@ public final class IPUtils {
 		ServerSocket serverSocket = null;
 		try {
 			InetSocketAddress socketAddress = new InetSocketAddress(host, port);
+			serverSocket = new ServerSocket();
+			serverSocket.bind(socketAddress);
+		} finally {
+			if (serverSocket != null) {
+				try {
+					serverSocket.close();
+				} catch (Exception e) {
+					//ignore
+				}
+			}
+		}
+	}
+	
+
+	/**
+	 * Validates it is possible to open a server socket (using a random port) on the given host.
+	 * @host the host to bind the server socket to
+	 * @throws IOException indicates an I/O error occurs when creating the socket or connecting to it.
+	 * @throws SecurityException .
+	 */
+	public static void testOpenServerSocket(final String host) throws IOException,
+	SecurityException {
+		ServerSocket serverSocket = null;
+		try {
+			InetSocketAddress socketAddress = new InetSocketAddress(host, 0);
 			serverSocket = new ServerSocket();
 			serverSocket.bind(socketAddress);
 		} finally {
@@ -671,19 +700,64 @@ public final class IPUtils {
 	public static boolean isValidPortRange(final String portRange) {
 		boolean valid = false;
 		
+		try {
+			int minPort = getMinimumPort(portRange);
+			int maxPort = getMaximumPort(portRange);
+			if (isValidPortNumber(minPort) && isValidPortNumber(maxPort)) {
+				valid = true;
+			}
+		} catch (Exception e) {
+			// invalid range
+		}		
+		
 		return valid;
 	}
 	
 	/**
 	 * Validates the given number as a port number.
 	 * A valid port value is between 0 and 65535.
-	 * A port number of zero will let the system pick up an ephemeral port in a bind operation.
 	 * @param portNumber the port number to validate
 	 * @return True - is the given number is a valid port number, False otherwise.
 	 */
 	public static boolean isValidPortNumber(final int portNumber) {
 		boolean valid = false;
 		
+		if (portNumber >= 0 && portNumber <= MAX_PORT_NUMBER) {
+			valid = true;
+		}
+		
 		return valid;
+	}
+	
+	
+	/**
+	 * Returns the minimum port (i.e. the starting port) specified by the given range.
+	 * @param portRange the range to parse
+	 * @return the minimum port specified by the given range
+	 */
+	public static int getMinimumPort(final String portRange) {
+		if (portRange.indexOf(PORT_RANGE_SEPARATOR) == -1) {
+			throw new IllegalArgumentException("Invalid port range: " + portRange + ". The expected "
+					+ "format is <lowest port>-<highest port>, e.g. 7010-7110");
+		}
+		
+		String lowestPortStr = StringUtils.substringBefore(portRange, PORT_RANGE_SEPARATOR);
+		return Integer.parseInt(lowestPortStr);
+	}
+	
+	
+	/**
+	 * Returns the maximum port (i.e. the ending port) specified by the given range.
+	 * @param portRange the range to parse
+	 * @return the maximum port specified by the given range
+	 */
+	public static int getMaximumPort(final String portRange) {
+		if (portRange.indexOf(PORT_RANGE_SEPARATOR) == -1) {
+			throw new IllegalArgumentException("Invalid port range: " + portRange + ". The expected "
+					+ "format is <lowest port>-<highest port>, e.g. 7010-7110");
+		}
+		
+		String highestPortStr = StringUtils.substringAfter(portRange, PORT_RANGE_SEPARATOR);
+		return Integer.parseInt(highestPortStr);
 	}
 }

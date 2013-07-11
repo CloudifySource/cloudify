@@ -24,7 +24,7 @@ import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.shell.exceptions.CLIValidationException;
 
 /**
- * This class validates the a server socket can be created on the given NIC address can be established.
+ * This class validates the a server socket can be created on the given NIC address.
  * If no NIC address was specified, the local host address is used.
  * @author noak
  * @since 2.7.0
@@ -34,16 +34,10 @@ public class NicAddressValidator implements CloudifyMachineValidator {
 	private String nicAddress;
 	
 	/**
-	 * Empty Ctor.
-	 */
-	public NicAddressValidator() {
-	}
-	
-	/**
-	 * Ctor.
+	 * Setter for nicAddress.
 	 * @param nicAddress The NIC address to validate, or null to use the local host.
 	 */
-	public NicAddressValidator(final String nicAddress) {
+	public void setNicAddress(final String nicAddress) {
 		this.nicAddress = nicAddress;
 	}
 
@@ -56,19 +50,23 @@ public class NicAddressValidator implements CloudifyMachineValidator {
 			if (StringUtils.isBlank(nicAddress)) {
 				nicAddress = Constants.getHostAddress();
 			}
-			IPUtils.validatePortIsFree(nicAddress, 0);
+			
+			if (StringUtils.isBlank(nicAddress)) {
+				throw new IllegalArgumentException("NIC Address is empty");
+			}
+			IPUtils.testOpenServerSocket(nicAddress);
 		} catch (UnknownHostException uhe) {
 			// thrown if the host could not be determined.
-			throw new CLIValidationException(uhe, CloudifyErrorMessages.NIC_VALIDATION_ABORTED_UNKNOWN_HOST.getName(), 
-					uhe.getMessage());
+			throw new CLIValidationException(uhe, 121, 
+					CloudifyErrorMessages.NIC_VALIDATION_ABORTED_UNKNOWN_HOST.getName(), uhe.getMessage());
 		} catch (IOException ioe) {
 			// thrown if an I/O error occurs when creating the socket or connecting to it.
-			throw new CLIValidationException(ioe, CloudifyErrorMessages.NIC_VALIDATION_ABORTED_IO_ERROR.getName(),
-					ioe.getMessage());
+			throw new CLIValidationException(ioe, 122, 
+					CloudifyErrorMessages.NIC_VALIDATION_ABORTED_IO_ERROR.getName(), nicAddress, ioe.getMessage());
 		} catch (SecurityException se) {
 			// thrown if a security manager exists and doesn't allow the operation.
-			throw new CLIValidationException(se, CloudifyErrorMessages.NIC_VALIDATION_ABORTED_NO_PERMISSION.getName(),
-					se.getMessage());
+			throw new CLIValidationException(se, 123, 
+					CloudifyErrorMessages.NIC_VALIDATION_ABORTED_NO_PERMISSION.getName(), se.getMessage());
 		} finally {
 			if (serverSocket != null) {
 				try {

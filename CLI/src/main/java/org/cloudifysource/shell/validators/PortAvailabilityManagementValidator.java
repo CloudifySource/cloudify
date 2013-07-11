@@ -12,34 +12,23 @@
  *******************************************************************************/
 package org.cloudifysource.shell.validators;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
-import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.shell.exceptions.CLIValidationException;
 
 /**
- * This class validates a connection to the lookup service can be established on the specified port.
+ * This class validates the ports required for Cloudify management services (ESM, LUS, GSM, GSA, GSC) are free.
  * @author noak
  * @since 2.7.0
  */
-public class HostNameValidator implements CloudifyMachineValidator {
+public class PortAvailabilityManagementValidator extends PortAvailabilityValidator implements 
+	CloudifyManagementValidator {
 
 	@Override
 	public void validate() throws CLIValidationException {
-		try {
-			InetAddress localInetAddress = InetAddress.getLocalHost();
-			final String hostName = localInetAddress.getHostName();
-			localInetAddress.getHostAddress();
-			InetAddress.getByName(hostName);
-		} catch (UnknownHostException uhe) {
-			throw new CLIValidationException(uhe, 119, 
-					CloudifyErrorMessages.HOST_VALIDATION_ABORTED_UNKNOWN_HOST.getName(), uhe.getMessage());
-		} catch (SecurityException se) {
-			// thrown if a security manager exists and permission to resolve the host name is denied.
-			throw new CLIValidationException(se, 120, 
-					CloudifyErrorMessages.HOST_VALIDATION_ABORTED_NO_PERMISSION.getName(), se.getMessage());
-		}
+		validateGscPorts();
+		validateGsaPorts();
+		validateGsmPorts();
+		validateEsmPorts();
+		validateLusPorts();		
 	}
-
+	
 }

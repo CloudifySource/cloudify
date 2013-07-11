@@ -22,38 +22,67 @@ import java.util.List;
  */
 public final class CloudifyMachineValidatorsFactory {
 
-	private static List<CloudifyMachineValidator> validatorsList = null;
+	private static List<CloudifyMachineValidator> managementValidatorsList = null;
+	private static List<CloudifyMachineValidator> agentValidatorsList = null;
 	
 	private CloudifyMachineValidatorsFactory() {
 		//private ctor, not meant to be called.
 	}
 	
 	/**
-	 * Gets a list of all {@link CloudifyMachineValidator} classes.
+	 * Gets a list of all {@link CloudifyMachineValidator} classes required.
+	 * @param isManagement Trus if the list is required for a management machine. False otherwise.
 	 * @return a list of all {@link CloudifyMachineValidator} classes.
 	 */
-	public static List<CloudifyMachineValidator> getValidators() {
-		return getValidators(null);
+	public static List<CloudifyMachineValidator> getValidators(final boolean isManagement) { 
+		return getValidators(isManagement, null);
 	}
 	
 	/**
-	 * Gets a list of all {@link CloudifyMachineValidator} classes.
+	 * Gets a list of all {@link CloudifyMachineValidator} classes required for agents.
+	 * @param isManagement is the list of validators meant for a management machine or not.
 	 * @param nicAddress The nic address to validate.
 	 * @return a list of all {@link CloudifyMachineValidator} classes.
 	 */
-	public static List<CloudifyMachineValidator> getValidators(final String nicAddress) {
-		if (validatorsList == null) {
-			initValidatorsList(nicAddress);
+	public static List<CloudifyMachineValidator> getValidators(final boolean isManagement, 
+			final String nicAddress) {
+		
+		List<CloudifyMachineValidator> validatorsList = null;
+		
+		if (isManagement) {
+			if (managementValidatorsList == null) {
+				initManagementValidatorsList(nicAddress);
+			}
+			validatorsList = managementValidatorsList;
+		} else {
+			// agent
+			if (agentValidatorsList == null) {
+				initAgentValidatorsList(nicAddress);
+			}
+			validatorsList = agentValidatorsList;
 		}
-
+		
 		return validatorsList;
 	}
 	
-	private static void initValidatorsList(final String nicAddress) {
-		validatorsList = new ArrayList<CloudifyMachineValidator>();
-		validatorsList.add(new HostNameValidator());
-		validatorsList.add(new NicAddressValidator(nicAddress));
-		validatorsList.add(new LusConnectionValidator());
-		validatorsList.add(new PortAvailabilityValidator());
+	
+	private static void initManagementValidatorsList(final String nicAddress) {
+		managementValidatorsList = new ArrayList<CloudifyMachineValidator>();
+		managementValidatorsList.add(new HostNameValidator());
+		//managementValidatorsList.add(new NicAddressValidator(nicAddress));
+		//managementValidatorsList.add(new LusConnectionValidator());
+		managementValidatorsList.add(new PortAvailabilityManagementValidator());
 	}
+	
+	
+	private static void initAgentValidatorsList(final String nicAddress) {
+		agentValidatorsList = new ArrayList<CloudifyMachineValidator>();
+		agentValidatorsList.add(new HostNameValidator());
+		NicAddressValidator nicAddressValidator = new NicAddressValidator();
+		nicAddressValidator.setNicAddress(nicAddress);
+		agentValidatorsList.add(nicAddressValidator);
+		agentValidatorsList.add(new LusConnectionValidator());
+		agentValidatorsList.add(new PortAvailabilityAgentValidator());
+	}
+	
 }

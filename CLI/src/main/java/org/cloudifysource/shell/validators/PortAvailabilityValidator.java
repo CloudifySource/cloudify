@@ -24,81 +24,255 @@ import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.shell.exceptions.CLIValidationException;
 
 /**
- * This class validates the ports required for Cloudify services (esm, lus, gsm, gsa, gsc) are free.
+ * This is an abstract class that implements generic validations of configuration parsing and port availability tests.
  * @author noak
  * @since 2.7.0
  */
-public class PortAvailabilityValidator implements CloudifyMachineValidator {
+public abstract class PortAvailabilityValidator {
 	
-	private static final String PORT_RANGE_SEPARATOR = "-";
+	private String gsaPortOrRange;
+	private String gscPortOrRange;
+	private String lusPortOrRange;
+	private String esmPortOrRange;
+	private String gsmPortOrRange;
 	
-	private String lrmiPortRange;
-	
-	// TODO  noa - if agent - test gsa, gsc
-	// if mgmt - esm, lus, gsm, gsa, gsc
-	// test Iserver socket
-	
-	/**
-	 * Empty Ctor.
-	 */
-	public PortAvailabilityValidator() {
-	}
-	
-	/**
-	 * Ctor.
-	 * @param lrmiPortRange The lrmi port range to validate, or null to use the env var setting.
-	 */
-	public PortAvailabilityValidator(final String lrmiPortRange) {
-		this.lrmiPortRange = lrmiPortRange;
-	}
-
 
 	/**
-	 * Validates a connection can be established to the local host on at least one port in the lrmi port range.
-	 * @throws CLIValidationException Indicates a failure to establish a connection.
+	 * Setter for GSC lrmi port or range.
+	 * @param gscPortOrRange The GSC port or range
 	 */
-	@Override
-	public void validate() throws CLIValidationException {
+	public void setGscPortOrRange(final String gscPortOrRange) {
+		this.gscPortOrRange = gscPortOrRange;
+	}
+	
+	
+	/**
+	 * Setter for GSA lrmi port or range.
+	 * @param gsaPortOrRange The GSA port or range
+	 */
+	public void setGsaPortOrRange(final String gsaPortOrRange) {
+		this.gsaPortOrRange = gsaPortOrRange;
+	}
+	
+	
+	/**
+	 * Setter for LUS lrmi port or range.
+	 * @param lusPortOrRange The LUS port or range
+	 */
+	public void setLusPortOrRange(final String lusPortOrRange) {
+		this.lusPortOrRange = lusPortOrRange;
+	}
+	
+	
+	/**
+	 * Setter for ESM lrmi port or range.
+	 * @param esmPortOrRange The ESM port or range
+	 */
+	public void setEsmPortOrRange(final String esmPortOrRange) {
+		this.esmPortOrRange = esmPortOrRange;
+	}
+	
+	
+	/**
+	 * Setter for GSM lrmi port or range.
+	 * @param gsmPortOrRange The GSM port or range
+	 */
+	public void setGsmPortOrRange(final String gsmPortOrRange) {
+		this.gsmPortOrRange = gsmPortOrRange;
+	}
+	
+
+	/**
+	 * Validates the GSC lrmi port or range is available.
+	 * @throws CLIValidationException Indicated the validation failed.
+	 */
+	protected void validateGscPorts() throws CLIValidationException {
 		
-		// get lrmi ports from the environment variable if not already set
-		if (StringUtils.isBlank(lrmiPortRange)) {
-			lrmiPortRange = System.getenv(CloudifyConstants.GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR);
+		// get GSC lrmi ports from the environment variable if not already set
+		if (StringUtils.isBlank(gscPortOrRange)) {
+			gscPortOrRange = System.getenv(CloudifyConstants.GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR);
+			
+			if (StringUtils.isBlank(gscPortOrRange)) {
+				throw new IllegalArgumentException("GSC LRMI port range not configred. The environment variable \"" 
+						+ CloudifyConstants.GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR + "\" is not set.");
+			}
 		}
-		
-		//parse the port range
-		if (StringUtils.isBlank(lrmiPortRange)) {
-			throw new IllegalArgumentException("LRMI port range not configred. The environment variable \"" 
-					+ CloudifyConstants.GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR + "\" is not set.");
-		}
-		
-		if (lrmiPortRange.indexOf(PORT_RANGE_SEPARATOR) == -1) {
-			throw new IllegalArgumentException("Invalid LRMI port range: " + lrmiPortRange + ". The expected "
-					+ "format is <lowest port>-<highest port>, e.g. 7010-7110");
-		}
-		
-		String lowestPortStr = StringUtils.substringBefore(lrmiPortRange, PORT_RANGE_SEPARATOR);
-		String highestPortStr = StringUtils.substringAfter(lrmiPortRange, PORT_RANGE_SEPARATOR);
-		int lowestPort = Integer.parseInt(lowestPortStr);
-		int highestPort = Integer.parseInt(highestPortStr);
 		
 		try {
-			// TODO handle not range, specific port
-			IPUtils.validatePortIsFreeInRange(Constants.getHostAddress(), lowestPort, highestPort);
-		} catch (UnknownHostException uhe) {
-			// thrown if the IP address of the host could not be determined.
-			throw new CLIValidationException(uhe, CloudifyErrorMessages.PORT_VALIDATION_ABORTED_UNKNOWN_HOST.getName(),
-					uhe.getMessage());
-		} catch (IOException ioe) {
-			// thrown if an I/O error occurs when creating the socket or connecting.
-			throw new CLIValidationException(ioe, CloudifyErrorMessages.PORT_VALIDATION_ABORTED_IO_ERROR.getName(),
-					ioe.getMessage());
-		} catch (SecurityException se) {
-			// thrown if a security manager exists and permission to resolve the host name is denied.
-			throw new CLIValidationException(se, CloudifyErrorMessages.PORT_VALIDATION_ABORTED_NO_PERMISSION.getName(),
-					se.getMessage());
+			validateFreePorts(gscPortOrRange);
+		} catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException("GSC LRMI ports validation failed. " + e.getMessage(), e);
+		}
+	}
+	
+
+	/**
+	 * Validates the GSA lrmi port or range is available.
+	 * @throws CLIValidationException Indicated the validation failed.
+	 */
+	protected void validateGsaPorts() throws CLIValidationException {
+		
+		// get GSA lrmi ports from the environment variable if not already set
+		if (StringUtils.isBlank(gsaPortOrRange)) {
+			gsaPortOrRange = retrievePortOrRange(CloudifyConstants.GSA_JAVA_OPTIONS_ENVIRONMENT_VAR);
+			
+			if (StringUtils.isBlank(gsaPortOrRange)) {
+				throw new IllegalArgumentException("GSA java options port or range not configred. The environment "
+							+ "variable \"" + CloudifyConstants.GSA_JAVA_OPTIONS_ENVIRONMENT_VAR + "\" is not set.");
+			}
 		}
 		
+		try {
+			validateFreePorts(gsaPortOrRange);
+		} catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException("GSA LRMI ports validation failed. " + e.getMessage(), e);
+		}
+	}
+	
+
+	/**
+	 * Validates the LUS port or range is available.
+	 * @throws CLIValidationException Indicated the validation failed.
+	 */
+	protected void validateLusPorts() throws CLIValidationException {
 		
+		// get LUS lrmi ports from the environment variable if not already set
+		if (StringUtils.isBlank(lusPortOrRange)) {
+			lusPortOrRange = retrievePortOrRange(CloudifyConstants.LUS_JAVA_OPTIONS_ENVIRONMENT_VAR);
+			
+			if (StringUtils.isBlank(lusPortOrRange)) {
+				throw new IllegalArgumentException("LUS java options port or range not configred. The environment "
+							+ "variable \"" + CloudifyConstants.LUS_JAVA_OPTIONS_ENVIRONMENT_VAR + "\" is not set.");
+			}
+		}
+		
+		try {
+			validateFreePorts(lusPortOrRange);
+		} catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException("LUS LRMI ports validation failed. " + e.getMessage(), e);
+		}
+		
+	}
+
+
+	/**
+	 * Validates the GSM lrmi port or range is available.
+	 * @throws CLIValidationException Indicated the validation failed.
+	 */
+	protected void validateGsmPorts() throws CLIValidationException {
+		
+		// get GSM lrmi ports from the environment variable if not already set
+		if (StringUtils.isBlank(gsmPortOrRange)) {
+			gsmPortOrRange = retrievePortOrRange(CloudifyConstants.GSM_JAVA_OPTIONS_ENVIRONMENT_VAR);
+			
+			if (StringUtils.isBlank(gsmPortOrRange)) {
+				throw new IllegalArgumentException("GSM java options port or range not configred. The environment "
+							+ "variable \"" + CloudifyConstants.GSM_JAVA_OPTIONS_ENVIRONMENT_VAR + "\" is not set.");
+			}
+		}
+		
+		try {
+			validateFreePorts(gsmPortOrRange);
+		} catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException("GSM LRMI ports validation failed. " + e.getMessage(), e);
+		}
+		
+	}
+
+	
+	/**
+	 * Validates the ESM lrmi port or range is available.
+	 * @throws CLIValidationException Indicated the validation failed.
+	 */
+	protected void validateEsmPorts() throws CLIValidationException {
+		
+		// get ESM lrmi ports from the environment variable if not already set
+		if (StringUtils.isBlank(esmPortOrRange)) {
+			esmPortOrRange = retrievePortOrRange(CloudifyConstants.ESM_JAVA_OPTIONS_ENVIRONMENT_VAR);
+			
+			if (StringUtils.isBlank(esmPortOrRange)) {
+				throw new IllegalArgumentException("ESM java options port or range not configred. The environment "
+							+ "variable \"" + CloudifyConstants.ESM_JAVA_OPTIONS_ENVIRONMENT_VAR + "\" is not set.");
+			}
+		}
+		
+		try {
+			validateFreePorts(esmPortOrRange);
+		} catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException("ESM LRMI ports validation failed. " + e.getMessage(), e);
+		}
+	}
+	
+	
+	private void validateFreePorts(final String portOrRange) throws CLIValidationException {
+		try {
+			if (IPUtils.isValidPortRange(portOrRange)) {
+				int lowestPort = IPUtils.getMinimumPort(portOrRange);
+				int highestPort = IPUtils.getMaximumPort(portOrRange);
+				IPUtils.validatePortIsFreeInRange(Constants.getHostAddress(), lowestPort, highestPort);
+			} else {
+				try {
+					int port = Integer.parseInt(portOrRange);
+					if (IPUtils.isValidPortNumber(port)) {
+						IPUtils.validatePortIsFree(Constants.getHostAddress(), port);
+					} else {
+						throw new IllegalArgumentException("Invalid port or range: " + portOrRange);
+					}
+				} catch (Exception e) {
+					throw new IllegalArgumentException("Invalid port or range: " + portOrRange);
+				}
+			}
+		} catch (UnknownHostException uhe) {
+			// thrown if the IP address of the host could not be determined.
+			throw new CLIValidationException(uhe, 124,
+					CloudifyErrorMessages.PORT_VALIDATION_ABORTED_UNKNOWN_HOST.getName(), uhe.getMessage());
+		} catch (IOException ioe) {
+			// thrown if an I/O error occurs when creating the socket or connecting.
+			throw new CLIValidationException(ioe, 125,
+					CloudifyErrorMessages.PORT_VALIDATION_ABORTED_IO_ERROR.getName(), ioe.getMessage());
+		} catch (SecurityException se) {
+			// thrown if a security manager exists and permission to resolve the host name is denied.
+			throw new CLIValidationException(se, 126,
+					CloudifyErrorMessages.PORT_VALIDATION_ABORTED_NO_PERMISSION.getName(), se.getMessage());
+		}		
+	}
+	
+	
+	/**
+	 * Retrieves the port or range specified by the CloudifyConstants.LRMI_PORT_OR_RANGE_SYS_PROP system property 
+	 * in the given environment variable.
+	 * @param envVar The environment variable containing the port configuration
+	 * @return the port or range defined
+	 */
+	private static String retrievePortOrRange(final String envVar) {
+		
+		String portOrRange = "";
+		
+		String javaOptionsStr = System.getenv(envVar);
+		if (StringUtils.isBlank(javaOptionsStr)) {
+			throw new IllegalArgumentException("The environment variable \"" + envVar + "\" is not set.");
+		}
+		
+		int sysPropIndex = javaOptionsStr.indexOf(CloudifyConstants.LRMI_PORT_OR_RANGE_SYS_PROP + "=");
+		if (sysPropIndex == -1) {
+			throw new IllegalArgumentException("javaOptionsStr is missing the system property \"" 
+					+ CloudifyConstants.LRMI_PORT_OR_RANGE_SYS_PROP + "\"");
+		}
+		
+		int startIndex = sysPropIndex + CloudifyConstants.LRMI_PORT_OR_RANGE_SYS_PROP.length() + 1;
+		int endIndex = javaOptionsStr.indexOf(" ", startIndex);
+		
+		if (endIndex > -1) {
+			portOrRange = javaOptionsStr.substring(startIndex, endIndex);
+		} else {
+			portOrRange = javaOptionsStr.substring(startIndex);
+		}
+
+		if (StringUtils.isNotBlank(portOrRange)) {
+			portOrRange = portOrRange.trim();
+		}
+		
+		return portOrRange;
 	}
 
 }

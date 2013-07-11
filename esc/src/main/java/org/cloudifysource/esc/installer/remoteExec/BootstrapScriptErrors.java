@@ -112,6 +112,80 @@ public enum BootstrapScriptErrors {
 	FAILED_CHANGING_TO_CLI_DIR(118, "Failed changing directory to cli directory"),
 	
 	/**
+	 * Host name and address validation aborted, host could not be resolved.
+	 */
+	HOST_VALIDATION_ABORTED_UNKNOWN_HOST(119, "Host name and address validation aborted, host could not be resolved."),
+	
+	/**
+	 * Host name and address validation aborted, host could not be resolved.
+	 */
+	HOST_VALIDATION_ABORTED_NO_PERMISSION(120, "Host validation aborted, a security manager exists and permission to "
+			+ "perform the operation is denied."),
+			
+	/**
+	 * NIC validation aborted, host could not be resolved.
+	 */
+	NIC_VALIDATION_ABORTED_UNKNOWN_HOST(121, "NIC validation aborted, host could not be resolved."),
+	
+	/**
+	 * NIC validation aborted, I/O error occurred when creating the socket or connecting.
+	 */
+	NIC_VALIDATION_ABORTED_IO_ERROR(122, "NIC validation aborted, I/O error occurred when creating the socket or "
+			+ "connecting."),
+	
+	/**
+	 * NIC validation aborted, a security manager exists and permission to perform the operation is denied.
+	 */
+	NIC_VALIDATION_ABORTED_NO_PERMISSION(123, "NIC validation aborted, a security manager exists and permission to "
+			+ "perform the operation is denied."),
+	
+	/**
+	 * Port validation aborted, host could not be resolved.
+	 */
+	PORT_VALIDATION_ABORTED_UNKNOWN_HOST(124, "Port validation aborted, host could not be resolved."),
+	
+	/**
+	 * Port validation aborted, I/O error occurred when creating the socket or connecting.
+	 */
+	PORT_VALIDATION_ABORTED_IO_ERROR(125, "Port validation aborted, I/O error occurred when creating the socket or "
+			+ "connecting."),
+	
+	/**
+	 * Port validation aborted, a security manager exists and permission to perform the operation is denied.
+	 */
+	PORT_VALIDATION_ABORTED_NO_PERMISSION(126, "Port validation aborted, a security manager exists and permission to "
+			+ "perform the operation is denied."),
+	
+	/**
+	 * The lookup service connection validation was aborted, host could not be resolved.
+	 */
+	LUS_CONNECTION_VALIDATION_ABORTED_UNKNOWN_HOST(127, "The lookup service connection validation was aborted, host "
+			+ "could not be resolved."),
+	
+	/**
+	 * The lookup service connection validation was aborted, I/O error occurred when creating the socket or connecting.
+	 */
+	LUS_CONNECTION_VALIDATION_ABORTED_IO_ERROR(128, " The lookup service connection validation was aborted, I/O error "
+			+ "occurred when creating the socket or connecting."),
+	
+	/**
+	 * The lookup service connection validation aborted, a security manager exists and permission to perform the 
+	 * operation is denied.
+	 */
+	LUS_CONNECTION_VALIDATION_ABORTED_NO_PERMISSION(129, "The lookup service connection validation aborted, a security "
+			+ "manager exists and permission to perform the operation is denied."),
+			
+	/**
+	 * Unexpected validation error occurred.
+	 */
+	CUSTOM_VALIDATION_ERROR(130, "Cloudify validation failed."),
+	
+	/**
+	 * IMPORTANT NOTE: If the error code is larger than 200, you must edit bootstrap-management.sh or it 
+	 * would be re-thrown as code 255.
+	 */
+	
+	/**
 	 * Custom error.
 	 */
 	CUSTOM_ERROR(255, "");

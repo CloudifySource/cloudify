@@ -170,12 +170,12 @@ public enum CloudifyErrorMessages {
 	/**
 	 * NIC validation aborted because an I/O error occurred when creating the socket or connecting to it.
 	 */
-	NIC_VALIDATION_ABORTED_IO_ERROR("port_validation_aborted_io_error", 1),
+	NIC_VALIDATION_ABORTED_IO_ERROR("nic_validation_aborted_io_error", 2),
 	
 	/**
 	 * NIC validation aborted because a security manager exists and doesn't allow the operation.
 	 */
-	NIC_VALIDATION_ABORTED_NO_PERMISSION("port_validation_aborted_no_permission", 1),
+	NIC_VALIDATION_ABORTED_NO_PERMISSION("nic_validation_aborted_no_permission", 1),
 	
 	/**
 	 * Port validation aborted because the host could not be resolved.
@@ -207,6 +207,18 @@ public enum CloudifyErrorMessages {
 	 * the host name is denied.
 	 */
 	LUS_CONNECTION_VALIDATION_ABORTED_NO_PERMISSION("lus_connection_validation_aborted_no_permission", 3),
+	
+	/**
+	 * Host name and address validation aborted aborted because a security manager exists and permission to resolve 
+	 * the host name is denied.
+	 */
+	AGENT_IS_MISSING_AFTER_BOOTSTRAP("host_validation_aborted_no_permission", 1),
+	
+	/**
+	 * Host name and address validation aborted aborted because a security manager exists and permission to resolve 
+	 * the host name is denied.
+	 */
+	HOST_VALIDATION_ABORTED_NO_PERMISSION("host_validation_aborted_no_permission", 1),
 
 	MANAGEMENT_SERVERS_WAITING_FOR_SHUTDOWN("shutdown_managers_initiated", 1),
 
