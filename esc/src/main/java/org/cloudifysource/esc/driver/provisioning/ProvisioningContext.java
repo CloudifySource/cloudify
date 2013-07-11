@@ -6,6 +6,6 @@ import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 
 public interface ProvisioningContext {
 
-	public abstract String createEnvironmentScript(final ComputeTemplate template) throws FileNotFoundException;
+		String createEnvironmentScript(final MachineDetails md, final ComputeTemplate template) throws FileNotFoundException;
 
 }

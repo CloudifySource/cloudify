@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2013 GigaSpaces Technologies Ltd. All rights reserved
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -43,14 +43,15 @@ import org.cloudifysource.esc.installer.InstallerException;
 
 /********
  * A file transfer implementation using Secure Copy (SCP), based on the sshj library.
- *
+ * 
  * @author barakme
  * @since 2.5.0
- *
+ * 
  */
 public class ScpFileTransfer implements FileTransfer {
 
-	private static final String CREATE_REMOTE_DIRECTORY_WITH_DELETE = "if [ -d {0} ]; then rm -rf {0}; fi; mkdir -p {0}";
+	private static final String CREATE_REMOTE_DIRECTORY_WITH_DELETE =
+			"if [ -d {0} ]; then rm -rf {0}; fi; mkdir -p {0}";
 	private static final String CREATE_REMOTE_DIRECTORY = "if [ ! -d {0} ]; then mkdir -p {0}; fi";
 
 	private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(ScpFileTransfer.class
@@ -71,6 +72,12 @@ public class ScpFileTransfer implements FileTransfer {
 		try {
 			ssh.connect(host);
 		} catch (final IOException e) {
+			try {
+				ssh.close();
+			} catch (IOException e1) {
+				logger.log(Level.SEVERE, "Failed to close down ssh client after connection to: " + host
+						+ " failed. Error was: " + e.getMessage(), e);
+			}
 			throw new InstallerException("Failed to connect to host: " + host + ": " + e.getMessage(), e);
 		}
 

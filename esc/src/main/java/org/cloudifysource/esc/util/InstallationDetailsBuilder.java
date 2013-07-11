@@ -31,7 +31,7 @@ import org.openspaces.admin.zone.config.ExactZonesConfigurer;
  * and you only need to set up the last few.
  * 
  * @author barakme
- * @since 2.7.0
+ * @since 2.6.1
  * 
  */
 public class InstallationDetailsBuilder {
@@ -134,4 +134,10 @@ public class InstallationDetailsBuilder {
 
 		return details;
 	}
+
+	public Cloud getCloud() {
+		return cloud;
+	}
+
+	
 }

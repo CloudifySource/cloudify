@@ -20,6 +20,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -51,6 +52,8 @@ import org.cloudifysource.dsl.rest.response.ControllerDetails;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ManagementLocator;
+import org.cloudifysource.esc.driver.provisioning.ProvisioningContextAccess;
+import org.cloudifysource.esc.driver.provisioning.ProvisioningContextImpl;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriverBootstrapValidation;
 import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverClassContext;
@@ -68,6 +71,7 @@ import org.cloudifysource.esc.shell.listener.CliProvisioningDriverListener;
 import org.cloudifysource.esc.util.CalcUtils;
 import org.cloudifysource.esc.util.ProvisioningDriverClassBuilder;
 import org.cloudifysource.dsl.utils.IPUtils;
+import org.cloudifysource.esc.util.InstallationDetailsBuilder;
 import org.cloudifysource.esc.util.Utils;
 import org.cloudifysource.restclient.utils.NewRestClientUtils;
 import org.cloudifysource.shell.AdminFacade;
@@ -205,7 +209,8 @@ public class CloudGridAgentBootstrapper {
 		createProvisioningDriver(performValidation);
 
 		// Start the cloud machines!!!
-		final MachineDetails[] servers = getOrCreateManagementServers(timeout, timeoutUnit);
+		final MachineDetails[] servers =
+				getOrCreateManagementServers(timeout, timeoutUnit, keystorePassword, securityProfile);
 
 		// from this point on - close machines if an exception is thrown (to
 		// avoid leaks).
@@ -221,14 +226,18 @@ public class CloudGridAgentBootstrapper {
 			validateServers(servers);
 
 			// Start the management agents and other processes
-			if (servers[0].isAgentRunning()) {
-				// must be using existing machines.
-				throw new IllegalStateException(
-						"Cloud bootstrapper found existing management machines with the same name. "
-								+ "Please shut them down before continuing");
-			}
+//			if (servers[0].isAgentRunning()) {
+//				// must be using existing machines.
+//				throw new IllegalStateException(
+//						"Cloud bootstrapper found existing management machines with the same name. "
+//								+ "Please shut them down before continuing");
+//			}
 
-			startManagememntProcesses(servers, securityProfile, keystorePassword, end);
+			if (servers[0].isAgentRunning()) {
+				logger.fine("Management servers are already running Cloudify agent - skipping default bootstrapping");
+			} else {
+				startManagememntProcesses(servers, securityProfile, keystorePassword, end);
+			}
 
 			if (!isNoWebServices()) {
 				final Integer restPort = getRestPort(cloud.getConfiguration().getComponents().getRest().getPort(),
@@ -265,7 +274,8 @@ public class CloudGridAgentBootstrapper {
 		}
 	}
 
-	private MachineDetails[] getOrCreateManagementServers(final long timeout, final TimeUnit timeoutUnit)
+	private MachineDetails[] getOrCreateManagementServers(final long timeout, final TimeUnit timeoutUnit,
+			String keystorePassword, String securityProfile)
 			throws CLIException {
 
 		MachineDetails[] servers;
@@ -274,7 +284,7 @@ public class CloudGridAgentBootstrapper {
 		} else if (this.useExistingManagers) {
 			servers = locateManagementMachines();
 		} else {
-			servers = createManagementServers(timeout, timeoutUnit);
+			servers = createManagementServers(timeout, timeoutUnit, keystorePassword, securityProfile);
 		}
 
 		final ComputeTemplate template =
@@ -289,9 +299,40 @@ public class CloudGridAgentBootstrapper {
 
 	}
 
-	private MachineDetails[] createManagementServers(final long timeout, final TimeUnit timeoutUnit)
+	private ProvisioningContextImpl setUpProvisioningContext(String keystorePassword,
+			String securityProfile) {
+
+		final ProvisioningContextImpl ctx = new ProvisioningContextImpl();
+		ctx.setLocationId(null);
+		InstallationDetailsBuilder builder = ctx.getInstallationDetailsBuilder();
+		builder.reservationId(null);
+		builder.admin(null);
+
+		builder.authGroups(null);
+		builder.cloud(this.cloud);
+		builder.cloudFile(this.cloudFile);
+		builder.keystorePassword(keystorePassword);
+		builder.lookupLocators(null);
+		builder.management(true);
+		builder.rebootstrapping(isRebootstrapping());
+		builder.reservationId(null);
+		builder.securityProfile(securityProfile);
+		builder.template(this.cloud.getCloudCompute().getTemplates()
+				.get(this.cloud.getConfiguration().getManagementMachineTemplate()));
+		builder.templateName(this.cloud.getConfiguration().getManagementMachineTemplate());
+		builder.zones(new HashSet<String>(Arrays.asList(MANAGEMENT_GSA_ZONE)));
+
+		return ctx;
+
+	}
+
+	private MachineDetails[] createManagementServers(final long timeout, final TimeUnit timeoutUnit,
+			String keystorePassword, String securityProfile)
 			throws CLIException {
 		MachineDetails[] servers;
+
+		final ProvisioningContextImpl context = setUpProvisioningContext(keystorePassword, securityProfile);
+		ProvisioningContextAccess.setCurrentProvisioingContext(context);
 		try {
 			servers = provisioning.startManagementMachines(timeout, timeoutUnit);
 		} catch (final CloudProvisioningException e) {
@@ -302,6 +343,8 @@ public class CloudGridAgentBootstrapper {
 			throw new CLIException("Cloudify bootstrap on provider "
 					+ this.cloud.getProvider().getProvider() + " timed-out. "
 					+ "Please try to run again using the –timeout option.", e);
+		} finally {
+			ProvisioningContextAccess.setCurrentProvisioingContext(null);
 		}
 
 		if (servers.length == 0) {

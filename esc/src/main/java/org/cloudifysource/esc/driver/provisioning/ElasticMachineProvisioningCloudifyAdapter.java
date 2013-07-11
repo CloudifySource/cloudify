@@ -41,7 +41,6 @@ import org.cloudifysource.dsl.internal.ComputeTemplatesReader;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
-import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
 import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.dsl.utils.ServiceUtils;
@@ -612,13 +611,16 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		ProvisioningContextImpl ctx = setUpProvisioningContext(locationId, reservationId);
 		// TODO - this is a workaround for 2.6.1. ProvisioningContext should be added to the
 		// startMachine API call in the cloud driver.
-		ProvisioningContextAccessImpl.setCurrentProvisioingContext(ctx);
+		ProvisioningContextAccess.setCurrentProvisioingContext(ctx);
 
 		MachineDetails machineDetails;
 		try {
 			machineDetails = cloudifyProvisioning.startMachine(locationId, duration, unit);
 		} catch (final CloudProvisioningException e) {
 			throw new ElasticMachineProvisioningException("Failed to start machine: " + e.getMessage(), e);
+		} finally {
+			// clear thread local.
+			ProvisioningContextAccess.setCurrentProvisioingContext(null);
 		}
 
 		if (machineDetails == null) {
