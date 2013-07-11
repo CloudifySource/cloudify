@@ -1,5 +1,6 @@
 package org.cloudifysource.dsl.cloud;
 
+import org.cloudifysource.domain.cloud.CloudUser;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.validators.CloudUserValidator;
 import org.junit.After;

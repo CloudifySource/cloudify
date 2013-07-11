@@ -27,8 +27,8 @@ import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
-import org.cloudifysource.dsl.LifecycleEvents;
-import org.cloudifysource.dsl.Service;
+import org.cloudifysource.domain.LifecycleEvents;
+import org.cloudifysource.domain.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.usm.details.Details;
 import org.cloudifysource.usm.dsl.DSLCommandsLifecycleListener;

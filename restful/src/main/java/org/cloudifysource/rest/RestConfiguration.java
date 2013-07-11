@@ -23,12 +23,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
-import org.cloudifysource.dsl.internal.packaging.CloudConfigurationHolder;
+import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.rest.util.RestPollingRunnable;
 import org.cloudifysource.security.CustomPermissionEvaluator;
+import org.cloudifysource.utilitydomain.data.CloudConfigurationHolder;
 import org.openspaces.admin.Admin;
 import org.openspaces.core.GigaSpace;
 

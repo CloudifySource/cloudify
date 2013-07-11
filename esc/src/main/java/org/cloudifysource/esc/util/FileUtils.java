@@ -12,7 +12,7 @@ import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.provider.sftp.SftpFileSystemConfigBuilder;
-import org.cloudifysource.dsl.cloud.FileTransferModes;
+import org.cloudifysource.domain.cloud.FileTransferModes;
 
 /**
  * A utility class for file system handling.

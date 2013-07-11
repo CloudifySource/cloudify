@@ -27,16 +27,16 @@ import javax.servlet.http.HttpServletResponse;
 
 import net.jini.core.lease.Lease;
 
-import org.cloudifysource.dsl.context.kvstorage.spaceentries.AbstractCloudifyAttribute;
-import org.cloudifysource.dsl.context.kvstorage.spaceentries.ApplicationCloudifyAttribute;
-import org.cloudifysource.dsl.context.kvstorage.spaceentries.GlobalCloudifyAttribute;
-import org.cloudifysource.dsl.context.kvstorage.spaceentries.InstanceCloudifyAttribute;
-import org.cloudifysource.dsl.context.kvstorage.spaceentries.ServiceCloudifyAttribute;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.restDoclet.annotations.JsonRequestExample;
 import org.cloudifysource.restDoclet.annotations.JsonResponseExample;
 import org.cloudifysource.restDoclet.annotations.PossibleResponseStatus;
 import org.cloudifysource.restDoclet.annotations.PossibleResponseStatuses;
+import org.cloudifysource.utilitydomain.kvstorage.spaceentries.AbstractCloudifyAttribute;
+import org.cloudifysource.utilitydomain.kvstorage.spaceentries.ApplicationCloudifyAttribute;
+import org.cloudifysource.utilitydomain.kvstorage.spaceentries.GlobalCloudifyAttribute;
+import org.cloudifysource.utilitydomain.kvstorage.spaceentries.InstanceCloudifyAttribute;
+import org.cloudifysource.utilitydomain.kvstorage.spaceentries.ServiceCloudifyAttribute;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.context.GigaSpaceContext;

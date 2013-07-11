@@ -21,7 +21,6 @@
 			<version>${gsVersion}</version>
 			<scope>provided</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>org.cloudifysource</groupId>
 			<artifactId>dsl</artifactId>

@@ -33,13 +33,11 @@ import java.util.logging.Logger;
 
 import net.jini.core.discovery.LookupLocator;
 import net.jini.discovery.Constants;
-
-import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
-import org.cloudifysource.dsl.internal.context.IsLocalCloudUtils;
-import org.cloudifysource.dsl.internal.packaging.CloudConfigurationHolder;
+import org.cloudifysource.dsl.utils.NetworkUtils;
 import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.restclient.utils.NewRestClientUtils;
@@ -51,6 +49,8 @@ import org.cloudifysource.shell.exceptions.CLIException;
 import org.cloudifysource.shell.exceptions.CLIStatusException;
 import org.cloudifysource.shell.rest.RestAdminFacade;
 import org.cloudifysource.shell.rest.inspect.CLIApplicationUninstaller;
+import org.cloudifysource.utilitydomain.data.CloudConfigurationHolder;
+import org.cloudifysource.utilitydomain.openspaces.OpenspacesConstants;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
 import org.openspaces.admin.AdminFactory;
@@ -154,7 +154,7 @@ public class LocalhostGridAgentBootstrapper {
 	private boolean noWebServices;
 	private boolean noManagementSpace;
 	private boolean notHighlyAvailableManagementSpace;
-	private int lusPort = CloudifyConstants.DEFAULT_LUS_PORT;
+	private int lusPort = OpenspacesConstants.DEFAULT_LUS_PORT;
 	private boolean waitForWebUi;
 
 	private String cloudFilePath;
@@ -632,7 +632,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	private void setDefaultLocalcloudLookup() {
 
-		lusPort = CloudifyConstants.DEFAULT_LOCALCLOUD_LUS_PORT;
+		lusPort = OpenspacesConstants.DEFAULT_LOCALCLOUD_LUS_PORT;
 
 		if (lookupLocators == null) {
 			setLookupLocators(getLocalcloudLookupLocators());
@@ -1378,7 +1378,7 @@ public class LocalhostGridAgentBootstrapper {
 				final String agentLookupGroups = getLookupGroups(agent);
 				final boolean checkLookupGroups = lookupGroups != null && lookupGroups.equals(agentLookupGroups);
 				final boolean checkNicAddress = nicAddress != null && agentNicAddress.equals(nicAddress)
-						|| IsLocalCloudUtils.isThisMyIpAddress(agentNicAddress);
+						|| NetworkUtils.isThisMyIpAddress(agentNicAddress);
 				if (verbose) {
 					String message = "Discovered agent nic-address=" + agentNicAddress + " lookup-groups="
 							+ agentLookupGroups + ". ";

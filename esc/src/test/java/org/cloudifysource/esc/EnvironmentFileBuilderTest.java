@@ -15,7 +15,7 @@ package org.cloudifysource.esc;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.cloudifysource.dsl.cloud.ScriptLanguages;
+import org.cloudifysource.domain.cloud.ScriptLanguages;
 import org.cloudifysource.esc.installer.EnvironmentFileBuilder;
 import org.junit.Assert;
 import org.junit.Test;

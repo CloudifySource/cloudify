@@ -14,7 +14,7 @@ package org.cloudifysource.dsl.internal;
 
 import java.io.File;
 
-import org.cloudifysource.dsl.Application;
+import org.cloudifysource.domain.Application;
 
 /*********
  * Results of loading an Application DSL file.

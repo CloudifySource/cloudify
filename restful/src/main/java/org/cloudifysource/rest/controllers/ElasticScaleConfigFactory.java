@@ -8,14 +8,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.cloudifysource.dsl.Service;
+import org.cloudifysource.domain.Service;
+import org.cloudifysource.domain.scalingrules.ScalingRuleDetails;
+import org.cloudifysource.domain.statistics.AbstractStatisticsDetails;
+import org.cloudifysource.domain.statistics.ServiceStatisticsDetails;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
-import org.cloudifysource.dsl.internal.statistics.OpenspacesDomainAdapter;
-import org.cloudifysource.dsl.scalingrules.ScalingRuleDetails;
-import org.cloudifysource.dsl.statistics.AbstractStatisticsDetails;
-import org.cloudifysource.dsl.statistics.ServiceStatisticsDetails;
 import org.cloudifysource.rest.util.IsolationUtils;
+import org.cloudifysource.rest.util.OpenspacesDomainStatisticsAdapter;
 import org.openspaces.admin.pu.elastic.config.AutomaticCapacityScaleConfig;
 import org.openspaces.admin.pu.elastic.config.AutomaticCapacityScaleConfigurer;
 import org.openspaces.admin.pu.elastic.config.AutomaticCapacityScaleRuleConfig;
@@ -28,7 +28,6 @@ import org.openspaces.admin.pu.elastic.config.ManualCapacityScaleConfigurer;
 import org.openspaces.admin.pu.statistics.InstancesStatisticsConfig;
 import org.openspaces.admin.pu.statistics.LastSampleTimeWindowStatisticsConfig;
 import org.openspaces.admin.pu.statistics.ProcessingUnitStatisticsId;
-import org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig;
 import org.openspaces.admin.zone.config.AnyZonesConfig;
 import org.openspaces.core.util.MemoryUnit;
 
@@ -219,10 +218,10 @@ public final class ElasticScaleConfigFactory {
 			final ProcessingUnitStatisticsId statisticsId = new ProcessingUnitStatisticsId();
 			statisticsId.setMonitor(CloudifyConstants.USM_MONITORS_SERVICE_ID);
 			statisticsId.setMetric(serviceStatistics.getMetric());
-			OpenspacesDomainAdapter adapter = new OpenspacesDomainAdapter();
+			OpenspacesDomainStatisticsAdapter adapter = new OpenspacesDomainStatisticsAdapter();
 			InstancesStatisticsConfig instanceStatistics;
 			try {
-				instanceStatistics = (InstancesStatisticsConfig) adapter.createStatisticsConfig(serviceStatistics
+				instanceStatistics = adapter.createInstanceStatisticsConfig(serviceStatistics
 						.getInstancesStatistics().createInstancesStatistics());
 				statisticsId.setInstancesStatistics(instanceStatistics);
 			} catch (Exception e) {
@@ -242,7 +241,7 @@ public final class ElasticScaleConfigFactory {
 			} else {
 				org.openspaces.admin.pu.statistics.TimeWindowStatisticsConfig timeWindowStatistics;
 				try {
-					timeWindowStatistics = (TimeWindowStatisticsConfig) adapter.createStatisticsConfig(serviceStatistics.getTimeStatistics()
+					timeWindowStatistics = adapter.createTimeWindowStatisticsConfig(serviceStatistics.getTimeStatistics()
 					.createTimeWindowStatistics(serviceStatistics.getMovingTimeRangeInSeconds(),
 							TimeUnit.SECONDS));
 				} catch (Exception e) {

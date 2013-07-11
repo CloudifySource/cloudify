@@ -16,8 +16,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.apache.commons.lang.StringUtils;
-import org.cloudifysource.dsl.DSLValidation;
-import org.cloudifysource.dsl.cloud.CloudProvider;
+import org.cloudifysource.domain.DSLValidation;
+import org.cloudifysource.domain.cloud.CloudProvider;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 import org.openspaces.maven.support.OutputVersion;
@@ -34,7 +34,7 @@ public class CloudProviderValidator implements DSLValidator {
 	private CloudProvider entity;
 
 	@Override
-	public void setDSLEntity(Object dslEntity) {
+	public void setDSLEntity(final Object dslEntity) {
 		this.entity = (CloudProvider) dslEntity;
 		
 	}

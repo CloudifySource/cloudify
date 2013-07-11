@@ -13,12 +13,13 @@
 package org.cloudifysource.esc.util;
 
 import org.apache.commons.lang.StringUtils;
-import org.cloudifysource.dsl.cloud.AgentComponent;
-import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.DeployerComponent;
-import org.cloudifysource.dsl.cloud.DiscoveryComponent;
-import org.cloudifysource.dsl.cloud.OrchestratorComponent;
+import org.cloudifysource.domain.cloud.AgentComponent;
+import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.domain.cloud.DeployerComponent;
+import org.cloudifysource.domain.cloud.DiscoveryComponent;
+import org.cloudifysource.domain.cloud.OrchestratorComponent;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.utilitydomain.openspaces.OpenspacesConstants;
 
 /**
  * Service grid system properties utils class.
@@ -56,7 +57,7 @@ public final class GridCommandLineBuilder {
 
 		String gsmCommandLineArgs =
 				"-D" + CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY
-						+ "=" + CloudifyConstants.DEFAULT_LUS_PORT
+						+ "=" + OpenspacesConstants.DEFAULT_LUS_PORT
 						+ " -D" + GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE + "=" + GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL
 						+ " -D"
 						+ ZONES_PROPERTY + "=" + MANAGEMENT_ZONE + " " + GSM_PENDING_REQUESTS_DELAY;
@@ -102,7 +103,7 @@ public final class GridCommandLineBuilder {
 
 		String lusCommandLineArgs =
 				"-D" + CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY
-						+ "=" + CloudifyConstants.DEFAULT_LUS_PORT
+						+ "=" + OpenspacesConstants.DEFAULT_LUS_PORT
 						+ " -D" + ZONES_PROPERTY + "=" + MANAGEMENT_ZONE;
 
 		if (lookupLocatorsString != null) {

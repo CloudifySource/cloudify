@@ -13,14 +13,18 @@
 package org.cloudifysource.usm;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-import org.cloudifysource.dsl.Service;
+import org.cloudifysource.domain.Service;
+import org.cloudifysource.dsl.context.ServiceContext;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
+import org.cloudifysource.dsl.utils.ServiceUtils;
+import org.cloudifysource.usm.context.ServiceContextImpl;
 import org.cloudifysource.usm.dsl.ServiceConfiguration;
 import org.openspaces.core.cluster.ClusterInfo;
 import org.openspaces.core.cluster.ClusterInfoAware;
@@ -70,19 +74,40 @@ public class USMConfigurationFactoryBean implements FactoryBean<ServiceConfigura
 			return handleDsl;
 		} catch (DSLException e) {
 			throw new USMException(e);
+		} catch (IOException e) {
+			throw new USMException(e);
 		}
 	}
 
-	private ServiceConfiguration handleDsl() throws DSLException {
+	private ServiceConfiguration handleDsl() throws DSLException, IOException {
 		File dslFile = null;
 
 		if (serviceFileName != null) {
 			dslFile = new File(this.puExtDir, this.serviceFileName);
 		}
+		ServiceContext serviceContext = new ServiceContextImpl(clusterInfo, this.puExtDir.getCanonicalPath());
+		ClusterInfo clusterInfoToUseInGsc = this.clusterInfo;
+		if (clusterInfoToUseInGsc == null) {
+			clusterInfoToUseInGsc = new ClusterInfo(null, 1, 0, 1, 0);
+		}
+
+		// create an uninitialized service context
+		String canonicalPath = null;
+		try {
+			canonicalPath = this.puExtDir.getCanonicalPath();
+		} catch (IOException e) {
+			throw new DSLException("Failed to get canonical path of work directory: " + canonicalPath + ". Error was: "
+					+ e.getMessage(), e);
+		}
+		//TODO: Why are these the same
+		if (isRunningInGSC) {
+			serviceContext = new ServiceContextImpl(clusterInfoToUseInGsc, canonicalPath);
+		} else {
+			serviceContext = new ServiceContextImpl(new ClusterInfo(null, 1, 0, 1, 0), canonicalPath);
+		}
 
 		DSLReader dslReader = new DSLReader();
-		dslReader.setAdmin(USMUtils.getAdmin());
-		dslReader.setClusterInfo(clusterInfo);
+		dslReader.setContext(serviceContext);
 		dslReader.setPropertiesFileName(propertiesFileName);
 		dslReader.setRunningInGSC(isRunningInGSC);
 		dslReader.setDslFile(dslFile);
@@ -95,7 +120,18 @@ public class USMConfigurationFactoryBean implements FactoryBean<ServiceConfigura
 
 		logger.info("Loading Service configuration from DSL File");
 		Service service = dslReader.readDslEntity(Service.class);
-		return new ServiceConfiguration(service, dslReader.getContext(), this.puExtDir, dslReader.getDslFile(),
+		if (isRunningInGSC) {
+			if (clusterInfoToUseInGsc.getName() == null) {
+				clusterInfoToUseInGsc.setName(ServiceUtils.getAbsolutePUName(
+						CloudifyConstants.DEFAULT_APPLICATION_NAME, service.getName()));
+			}
+			
+			((ServiceContextImpl)serviceContext).init(service, USMUtils.getAdmin(), clusterInfoToUseInGsc);
+		} else {
+			((ServiceContextImpl)serviceContext).initInIntegratedContainer(service);
+		}
+		
+		return new ServiceConfiguration(service, serviceContext, this.puExtDir, dslReader.getDslFile(),
 				dslReader.getDSLClassLoader());
 	}
 

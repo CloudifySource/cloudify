@@ -18,6 +18,9 @@ package org.cloudifysource.dsl.entry;
 
 import java.util.List;
 
+import org.cloudifysource.domain.entry.ExecutableDSLEntry;
+import org.cloudifysource.domain.entry.ExecutableDSLEntryType;
+
 /***************
  * An executable entry that runs an operating system command line defined as a string.
  * 

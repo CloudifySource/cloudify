@@ -31,7 +31,7 @@ public class CloudMissingTemplateTest {
 	public void testCloudParser()
 			throws Exception {
 		try {
-			final org.cloudifysource.dsl.cloud.Cloud cloud =
+			final org.cloudifysource.domain.cloud.Cloud cloud =
 					ServiceReader.readCloud(new File(EC2_MISSING_TEMPLATE_PATH));
 			// if we got to the next line - the validation exception wasn't thrown.
 			assertTrue("The management template does not exist yet no error was thrown", false);

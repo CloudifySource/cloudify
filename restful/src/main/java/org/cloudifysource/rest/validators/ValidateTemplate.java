@@ -15,10 +15,10 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
-import org.cloudifysource.dsl.Application;
-import org.cloudifysource.dsl.Service;
-import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
+import org.cloudifysource.domain.Application;
+import org.cloudifysource.domain.Service;
+import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.rest.controllers.RestErrorException;
 import org.springframework.stereotype.Component;

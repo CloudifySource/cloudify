@@ -22,8 +22,8 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
-import org.cloudifysource.dsl.Application;
-import org.cloudifysource.dsl.Service;
+import org.cloudifysource.domain.Application;
+import org.cloudifysource.domain.Service;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;

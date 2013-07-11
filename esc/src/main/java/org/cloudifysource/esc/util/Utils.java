@@ -28,12 +28,12 @@ import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
 import net.schmizz.sshj.userauth.method.AuthNone;
 
-import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.CloudTemplateInstallerConfiguration;
-import org.cloudifysource.dsl.cloud.FileTransferModes;
-import org.cloudifysource.dsl.cloud.GridComponents;
-import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
-import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
+import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.domain.cloud.CloudTemplateInstallerConfiguration;
+import org.cloudifysource.domain.cloud.FileTransferModes;
+import org.cloudifysource.domain.cloud.GridComponents;
+import org.cloudifysource.domain.cloud.RemoteExecutionModes;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;

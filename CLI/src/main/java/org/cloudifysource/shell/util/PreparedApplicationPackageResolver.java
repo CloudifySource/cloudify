@@ -20,8 +20,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.cloudifysource.dsl.Application;
-import org.cloudifysource.dsl.Service;
+import org.cloudifysource.domain.Application;
+import org.cloudifysource.domain.Service;
 import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;

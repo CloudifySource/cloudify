@@ -28,9 +28,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
 import org.apache.commons.lang.StringUtils;
-import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
-import org.cloudifysource.dsl.cloud.storage.StorageTemplate;
+import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
+import org.cloudifysource.domain.cloud.storage.StorageTemplate;
 import org.cloudifysource.esc.driver.provisioning.storage.BaseStorageDriver;
 import org.cloudifysource.esc.driver.provisioning.storage.StorageProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.storage.StorageProvisioningException;

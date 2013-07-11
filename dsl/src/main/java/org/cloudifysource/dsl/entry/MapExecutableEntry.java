@@ -18,6 +18,9 @@ package org.cloudifysource.dsl.entry;
 
 import java.util.LinkedHashMap;
 
+import org.cloudifysource.domain.entry.ExecutableDSLEntry;
+import org.cloudifysource.domain.entry.ExecutableDSLEntryType;
+
 /***************
  * An executable entry that runs an operating system command line defined as a Map where each key is a regex for an
  * operating system, and the value is a command.

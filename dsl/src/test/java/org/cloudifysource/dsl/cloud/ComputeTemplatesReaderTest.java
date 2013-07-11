@@ -3,8 +3,6 @@ package org.cloudifysource.dsl.cloud;
 import java.io.File;
 import java.util.List;
 
-import org.cloudifysource.dsl.internal.ComputeTemplateHolder;
-import org.cloudifysource.dsl.internal.ComputeTemplatesReader;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.junit.Assert;
 import org.junit.Test;

@@ -42,10 +42,10 @@ import java.util.regex.PatternSyntaxException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.cloudifysource.dsl.LifecycleEvents;
+import org.cloudifysource.domain.LifecycleEvents;
+import org.cloudifysource.domain.entry.ExecutableDSLEntry;
+import org.cloudifysource.domain.entry.ExecutableDSLEntryType;
 import org.cloudifysource.dsl.entry.ClosureExecutableEntry;
-import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
-import org.cloudifysource.dsl.entry.ExecutableDSLEntryType;
 import org.cloudifysource.dsl.entry.ListExecutableEntry;
 import org.cloudifysource.dsl.entry.StringExecutableEntry;
 import org.cloudifysource.dsl.internal.CloudifyConstants;

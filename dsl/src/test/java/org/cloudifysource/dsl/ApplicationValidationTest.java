@@ -20,6 +20,7 @@ import java.io.File;
 import junit.framework.Assert;
 
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.domain.Application;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 import org.cloudifysource.dsl.internal.ServiceReader;

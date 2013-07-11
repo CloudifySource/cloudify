@@ -17,8 +17,8 @@ package org.cloudifysource.usm.dsl;
 
 import java.io.File;
 
-import org.cloudifysource.dsl.Service;
-import org.cloudifysource.dsl.internal.context.ServiceContextImpl;
+import org.cloudifysource.domain.Service;
+import org.cloudifysource.dsl.context.ServiceContext;
 
 /************
  * DSL based USM configuration.
@@ -32,7 +32,7 @@ public class ServiceConfiguration {
 
 	private final Service service;
 	private final File puExtDir;
-	private final ServiceContextImpl serviceContext;
+	private final ServiceContext serviceContext;
 	private final File serviceFile;
 	private final ClassLoader dslClassLoader;
 
@@ -40,7 +40,7 @@ public class ServiceConfiguration {
 		return serviceFile;
 	}
 
-	public ServiceContextImpl getServiceContext() {
+	public ServiceContext getServiceContext() {
 		return serviceContext;
 	}
 
@@ -52,7 +52,7 @@ public class ServiceConfiguration {
 	 * @param puExtDir the ext dir for the PI instance.
 	 * @param serviceFile the DSL dile.
 	 */
-	public ServiceConfiguration(final Service service, final ServiceContextImpl serviceContext, final File puExtDir,
+	public ServiceConfiguration(final Service service, final ServiceContext serviceContext, final File puExtDir,
 			final File serviceFile, final ClassLoader dslClassLoader) {
 		this.service = service;
 		this.serviceContext = serviceContext;

@@ -4,15 +4,15 @@ import java.io.File;
 
 import junit.framework.Assert;
 
-import org.cloudifysource.dsl.cloud.AgentComponent;
-import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.DeployerComponent;
-import org.cloudifysource.dsl.cloud.DiscoveryComponent;
-import org.cloudifysource.dsl.cloud.GridComponents;
-import org.cloudifysource.dsl.cloud.OrchestratorComponent;
-import org.cloudifysource.dsl.cloud.RestComponent;
-import org.cloudifysource.dsl.cloud.UsmComponent;
-import org.cloudifysource.dsl.cloud.WebuiComponent;
+import org.cloudifysource.domain.cloud.AgentComponent;
+import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.domain.cloud.DeployerComponent;
+import org.cloudifysource.domain.cloud.DiscoveryComponent;
+import org.cloudifysource.domain.cloud.GridComponents;
+import org.cloudifysource.domain.cloud.OrchestratorComponent;
+import org.cloudifysource.domain.cloud.RestComponent;
+import org.cloudifysource.domain.cloud.UsmComponent;
+import org.cloudifysource.domain.cloud.WebuiComponent;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.junit.Test;
 /**

@@ -18,7 +18,7 @@ package org.cloudifysource.usm.dsl;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.cloudifysource.dsl.Service;
+import org.cloudifysource.domain.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.usm.UniversalServiceManagerBean;
 import org.cloudifysource.usm.details.Details;

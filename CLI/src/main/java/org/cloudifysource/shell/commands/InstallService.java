@@ -26,7 +26,7 @@ import org.apache.commons.lang.time.DateUtils;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
-import org.cloudifysource.dsl.Service;
+import org.cloudifysource.domain.Service;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.DSLErrorMessageException;
@@ -195,7 +195,7 @@ public class InstallService extends AdminAwareCommand implements NewRestClientCo
 				} else {
 					recipeFile = DSLReader.findDefaultDSLFile(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX, recipe);
 				}
-				service = ServiceReader.readService(recipeFile, recipe, null, null, null, false, overrides);
+				service = ServiceReader.readService(recipeFile, recipe, null, false, overrides);
 				packedFile = Packager.pack(recipeFile, false, service, additionFiles);
 				packedFile.deleteOnExit();
 			} else {

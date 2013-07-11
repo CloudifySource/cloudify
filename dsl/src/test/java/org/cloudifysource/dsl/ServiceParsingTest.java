@@ -25,19 +25,21 @@ import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
+import org.cloudifysource.domain.Service;
+import org.cloudifysource.domain.ServiceLifecycle;
+import org.cloudifysource.domain.entry.ExecutableDSLEntry;
+import org.cloudifysource.domain.entry.ExecutableDSLEntryType;
+import org.cloudifysource.domain.scalingrules.HighThresholdDetails;
+import org.cloudifysource.domain.scalingrules.LowThresholdDetails;
+import org.cloudifysource.domain.scalingrules.ScalingRuleDetails;
+import org.cloudifysource.domain.statistics.PerInstanceStatisticsDetails;
+import org.cloudifysource.domain.statistics.ServiceStatisticsDetails;
 import org.cloudifysource.dsl.entry.ClosureExecutableEntry;
-import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
-import org.cloudifysource.dsl.entry.ExecutableDSLEntryType;
 import org.cloudifysource.dsl.entry.StringExecutableEntry;
 import org.cloudifysource.dsl.internal.BaseDslScript;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
-import org.cloudifysource.dsl.scalingrules.HighThresholdDetails;
-import org.cloudifysource.dsl.scalingrules.LowThresholdDetails;
-import org.cloudifysource.dsl.scalingrules.ScalingRuleDetails;
-import org.cloudifysource.dsl.statistics.PerInstanceStatisticsDetails;
-import org.cloudifysource.dsl.statistics.ServiceStatisticsDetails;
 import org.junit.Assert;
 import org.junit.Test;
 

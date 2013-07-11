@@ -14,8 +14,10 @@ import junit.framework.Assert;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.io.FileUtils;
-import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
+import org.cloudifysource.domain.Application;
+import org.cloudifysource.domain.Service;
+import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.domain.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;

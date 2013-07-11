@@ -5,9 +5,9 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.cloudifysource.dsl.cloud.FileTransferModes;
-import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
-import org.cloudifysource.dsl.cloud.ScriptLanguages;
+import org.cloudifysource.domain.cloud.FileTransferModes;
+import org.cloudifysource.domain.cloud.RemoteExecutionModes;
+import org.cloudifysource.domain.cloud.ScriptLanguages;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.junit.Ignore;
 import org.junit.Test;

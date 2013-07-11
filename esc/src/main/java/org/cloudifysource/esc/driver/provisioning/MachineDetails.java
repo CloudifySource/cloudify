@@ -18,10 +18,10 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-import org.cloudifysource.dsl.cloud.CloudTemplateInstallerConfiguration;
-import org.cloudifysource.dsl.cloud.FileTransferModes;
-import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
-import org.cloudifysource.dsl.cloud.ScriptLanguages;
+import org.cloudifysource.domain.cloud.CloudTemplateInstallerConfiguration;
+import org.cloudifysource.domain.cloud.FileTransferModes;
+import org.cloudifysource.domain.cloud.RemoteExecutionModes;
+import org.cloudifysource.domain.cloud.ScriptLanguages;
 
 import com.gigaspaces.internal.io.IOUtils;
 

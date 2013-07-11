@@ -26,6 +26,9 @@ import junit.framework.Assert;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.domain.Service;
+import org.cloudifysource.domain.Unit;
+import org.cloudifysource.domain.UserInterface;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
@@ -304,7 +307,7 @@ public class ServiceValidationTest {
 	}
 	
 	private UserInterface createOpenspacesUIObject(
-			org.cloudifysource.dsl.UserInterface userInterface) 
+			org.cloudifysource.domain.UserInterface userInterface) 
 					throws IllegalAccessException, InvocationTargetException {
 		UserInterface ui = new UserInterface();
 		BeanUtils.copyProperties(ui, userInterface);

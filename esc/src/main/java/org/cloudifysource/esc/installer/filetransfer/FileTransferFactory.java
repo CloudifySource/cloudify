@@ -16,7 +16,7 @@
 
 package org.cloudifysource.esc.installer.filetransfer;
 
-import org.cloudifysource.dsl.cloud.FileTransferModes;
+import org.cloudifysource.domain.cloud.FileTransferModes;
 
 /**********
  * Factory class for file transfer implementations, used by the agentless installer.
