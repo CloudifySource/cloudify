@@ -23,8 +23,8 @@ import java.io.FileNotFoundException;
 import java.lang.reflect.InvocationTargetException;
 
 import org.apache.commons.beanutils.BeanUtils;
-import org.cloudifysource.dsl.Application;
-import org.cloudifysource.dsl.Service;
+import org.cloudifysource.domain.Application;
+import org.cloudifysource.domain.Service;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 
 /**

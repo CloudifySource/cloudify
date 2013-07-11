@@ -7,6 +7,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 import org.apache.commons.validator.routines.UrlValidator;
+import org.cloudifysource.domain.cloud.CloudProvider;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.validators.CloudProviderValidator;

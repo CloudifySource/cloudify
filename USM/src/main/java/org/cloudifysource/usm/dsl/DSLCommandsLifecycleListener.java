@@ -17,9 +17,9 @@ import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
-import org.cloudifysource.dsl.LifecycleEvents;
-import org.cloudifysource.dsl.ServiceLifecycle;
-import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
+import org.cloudifysource.domain.LifecycleEvents;
+import org.cloudifysource.domain.ServiceLifecycle;
+import org.cloudifysource.domain.entry.ExecutableDSLEntry;
 import org.cloudifysource.usm.events.AbstractUSMEventListener;
 import org.cloudifysource.usm.events.EventResult;
 import org.cloudifysource.usm.events.LifecycleListener;

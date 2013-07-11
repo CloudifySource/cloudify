@@ -19,6 +19,8 @@ import java.io.File;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import org.cloudifysource.domain.Service;
+
 import junit.framework.Assert;
 
 public class ServiceTestUtil {

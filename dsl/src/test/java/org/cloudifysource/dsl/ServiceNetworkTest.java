@@ -1,6 +1,7 @@
 
 package org.cloudifysource.dsl;
 
+import org.cloudifysource.domain.ServiceNetwork;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.validators.ServiceNetworkValidator;
 import org.junit.After;

@@ -6,8 +6,6 @@ import java.util.List;
 
 import junit.framework.Assert;
 
-import org.cloudifysource.dsl.internal.ComputeTemplateHolder;
-import org.cloudifysource.dsl.internal.ComputeTemplatesReader;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 import org.junit.Test;

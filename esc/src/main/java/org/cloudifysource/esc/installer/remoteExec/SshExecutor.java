@@ -20,7 +20,7 @@ import java.util.logging.Level;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.ExitStatusException;
 import org.apache.tools.ant.taskdefs.optional.testing.BuildTimeoutException;
-import org.cloudifysource.dsl.cloud.ScriptLanguages;
+import org.cloudifysource.domain.cloud.ScriptLanguages;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.EnvironmentFileBuilder;
 import org.cloudifysource.esc.installer.InstallationDetails;

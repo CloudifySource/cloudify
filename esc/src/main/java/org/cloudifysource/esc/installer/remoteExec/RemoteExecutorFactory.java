@@ -16,7 +16,7 @@
 
 package org.cloudifysource.esc.installer.remoteExec;
 
-import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
+import org.cloudifysource.domain.cloud.RemoteExecutionModes;
 
 /*************
  * Factory class for remote execution implementation classes, used by the agentless installer.

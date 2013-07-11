@@ -20,6 +20,7 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
 
+import org.cloudifysource.domain.Application;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.junit.Test;
 

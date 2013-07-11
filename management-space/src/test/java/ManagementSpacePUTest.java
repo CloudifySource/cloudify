@@ -3,12 +3,12 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.Properties;
 
-import org.cloudifysource.dsl.context.kvstorage.spaceentries.ApplicationCloudifyAttribute;
-import org.cloudifysource.dsl.context.kvstorage.spaceentries.GlobalCloudifyAttribute;
-import org.cloudifysource.dsl.context.kvstorage.spaceentries.InstanceCloudifyAttribute;
-import org.cloudifysource.dsl.context.kvstorage.spaceentries.ServiceCloudifyAttribute;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.cloudifysource.dsl.internal.packaging.CloudConfigurationHolder;
+import org.cloudifysource.utilitydomain.data.CloudConfigurationHolder;
+import org.cloudifysource.utilitydomain.kvstorage.spaceentries.ApplicationCloudifyAttribute;
+import org.cloudifysource.utilitydomain.kvstorage.spaceentries.GlobalCloudifyAttribute;
+import org.cloudifysource.utilitydomain.kvstorage.spaceentries.InstanceCloudifyAttribute;
+import org.cloudifysource.utilitydomain.kvstorage.spaceentries.ServiceCloudifyAttribute;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

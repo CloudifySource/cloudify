@@ -27,7 +27,7 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.FileType;
-import org.cloudifysource.dsl.cloud.CloudTemplateInstallerConfiguration;
+import org.cloudifysource.domain.cloud.CloudTemplateInstallerConfiguration;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
 

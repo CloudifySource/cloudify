@@ -20,7 +20,7 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.provider.sftp.SftpFileSystemConfigBuilder;
-import org.cloudifysource.dsl.cloud.FileTransferModes;
+import org.cloudifysource.domain.cloud.FileTransferModes;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;

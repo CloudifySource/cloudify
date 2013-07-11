@@ -22,8 +22,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 
-import org.cloudifysource.dsl.context.Plugin;
 import org.cloudifysource.dsl.context.ServiceContext;
+import org.cloudifysource.usm.Plugin;
+
 
 /***************
  * A base class for plugins that read JMX data.

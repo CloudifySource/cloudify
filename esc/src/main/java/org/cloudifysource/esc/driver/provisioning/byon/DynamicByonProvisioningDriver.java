@@ -26,9 +26,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 import org.apache.commons.lang.StringUtils;
-import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
-import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
+import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.domain.cloud.RemoteExecutionModes;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver;

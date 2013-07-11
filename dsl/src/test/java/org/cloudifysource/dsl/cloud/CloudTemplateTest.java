@@ -2,7 +2,9 @@ package org.cloudifysource.dsl.cloud;
 
 import java.util.HashMap;
 
-import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
+import org.cloudifysource.domain.cloud.FileTransferModes;
+import org.cloudifysource.domain.cloud.RemoteExecutionModes;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.validators.ComputeTemplateValidator;
 import org.junit.After;

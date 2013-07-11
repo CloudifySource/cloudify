@@ -13,7 +13,7 @@ package org.cloudifysource.rest.validators;
  * specific language governing permissions and limitations under the License.
  ******************************************************************************/
 
-import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.dsl.rest.request.SetServiceInstancesRequest;
 import org.openspaces.admin.pu.ProcessingUnit;
 

@@ -20,14 +20,12 @@ import java.io.OutputStream;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
-import org.cloudifysource.dsl.Application;
-import org.cloudifysource.dsl.Service;
-import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.domain.Application;
+import org.cloudifysource.domain.Service;
+import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
 import org.codehaus.groovy.control.CompilationFailedException;
-import org.openspaces.admin.Admin;
-import org.openspaces.core.cluster.ClusterInfo;
 
 /****************
  * Utility methods for commonly used DSL parsers.
@@ -149,7 +147,7 @@ public final class ServiceReader {
 	 */
 	public static DSLServiceCompilationResult getServiceFromDirectory(final File dir)
 			throws DSLException {
-		return ServiceReader.getServiceFromFile(null, dir, null, null, null, true, null /* overrides file */);
+		return ServiceReader.getServiceFromFile(null, dir, null, true, null /* overrides file */);
 	}
 
 	/**
@@ -167,7 +165,7 @@ public final class ServiceReader {
 	 */
 	public static DSLServiceCompilationResult getServiceFromFile(
 			final File dslFile, final File workDir) throws DSLException {
-		return ServiceReader.getServiceFromFile(dslFile, workDir, null, null,
+		return ServiceReader.getServiceFromFile(dslFile, workDir,
 				null, true, null /* overrides file */);
 	}
 
@@ -219,13 +217,10 @@ public final class ServiceReader {
 	 * @throws DSLException .
 	 */
 	public static DSLServiceCompilationResult getServiceFromFile(final File dslFile, final File workDir,
-			final Admin admin, final ClusterInfo clusterInfo, final String propertiesFileName,
-			final boolean isRunningInGSC, final File overridesFile)
+			final String propertiesFileName, final boolean isRunningInGSC, final File overridesFile)
 			throws DSLException {
 
 		final DSLReader dslReader = new DSLReader();
-		dslReader.setAdmin(admin);
-		dslReader.setClusterInfo(clusterInfo);
 		dslReader.setPropertiesFileName(propertiesFileName);
 		dslReader.setRunningInGSC(isRunningInGSC);
 		dslReader.setDslFile(dslFile);
@@ -270,7 +265,7 @@ public final class ServiceReader {
 		if (dslFileOrDir.isFile()) {
 			return getServiceFromFile(dslFileOrDir);
 		} else if (dslFileOrDir.isDirectory()) {
-			return getServiceFromFile(null, dslFileOrDir, null, null, null, true, null).getService();
+			return getServiceFromFile(null, dslFileOrDir, null, true, null).getService();
 		} else {
 			throw new IllegalArgumentException(dslFileOrDir + " is neither a file nor a directory");
 		}
@@ -297,9 +292,8 @@ public final class ServiceReader {
 	 * @throws DSLException .
 	 */
 	public static Service readService(final File dslFile, final File workDir,
-			final Admin admin, final ClusterInfo clusterInfo, final String propertiesFileName,
-			final boolean isRunningInGSC, final File overridesFile) throws DSLException {
-		return getServiceFromFile(dslFile, workDir, admin, clusterInfo, propertiesFileName
+			final String propertiesFileName, final boolean isRunningInGSC, final File overridesFile) throws DSLException {
+		return getServiceFromFile(dslFile, workDir, propertiesFileName
 				, isRunningInGSC, overridesFile).getService();
 	}
 
@@ -410,7 +404,7 @@ public final class ServiceReader {
 	 * @return A temporary directory.
 	 * @throws IOException .
 	 */
-	protected static File createTempDir(final String suffix)
+	public static File createTempDir(final String suffix)
 			throws IOException {
 		final File tempFile = File.createTempFile("GS_tmp_dir", "." + suffix);
 		final String path = tempFile.getAbsolutePath();
@@ -442,7 +436,7 @@ public final class ServiceReader {
 	 * @throws IOException .
 	 * @throws DSLException .
 	 */
-	public static org.cloudifysource.dsl.cloud.Cloud readCloud(final File dslFile)
+	public static org.cloudifysource.domain.cloud.Cloud readCloud(final File dslFile)
 			throws IOException,
 			DSLException {
 

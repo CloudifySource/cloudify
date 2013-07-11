@@ -66,12 +66,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.gigaspaces</groupId>
-			<artifactId>gs-openspaces</artifactId>
-			<version>${gsVersion}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy</artifactId>
 			<version>${groovyVersion}</version>
@@ -81,12 +75,6 @@
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>2.0.1</version>
-		</dependency>
-		<dependency>
-			<groupId>com.gigaspaces</groupId>
-			<artifactId>gs-runtime</artifactId>
-			<version>${gsVersion}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.ivy</groupId>

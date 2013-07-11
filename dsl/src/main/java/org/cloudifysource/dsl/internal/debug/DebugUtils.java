@@ -16,7 +16,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.cloudifysource.dsl.LifecycleEvents;
+import org.cloudifysource.domain.LifecycleEvents;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.DSLErrorMessageException;
 

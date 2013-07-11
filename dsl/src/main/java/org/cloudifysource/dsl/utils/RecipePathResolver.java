@@ -17,10 +17,10 @@
 package org.cloudifysource.dsl.utils;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.j_spaces.kernel.Environment;
 
 /**
  * This class is used for any logic that we may need for resolving file paths passed to us by the user in the cli.
@@ -127,13 +127,26 @@ public class RecipePathResolver {
 	}
 	
 	private File lookInDefaultLocation(final File file, final String defaultLocation) {
-		String homeDir = Environment.getHomeDirectory();
+		String homeDir = getHomeDir();
 		File fileUnderDefaultLocation = new File(homeDir + defaultLocation + File.separator + file.getPath());
 		if (fileUnderDefaultLocation.exists()) {
 			return fileUnderDefaultLocation;
 		} else {
 			pathsLooked.add(fileUnderDefaultLocation.getAbsolutePath());
 			return null;
+		}
+	}
+	
+	private String getHomeDir() {
+		final String gsEnvClassName = "com.j_spaces.kernel.Environment";
+		try {
+			final Object envObject = Class.forName(gsEnvClassName).newInstance();
+			final Method homeDirMethod = envObject.getClass().getMethod("getHomeDirectory"); 
+			return (String) homeDirMethod.invoke(envObject, (Object[]) null);
+		} catch (Exception e) {
+			//Failed since openspaces is not in classpath.
+			//This is expected to happen.
+			return "";
 		}
 	}
 }

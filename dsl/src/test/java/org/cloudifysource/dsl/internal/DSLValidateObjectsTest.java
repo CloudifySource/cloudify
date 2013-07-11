@@ -5,10 +5,10 @@ import java.io.IOException;
 
 import junit.framework.Assert;
 
-import org.cloudifysource.dsl.Service;
-import org.cloudifysource.dsl.cloud.AgentComponent;
-import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.UsmComponent;
+import org.cloudifysource.domain.Service;
+import org.cloudifysource.domain.cloud.AgentComponent;
+import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.domain.cloud.UsmComponent;
 import org.cloudifysource.dsl.internal.validators.AgentComponentValidator;
 import org.cloudifysource.dsl.internal.validators.UsmComponentValidator;
 import org.junit.Test;

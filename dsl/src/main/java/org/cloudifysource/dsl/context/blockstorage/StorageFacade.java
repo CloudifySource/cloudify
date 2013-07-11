@@ -16,7 +16,7 @@
 
 package org.cloudifysource.dsl.context.blockstorage;
 
-import org.cloudifysource.dsl.cloud.storage.StorageTemplate;
+import org.cloudifysource.domain.cloud.storage.StorageTemplate;
 
 import java.util.concurrent.TimeoutException;
 

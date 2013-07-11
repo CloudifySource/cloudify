@@ -17,8 +17,8 @@ package org.cloudifysource.rest.validators;
 
 import java.io.File;
 
-import org.cloudifysource.dsl.Service;
-import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.domain.Service;
+import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
 import org.cloudifysource.rest.controllers.RestErrorException;
 import org.junit.Assert;

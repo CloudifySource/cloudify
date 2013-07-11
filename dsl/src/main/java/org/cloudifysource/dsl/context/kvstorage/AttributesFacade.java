@@ -27,25 +27,25 @@ public interface AttributesFacade {
      *
      * @return
      */
-    ApplicationAttributesAccessor getThisApplication();
+    AttributesAccessor getThisApplication();
 
     /**
      *
      * @return
      */
-    GlobalAttributesAccessor getGlobal();
+    AttributesAccessor getGlobal();
 
     /**
      *
      * @return
      */
-    ServiceAttributesAccessor getThisService();
+    AttributesAccessor getThisService();
 
     /**
      *
      * @return
      */
-    InstanceAttributesAccessor getThisInstance();
+    AttributesAccessor getThisInstance();
 
     /**
      *

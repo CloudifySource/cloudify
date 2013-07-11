@@ -19,8 +19,8 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-import org.cloudifysource.dsl.LifecycleEvents;
-import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
+import org.cloudifysource.domain.LifecycleEvents;
+import org.cloudifysource.domain.entry.ExecutableDSLEntry;
 import org.cloudifysource.usm.USMComponent;
 import org.cloudifysource.usm.USMException;
 

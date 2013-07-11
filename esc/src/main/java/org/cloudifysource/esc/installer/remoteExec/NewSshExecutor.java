@@ -23,7 +23,7 @@ import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.connection.channel.direct.Session;
 import net.schmizz.sshj.connection.channel.direct.Session.Command;
 
-import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
+import org.cloudifysource.domain.cloud.RemoteExecutionModes;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;

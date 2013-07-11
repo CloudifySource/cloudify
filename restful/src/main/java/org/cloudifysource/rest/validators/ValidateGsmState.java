@@ -18,7 +18,7 @@ package org.cloudifysource.rest.validators;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.rest.controllers.RestErrorException;
 import org.openspaces.admin.Admin;

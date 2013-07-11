@@ -19,8 +19,6 @@ import java.io.File;
 
 import org.apache.commons.io.FileUtils;
 
-import com.gigaspaces.internal.license.LicenseManagerVerifier;
-
 /*********************
  * A shared location for all constants used by multiple cloudify constants.
  *
@@ -183,7 +181,7 @@ public final class CloudifyConstants {
      * Misc.
      */
     public static final String DEFAULT_APPLICATION_NAME = "default";
-    public static final String MANAGEMENT_SPACE_NAME = LicenseManagerVerifier.MANAGEMENT_SPACE_NAME;
+    public static final String MANAGEMENT_SPACE_NAME = "cloudifyManagementSpace";
     public static final String MANAGEMENT_WEBUI_SERVICE_NAME = "webui";
     public static final String MANAGEMENT_REST_SERVICE_NAME = "rest";
     public static final String MANAGEMENT_APPLICATION_NAME = "management";
@@ -332,8 +330,6 @@ public final class CloudifyConstants {
     /*********************
      * service grid components configuration.
      */
-    public static final int DEFAULT_LUS_PORT = net.jini.discovery.Constants
-            .getDiscoveryPort();
     public static final int DEFAULT_REST_PORT = 8100;
     public static final int SECURE_REST_PORT = 8100;
     public static final int DEFAULT_WEBUI_PORT = 8099;
@@ -344,8 +340,6 @@ public final class CloudifyConstants {
     /*********************
      * localcloud grid component configuration
      */
-    public static final int DEFAULT_LOCALCLOUD_LUS_PORT = DEFAULT_LUS_PORT + 2;
-    //localcloud memory configuration properties.
     public static final int DEFAULT_LOCALCLOUD_REST_WEBUI_SPACE_MEMORY_IN_MB = 256;
     public static final int DEFAULT_LOCALCLOUD_GSA_GSM_ESM_LUS_MEMORY_IN_MB = 128;
 

@@ -17,7 +17,7 @@
 package org.cloudifysource.dsl.internal.context;
 
 
-import org.cloudifysource.dsl.cloud.storage.StorageTemplate;
+import org.cloudifysource.domain.cloud.storage.StorageTemplate;
 import org.cloudifysource.dsl.context.blockstorage.RemoteStorageOperationException;
 
 import java.rmi.Remote;

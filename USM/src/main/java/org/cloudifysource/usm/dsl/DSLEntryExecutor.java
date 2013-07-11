@@ -17,8 +17,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
-import org.cloudifysource.dsl.LifecycleEvents;
-import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
+import org.cloudifysource.domain.LifecycleEvents;
+import org.cloudifysource.domain.entry.ExecutableDSLEntry;
 import org.cloudifysource.usm.USMException;
 import org.cloudifysource.usm.events.EventResult;
 import org.cloudifysource.usm.launcher.ProcessLauncher;
