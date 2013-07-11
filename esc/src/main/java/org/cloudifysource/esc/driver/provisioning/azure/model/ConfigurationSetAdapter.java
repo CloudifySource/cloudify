@@ -118,6 +118,7 @@ public class ConfigurationSetAdapter
 					.getInputEndpoints();
 			adaptedConfigurationSet.configurationSetType = networkConfigurationSet
 					.getConfigurationSetType();
+			adaptedConfigurationSet.disableSshPasswordAuthentication = null;
 		}
 
 		return adaptedConfigurationSet;
@@ -152,7 +153,7 @@ public class ConfigurationSetAdapter
 		private String userPassword;
 
 		@XmlElement(name = "DisableSshPasswordAuthentication")
-		private boolean disableSshPasswordAuthentication;
+		private Boolean disableSshPasswordAuthentication;
 
 		@XmlElement(name = "InputEndpoints")
 		private InputEndpoints inputEndpoints;

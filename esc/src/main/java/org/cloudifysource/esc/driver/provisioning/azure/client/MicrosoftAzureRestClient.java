@@ -433,7 +433,7 @@ public class MicrosoftAzureRestClient {
 						+ deplyomentDesc.getRoleName());
 				ClientResponse response = doPost("/services/hostedservices/"
 						+ serviceName + "/deployments", xmlRequest);
-				
+
 				String requestId = extractRequestId(response);
 				waitForRequestToFinish(requestId, endTime);
 				logger.fine(getThreadIdentity() + "About to release lock " + pendingRequest.hashCode());

@@ -23,6 +23,7 @@ import org.cloudifysource.esc.driver.provisioning.CloudDriverSupport;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
+
 import org.cloudifysource.esc.driver.provisioning.azure.client.CreatePersistentVMRoleDeploymentDescriptor;
 import org.cloudifysource.esc.driver.provisioning.azure.client.MicrosoftAzureException;
 import org.cloudifysource.esc.driver.provisioning.azure.client.MicrosoftAzureRestClient;
@@ -58,6 +59,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 	private static final String AZURE_PFX_PASSWORD = "azure.pfx.password";
 	private static final String AZURE_ENDPOINTS = "azure.endpoints";
 	private static final String AZURE_FIREWALL_PORTS = "azure.firewall.ports";
+	
 
 	// Custom cloud DSL properties
 	private static final String AZURE_WIRE_LOG = "azure.wireLog";
@@ -174,37 +176,41 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 		this.endpoints = (List<Map<String, String>>) this.template.getCustom().get(AZURE_ENDPOINTS);
 		boolean winRmEndpoint = false;
 		String endPointPort = "";
-		for (Map<String, String> endpointMap : endpoints) {
-			endPointPort = endpointMap.get("port");
-			if ( !endPointPort.contains("-") && RemoteExecutionModes.WINRM.getDefaultPort() == Integer.parseInt(endPointPort) )
-				winRmEndpoint = true;
-		}
-		if (endpoints == null || !winRmEndpoint) {
-			throw new IllegalArgumentException("Custom field '"
-					+ AZURE_ENDPOINTS + "' must be set at least with WinRM port "+RemoteExecutionModes.WINRM.getDefaultPort());
+		if ( endpoints != null ) {
+			for (Map<String, String> endpointMap : endpoints) {
+				endPointPort = endpointMap.get("port");
+				if ( !endPointPort.contains("-") && RemoteExecutionModes.WINRM.getDefaultPort() == Integer.parseInt(endPointPort) )
+					winRmEndpoint = true;
+			}
+			if (endpoints == null || !winRmEndpoint) {
+				throw new IllegalArgumentException("Custom field '"
+						+ AZURE_ENDPOINTS + "' must be set at least with WinRM port "+RemoteExecutionModes.WINRM.getDefaultPort());
+			}
 		}
 		
-		// handeling firewall ports for manager machine (8100 & 8099)
+		// handeling firewall ports for manager machine 
 		List<Map<String, String>> listPorts = (List<Map<String, String>>) this.template.getCustom().get(AZURE_FIREWALL_PORTS);
 		if ( listPorts != null ) {
 			this.firewallPorts = listPorts;
-			boolean cloudifyWebuiPort = false;
-			boolean cloudifyRestApiPort = false;
-			String port;
-			for (Map<String, String> firewallPort : firewallPorts) {
-				port = firewallPort.get("port");
-				if( !port.contains("-") ) {
-					int p = Integer.parseInt(port);
-					if ( p == WEBUI_PORT )
-						cloudifyWebuiPort = true;
-					if ( p == REST_PORT )
-						cloudifyRestApiPort = true;
-				}
+			if ( this.management ) { // Testing 8100 & 8099 for a management machine
+				boolean cloudifyWebuiPort = false;
+				boolean cloudifyRestApiPort = false;
+				String port;
+				for (Map<String, String> firewallPort : firewallPorts) {
+					port = firewallPort.get("port");
+					if( !port.contains("-") ) {
+						int p = Integer.parseInt(port);
+						if ( p == WEBUI_PORT )
+							cloudifyWebuiPort = true;
+						if ( p == REST_PORT )
+							cloudifyRestApiPort = true;
+					}
 					
-			}
-			if (this.management && (firewallPorts == null || !(cloudifyWebuiPort &&cloudifyRestApiPort))) {
-				throw new IllegalArgumentException("Custom field '"
-						+ AZURE_FIREWALL_PORTS + "' must be set at least with " + WEBUI_PORT + " and " + REST_PORT + " for a management machine");
+				}
+				if (!(cloudifyWebuiPort && cloudifyRestApiPort)) {
+					throw new IllegalArgumentException("Custom field '"
+							+ AZURE_FIREWALL_PORTS + "' must be set at least with " + WEBUI_PORT + " and " + REST_PORT + " for a management machine");
+				}
 			}
 		}
 
@@ -251,15 +257,18 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			throw new IllegalArgumentException("Custom field '"
 					+ AZURE_STORAGE_ACCOUNT + "' must be set");
 		}
-
+		
 		if (this.management) {
-			this.serverNamePrefix = this.cloud.getProvider()
-					.getManagementGroup();
+			this.serverNamePrefix = this.cloud.getProvider().getManagementGroup();
 		} else {
 			this.serverNamePrefix = this.cloud.getProvider()
 					.getMachineNamePrefix();
 		}
-
+		
+		// To avoid bad Hostname with Linux vm (replace _ => -)
+		if (!isWindowsVM())
+			this.serverNamePrefix = this.serverNamePrefix.replace("_", "-");
+			
 		final String wireLog = (String) this.cloud.getCustom().get(
 				AZURE_WIRE_LOG);
 
@@ -288,7 +297,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 		try {
 
 			desc = new CreatePersistentVMRoleDeploymentDescriptor();
-			desc.setRoleName(serverNamePrefix + "_role");
+			desc.setRoleName(serverNamePrefix + "role");
 			desc.setDeploymentSlot(deploymentSlot);
 			desc.setDeploymentName(deploymentName);
 			desc.setImageName(imageName);
@@ -325,7 +334,8 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			machineDetails.setScriptLangeuage(this.scriptLanguage);
 			
 			// Open firewall ports needed for the template
-			openFirewallPorts(machineDetails);
+			if ( isWindowsVM() )
+				openFirewallPorts(machineDetails);
 
 			return machineDetails;
 		} catch (final Exception e) {
@@ -334,6 +344,14 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 
 	}
 	
+
+	/**
+	 * Open ports defined intemplate configuration and activate "sharing" for a windows VM
+	 * @param machineDetails
+	 * @throws InstallerException
+	 * @throws TimeoutException
+	 * @throws InterruptedException
+	 */
 	private void openFirewallPorts(MachineDetails machineDetails) throws InstallerException, TimeoutException, InterruptedException {
 		
 		final RemoteExecutor remoteExecutor = RemoteExecutorFactory.createRemoteExecutorProvider(RemoteExecutionModes.WINRM);

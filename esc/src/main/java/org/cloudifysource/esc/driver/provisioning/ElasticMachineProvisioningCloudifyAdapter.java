@@ -18,6 +18,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.FileTransferModes;
+import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
+import org.cloudifysource.dsl.cloud.ScriptLanguages;
+import org.cloudifysource.dsl.cloud.compute.CloudCompute;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.context.blockstorage.StorageFacade;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -662,18 +665,27 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	}
 
 	@Override
-	public void afterPropertiesSet()
-			throws Exception {
+	public void afterPropertiesSet() throws Exception {
 
 		logger = java.util.logging.Logger
 				.getLogger(ElasticMachineProvisioningCloudifyAdapter.class.getName());
 
-		final String cloudConfigDirectoryPath = findCloudConfigDirectoryPath();
-
+		String cloudConfigDirectoryPath = findCloudConfigDirectoryPath();
 		try {
 			final String cloudOverridesPerService = config.getCloudOverridesPerService();
-			this.cloud = ServiceReader.readCloudFromDirectory(cloudConfigDirectoryPath,
-					cloudOverridesPerService);
+			try {
+				this.cloud = ServiceReader.readCloudFromDirectory(cloudConfigDirectoryPath, cloudOverridesPerService);
+			} catch (DSLException e) {
+				String rightCloudConfigPath;
+				if ( ServiceUtils.isWindows() )
+					rightCloudConfigPath = this.getWindowsRemoteDirPath(cloudConfigDirectoryPath);	
+				else
+					rightCloudConfigPath = EnvironmentFileBuilder.normalizeLinuxPath(cloudConfigDirectoryPath);
+
+			    logger.log(Level.INFO,String.format("Failed to read cloud directory path in '%s' retry with '%s'", cloudConfigDirectoryPath, rightCloudConfigPath));
+			    this.cloud = ServiceReader.readCloudFromDirectory(rightCloudConfigPath, cloudOverridesPerService);
+			    cloudConfigDirectoryPath = rightCloudConfigPath;
+			}
 			this.cloudTemplateName = properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_TEMPLATE_NAME);
 
 			if (this.cloudTemplateName == null) {
@@ -754,7 +766,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		} catch (final DSLException e) {
 			logger.severe("Could not parse the provided cloud configuration from : " + cloudConfigDirectoryPath + ": "
 					+ e.getMessage());
-			throw new BeanConfigurationException("Could not parse the prvided cloud configuration: "
+			throw new BeanConfigurationException("Could not parse the provided cloud configuration: "
 					+ cloudConfigDirectoryPath
 					+ ": " + e.getMessage(), e);
 		}
@@ -762,16 +774,20 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	}
 
 	private String findCloudConfigDirectoryPath() {
-		String cloudConfigDirectoryPath =
-				properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_CONFIGURATION_DIRECTORY);
+		String cloudConfigDirectoryPath = properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_CONFIGURATION_DIRECTORY);
+	
 		if (cloudConfigDirectoryPath == null) {
 			logger.severe("Missing cloud configuration property. Properties are: " + this.properties);
 			throw new IllegalArgumentException("Cloud configuration directory was not set!");
 		}
-
+			
 		if(ServiceUtils.isWindows()) {
 			cloudConfigDirectoryPath = EnvironmentFileBuilder.normalizeCygwinPath(cloudConfigDirectoryPath);
 		}
+		else {// Linux case
+			cloudConfigDirectoryPath = EnvironmentFileBuilder.normalizeLinuxPath(cloudConfigDirectoryPath);
+		}
+		
 		return cloudConfigDirectoryPath;
 	}
 
@@ -926,4 +942,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			PROVISIONING_DRIVER_CONTEXT_PER_DRIVER_CLASSNAME.clear();
 		}
 	}
+	
+	private boolean isComputeTemplateWindows(final ComputeTemplate computeTemplate) {
+		return RemoteExecutionModes.WINRM.equals(computeTemplate.getRemoteExecution()) 
+				|| ScriptLanguages.WINDOWS_BATCH.equals(computeTemplate.getScriptLanguage());
+	}
+
 }
