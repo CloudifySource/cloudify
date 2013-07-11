@@ -26,24 +26,19 @@ import org.cloudifysource.shell.exceptions.CLIValidationException;
  * @author noak
  * @since 2.7.0
  */
-public class LusConnectionValidator implements CloudifyMachineValidator {
+public class LusConnectionValidator implements CloudifyAgentValidator {
 	
 	private String lusIpAddress;
 	
 	// TODO noa run only on agent
 	// use lookup locators
 	
-	/**
-	 * Empty Ctor.
-	 */
-	public LusConnectionValidator() {
-	}
 	
 	/**
-	 * Ctor.
+	 * Setter for lusIpAddress.
 	 * @param lusIpAddress The LUS IP address to validate, or null to use the env var setting.
 	 */
-	public LusConnectionValidator(final String lusIpAddress) {
+	public void setLusIpAddress(final String lusIpAddress) {
 		this.lusIpAddress = lusIpAddress;
 	}
 
@@ -59,6 +54,7 @@ public class LusConnectionValidator implements CloudifyMachineValidator {
 			lusIpAddress = System.getenv(CloudifyConstants.LUS_IP_ADDRESS_ENV);
 		}
 
+		// TODO noak : throw CLIValidationException with custom exit code (130) instead?
 		if (StringUtils.isBlank(lusIpAddress)) {
 			throw new IllegalArgumentException("LUS IP address not configred. The environment variable \"" 
 					+ CloudifyConstants.LUS_IP_ADDRESS_ENV + "\" is not set.");
@@ -72,16 +68,16 @@ public class LusConnectionValidator implements CloudifyMachineValidator {
 			IPUtils.validateConnection(hostAddress, port);
 		} catch (UnknownHostException uhe) {
 			// thrown if the IP address of the host could not be determined.
-			throw new CLIValidationException(uhe, 
+			throw new CLIValidationException(uhe, 127,
 					CloudifyErrorMessages.LUS_CONNECTION_VALIDATION_ABORTED_UNKNOWN_HOST.getName(), hostAddress);
 		} catch (IOException ioe) {
 			// thrown if an I/O error occurs when creating the socket or connecting.
-			throw new CLIValidationException(ioe, 
+			throw new CLIValidationException(ioe, 128,
 					CloudifyErrorMessages.LUS_CONNECTION_VALIDATION_ABORTED_IO_ERROR.getName(), hostAddress, port,
 					ioe.getMessage());
 		} catch (SecurityException se) {
 			// thrown if a security manager exists and permission to resolve the host name is denied.
-			throw new CLIValidationException(se, 
+			throw new CLIValidationException(se,  129,
 					CloudifyErrorMessages.LUS_CONNECTION_VALIDATION_ABORTED_NO_PERMISSION.getName(), hostAddress, port,
 					se.getMessage());
 		}

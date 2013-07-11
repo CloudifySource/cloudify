@@ -326,6 +326,11 @@ public final class CloudifyConstants {
     public static final String WEBUI_MAX_MEMORY_ENVIRONMENT_VAR = "WEBUI_MAX_MEMORY_ENVIRONMENT_VAR";
     public static final String REST_MAX_MEMORY_ENVIRONMENT_VAR = "REST_MAX_MEMORY_ENVIRONMENT_VAR";
     public static final String GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR = "GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR";
+    public static final String GSA_JAVA_OPTIONS_ENVIRONMENT_VAR = "GSA_JAVA_OPTIONS";
+    public static final String LUS_JAVA_OPTIONS_ENVIRONMENT_VAR = "LUS_JAVA_OPTIONS";
+    public static final String GSM_JAVA_OPTIONS_ENVIRONMENT_VAR = "GSM_JAVA_OPTIONS";
+    public static final String ESM_JAVA_OPTIONS_ENVIRONMENT_VAR = "ESM_JAVA_OPTIONS";    
+    public static final String LRMI_PORT_OR_RANGE_SYS_PROP = "com.gs.transport_protocol.lrmi.bind-port";
     public static final String LUS_IP_ADDRESS_ENV = "LUS_IP_ADDRESS";    
 
     /*********************

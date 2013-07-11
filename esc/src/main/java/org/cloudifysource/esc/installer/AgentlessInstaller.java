@@ -53,7 +53,7 @@ public class AgentlessInstaller {
 	public String toString() {
 		return "NewAgentlessInstaller [eventsListenersList=" + eventsListenersList + "]";
 	}
-
+	
 	private static final String LINUX_STARTUP_SCRIPT_NAME = "bootstrap-management.sh";
 	private static final String POWERSHELL_STARTUP_SCRIPT_NAME = "bootstrap-management.bat";
 

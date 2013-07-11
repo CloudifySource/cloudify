@@ -35,6 +35,7 @@ import net.jini.core.discovery.LookupLocator;
 import net.jini.discovery.Constants;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.utils.NetworkUtils;
@@ -47,6 +48,7 @@ import org.cloudifysource.shell.EnvironmentUtils;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.exceptions.CLIException;
 import org.cloudifysource.shell.exceptions.CLIStatusException;
+import org.cloudifysource.shell.exceptions.CLIValidationException;
 import org.cloudifysource.shell.rest.RestAdminFacade;
 import org.cloudifysource.shell.rest.inspect.CLIApplicationUninstaller;
 import org.cloudifysource.utilitydomain.data.CloudConfigurationHolder;
@@ -320,17 +322,27 @@ public class LocalhostGridAgentBootstrapper {
 			final String username, final String password, final String keystoreFilePath, final String keystorePassword,
 			final int timeout, final TimeUnit timeunit) throws CLIException, InterruptedException, TimeoutException {
 
+		final long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
+		
+		final List<AbstractManagementServiceInstaller> managementServicesInstallers =
+				new LinkedList<AbstractManagementServiceInstaller>();
+		
 		setDefaultNicAddress();
 
 		setDefaultLocalcloudLookup();
 
 		if (isWindows()) {
 			startManagementOnLocalhostAndWaitInternal(LOCALCLOUD_WIN_MANAGEMENT_ARGUMENTS, securityProfile,
-					securityFilePath, username, password, keystoreFilePath, keystorePassword, timeout, timeunit, true);
+					securityFilePath, username, password, keystoreFilePath, keystorePassword, 
+					managementServicesInstallers, end, true);
 		} else {
 			startManagementOnLocalhostAndWaitInternal(LOCALCLOUD_LINUX_MANAGEMENT_ARGUMENTS, securityProfile,
-					securityFilePath, username, password, keystoreFilePath, keystorePassword, timeout, timeunit, true);
+					securityFilePath, username, password, keystoreFilePath, keystorePassword,
+					managementServicesInstallers, end, true);
 		}
+		
+		// validate the services are still up
+		waitForManagementServices(managementServicesInstallers, end);
 	}
 
 	
@@ -391,6 +403,8 @@ public class LocalhostGridAgentBootstrapper {
 			final String username, final String password, final String keystoreFilePath, final String keystorePassword,
 			final int timeout, final TimeUnit timeunit) throws CLIException, InterruptedException, TimeoutException {
 
+		final long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
+		
 		try {
 			this.cloud = ServiceReader.readCloud(new File(this.cloudFilePath));
 		} catch (final IOException e) {
@@ -401,21 +415,24 @@ public class LocalhostGridAgentBootstrapper {
 
 		setDefaultNicAddress();
 
-		try {
-			List<CloudifyMachineValidator> validatorsList = CloudifyMachineValidatorsFactory.getValidators(nicAddress);
-			for (CloudifyMachineValidator cloudifyMachineValidator : validatorsList) {
-				cloudifyMachineValidator.validate();
-			}
-		} catch (Exception e) {
-			//TODO noak handle this
-			// throw exception with error code
+		// pre validations
+		List<CloudifyMachineValidator> preValidatorsList = 
+				CloudifyMachineValidatorsFactory.getValidators(true/*isManagement*/, nicAddress);
+		for (CloudifyMachineValidator cloudifyMachineValidator : preValidatorsList) {
+			cloudifyMachineValidator.validate();
 		}
 
 		// if re-bootstrapping a persistent manager, replace rest and webui with new version
 		redeployManagement();
 
+		final List<AbstractManagementServiceInstaller> managementServicesInstallers =
+				new LinkedList<AbstractManagementServiceInstaller>();
 		startManagementOnLocalhostAndWaitInternal(CLOUD_MANAGEMENT_ARGUMENTS, securityProfile, securityFilePath,
-				username, password, keystoreFilePath, keystorePassword, timeout, timeunit, false);
+				username, password, keystoreFilePath, keystorePassword, managementServicesInstallers, end, false);
+		
+		// validate the services are still up
+		waitForManagementServices(managementServicesInstallers, end);
+
 	}
 
 
@@ -893,6 +910,8 @@ public class LocalhostGridAgentBootstrapper {
 	 *            path to the keystore file
 	 * @param keystorePassword
 	 *            The password to the keystore set on the rest server
+	 * @param managementServicesInstallers
+	 *            an empty list to be populated with the management services installers
 	 * @param timeout
 	 *            number of {@link TimeUnit}s to wait
 	 * @param timeunit
@@ -908,12 +927,11 @@ public class LocalhostGridAgentBootstrapper {
 	 */
 	private void startManagementOnLocalhostAndWaitInternal(final String[] gsAgentArgs, final String securityProfile,
 			final String securityFilePath, final String username, final String password, final String keystoreFilePath,
-			final String keystorePassword, final int timeout, final TimeUnit timeunit, final boolean isLocalCloud)
+			final String keystorePassword, final List<AbstractManagementServiceInstaller> managementServicesInstallers,
+			final long end, final boolean isLocalCloud)
 			throws CLIException, InterruptedException, TimeoutException {
 
 		setIsLocalCloud(isLocalCloud);
-
-		final long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
 
 		final ConnectionLogsFilter connectionLogs = new ConnectionLogsFilter();
 		connectionLogs.supressConnectionErrors();
@@ -942,9 +960,6 @@ public class LocalhostGridAgentBootstrapper {
 			// waiting for LUS, GSM and ESM services to start
 			waitForManagementProcesses(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
 					TimeUnit.MILLISECONDS);
-
-			final List<AbstractManagementServiceInstaller> waitForManagementServices =
-					new LinkedList<AbstractManagementServiceInstaller>();
 
 			if (isLocalCloud) {
 				startLocalCloudManagementServicesContainer(agent);
@@ -978,7 +993,7 @@ public class LocalhostGridAgentBootstrapper {
 					}
 					try {
 						managementSpaceInstaller.installSpace();
-						waitForManagementServices.add(managementSpaceInstaller);
+						managementServicesInstallers.add(managementSpaceInstaller);
 					} catch (final ProcessingUnitAlreadyDeployedException e) {
 						if (verbose) {
 							logger.fine("Service " + MANAGEMENT_SPACE_NAME + " already installed");
@@ -989,10 +1004,11 @@ public class LocalhostGridAgentBootstrapper {
 
 				if (!noWebServices) {
 					installWebServices(username, password, isLocalCloud,
-							ShellUtils.isSecureConnection(securityProfile), agent, waitForManagementServices);
+							ShellUtils.isSecureConnection(securityProfile), agent, managementServicesInstallers);
 				}
 
-				for (final AbstractManagementServiceInstaller managementServiceInstaller : waitForManagementServices) {
+				for (final AbstractManagementServiceInstaller managementServiceInstaller 
+						: managementServicesInstallers) {
 					managementServiceInstaller.waitForInstallation(adminFacade, agent,
 							ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
 					if (managementServiceInstaller instanceof ManagementSpaceServiceInstaller) {
@@ -1024,7 +1040,52 @@ public class LocalhostGridAgentBootstrapper {
 			admin.close();
 		}
 	}
+	
+	private void waitForManagementServices(
+			final List<AbstractManagementServiceInstaller> managementServicesInstallers, final long end)
+			throws CLIException, InterruptedException, TimeoutException {
+		
+		final ConnectionLogsFilter connectionLogs = new ConnectionLogsFilter();
+		connectionLogs.supressConnectionErrors();
+		final Admin admin = createAdmin();
+		
+		try {
+			setLookupDefaults(admin);
+			GridServiceAgent agent;
+			try {
+				try {
+					if (!isLocalCloud || fastExistingAgentCheck()) {
+						agent = waitForExistingAgent(admin, progressInSeconds, TimeUnit.SECONDS);
+					}
+				} catch (final TimeoutException e) {
+					// no existing agent running on local machine
+					throw new CLIValidationException(120, 
+							CloudifyErrorMessages.HOST_VALIDATION_ABORTED_NO_PERMISSION.getName(), se.getMessage());
+				}
+			} finally {
+				connectionLogs.restoreConnectionErrors();
+			}
 
+			// waiting for LUS, GSM and ESM services to start
+			waitForManagementProcesses(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
+					TimeUnit.MILLISECONDS);
+
+			connectionLogs.supressConnectionErrors();
+			try {
+				for (final AbstractManagementServiceInstaller managementServiceInstaller 
+						: managementServicesInstallers) {
+					managementServiceInstaller.waitForInstallation(adminFacade, agent,
+							ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
+				}
+			} finally {
+				connectionLogs.restoreConnectionErrors();
+			}
+		} finally {
+			admin.close();
+		}
+	}
+
+	
 	private String getGscLrmiCommandLineArg() {
 		String lrmiPortRangeCommandLineArgument = "";
 		if (!isLocalCloud) {
@@ -1230,17 +1291,25 @@ public class LocalhostGridAgentBootstrapper {
 		try {
 			setLookupDefaults(admin);
 			
+			// pre validations
+			List<CloudifyMachineValidator> preValidatorsList = 
+					CloudifyMachineValidatorsFactory.getValidators(false/*isManagement*/, nicAddress);
+			for (CloudifyMachineValidator cloudifyMachineValidator : preValidatorsList) {
+				cloudifyMachineValidator.validate();
+			}
+			
 			try {
 				waitForExistingAgent(admin, WAIT_EXISTING_AGENT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 				throw new CLIException("Agent already running on local machine. Use shutdown-agent first.");
 			} catch (final TimeoutException e) {
 				// no existing agent running on local machine
 			}
-			runGsAgentOnLocalHost("agent", AGENT_ARGUMENTS, securityProfile, "" /* securityFilePath */,
-					"" /* keystoreFilePath */, keystorePassword);
+			runGsAgentOnLocalHost("agent", AGENT_ARGUMENTS, securityProfile, ""/* securityFilePath */,
+					""/* keystoreFilePath */, keystorePassword);
 
 			// wait for agent to start
 			waitForNewAgent(admin, timeout, timeunit);
+
 		} finally {
 			admin.close();
 			connectionLogs.restoreConnectionErrors();

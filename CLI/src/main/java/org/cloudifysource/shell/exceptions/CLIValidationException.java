@@ -26,11 +26,12 @@ import org.apache.commons.lang.StringUtils;
  */
 public class CLIValidationException extends CLIException {
 
-	private static final long serialVersionUID = -399277091070772297L;
+	private static final long serialVersionUID = 4004719704284906595L;
+	
+	private final int exitCode;
 	private final String reasonCode;
 	private final String verboseData;
 	private final Object[] args;
-
 
 
 	/**
@@ -41,11 +42,15 @@ public class CLIValidationException extends CLIException {
 	 * @param reasonCode
 	 *            A reason code, by which a formatted message can be retrieved
 	 *            from the message bundle
+	 * @param exitCode
+	 *            The JVM will exit with the given exit code
 	 * @param args
 	 *            Optional arguments to embed in the formatted message
 	 */
-	public CLIValidationException(final Throwable cause, final String reasonCode, final Object... args) {
+	public CLIValidationException(final Throwable cause, final int exitCode, final String reasonCode, 
+			final Object... args) {
 		super("reasonCode: " + reasonCode, cause);
+		this.exitCode = exitCode;
 		this.args = args;
 		this.reasonCode = reasonCode;
 		this.verboseData = null;
@@ -54,17 +59,30 @@ public class CLIValidationException extends CLIException {
 	/**
 	 * Constructor.
 	 * 
+	 * @param exitCode
+	 *            The JVM will exit with the given exit code
 	 * @param reasonCode
 	 *            A reason code, by which a formatted message can be retrieved
 	 *            from the message bundle
 	 * @param args
 	 *            Optional arguments to embed in the formatted message
 	 */
-	public CLIValidationException(final String reasonCode, final Object... args) {
+	public CLIValidationException(final int exitCode, final String reasonCode, final Object... args) {
 		super("reasonCode: " + reasonCode);
+		this.exitCode = exitCode;
 		this.reasonCode = reasonCode;
 		this.args = args;
 		this.verboseData = null;
+	}
+	
+	
+	/**
+	 * Gets the exit code.
+	 * 
+	 * @return The exit code related to this validation exception
+	 */
+	public int getExitCode() {
+		return exitCode;
 	}
 
 	/**
