@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -30,7 +30,6 @@ import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.CloudTemplateInstallerConfiguration;
-import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.installer.filetransfer.FileTransfer;
 import org.cloudifysource.esc.installer.filetransfer.FileTransferFactory;
 import org.cloudifysource.esc.installer.remoteExec.RemoteExecutor;
@@ -42,11 +41,11 @@ import org.cloudifysource.esc.util.Utils;
 /************
  * The agentless installer class is responsible for installing Cloudify on a remote machine, using only SSH. It will
  * upload all relevant files and start the Cloudify agent.
- *
+ * 
  * File transfer is handled using Apache commons vfs.
- *
+ * 
  * @author barakme
- *
+ * 
  */
 public class AgentlessInstaller {
 
@@ -58,18 +57,7 @@ public class AgentlessInstaller {
 	private static final String LINUX_STARTUP_SCRIPT_NAME = "bootstrap-management.sh";
 	private static final String POWERSHELL_STARTUP_SCRIPT_NAME = "bootstrap-management.bat";
 
-	private static final String GSA_MODE_ENV = "GSA_MODE";
-
-	private static final String NO_WEB_SERVICES_ENV = "NO_WEB_SERVICES";
-
-	private static final String LUS_IP_ADDRESS_ENV = "LUS_IP_ADDRESS";
-
-	private static final String WORKING_HOME_DIRECTORY_ENV = "WORKING_HOME_DIRECTORY";
-
-	private static final String GSA_RESERVATION_ID_ENV = "GSA_RESERVATION_ID";
-
-	private static final String CLOUD_FILE = "CLOUD_FILE";
-
+	
 	private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(AgentlessInstaller.class
 			.getName());
 
@@ -84,14 +72,6 @@ public class AgentlessInstaller {
 	 * Name of the internal logger used by the ssh component.
 	 */
 	public static final String SSH_LOGGER_NAME = "com.jcraft.jsch";
-
-	private static final String STORAGE_VOLUME_ATTACHED = "STORAGE_VOLUME_ATTACHED";
-
-	private static final String STORAGE_FORMAT_TYPE = "STORAGE_FORMAT_TYPE";
-
-	private static final String STORAGE_DEVICE_NAME = "STORAGE_DEVICE_NAME";
-
-	private static final String STORAGE_MOUNT_PATH = "STORAGE_MOUNT_PATH";
 
 	/***********
 	 * Constructor.
@@ -121,7 +101,7 @@ public class AgentlessInstaller {
 
 	/*******
 	 * Checks if a TCP connection to a remote machine and port is possible.
-	 *
+	 * 
 	 * @param ip
 	 *            remote machine ip.
 	 * @param port
@@ -181,7 +161,7 @@ public class AgentlessInstaller {
 
 	/******
 	 * Performs installation on a remote machine with a known IP.
-	 *
+	 * 
 	 * @param details
 	 *            the installation details.
 	 * @param timeout
@@ -245,91 +225,11 @@ public class AgentlessInstaller {
 
 	private File createEnvironmentFile(final InstallationDetails details) throws IOException {
 
-		String remoteDirectory = details.getRemoteDir();
-		if (remoteDirectory.endsWith("/")) {
-			remoteDirectory = remoteDirectory.substring(0, remoteDirectory.length() - 1);
-		}
-		if (details.isManagement()) {
-			// add the relative path to the cloud file location
-			remoteDirectory = remoteDirectory + "/" + details.getRelativeLocalDir();
-		}
 
-		String authGroups = null;
-		if (details.getAuthGroups() != null) {
-			// authgroups should be a strongly typed object convertible into a
-			// String
-			authGroups = details.getAuthGroups();
-		}
-
-		String safePublicIpAddress = IPUtils.getSafeIpAddress(details.getPublicIp());
-		String safePrivateIpAddress = IPUtils.getSafeIpAddress(details.getPrivateIp());
-		final String springProfiles = createSpringProfilesString(details);
 		final EnvironmentFileBuilder builder = new EnvironmentFileBuilder(details.getScriptLanguage(),
-												details.getExtraRemoteEnvironmentVariables())
-				.exportVar(LUS_IP_ADDRESS_ENV, details.getLocator())
-				.exportVar(GSA_MODE_ENV, details.isManagement() ? "lus" : "agent")
-				.exportVar(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR, springProfiles)
-				.exportVar(NO_WEB_SERVICES_ENV,
-						details.isNoWebServices() ? "true" : "false")
-				.exportVar(
-						CloudifyConstants.CLOUDIFY_CLOUD_MACHINE_IP_ADDRESS_ENV,
-						details.isBindToPrivateIp() ? safePrivateIpAddress : safePublicIpAddress)
-				.exportVar(CloudifyConstants.CLOUDIFY_LINK_ENV,
-						details.getCloudifyUrl())
-				.exportVar(CloudifyConstants.CLOUDIFY_OVERRIDES_LINK_ENV,
-						details.getOverridesUrl())
-				.exportVar(WORKING_HOME_DIRECTORY_ENV, remoteDirectory)
-				.exportVar(CloudifyConstants.GIGASPACES_AUTH_GROUPS, authGroups)
-				.exportVar(CloudifyConstants.GIGASPACES_AGENT_ENV_PRIVATE_IP, safePrivateIpAddress)
-				.exportVar(CloudifyConstants.GIGASPACES_AGENT_ENV_PUBLIC_IP, safePublicIpAddress)
-				.exportVar(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME, details.getTemplateName())
-				.exportVar(CloudifyConstants.GIGASPACES_CLOUD_MACHINE_ID, details.getMachineId())
-				.exportVar(CloudifyConstants.CLOUDIFY_CLOUD_MACHINE_ID, details.getMachineId())
-				// maintain backwards compatibility for pre 2.3.0
-				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP, safePrivateIpAddress)
-				.exportVar(CloudifyConstants.CLOUDIFY_CLOUD_LOCATION_ID, details.getLocationId())
-				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP, safePublicIpAddress);
+				details.getExtraRemoteEnvironmentVariables());
 
-		if (details.getReservationId() != null) {
-			builder.exportVar(GSA_RESERVATION_ID_ENV, details.getReservationId().toString());
-		}
-
-		if (details.isManagement()) {
-			String remotePath = details.getRemoteDir();
-			if (!remotePath.endsWith("/")) {
-				remotePath += "/";
-			}
-			builder.exportVar(CLOUD_FILE, remotePath + details.getCloudFile().getName());
-
-			logger.log(Level.FINE, "Setting ESM/GSM/LUS java options.");
-			builder.exportVar("ESM_JAVA_OPTIONS", details.getEsmCommandlineArgs());
-			builder.exportVar("LUS_JAVA_OPTIONS", details.getLusCommandlineArgs());
-			builder.exportVar("GSM_JAVA_OPTIONS", details.getGsmCommandlineArgs());
-
-			logger.log(Level.FINE, "Setting gsc lrmi port-range and custom rest/webui ports.");
-			builder.exportVar(CloudifyConstants.GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR, details.getGscLrmiPortRange());
-			builder.exportVar(CloudifyConstants.REST_PORT_ENV_VAR, details.getRestPort().toString());
-			builder.exportVar(CloudifyConstants.REST_MAX_MEMORY_ENVIRONMENT_VAR, details.getRestMaxMemory());
-			builder.exportVar(CloudifyConstants.WEBUI_PORT_ENV_VAR, details.getWebuiPort().toString());
-			builder.exportVar(CloudifyConstants.WEBUI_MAX_MEMORY_ENVIRONMENT_VAR, details.getWebuiMaxMemory());
-		}
-		logger.log(Level.FINE, "Setting GSA java options.");
-		builder.exportVar("GSA_JAVA_OPTIONS", details.getGsaCommandlineArgs());
-
-		if (details.getUsername() != null) {
-			builder.exportVar("USERNAME", details.getUsername());
-		}
-		if (details.getPassword() != null) {
-			builder.exportVar("PASSWORD", details.getPassword());
-		}
-
-		builder.exportVar(CloudifyConstants.SPRING_SECURITY_CONFIG_FILE_ENV_VAR, details.getRemoteDir()
-				+ "/" + CloudifyConstants.SECURITY_FILE_NAME);
-		if (StringUtils.isNotBlank(details.getKeystorePassword())) {
-			builder.exportVar(CloudifyConstants.KEYSTORE_FILE_ENV_VAR, details.getRemoteDir()
-					+ "/" + CloudifyConstants.KEYSTORE_FILE_NAME);
-			builder.exportVar(CloudifyConstants.KEYSTORE_PASSWORD_ENV_VAR, details.getKeystorePassword());
-		}
+		builder.loadEnvironmentFileFromDetails(details);
 
 		final String fileContents = builder.build().toString();
 
@@ -344,16 +244,8 @@ public class AgentlessInstaller {
 		return tempFile;
 	}
 
-	private String createSpringProfilesString(final InstallationDetails details) {
-		final String securityProfile = details.getSecurityProfile();
-		final String storageProfile =
-				(details.isPersistent() ? CloudifyConstants.PERSISTENCE_PROFILE_PERSISTENT
-						: CloudifyConstants.PERSISTENCE_PROFILE_TRANSIENT);
-
-		return securityProfile + "," + storageProfile;
-
-	}
-
+	
+	
 	private void remoteExecuteAgentOnServer(final InstallationDetails details, final long end, final String targetHost)
 			throws InstallerException, TimeoutException, InterruptedException {
 
@@ -414,7 +306,7 @@ public class AgentlessInstaller {
 
 	/**********
 	 * Registers an event listener for installation events.
-	 *
+	 * 
 	 * @param listener
 	 *            the listener.
 	 */
@@ -424,7 +316,7 @@ public class AgentlessInstaller {
 
 	/*********
 	 * This method is public so that implementation classes for file copy and remote execution can publish events.
-	 *
+	 * 
 	 * @param eventName
 	 *            .
 	 * @param args

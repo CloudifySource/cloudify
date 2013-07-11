@@ -16,10 +16,13 @@ package org.cloudifysource.esc.installer;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.cloud.ScriptLanguages;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.utils.IPUtils;
 
 /*******
  * A simple wrapper around a StringBuilder. Used to generate the contents of the cloudify environment file that is
@@ -48,6 +51,18 @@ public class EnvironmentFileBuilder {
 	private final Map<String, String> externalEnvVars;
 	private final Set<String> appendedExternalEnvVars = new HashSet<String>();
 
+	private static final String GSA_MODE_ENV = "GSA_MODE";
+
+	private static final String NO_WEB_SERVICES_ENV = "NO_WEB_SERVICES";
+
+	private static final String LUS_IP_ADDRESS_ENV = "LUS_IP_ADDRESS";
+
+	private static final String WORKING_HOME_DIRECTORY_ENV = "WORKING_HOME_DIRECTORY";
+
+	private static final String GSA_RESERVATION_ID_ENV = "GSA_RESERVATION_ID";
+
+	private static final String CLOUD_FILE = "CLOUD_FILE";
+
 	/********
 	 * Constructor.
 	 *
@@ -72,6 +87,109 @@ public class EnvironmentFileBuilder {
 
 	}
 
+	private String createSpringProfilesString(final InstallationDetails details) {
+		final String securityProfile = details.getSecurityProfile();
+		final String storageProfile =
+				(details.isPersistent() ? CloudifyConstants.PERSISTENCE_PROFILE_PERSISTENT
+						: CloudifyConstants.PERSISTENCE_PROFILE_TRANSIENT);
+
+		return securityProfile + "," + storageProfile;
+
+	}
+
+	
+	public void loadEnvironmentFileFromDetails(final InstallationDetails details) {
+
+		final EnvironmentFileBuilder builder = this;
+		
+		String remoteDirectory = details.getRemoteDir();
+		if (remoteDirectory.endsWith("/")) {
+			remoteDirectory = remoteDirectory.substring(0, remoteDirectory.length() - 1);
+		}
+		if (details.isManagement()) {
+			// add the relative path to the cloud file location
+			remoteDirectory = remoteDirectory + "/" + details.getRelativeLocalDir();
+		}
+
+		String authGroups = null;
+		if (details.getAuthGroups() != null) {
+			// authgroups should be a strongly typed object convertible into a
+			// String
+			authGroups = details.getAuthGroups();
+		}
+
+		final String springProfiles = createSpringProfilesString(details);
+
+		String safePublicIpAddress = IPUtils.getSafeIpAddress(details.getPublicIp());
+		String safePrivateIpAddress = IPUtils.getSafeIpAddress(details.getPrivateIp());
+		
+		builder.exportVar(LUS_IP_ADDRESS_ENV, details.getLocator())
+				.exportVar(GSA_MODE_ENV, details.isManagement() ? "lus" : "agent")
+				.exportVar(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR, springProfiles)
+				.exportVar(NO_WEB_SERVICES_ENV,
+						details.isNoWebServices() ? "true" : "false")
+						
+				.exportVar(
+						CloudifyConstants.CLOUDIFY_CLOUD_MACHINE_IP_ADDRESS_ENV,
+						details.isBindToPrivateIp() ? safePrivateIpAddress : safePublicIpAddress)
+				.exportVar(CloudifyConstants.CLOUDIFY_LINK_ENV,
+						details.getCloudifyUrl())
+				.exportVar(CloudifyConstants.CLOUDIFY_OVERRIDES_LINK_ENV,
+						details.getOverridesUrl())
+				.exportVar(WORKING_HOME_DIRECTORY_ENV, remoteDirectory)
+				.exportVar(CloudifyConstants.GIGASPACES_AUTH_GROUPS, authGroups)
+				.exportVar(CloudifyConstants.GIGASPACES_AGENT_ENV_PRIVATE_IP, safePrivateIpAddress)
+				.exportVar(CloudifyConstants.GIGASPACES_AGENT_ENV_PUBLIC_IP, safePublicIpAddress)
+				.exportVar(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME, details.getTemplateName())
+				.exportVar(CloudifyConstants.GIGASPACES_CLOUD_MACHINE_ID, details.getMachineId())
+				.exportVar(CloudifyConstants.CLOUDIFY_CLOUD_MACHINE_ID, details.getMachineId())
+				// maintain backwards compatibility for pre 2.3.0
+				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP, safePrivateIpAddress)
+				.exportVar(CloudifyConstants.CLOUDIFY_CLOUD_LOCATION_ID, details.getLocationId())
+				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP, safePublicIpAddress);
+
+
+		if (details.getReservationId() != null) {
+			builder.exportVar(GSA_RESERVATION_ID_ENV, details.getReservationId().toString());
+		}
+
+		if (details.isManagement()) {
+			String remotePath = details.getRemoteDir();
+			if (!remotePath.endsWith("/")) {
+				remotePath += "/";
+			}
+			builder.exportVar(CLOUD_FILE, remotePath + details.getCloudFile().getName());
+
+			logger.log(Level.FINE, "Setting ESM/GSM/LUS java options.");
+			builder.exportVar("ESM_JAVA_OPTIONS", details.getEsmCommandlineArgs());
+			builder.exportVar("LUS_JAVA_OPTIONS", details.getLusCommandlineArgs());
+			builder.exportVar("GSM_JAVA_OPTIONS", details.getGsmCommandlineArgs());
+
+			logger.log(Level.FINE, "Setting gsc lrmi port-range and custom rest/webui ports.");
+			builder.exportVar(CloudifyConstants.GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR, details.getGscLrmiPortRange());
+			builder.exportVar(CloudifyConstants.REST_PORT_ENV_VAR, details.getRestPort().toString());
+			builder.exportVar(CloudifyConstants.REST_MAX_MEMORY_ENVIRONMENT_VAR, details.getRestMaxMemory());
+			builder.exportVar(CloudifyConstants.WEBUI_PORT_ENV_VAR, details.getWebuiPort().toString());
+			builder.exportVar(CloudifyConstants.WEBUI_MAX_MEMORY_ENVIRONMENT_VAR, details.getWebuiMaxMemory());
+		}
+		logger.log(Level.FINE, "Setting GSA java options.");
+		builder.exportVar("GSA_JAVA_OPTIONS", details.getGsaCommandlineArgs());
+
+		if (details.getUsername() != null) {
+			builder.exportVar("USERNAME", details.getUsername());
+		}
+		if (details.getPassword() != null) {
+			builder.exportVar("PASSWORD", details.getPassword());
+		}
+
+		builder.exportVar(CloudifyConstants.SPRING_SECURITY_CONFIG_FILE_ENV_VAR, details.getRemoteDir()
+				+ "/" + CloudifyConstants.SECURITY_FILE_NAME);
+		if (StringUtils.isNotBlank(details.getKeystorePassword())) {
+			builder.exportVar(CloudifyConstants.KEYSTORE_FILE_ENV_VAR, details.getRemoteDir()
+					+ "/" + CloudifyConstants.KEYSTORE_FILE_NAME);
+			builder.exportVar(CloudifyConstants.KEYSTORE_PASSWORD_ENV_VAR, details.getKeystorePassword());
+		}
+	}
 	private String normalizeWindowsPaths(final String original) {
 		final String cifsNormalized = normalizeCifsPath(original);
 		final String cygwinNormalized = normalizeCygwinPath(cifsNormalized);

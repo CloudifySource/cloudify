@@ -39,6 +39,8 @@ import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.ComputeTemplatesReader;
 import org.cloudifysource.dsl.internal.DSLException;
+import org.cloudifysource.dsl.internal.DSLReader;
+import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
 import org.cloudifysource.dsl.utils.IPUtils;
@@ -57,6 +59,7 @@ import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.util.CalcUtils;
 import org.cloudifysource.esc.util.ProvisioningDriverClassBuilder;
+import org.cloudifysource.esc.util.InstallationDetailsBuilder;
 import org.cloudifysource.esc.util.Utils;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
@@ -143,6 +146,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	private ElasticMachineProvisioningProgressChangedEventListener machineEventListener;
 	private ElasticGridServiceAgentProvisioningProgressChangedEventListener agentEventListener;
+	private File cloudDslFile;
 
 	private Admin getGlobalAdminInstance(final Admin esmAdminInstance) throws InterruptedException,
 			ElasticMachineProvisioningException {
@@ -372,7 +376,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			}
 
 			// This is the call to the actual cloud driver implementation!
-			machineDetails = provisionMachine(locationId, duration, unit);
+			machineDetails = provisionMachine(locationId, reservationId, duration, unit);
 
             // This is to protect against a bug in the Admin. see CLOUDIFY-1592
             // (https://cloudifysource.atlassian.net/browse/CLOUDIFY-1592)
@@ -617,8 +621,15 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return remaining;
 	}
 
-	private MachineDetails provisionMachine(final String locationId, final long duration, final TimeUnit unit)
+	private MachineDetails provisionMachine(final String locationId, final GSAReservationId reservationId, final long duration, final TimeUnit unit)
 			throws TimeoutException, ElasticMachineProvisioningException {
+
+		ProvisioningContextImpl ctx = setUpProvisioningContext(locationId, reservationId);
+		// TODO - this is a workaround for 2.6.1. ProvisioningContext should be added to the
+		// startMachine API call in the cloud driver.
+		ProvisioningContextAccessImpl.setCurrentProvisioingContext(ctx);
+		
+		
 
 		MachineDetails machineDetails;
 		try {
@@ -636,8 +647,33 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return machineDetails;
 	}
 
-	private GridServiceAgent waitForGsa(final String machineIp, final long end) throws InterruptedException,
-			TimeoutException {
+ 
+	private ProvisioningContextImpl setUpProvisioningContext(final String locationId, final GSAReservationId reservationId) {
+		final ProvisioningContextImpl ctx = new ProvisioningContextImpl();
+		ctx.setLocationId(locationId);
+		InstallationDetailsBuilder builder = ctx.getInstallationDetailsBuilder();
+		builder.reservationId(reservationId);
+		builder.admin(globalAdminInstance);
+		
+		builder.authGroups(this.config.getAuthGroups());
+		builder.cloud(this.cloud);
+		builder.cloudFile(this.cloudDslFile);
+		builder.keystorePassword("");
+		builder.lookupLocators(this.lookupLocatorsString);
+		builder.management(false);
+		builder.rebootstrapping(false);
+		builder.reservationId(reservationId);
+		builder.securityProfile("");
+		builder.template(this.cloud.getCloudCompute().getTemplates().get(this.cloudTemplateName));
+		builder.templateName(this.cloudTemplateName);
+		builder.zones(config.getGridServiceAgentZones().getZones());
+
+		return ctx;
+
+	}
+
+	private GridServiceAgent waitForGsa(final String machineIp, final long end)
+			throws InterruptedException, TimeoutException {
 
 		while (CalcUtils.millisUntil(end) > 0) {
 			final GridServiceAgent gsa = getGSAByIpOrHost(machineIp);
@@ -798,6 +834,17 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				.get(storageTemplateName));
 	}
 
+	private void initCloudObject(final String cloudConfigDirectory, final String overridesScript) throws DSLException {
+		final DSLReader reader = new DSLReader();
+		reader.setDslFileNameSuffix(DSLUtils.CLOUD_DSL_FILE_NAME_SUFFIX);
+		reader.setWorkDir(new File(cloudConfigDirectory));
+		reader.setCreateServiceContext(false);
+		reader.setOverridesScript(overridesScript);
+		
+		this.cloud = reader.readDslEntity(Cloud.class);
+		this.cloudDslFile = reader.getDslFile();
+		
+	}
 	@Override
 	public void afterPropertiesSet() throws Exception {
 
@@ -807,7 +854,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 		try {
 			final String cloudOverridesPerService = config.getCloudOverridesPerService();
-			this.cloud = ServiceReader.readCloudFromDirectory(cloudConfigDirectoryPath, cloudOverridesPerService);
+			
+			initCloudObject(cloudConfigDirectoryPath, cloudOverridesPerService);
+
 			this.cloudTemplateName = properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_TEMPLATE_NAME);
 
 			if (this.cloudTemplateName == null) {

@@ -145,6 +145,13 @@ public class InstallationDetails implements Cloneable {
 	// indicates that this installation is a re-bootstrapping
 	private boolean rebootstrapping = false;
 
+	/*********
+	 * Default constructor.
+	 */
+	public InstallationDetails() {
+		
+	}
+	
 	public String getLocationId() {
 		return locationId;
 	}

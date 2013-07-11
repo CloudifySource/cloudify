@@ -14,6 +14,8 @@ package org.cloudifysource.esc.util;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
@@ -22,6 +24,7 @@ import org.cloudifysource.esc.installer.InstallationDetails;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.gsa.GSAReservationId;
 import org.openspaces.admin.zone.config.ExactZonesConfig;
+import org.openspaces.admin.zone.config.ExactZonesConfigurer;
 
 /***********************
  * Builder for the InstallationDetails object. Useful when some parts of the installation details are known in advance
@@ -36,7 +39,7 @@ public class InstallationDetailsBuilder {
 	private Cloud cloud;
 	private ComputeTemplate template;
 	private MachineDetails md;
-	private ExactZonesConfig zones;
+	private Set<String> zones = new HashSet<String>();
 	private String lookupLocatorsString;
 	private Admin admin;
 	private boolean isManagement;
@@ -49,14 +52,7 @@ public class InstallationDetailsBuilder {
 	private boolean isRebootstrapping;
 
 	public InstallationDetailsBuilder() {
-
-		/*
-		 * public static InstallationDetails createInstallationDetails(final MachineDetails md, final Cloud cloud, final
-		 * ComputeTemplate template, final ExactZonesConfig zones, final String lookupLocatorsString, final Admin admin,
-		 * final boolean isManagement, final File cloudFile, final GSAReservationId reservationId, final String
-		 * templateName, final String securityProfile, final String keystorePassword, final String authGroups, final
-		 * boolean rebootstrapping) throws FileNotFoundException
-		 */
+	
 	}
 
 	public void machineDetails(final MachineDetails md) {
@@ -71,8 +67,12 @@ public class InstallationDetailsBuilder {
 		this.template = template;
 	}
 
-	public void zones(final ExactZonesConfig zones) {
-		this.zones = zones;
+	public void zones(final Set<String> zones) {
+		this.zones.addAll(zones);
+	}
+	
+	public void zone(final String zone) {
+		this.zones.add(zone);
 	}
 
 	public void lookupLocators(final String lookupLocators) {
@@ -115,9 +115,20 @@ public class InstallationDetailsBuilder {
 		this.isRebootstrapping = isRebootstrapping;
 	}
 
+	/*******
+	 * 
+	 * @return
+	 * @throws FileNotFoundException
+	 *             if a key file is specified and is not found.
+	 */
 	public InstallationDetails build() throws FileNotFoundException {
+		final ExactZonesConfigurer configurer = new ExactZonesConfigurer()
+			.addZones(this.zones);
+
+
+		final ExactZonesConfig zonesConfig = configurer.create();
 		final InstallationDetails details =
-				Utils.createInstallationDetails(md, cloud, template, zones, lookupLocatorsString, admin, isManagement,
+				Utils.createInstallationDetails(md, cloud, template, zonesConfig, lookupLocatorsString, admin, isManagement,
 						cloudFile, reservationId, templateName, securityProfile, keystorePassword, authGroups,
 						this.isRebootstrapping);
 
