@@ -57,11 +57,13 @@ public class AgentlessInstaller {
 	private static final String LINUX_STARTUP_SCRIPT_NAME = "bootstrap-management.sh";
 	private static final String POWERSHELL_STARTUP_SCRIPT_NAME = "bootstrap-management.bat";
 
-	
 	private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(AgentlessInstaller.class
 			.getName());
 
 	private final List<AgentlessInstallerListener> eventsListenersList = new LinkedList<AgentlessInstallerListener>();
+
+	// Set this field to override the default environment file builder with a custom one.
+	private String environmentFileContents = null;
 
 	/******
 	 * Name of the logger used for piping out ssh output.
@@ -225,13 +227,16 @@ public class AgentlessInstaller {
 
 	private File createEnvironmentFile(final InstallationDetails details) throws IOException {
 
-
+		String fileContents = null;
 		final EnvironmentFileBuilder builder = new EnvironmentFileBuilder(details.getScriptLanguage(),
 				details.getExtraRemoteEnvironmentVariables());
-
-		builder.loadEnvironmentFileFromDetails(details);
-
-		final String fileContents = builder.build().toString();
+		if (this.environmentFileContents == null) {
+			builder.loadEnvironmentFileFromDetails(details);
+			final String generatedFileContents= builder.build().toString();
+			fileContents = generatedFileContents;
+		} else {
+			fileContents = this.environmentFileContents;
+		}
 
 		final File tempFolder = Utils.createTempFolder();
 		final File tempFile = new File(tempFolder, builder.getEnvironmentFileName());
@@ -244,8 +249,6 @@ public class AgentlessInstaller {
 		return tempFile;
 	}
 
-	
-	
 	private void remoteExecuteAgentOnServer(final InstallationDetails details, final long end, final String targetHost)
 			throws InstallerException, TimeoutException, InterruptedException {
 
@@ -331,6 +334,14 @@ public class AgentlessInstaller {
 						+ " with arguments: " + Arrays.toString(args), e);
 			}
 		}
+	}
+
+	public String getEnvironmentFileContents() {
+		return environmentFileContents;
+	}
+
+	public void setEnvironmentFileContents(String environmentFileContents) {
+		this.environmentFileContents = environmentFileContents;
 	}
 
 }
