@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -93,18 +93,20 @@ import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticGridServiceAge
 import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticMachineProvisioningException;
 
 /****************************
- * An ESM machine provisioning implementation used by the Cloudify cloud driver.
- * All calls to start/stop a machine are delegated to the CloudifyProvisioning
- * implementation. If the started machine does not have an agent running, this
- * class will install gigaspaces and start the agent using the Agent-less
- * Installer process.
+ * <<<<<<< HEAD An ESM machine provisioning implementation used by the Cloudify cloud driver. All calls to start/stop a
+ * machine are delegated to the CloudifyProvisioning implementation. If the started machine does not have an agent
+ * running, this class will install gigaspaces and start the agent using the Agent-less Installer process. ======= An
+ * ESM machine provisioning implementation used by the Cloudify cloud driver. All calls to start/stop a machine are
+ * delegated to the CloudifyProvisioning implementation. If the started machine does not have an agent running, this
+ * class will install gigaspaces and start the agent using the Agent-less Installer process. >>>>>>> CLOUDIFY-1837 Scan
+ * all agents for GSA with both required host address and reservation ID
  * 
  * @author barakme
  * 
  */
 public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachineProvisioning, Bean {
 
-    private static final String REMOTE_ADMIN_SHARE_CHAR = "$";
+	private static final String REMOTE_ADMIN_SHARE_CHAR = "$";
 
 	private static final String BACK_SLASH = "\\";
 
@@ -124,13 +126,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private static final Map<String, ProvisioningDriverClassContext> PROVISIONING_DRIVER_CONTEXT_PER_DRIVER_CLASSNAME =
 			new HashMap<String, ProvisioningDriverClassContext>();
 
-    private static final int DISCOVERY_INTERVAL = 5000;
+	private static final int DISCOVERY_INTERVAL = 5000;
 
-    private static Admin globalAdminInstance = null;
+	private static Admin globalAdminInstance = null;
 	private static final Object GLOBAL_ADMIN_MUTEX = new Object();
 
 	private static final long DEFAULT_AGENT_DISCOVERY_INTERVAL = 1000L;
-    private StorageProvisioningDriver storageProvisioning;
+	private StorageProvisioningDriver storageProvisioning;
 
 	private ProvisioningDriver cloudifyProvisioning;
 	private Admin originalESMAdmin;
@@ -154,7 +156,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			if (globalAdminInstance == null) {
 				// create admin clone from esm instance
 				final AdminFactory factory = new AdminFactory();
-                factory.useDaemonThreads(true);
+				factory.useDaemonThreads(true);
 				for (final String group : esmAdminInstance.getGroups()) {
 					factory.addGroup(group);
 				}
@@ -163,100 +165,99 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				}
 				globalAdminInstance = factory.createAdmin();
 
-				// sync the newly created admin with the original admin passed
-				// on from the ESM.
-                waitForAgentsToBeDiscovered(esmAdminInstance, globalAdminInstance);
+				// sync the newly created admin with the original admin passed on from the ESM.
+				waitForAgentsToBeDiscovered(esmAdminInstance, globalAdminInstance);
 			}
 
 			return globalAdminInstance;
 		}
 	}
 
-    private void waitForAgentsToBeDiscovered(final Admin esmAdminInstance, final Admin globalAdminInstance)
-            throws InterruptedException, ElasticMachineProvisioningException {
+	private void waitForAgentsToBeDiscovered(final Admin esmAdminInstance, final Admin globalAdminInstance)
+			throws InterruptedException, ElasticMachineProvisioningException {
 
 		final long endTime = System.currentTimeMillis() + cloud.getConfiguration().getAdminLoadingTimeInSeconds()
 				* MILLISECONDS_IN_SECOND;
-        boolean esmAdminOk = false;
-        Map<String, GridServiceContainer> undiscoveredAgentsContianersPerProcessingUnitInstanceName;
+		boolean esmAdminOk = false;
+		Map<String, GridServiceContainer> undiscoveredAgentsContianersPerProcessingUnitInstanceName;
 
-        while (System.currentTimeMillis() < endTime) {
+		while (System.currentTimeMillis() < endTime) {
 
-            if (!esmAdminOk) {
+			if (!esmAdminOk) {
 				// Validate all agents have been discovered in the original esm
 				// admin.
-				undiscoveredAgentsContianersPerProcessingUnitInstanceName = 
-                        getUndiscoveredAgentsContianersPerProcessingUnitInstanceName(esmAdminInstance);
-                if (undiscoveredAgentsContianersPerProcessingUnitInstanceName.isEmpty()) {
-                    esmAdminOk = true;
-                } else {
-                    logger.info("Detected containers who's agent was not discovered yet : "
-                            + logContainers(undiscoveredAgentsContianersPerProcessingUnitInstanceName));
-                    logger.info("Sleeping for 5 seconds");
-                    Thread.sleep(DISCOVERY_INTERVAL);
-                }
-            } else {
-                Set<String> esmAdminAgentUids = esmAdminInstance.getGridServiceAgents().getUids().keySet();
-                Set<String> globalAdminAgentUids = globalAdminInstance.getGridServiceAgents().getUids().keySet();
+				undiscoveredAgentsContianersPerProcessingUnitInstanceName =
+						getUndiscoveredAgentsContianersPerProcessingUnitInstanceName(esmAdminInstance);
+				if (undiscoveredAgentsContianersPerProcessingUnitInstanceName.isEmpty()) {
+					esmAdminOk = true;
+				} else {
+					logger.info("Detected containers who's agent was not discovered yet : "
+							+ logContainers(undiscoveredAgentsContianersPerProcessingUnitInstanceName));
+					logger.info("Sleeping for 5 seconds");
+					Thread.sleep(DISCOVERY_INTERVAL);
+				}
+			} else {
+				Set<String> esmAdminAgentUids = esmAdminInstance.getGridServiceAgents().getUids().keySet();
+				Set<String> globalAdminAgentUids = globalAdminInstance.getGridServiceAgents().getUids().keySet();
 
 				// Make sure all the agents from the esm admin are discovered in
 				// the new admin.
 				// this is the admin instance we pass on to the cloud driver to
 				// do state recovery.
-                Set<String> agentsNotDiscoveredInGlobalAdminInstance = new HashSet<String>();
-                for (String agentUid : esmAdminAgentUids) {
-                    if (!globalAdminAgentUids.contains(agentUid)) {
-                        agentsNotDiscoveredInGlobalAdminInstance.add(agentUid);
-                    }
-                }
-                if (agentsNotDiscoveredInGlobalAdminInstance.isEmpty()) {
-                    logger.fine("All agents discovered by esm admin are discovered by cloud driver admin. "
-                            + "Machine provisioning will continue.");
-                    return;
-                } else {
-                    logger.info("Detected agents that are discovered in the esm admin but not in the "
-                            + "cloud driver admin : " + agentsNotDiscoveredInGlobalAdminInstance
-                            + " . Waiting 5 seconds for agent discovery");
-                    Thread.sleep(DISCOVERY_INTERVAL);
-                }
-            }
-        }
-        throw new ElasticMachineProvisioningException("Cannot start a new machine when the admin "
-                + "has not been synced properly");
+				Set<String> agentsNotDiscoveredInGlobalAdminInstance = new HashSet<String>();
+				for (String agentUid : esmAdminAgentUids) {
+					if (!globalAdminAgentUids.contains(agentUid)) {
+						agentsNotDiscoveredInGlobalAdminInstance.add(agentUid);
+					}
+				}
+				if (agentsNotDiscoveredInGlobalAdminInstance.isEmpty()) {
+					logger.fine("All agents discovered by esm admin are discovered by cloud driver admin. "
+							+ "Machine provisioning will continue.");
+					return;
+				} else {
+					logger.info("Detected agents that are discovered in the esm admin but not in the "
+							+ "cloud driver admin : " + agentsNotDiscoveredInGlobalAdminInstance
+							+ " . Waiting 5 seconds for agent discovery");
+					Thread.sleep(DISCOVERY_INTERVAL);
+				}
+			}
+		}
+		throw new ElasticMachineProvisioningException("Cannot start a new machine when the admin "
+				+ "has not been synced properly");
 
-    }
+	}
 
-    private Map<String, GridServiceContainer> getUndiscoveredAgentsContianersPerProcessingUnitInstanceName(
-            final Admin admin) {
-		final Map<String, GridServiceContainer> undiscoveredAgentsContianersPerProcessingUnitInstanceName = 
-                new HashMap<String, GridServiceContainer>();
-        for (ProcessingUnit pu : admin.getProcessingUnits()) {
-            for (ProcessingUnitInstance instance : pu.getInstances()) {
-                GridServiceContainer container = instance.getGridServiceContainer();
-                if (container.getAgentId() != -1 && container.getGridServiceAgent() == null) {
+	private Map<String, GridServiceContainer> getUndiscoveredAgentsContianersPerProcessingUnitInstanceName(
+			final Admin admin) {
+		final Map<String, GridServiceContainer> undiscoveredAgentsContianersPerProcessingUnitInstanceName =
+				new HashMap<String, GridServiceContainer>();
+		for (ProcessingUnit pu : admin.getProcessingUnits()) {
+			for (ProcessingUnitInstance instance : pu.getInstances()) {
+				GridServiceContainer container = instance.getGridServiceContainer();
+				if (container.getAgentId() != -1 && container.getGridServiceAgent() == null) {
 					undiscoveredAgentsContianersPerProcessingUnitInstanceName.put(
 							instance.getProcessingUnitInstanceName(), container);
-                }
-            }
-        }
-        return undiscoveredAgentsContianersPerProcessingUnitInstanceName;
-    }
+				}
+			}
+		}
+		return undiscoveredAgentsContianersPerProcessingUnitInstanceName;
+	}
 
-    private String logContainers(
-            final Map<String, GridServiceContainer> undiscoveredAgentsContainersPerProcessingUnitInstanceName) {
-        StringBuilder builder = new StringBuilder();
+	private String logContainers(
+			final Map<String, GridServiceContainer> undiscoveredAgentsContainersPerProcessingUnitInstanceName) {
+		StringBuilder builder = new StringBuilder();
 		for (Map.Entry<String, GridServiceContainer> entry : undiscoveredAgentsContainersPerProcessingUnitInstanceName
 				.entrySet()) {
-            final GridServiceContainer container = entry.getValue();
-            final String processingUnitInstanceName = entry.getKey();
-            builder.append("GridServiceContainer[uid=" + container.getUid() + "] agentId=[" + container.getAgentId()
-                    + "] processingUnitInstanceName=[" + processingUnitInstanceName + "]");
-            builder.append(",");
-        }
-        return builder.toString();
-    }
+			final GridServiceContainer container = entry.getValue();
+			final String processingUnitInstanceName = entry.getKey();
+			builder.append("GridServiceContainer[uid=" + container.getUid() + "] agentId=[" + container.getAgentId()
+					+ "] processingUnitInstanceName=[" + processingUnitInstanceName + "]");
+			builder.append(",");
+		}
+		return builder.toString();
+	}
 
-    @Override
+	@Override
 	public boolean isStartMachineSupported() {
 		return true;
 	}
@@ -378,9 +379,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			// This is the call to the actual cloud driver implementation!
 			machineDetails = provisionMachine(locationId, reservationId, duration, unit);
 
-            // This is to protect against a bug in the Admin. see CLOUDIFY-1592
-            // (https://cloudifysource.atlassian.net/browse/CLOUDIFY-1592)
-            validateMachineIp(machineDetails);
+			// This is to protect against a bug in the Admin. see CLOUDIFY-1592
+			// (https://cloudifysource.atlassian.net/browse/CLOUDIFY-1592)
+			validateMachineIp(machineDetails);
 
 			// Auto populate installer configuration with values set in template
 			// if they were not previously set.
@@ -431,41 +432,24 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				checkForProvisioningTimeout(end, machineDetails);
 			}
 
-			// There is another case here, that we do not handle - where the
-			// started image
-			// has the cloudify distro, but the agent is not running. This means
-			// we should run a modified remote execution script. Not sure if we really
-			// need this, though, as this scenario really does not offer a better experience. If
-			// required, handling will be added here.
-
 			// wait for GSA to become available
-			logger.info("Cloudify adapter is waiting for GSA with reservation id \"" + reservationId
-					+ "\" and ip \"" + machineIp + "\" to become available");
-			final GridServiceAgent gsa = waitForGsa(machineIp, end);
-            if (gsa == null) {
-                // GSA did not start correctly or on time - shutdown the machine
-                // handleGSANotFound(machineIp);
-                throw new TimeoutException("New machine was provisioned and Cloudify was installed, "
-                        + "but a GSA was not discovered on the new machine: " + machineDetails);
-            }
-            final GSAReservationId discoveredReservationId = ((InternalGridServiceAgent) gsa).getReservationId();
-            logger.info("Discovered agent with reservation id " + discoveredReservationId);
-            if (reservationId != null && !reservationId.equals(discoveredReservationId)) {
-                throw new ElasticMachineProvisioningException("Cloudify Adapter discovered the wrong agent. "
-						+ "expected reservation id is " + reservationId + ". but actual was " 
-						+ discoveredReservationId);
-            }
-			// TODO: Derive cloudify specific event and include more event
-			// details as specified in CLOUDIFY-10651
-			agentEventListener.elasticGridServiceAgentProvisioningProgressChanged(new GridServiceAgentStartedEvent(
-					machineIp, gsa.getUid()));
+			logger.info("Cloudify adapter is waiting for GSA on host: " + machineIp + " with reservation id: "
+					+ reservationId + " to become available");
+			final GridServiceAgent gsa = waitForGsa(machineIp, end, reservationId);
+			if (gsa == null) {
+				// GSA did not start correctly or on time - shutdown the machine
+				throw new TimeoutException("New machine was provisioned and Cloudify was installed, "
+						+ "but a GSA was not discovered on the new machine: " + machineDetails);
+			}
 
-			// check that the agent is really started with the expected env
-			// variable of the template
-			// we inject this variable earlier on to the bootstrap-management.sh
-			// script
-			if (gsa.getVirtualMachine().getDetails().getEnvironmentVariables()
-					.get(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME) == null) {
+			// TODO: Derive cloudify specific event and include more event details as specified in CLOUDIFY-10651
+			agentEventListener.elasticGridServiceAgentProvisioningProgressChanged(
+					new GridServiceAgentStartedEvent(machineIp, gsa.getUid()));
+
+			// check that the agent is really started with the expected env variable of the template
+			// we inject this variable earlier on to the bootstrap-management.sh script
+			if (gsa.getVirtualMachine().getDetails().getEnvironmentVariables().
+					get(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME) == null) {
 				throw new ElasticGridServiceAgentProvisioningException("an agent was started. but the property "
 						+ CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME
 						+ " was missing from its environment variables.");
@@ -475,72 +459,72 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		} catch (final ElasticMachineProvisioningException e) {
 			logger.info("ElasticMachineProvisioningException occurred, " + e.getMessage());
 			logger.info(ExceptionUtils.getFullStackTrace(e));
-			handleExceptionAfterMachineCreated(machineIp, volumeId, machineDetails, end);
+			handleExceptionAfterMachineCreated(machineIp, volumeId, machineDetails, end, reservationId);
 			throw e;
 		} catch (final ElasticGridServiceAgentProvisioningException e) {
 			logger.info("ElasticGridServiceAgentProvisioningException occurred, " + e.getMessage());
 			logger.info(ExceptionUtils.getFullStackTrace(e));
-			handleExceptionAfterMachineCreated(machineIp, volumeId, machineDetails, end);
+			handleExceptionAfterMachineCreated(machineIp, volumeId, machineDetails, end, reservationId);
 			throw e;
 		} catch (final TimeoutException e) {
 			logger.info("TimeoutException occurred, " + e.getMessage());
 			logger.info(ExceptionUtils.getFullStackTrace(e));
-			handleExceptionAfterMachineCreated(machineIp, volumeId, machineDetails, end);
+			handleExceptionAfterMachineCreated(machineIp, volumeId, machineDetails, end, reservationId);
 			throw e;
 		} catch (final InterruptedException e) {
 			logger.info("InterruptedException occurred, " + e.getMessage());
 			logger.info(ExceptionUtils.getFullStackTrace(e));
-			handleExceptionAfterMachineCreated(machineIp, volumeId, machineDetails, end);
+			handleExceptionAfterMachineCreated(machineIp, volumeId, machineDetails, end, reservationId);
 			throw e;
 		} catch (final Throwable e) {
-            logger.info("Unexpected exception occurred, " + e.getMessage());
-            logger.info(ExceptionUtils.getFullStackTrace(e));
-            handleExceptionAfterMachineCreated(machineIp, volumeId, machineDetails, end);
-            throw new IllegalStateException("Unexpected exception during machine provisioning", e);
-        }
+			logger.info("Unexpected exception occurred, " + e.getMessage());
+			logger.info(ExceptionUtils.getFullStackTrace(e));
+			handleExceptionAfterMachineCreated(machineIp, volumeId, machineDetails, end, reservationId);
+			throw new IllegalStateException("Unexpected exception during machine provisioning", e);
+		}
 	}
 
-    private void validateMachineIp(final MachineDetails machineDetails) throws CloudProvisioningException {
+	private void validateMachineIp(final MachineDetails machineDetails) throws CloudProvisioningException {
 
-        logger.fine("Validating " + machineDetails + " after provisioning ");
+		logger.fine("Validating " + machineDetails + " after provisioning ");
 
-        String machineIp;
+		String machineIp;
 
-        // fetch a list of agents the admin recognizes.
-        logger.fine("Listing existing agents");
-        GridServiceAgents gridServiceAgents = originalESMAdmin.getGridServiceAgents();
-        for (GridServiceAgent agent : gridServiceAgents) {
-            if (cloud.getConfiguration().isConnectToPrivateIp()) {
-                machineIp = machineDetails.getPrivateAddress();
-            } else {
-                machineIp = machineDetails.getPublicAddress();
-            }
-            logger.fine("Found agent " + agent.getUid() + " on host " + agent.getMachine().getHostAddress());
+		// fetch a list of agents the admin recognizes.
+		logger.fine("Listing existing agents");
+		GridServiceAgents gridServiceAgents = originalESMAdmin.getGridServiceAgents();
+		for (GridServiceAgent agent : gridServiceAgents) {
+			if (cloud.getConfiguration().isConnectToPrivateIp()) {
+				machineIp = machineDetails.getPrivateAddress();
+			} else {
+				machineIp = machineDetails.getPublicAddress();
+			}
+			logger.fine("Found agent " + agent.getUid() + " on host " + agent.getMachine().getHostAddress());
 
-            if (agent.getMachine().getHostAddress().equals(machineIp)) {
+			if (agent.getMachine().getHostAddress().equals(machineIp)) {
 				// we found an existing agent with the ip on the newly
 				// provisioned machine.
-                throw new CloudProvisioningException("An existing agent with ip " + machineIp
-                        + " was discovered. this machine is invalid.");
-            }
+				throw new CloudProvisioningException("An existing agent with ip " + machineIp
+						+ " was discovered. this machine is invalid.");
+			}
 
-        }
+		}
 
-    }
+	}
 
-    private boolean isStorageTemplateUsed() {
+	private boolean isStorageTemplateUsed() {
 		return (!StringUtils.isEmpty(this.storageTemplateName) && !this.storageTemplateName.equals("null"));
 	}
 
 	private void handleExceptionAfterMachineCreated(final String machineIp, final String volumeId,
-			final MachineDetails machineDetails, final long end) {
+			final MachineDetails machineDetails, final long end, final GSAReservationId reservationId) {
 		try {
 			// if an agent is found (not supposed to, we got here after it
 			// wasn't found earlier) - shut it down
 			boolean machineIpExists = machineIp != null && !machineIp.trim().isEmpty();
 			if (machineIpExists) {
 				try {
-					final GridServiceAgent agent = getGSAByIpOrHost(machineIp);
+					final GridServiceAgent agent = getGSAByIpOrHost(machineIp, reservationId);
 					if (agent != null) {
 						logger.info("handleExceptionAfterMachineCreated is shutting down agent: " + agent
 								+ " on host: " + machineIp);
@@ -621,15 +605,14 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return remaining;
 	}
 
-	private MachineDetails provisionMachine(final String locationId, final GSAReservationId reservationId, final long duration, final TimeUnit unit)
+	private MachineDetails provisionMachine(final String locationId, final GSAReservationId reservationId,
+			final long duration, final TimeUnit unit)
 			throws TimeoutException, ElasticMachineProvisioningException {
 
 		ProvisioningContextImpl ctx = setUpProvisioningContext(locationId, reservationId);
 		// TODO - this is a workaround for 2.6.1. ProvisioningContext should be added to the
 		// startMachine API call in the cloud driver.
 		ProvisioningContextAccessImpl.setCurrentProvisioingContext(ctx);
-		
-		
 
 		MachineDetails machineDetails;
 		try {
@@ -647,14 +630,14 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return machineDetails;
 	}
 
- 
-	private ProvisioningContextImpl setUpProvisioningContext(final String locationId, final GSAReservationId reservationId) {
+	private ProvisioningContextImpl setUpProvisioningContext(final String locationId,
+			final GSAReservationId reservationId) {
 		final ProvisioningContextImpl ctx = new ProvisioningContextImpl();
 		ctx.setLocationId(locationId);
 		InstallationDetailsBuilder builder = ctx.getInstallationDetailsBuilder();
 		builder.reservationId(reservationId);
 		builder.admin(globalAdminInstance);
-		
+
 		builder.authGroups(this.config.getAuthGroups());
 		builder.cloud(this.cloud);
 		builder.cloudFile(this.cloudDslFile);
@@ -672,11 +655,11 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	}
 
-	private GridServiceAgent waitForGsa(final String machineIp, final long end)
+	private GridServiceAgent waitForGsa(final String machineIp, final long end, final GSAReservationId reservationId)
 			throws InterruptedException, TimeoutException {
 
 		while (CalcUtils.millisUntil(end) > 0) {
-			final GridServiceAgent gsa = getGSAByIpOrHost(machineIp);
+			final GridServiceAgent gsa = getGSAByIpOrHost(machineIp, reservationId);
 			if (gsa != null) {
 				return gsa;
 			}
@@ -687,28 +670,40 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return null;
 
 	}
-	
 
-	private GridServiceAgent getGSAByIpOrHost(final String machineIp) {
-		
-		GridServiceAgent gsa = null;
-		
-		//get by address
-		Map<String, GridServiceAgent> gsaByHostAddress = originalESMAdmin.getGridServiceAgents().getHostAddress();
-		for (String hostAddress : gsaByHostAddress.keySet()) {
-			if (hostAddress.equals(machineIp) || IPUtils.isSameIpv6Address(hostAddress, machineIp)) {
-				gsa = gsaByHostAddress.get(hostAddress);
-				break;
+	private GridServiceAgent getGSAByIpOrHost(final String machineIp, final GSAReservationId reservationId) {
+		final GridServiceAgent[] allAgents = originalESMAdmin.getGridServiceAgents().getAgents();
+
+		for (GridServiceAgent gridServiceAgent : allAgents) {
+			if (gridServiceAgent.getMachine().getHostAddress().equals(machineIp) 
+					|| gridServiceAgent.getMachine().getHostName().equals(machineIp)) {
+				// Check if the reservation ID of the located machine is the one we expect.
+				// This handles the rare error where the Admin for some reason caches an entry for an old
+				// GSA running on the same IP (for a machine that was previously shut down_
+				final boolean reservationMatches = checkReservationId(machineIp, reservationId, gridServiceAgent);
+				if (reservationMatches) {
+					return gridServiceAgent;
+				}
+			}
 		}
+
+		return null;
+	}
+
+	private boolean checkReservationId(final String machineIp, final GSAReservationId reservationId,
+			GridServiceAgent gridServiceAgent) {
+		final GSAReservationId discoveredReservationId =
+				((InternalGridServiceAgent) gridServiceAgent).getReservationId();
+		logger.info("Discovered agent with reservation id " + discoveredReservationId);
+		if (reservationId != null && !reservationId.equals(discoveredReservationId)) {
+			logger.warning("Cloudify Adapter discovered the wrong agent for host: " + machineIp + ". "
+					+ "expected reservation id is "
+					+ reservationId + ". but actual was " + discoveredReservationId);
+			return false;
 		}
-		
-		if (gsa == null) {
-			//get by name
-		gsa = originalESMAdmin.getGridServiceAgents().getHostNames().get(machineIp);
-		}
-		
-			return gsa;
-		}
+
+		return true;
+	}
 
 	@Override
 	public CapacityRequirements getCapacityOfSingleMachine() {
@@ -765,7 +760,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				machineEventListener.elasticMachineProvisioningProgressChanged(machineStoppedEvent);
 
 				// machine was shutdown, but an error happened while shutting
-				// down agent. 
+				// down agent.
 				// lets wait for the agent to not be discovered until we reach
 				// the timeout.
 
@@ -823,8 +818,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	 * 
 	 * @see {@link org.cloudifysource.dsl.context.blockstorage.StorageFacade}
 	 * 
-	 *      DO NOT refactor this method's name since it is called via reflection
-	 *      by the ESM.
+	 *      <<<<<<< HEAD DO NOT refactor this method's name since it is called via reflection by the ESM. ======= DO NOT
+	 *      refactor this method's name since it is called via reflection by the ESM. >>>>>>> CLOUDIFY-1837 Scan all
+	 *      agents for GSA with both required host address and reservation ID
 	 * 
 	 * @author elip
 	 * @return The storage driver.
@@ -840,11 +836,12 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		reader.setWorkDir(new File(cloudConfigDirectory));
 		reader.setCreateServiceContext(false);
 		reader.setOverridesScript(overridesScript);
-		
+
 		this.cloud = reader.readDslEntity(Cloud.class);
 		this.cloudDslFile = reader.getDslFile();
-		
+
 	}
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 
@@ -854,7 +851,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 		try {
 			final String cloudOverridesPerService = config.getCloudOverridesPerService();
-			
+
 			initCloudObject(cloudConfigDirectoryPath, cloudOverridesPerService);
 
 			this.cloudTemplateName = properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_TEMPLATE_NAME);
@@ -890,14 +887,15 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			// load the provisioning class and set it up
 			try {
 				ProvisioningDriverClassBuilder builder = new ProvisioningDriverClassBuilder();
-				this.cloudifyProvisioning = builder.build(cloudConfigDirectoryPath, this.cloud.getConfiguration().getClassName());
-//				this.cloudifyProvisioning =
-//						(ProvisioningDriver) Class.forName(this.cloud.getConfiguration().getClassName()).newInstance();
+				this.cloudifyProvisioning =
+						builder.build(cloudConfigDirectoryPath, this.cloud.getConfiguration().getClassName());
+				// this.cloudifyProvisioning =
+				// (ProvisioningDriver) Class.forName(this.cloud.getConfiguration().getClassName()).newInstance();
 
 				if (cloudifyProvisioning instanceof ProvisioningDriverClassContextAware) {
-					final ProvisioningDriverClassContext provisioningDriverContext = 
+					final ProvisioningDriverClassContext provisioningDriverContext =
 							lazyCreateProvisioningDriverClassContext(cloudifyProvisioning);
-					final ProvisioningDriverClassContextAware contextAware = 
+					final ProvisioningDriverClassContextAware contextAware =
 							(ProvisioningDriverClassContextAware) cloudifyProvisioning;
 					contextAware.setProvisioningDriverClassContext(provisioningDriverContext);
 				}
@@ -1078,15 +1076,11 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	/**
 	 * @param isolation
-	 *            - describes the relation between different service instances
-	 *            on the same machine Assuming each service has a dedicated
-	 *            machine
-	 *            {@link org.openspaces.grid.gsm.machines.isolation.DedicatedMachineIsolation
-	 *            ;}, the machine isolation name is the service name. This would
-	 *            change when instances from different services would be
-	 *            installed on the same machine using
-	 *            {@link org.openspaces.grid.gsm.machines.isolation.SharedMachineIsolation}
-	 *            .
+	 *            - describes the relation between different service instances on the same machine Assuming each service
+	 *            has a dedicated machine {@link org.openspaces.grid.gsm.machines.isolation.DedicatedMachineIsolation ;}
+	 *            , the machine isolation name is the service name. This would change when instances from different
+	 *            services would be installed on the same machine using
+	 *            {@link org.openspaces.grid.gsm.machines.isolation.SharedMachineIsolation} .
 	 */
 	@Override
 	public void setElasticProcessingUnitMachineIsolation(final ElasticProcessingUnitMachineIsolation isolation) {
@@ -1107,9 +1101,11 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	}
 
 	/**
-	 * Clears the list of machines provisioned by any provisioning driver. This
-	 * method should be used for testing purposes And should not be used
-	 * concurrently with any other method.
+	 * <<<<<<< HEAD Clears the list of machines provisioned by any provisioning driver. This method should be used for
+	 * testing purposes And should not be used concurrently with any other method. ======= Clears the list of machines
+	 * provisioned by any provisioning driver. This method should be used for testing purposes And should not be used
+	 * concurrently with any other method. >>>>>>> CLOUDIFY-1837 Scan all agents for GSA with both required host address
+	 * and reservation ID
 	 */
 	public static void clearContext() {
 		synchronized (PROVISIONING_DRIVER_CONTEXT_PER_DRIVER_CLASSNAME) {
@@ -1125,5 +1121,5 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		} catch (Exception e) {
 			throw new ElasticMachineProvisioningException("Failed to cleanup cloud", e);
 		}
-		}
+	}
 }
