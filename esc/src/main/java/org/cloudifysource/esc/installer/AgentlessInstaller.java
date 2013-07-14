@@ -232,7 +232,7 @@ public class AgentlessInstaller {
 				details.getExtraRemoteEnvironmentVariables());
 		if (this.environmentFileContents == null) {
 			builder.loadEnvironmentFileFromDetails(details);
-			final String generatedFileContents= builder.build().toString();
+			final String generatedFileContents = builder.build().toString();
 			fileContents = generatedFileContents;
 		} else {
 			fileContents = this.environmentFileContents;
@@ -340,7 +340,7 @@ public class AgentlessInstaller {
 		return environmentFileContents;
 	}
 
-	public void setEnvironmentFileContents(String environmentFileContents) {
+	public void setEnvironmentFileContents(final String environmentFileContents) {
 		this.environmentFileContents = environmentFileContents;
 	}
 

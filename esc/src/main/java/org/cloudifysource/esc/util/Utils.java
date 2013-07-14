@@ -357,7 +357,14 @@ public final class Utils {
 		//add storage props that will be passed down to the bootstrap-management script.
 
 		details.setPersistent(cloud.getConfiguration().getPersistentStoragePath() != null);
-		details.setInstallerConfiguration(md.getInstallerConfiguration());
+		
+		
+		if(md.getInstallerConfiguration() != null) {
+			details.setInstallerConfiguration(md.getInstallerConfiguration());
+		}  else {
+			details.setInstallerConfiguration(template.getInstaller());
+		}
+		
 		logger.fine("Created InstallationDetails: " + details);
 		return details;
 	}

@@ -305,22 +305,22 @@ public class CloudGridAgentBootstrapper {
 		final ProvisioningContextImpl ctx = new ProvisioningContextImpl();
 		ctx.setLocationId(null);
 		InstallationDetailsBuilder builder = ctx.getInstallationDetailsBuilder();
-		builder.reservationId(null);
-		builder.admin(null);
+		builder.setReservationId(null);
+		builder.setAdmin(null);
 
-		builder.authGroups(null);
-		builder.cloud(this.cloud);
-		builder.cloudFile(this.cloudFile);
-		builder.keystorePassword(keystorePassword);
-		builder.lookupLocators(null);
-		builder.management(true);
-		builder.rebootstrapping(isRebootstrapping());
-		builder.reservationId(null);
-		builder.securityProfile(securityProfile);
-		builder.template(this.cloud.getCloudCompute().getTemplates()
+		builder.setAuthGroups(null);
+		builder.setCloud(this.cloud);
+		builder.setCloudFile(this.cloudFile);
+		builder.setKeystorePassword(keystorePassword);
+		builder.setLookupLocators(null);
+		builder.setManagement(true);
+		builder.setRebootstrapping(isRebootstrapping());
+		builder.setReservationId(null);
+		builder.setSecurityProfile(securityProfile);
+		builder.setTemplate(this.cloud.getCloudCompute().getTemplates()
 				.get(this.cloud.getConfiguration().getManagementMachineTemplate()));
-		builder.templateName(this.cloud.getConfiguration().getManagementMachineTemplate());
-		builder.zones(new HashSet<String>(Arrays.asList(MANAGEMENT_GSA_ZONE)));
+		builder.setTemplateName(this.cloud.getConfiguration().getManagementMachineTemplate());
+		builder.setZones(new HashSet<String>(Arrays.asList(MANAGEMENT_GSA_ZONE)));
 
 		return ctx;
 
@@ -331,8 +331,9 @@ public class CloudGridAgentBootstrapper {
 			throws CLIException {
 		MachineDetails[] servers;
 
+		logger.warning("Creating provisioning Context");
 		final ProvisioningContextImpl context = setUpProvisioningContext(keystorePassword, securityProfile);
-		ProvisioningContextAccess.setCurrentProvisioingContext(context);
+		ProvisioningContextAccess.setCurrentManagementProvisioingContext(context);
 		try {
 			servers = provisioning.startManagementMachines(timeout, timeoutUnit);
 		} catch (final CloudProvisioningException e) {

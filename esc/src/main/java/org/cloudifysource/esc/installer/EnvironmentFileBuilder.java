@@ -2,12 +2,12 @@ package org.cloudifysource.esc.installer;
 
 /*******************************************************************************
  * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -27,10 +27,10 @@ import org.cloudifysource.dsl.utils.IPUtils;
 /*******
  * A simple wrapper around a StringBuilder. Used to generate the contents of the cloudify environment file that is
  * injected into the remote cloudify installation
- *
+ * 
  * @author dank, barakme
  * @since 2.5.0
- *
+ * 
  */
 
 public class EnvironmentFileBuilder {
@@ -65,12 +65,12 @@ public class EnvironmentFileBuilder {
 
 	/********
 	 * Constructor.
-	 *
+	 * 
 	 * @param mode
 	 *            the execution mode.
 	 */
-	public EnvironmentFileBuilder(final ScriptLanguages scriptLanguage, 
-								  final Map<String, String> externalEnvVars) {
+	public EnvironmentFileBuilder(final ScriptLanguages scriptLanguage,
+			final Map<String, String> externalEnvVars) {
 		this.scriptLanguage = scriptLanguage;
 		this.externalEnvVars = externalEnvVars;
 		switch (scriptLanguage) {
@@ -97,11 +97,16 @@ public class EnvironmentFileBuilder {
 
 	}
 
-	
+	/*********
+	 * 8 Loads the environment file from the given installation details.
+	 * 
+	 * @param details
+	 *            the installation details.
+	 */
 	public void loadEnvironmentFileFromDetails(final InstallationDetails details) {
 
 		final EnvironmentFileBuilder builder = this;
-		
+
 		String remoteDirectory = details.getRemoteDir();
 		if (remoteDirectory.endsWith("/")) {
 			remoteDirectory = remoteDirectory.substring(0, remoteDirectory.length() - 1);
@@ -190,6 +195,7 @@ public class EnvironmentFileBuilder {
 			builder.exportVar(CloudifyConstants.KEYSTORE_PASSWORD_ENV_VAR, details.getKeystorePassword());
 		}
 	}
+
 	private String normalizeWindowsPaths(final String original) {
 		final String cifsNormalized = normalizeCifsPath(original);
 		final String cygwinNormalized = normalizeCygwinPath(cifsNormalized);
@@ -200,7 +206,7 @@ public class EnvironmentFileBuilder {
 	/****************
 	 * Given a path of the type /C$/PATH - indicating an absolute cifs path, returns /PATH. If the string does not
 	 * match, returns the original unmodified string.
-	 *
+	 * 
 	 * @param str
 	 *            the input path.
 	 * @return the input path, adjusted to remove the cifs drive letter, if it exists, or the original path if the drive
@@ -226,7 +232,7 @@ public class EnvironmentFileBuilder {
 	/********
 	 * Normalizes a cygwin path to a standard windows path, where a cygwin path is any string that starts with
 	 * '/cygwin/'. Other strings are not changed.
-	 *
+	 * 
 	 * @param str
 	 *            the original value.
 	 * @return the normalized string.
@@ -250,7 +256,7 @@ public class EnvironmentFileBuilder {
 	/********
 	 * same as org.cloudifysource.esc.installer.EnvironmentFileBuilder.exportVar(String, String, boolean) with append
 	 * field set to false.
-	 *
+	 * 
 	 * @param name
 	 *            name of env var.
 	 * @param value
@@ -263,7 +269,7 @@ public class EnvironmentFileBuilder {
 
 	/*********
 	 * Adds an environment variable to the command line.
-	 *
+	 * 
 	 * @param name
 	 *            variable name.
 	 * @param value
@@ -285,7 +291,7 @@ public class EnvironmentFileBuilder {
 		// appends the external value, if exists, to the end of the env var.
 		// External values override any values that were added via exportVar.
 		actualValue = appendExternalValue(name, actualValue);
-		
+
 		return addValue(name, actualValue);
 	}
 
@@ -350,10 +356,15 @@ public class EnvironmentFileBuilder {
 		}
 
 	}
-	
+
+	/***********
+	 * Prepares the final environment output. Should only be called after all other values have been set.
+	 * 
+	 * @return this instance.
+	 */
 	public EnvironmentFileBuilder build() {
-		//add only environment vars that were not appended to existing vars.
-		for (Map.Entry<String, String> entry : externalEnvVars.entrySet()) { 
+		// add only environment vars that were not appended to existing vars.
+		for (Map.Entry<String, String> entry : externalEnvVars.entrySet()) {
 			String name = entry.getKey();
 			if (!appendedExternalEnvVars.contains(name)) {
 				String value = entry.getValue();
@@ -373,7 +384,7 @@ public class EnvironmentFileBuilder {
 
 	/*******
 	 * Returns the file name for the environment file for the current script language.
-	 *
+	 * 
 	 * @return the environment file name.
 	 */
 	public String getEnvironmentFileName() {
