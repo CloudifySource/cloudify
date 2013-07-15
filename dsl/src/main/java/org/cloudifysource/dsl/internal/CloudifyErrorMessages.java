@@ -215,10 +215,19 @@ public enum CloudifyErrorMessages {
 	AGENT_IS_MISSING_AFTER_BOOTSTRAP("host_validation_aborted_no_permission", 1),
 	
 	/**
-	 * Host name and address validation aborted aborted because a security manager exists and permission to resolve 
-	 * the host name is denied.
+	 * Post bootstrap validations failed to find a running agent.
 	 */
-	HOST_VALIDATION_ABORTED_NO_PERMISSION("host_validation_aborted_no_permission", 1),
+	POST_BOOTSTRAP_NO_AGENT_FOUND("post_bootstrap_no_agent_found", 0),
+	
+	/**
+	 * Post bootstrap validations failed to find a required management component (LUS/ESM/GMS).
+	 */
+	POST_BOOTSTRAP_MISSING_MGMT_COMPONENT("post_bootstrap_missing_mgmt_component", 0),
+
+	/**
+	 * Post bootstrap validations failed to find a required management service (SPACE/WEB-UI/REST).
+	 */
+	POST_BOOTSTRAP_MISSING_MGMT_SERVICE("post_bootstrap_missing_mgmt_service", 1),	
 
 	MANAGEMENT_SERVERS_WAITING_FOR_SHUTDOWN("shutdown_managers_initiated", 1),
 

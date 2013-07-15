@@ -188,6 +188,15 @@ public abstract class AbstractManagementServiceInstaller {
 		props.setProperty("com.gs.application", MANAGEMENT_APPLICATION_NAME);
 		return props;
 	}
+	
+	
+	/**
+	 * Gets the name of the service being installed.
+	 * @return The service name
+	 */
+	public String getServiceName() {
+		return serviceName;
+	}
 
 	/**
 	 * Creates a {@link ConditionLatch} object, intended to wait for procedures to complete.

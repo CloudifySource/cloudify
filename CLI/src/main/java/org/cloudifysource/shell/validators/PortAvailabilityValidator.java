@@ -218,7 +218,7 @@ public abstract class PortAvailabilityValidator {
 					} else {
 						throw new IllegalArgumentException("Invalid port or range: " + portOrRange);
 					}
-				} catch (Exception e) {
+				} catch (NumberFormatException e) {
 					throw new IllegalArgumentException("Invalid port or range: " + portOrRange);
 				}
 			}

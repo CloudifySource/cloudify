@@ -1051,31 +1051,51 @@ public class LocalhostGridAgentBootstrapper {
 		
 		try {
 			setLookupDefaults(admin);
-			GridServiceAgent agent;
+			GridServiceAgent agent = null;
 			try {
 				try {
+					// wait for LUS, GSM and ESM services to start
 					if (!isLocalCloud || fastExistingAgentCheck()) {
-						agent = waitForExistingAgent(admin, progressInSeconds, TimeUnit.SECONDS);
+						agent = waitForExistingAgent(admin, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), 
+								TimeUnit.MILLISECONDS);
 					}
-				} catch (final TimeoutException e) {
+				} catch (final Exception e) {
 					// no existing agent running on local machine
-					throw new CLIValidationException(120, 
-							CloudifyErrorMessages.HOST_VALIDATION_ABORTED_NO_PERMISSION.getName(), se.getMessage());
+					throw new CLIValidationException(e, 131, 
+							CloudifyErrorMessages.POST_BOOTSTRAP_NO_AGENT_FOUND.getName());
 				}
 			} finally {
 				connectionLogs.restoreConnectionErrors();
 			}
+			
+			if (agent == null) {
+				// no existing agent running on local machine
+				throw new CLIValidationException(131, CloudifyErrorMessages.POST_BOOTSTRAP_NO_AGENT_FOUND.getName());
+			}
 
-			// waiting for LUS, GSM and ESM services to start
-			waitForManagementProcesses(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
-					TimeUnit.MILLISECONDS);
-
+			try {
+				// wait for LUS, GSM and ESM services to start
+				waitForManagementProcesses(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), 
+						TimeUnit.MILLISECONDS);
+			} catch (final Exception e) {
+				// LUS, GSM or ESM not found
+				throw new CLIValidationException(e, 132, 
+						CloudifyErrorMessages.POST_BOOTSTRAP_MISSING_MGMT_COMPONENT.getName());
+			}
+			
 			connectionLogs.supressConnectionErrors();
 			try {
 				for (final AbstractManagementServiceInstaller managementServiceInstaller 
 						: managementServicesInstallers) {
-					managementServiceInstaller.waitForInstallation(adminFacade, agent,
-							ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
+					try {
+						managementServiceInstaller.waitForInstallation(adminFacade, agent,
+								ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
+					} catch (Exception e) {
+						// management service not found
+						throw new CLIValidationException(e, 133, 
+								CloudifyErrorMessages.POST_BOOTSTRAP_MISSING_MGMT_SERVICE.getName(), 
+								managementServiceInstaller.getServiceName());
+					}					
 				}
 			} finally {
 				connectionLogs.restoreConnectionErrors();
@@ -1101,7 +1121,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	private void installWebServices(final String username, final String password, final boolean isLocalCloud,
 			final boolean isSecureConnection, final GridServiceAgent agent,
-			final List<AbstractManagementServiceInstaller> waitForManagementServices)
+			final List<AbstractManagementServiceInstaller> managementServices)
 			throws CLIException {
 		final String gscLrmiCommandLineArg = getGscLrmiCommandLineArg();
 		final String webuiMemory = getWebServiceMemory(CloudifyConstants.WEBUI_MAX_MEMORY_ENVIRONMENT_VAR);
@@ -1130,7 +1150,7 @@ public class LocalhostGridAgentBootstrapper {
 			}
 		}
 		if (waitForWebUi) {
-			waitForManagementServices.add(webuiInstaller);
+			managementServices.add(webuiInstaller);
 		} else {
 			webuiInstaller.logServiceLocation();
 		}
@@ -1163,7 +1183,7 @@ public class LocalhostGridAgentBootstrapper {
 				publishEvent("Service " + CloudifyConstants.MANAGEMENT_REST_SERVICE_NAME + " already installed");
 			}
 		}
-		waitForManagementServices.add(restInstaller);
+		managementServices.add(restInstaller);
 	}
 
 	private String getWebServiceMemory(final String memoryEnvironmentVar) {
