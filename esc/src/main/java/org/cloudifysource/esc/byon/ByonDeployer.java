@@ -94,6 +94,8 @@ public class ByonDeployer {
 				resolvedNodes.add(node);
 			} catch (final Exception ex) {
 				// this node is not reachable - add it to the invalid nodes pool
+				logger.log(Level.INFO, "Failed to resolve node: " + node.toShortString() + ", exception: " 
+				+ ex.getMessage(), ex);
 				unresolvedNodes.add(node);
 			}
 		}
@@ -152,7 +154,10 @@ public class ByonDeployer {
 			throw new CloudProvisioningException(
 					"Failed to create a new cloud node for template \""
 							+ templateName
-							+ "\", all available nodes are currently used");
+							+ "\", all available nodes are currently used."
+							+ " Free nodes: " + getNodesListForPrint(freeNodesPool)
+							+ ", Invalid nodes: " + getNodesListForPrint(invalidNodesPool)
+							+ ", Allocated nodes: " + getNodesListForPrint(allocatedNodesPool));
 		}
 
 		CustomNode node = null;
@@ -207,7 +212,10 @@ public class ByonDeployer {
 			throw new CloudProvisioningException(
 					"Failed to create a new cloud node for template \""
 							+ templateName
-							+ "\", all available nodes are currently used");
+							+ "\", all available nodes are currently used."
+							+ " Free nodes: " + getNodesListForPrint(freeNodesPool)
+							+ ", Invalid nodes: " + getNodesListForPrint(invalidNodesPool)
+							+ ", Allocated nodes: " + getNodesListForPrint(allocatedNodesPool));
 		}
 
 		node.setNodeName(serverName);
@@ -610,6 +618,10 @@ public class ByonDeployer {
 				resolvedNodes));
 		invalidNodesPool.addAll(aggregateWithoutDuplicates(invalidNodesPool,
 				unresolvedNodes));
+		
+		logger.info("Setting initial pools for template: " + templateName + ". "
+				+ "Free nodes: " + getNodesListForPrint(freeNodesPool)
+				+ "Invalid nodes: " + getNodesListForPrint(invalidNodesPool));
 
 		templateLists.put(NODES_LIST_FREE, freeNodesPool);
 		templateLists.put(NODES_LIST_ALLOCATED, new ArrayList<CustomNode>());
@@ -676,5 +688,22 @@ public class ByonDeployer {
 			}
 			nodesListsByTemplates.remove(templateName);
 		}
+	}
+	
+	
+	/**
+	 * Builds a string representing the given list of nodes, including only their main details
+	 * (i.e. node ID, private IP, host name, node name).
+	 * @param nodesToPrint The list of nodes to print
+	 * @return The nodes' main details, as a string
+	 */
+	public String getNodesListForPrint(final List<CustomNode> nodesToPrint) {
+		
+		StringBuilder nodesStr = new StringBuilder();
+		for (CustomNode node : nodesToPrint) {
+			nodesStr.append(node.toShortString());
+		}
+		
+		return nodesStr.toString();
 	}
 }

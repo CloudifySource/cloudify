@@ -126,4 +126,10 @@ public interface CustomNode {
 	 * @param loginPort the login port.
 	 */
 	void setLoginPort(final int loginPort);
+	
+    /**
+     * Prints this node's main details, for short print outs.
+     * @return this node's main details, as a String.
+     */
+	String toShortString();
 }

@@ -216,18 +216,26 @@ public class CustomNodeImpl implements CustomNode {
 
     @Override
     public String toString() {
-        return "CustomNode{" +
-                "providerId='" + providerId + '\'' +
-                ", id='" + id + '\'' +
-                ", privateIp='" + privateIp + '\'' +
-                ", hostName='" + hostName + '\'' +
-                ", nodeName='" + nodeName + '\'' +
-                ", group='" + group + '\'' +
-                ", username='" + username + '\'' +
-                ", credential='" + credential + '\'' +
-                ", keyFile='" + keyFile + '\'' +
-                ", loginPort=" + loginPort +
-                '}';
+        return "CustomNode{"
+                + "providerId='" + providerId + '\''
+                + ", id='" + id + '\''
+                + ", privateIp='" + privateIp + '\''
+                + ", hostName='" + hostName + '\''
+                + ", nodeName='" + nodeName + '\''
+                + ", group='" + group + '\''
+                + ", username='" + username + '\''
+                + ", credential='" + credential + '\''
+                + ", keyFile='" + keyFile + '\''
+                + ", loginPort=" + loginPort
+                + '}';
+    }
+    
+    @Override
+    public String toShortString() {
+        return "id='" + id + '\''
+                + ", privateIp='" + privateIp + '\''
+                + ", hostName='" + hostName + '\''
+                + ", nodeName='" + nodeName + '\'';
     }
 
     @Override
