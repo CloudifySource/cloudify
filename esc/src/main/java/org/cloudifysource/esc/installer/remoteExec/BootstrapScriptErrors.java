@@ -181,6 +181,23 @@ public enum BootstrapScriptErrors {
 	CUSTOM_VALIDATION_ERROR(130, "Cloudify validation failed."),
 	
 	/**
+	 * Post bootstrap validations failed to find a running agent.
+	 */
+	POST_BOOTSTRAP_NO_AGENT_FOUND(131, "Failed to find a running agent after bootstrap completed."),
+	
+	/**
+	 * Some management components are not available after bootstrap completed (LUS/GSM/ESM).
+	 */
+	POST_BOOTSTRAP_MISSING_MGMT_COMPONENT(132, "Some management components (LUS/ESM/GSM) are not available after "
+			+ "bootstrap completed. Please review the logs for more details."),
+			
+	/**
+	 * Failed to find a required management service (space, web-UI or Rest) after bootstrap completed.
+	 */
+	POST_BOOTSTRAP_MISSING_MGMT_SERVICE(133, "Failed to find a required management service (space, web-UI or Rest) "
+			+ "after bootstrap completed. Please review the logs for more details."),
+	
+	/**
 	 * IMPORTANT NOTE: If the error code is larger than 200, you must edit bootstrap-management.sh or it 
 	 * would be re-thrown as code 255.
 	 */
