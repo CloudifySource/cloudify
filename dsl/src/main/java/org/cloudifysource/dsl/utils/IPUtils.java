@@ -343,23 +343,15 @@ public final class IPUtils {
 	 */
 	public static String resolveIpToHostName(final String ip) throws UnknownHostException {
 
-		final String[] chars = ip.split("\\.");
-
-		final byte[] add = new byte[chars.length];
-		for (int j = 0; j < chars.length; j++) {
-			add[j] = (byte) (int) Integer.valueOf(chars[j]);
-		}
-		
-		final InetAddress byAddress = InetAddress.getByAddress(add);
-		try {
-			if (byAddress.isReachable(DEFAULT_CONNECTION_TIMEOUT * MILLISECONDS_IN_A_SECOND)) {
-				return byAddress.getHostName();
-			} else {
-				return null;
-			}
-		} catch (final IOException e) {
-			return null; // not reachable
-		}
+		String hostName = "";
+    	try {
+    		InetAddress addr = InetAddress.getByName(ip);
+    		hostName = addr.getHostName();
+    	} catch (UnknownHostException e) {
+    		throw new IllegalStateException("could not resolve host name of ip " + ip);
+    	}
+    	
+    	return hostName;
 	}
 
 	/**
@@ -387,11 +379,10 @@ public final class IPUtils {
 
 	/**
 	 * Removes the interface part of the given IP address, if found. Examples:
-	 * [fe80::9da2:25f7:86ce:cddb%45] will be returned as
-	 * fe80::9da2:25f7:86ce:cddb] fe80::9da2:25f7:86ce:cddb%45 will be return as
-	 * fe80::9da2:25f7:86ce:cddb [fe80::9da2:25f7:86ce:cddb] will be return as
-	 * [fe80::9da2:25f7:86ce:cddb] fe80::9da2:25f7:86ce:cddb will be return as
-	 * fe80::9da2:25f7:86ce:cddb
+	 * [fe80::9da2:25f7:86ce:cddb%45] will be returned as [fe80::9da2:25f7:86ce:cddb]
+	 * fe80::9da2:25f7:86ce:cddb%45 will be returned as fe80::9da2:25f7:86ce:cddb
+	 * [fe80::9da2:25f7:86ce:cddb] will be returned as [fe80::9da2:25f7:86ce:cddb]
+	 * fe80::9da2:25f7:86ce:cddb will be returned as fe80::9da2:25f7:86ce:cddb
 	 * 
 	 * @param ipAddress
 	 *            The ipAddress to parse
@@ -446,20 +437,6 @@ public final class IPUtils {
 
 	
 	/**
-	 * Chechs if the given address is an IPv4 address.
-	 * @param address IP address
-	 * @return True is the address represents and IPv4 address, False otherwise
-	 * @throws UnknownHostException Indicates the address is not a known host
-	 */
-	/*public static boolean isIPv4Address(final String address) throws UnknownHostException {
-		InetAddress inetAddress = InetAddress.getByName(address);
-		System.out.println(inetAddress);
-
-		return (inetAddress instanceof Inet4Address);
-	}*/
-	
-	
-	/**
 	 * Chechs if the given address is an IPv6 address.
 	 * @param ipAddress IP address
 	 * @return True is the address represents and IPv6 address, False otherwise
@@ -483,25 +460,7 @@ public final class IPUtils {
 		return isIPv6;
 	}
 	
-	/**
-	 * Surrounds with brackets if this is an IPv6 address.
-	 * @param ipAddress IP address
-	 * @return IP address String, surrounded with brackets if this is an IPv6 address
-	 */
-	/*public static String bracketIfNeeded(final String ipAddress) {
-		String formattedAddress = ipAddress;
-		try {
-			String strippedIp = StringUtils.strip(ipAddress, "[]");
-			if (isIPv6Address(strippedIp)) {
-				formattedAddress = "[" + strippedIp + "]";
-			}
-		} catch (IllegalArgumentException e) {
-			//this is not a valid IPv6 address, no need to modify
-		}
-		
-		return formattedAddress;
-	}*/
-	
+
 	/**
 	 * Returns a "safe" formatted IP address - IPv4 addresses are not changed,
 	 * IPv6 addresses may change - if they include an "interface" section it is removed,
