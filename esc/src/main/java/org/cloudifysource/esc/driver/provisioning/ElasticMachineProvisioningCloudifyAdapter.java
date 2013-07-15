@@ -378,7 +378,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 			// This is to protect against a bug in the Admin. see CLOUDIFY-1592
 			// (https://cloudifysource.atlassian.net/browse/CLOUDIFY-1592)
-			validateMachineIp(machineDetails);
+			if (!machineDetails.isAgentRunning()) {
+				validateMachineIp(machineDetails);
+			}
 
 			// Auto populate installer configuration with values set in template
 			// if they were not previously set.
@@ -675,8 +677,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		final GridServiceAgent[] allAgents = originalESMAdmin.getGridServiceAgents().getAgents();
 
 		for (final GridServiceAgent gridServiceAgent : allAgents) {
-			if (gridServiceAgent.getMachine().getHostAddress().equals(machineIp) ||
-					gridServiceAgent.getMachine().getHostName().equals(machineIp)) {
+			if (gridServiceAgent.getMachine().getHostAddress().equals(machineIp) 
+					|| 	gridServiceAgent.getMachine().getHostName().equals(machineIp)) {
 				// Check if the reservation ID of the located machine is the one we expect.
 				// This handles the rare error where the Admin for some reason caches an entry for an old
 				// GSA running on the same IP (for a machine that was previously shut down_
