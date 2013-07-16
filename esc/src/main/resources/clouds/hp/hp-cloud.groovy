@@ -20,12 +20,12 @@ cloud {
 		managementMachineTemplate "SMALL_LINUX"
 		// Optional. Indicates whether internal cluster communications should use the machine private IP. Defaults to true.
 		connectToPrivateIp true
-		
+
 		// Optional. Path to folder where management state will be written. Null indicates state will not be written.
 		persistentStoragePath persistencePath
 	}
-	
-	
+
+
 
 	/*************
 	 * Provider specific information.
@@ -81,118 +81,165 @@ cloud {
 
 
 	}
-	
+
 	cloudStorage {
-			templates ([
-				SMALL_BLOCK : storageTemplate{
-								deleteOnExit true
-								size 1
-								path "/storage"
-								namePrefix "cloudify-storage-volume"
-								deviceName "/dev/vdc"
-								fileSystemType "ext4"
-								custom ([:])
-				}
+		templates ([
+			SMALL_BLOCK : storageTemplate{
+				deleteOnExit true
+				size 1
+				path "/storage"
+				namePrefix "cloudify-storage-volume"
+				deviceName "/dev/vdc"
+				fileSystemType "ext4"
+				custom ([:])
+			}
 		])
 	}
 
-	
+
 	cloudCompute {
-		
+
 		/***********
 		 * Cloud machine templates available with this cloud.
 		 */
 		templates ([
-					// Mandatory. Template Name.
-					SMALL_LINUX : computeTemplate{
-						// Mandatory. Image ID.
-						imageId linuxImageId
-						
-						// file transfer protocol
-						fileTransfer org.cloudifysource.dsl.cloud.FileTransferModes.SFTP
-						
-						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
-						remoteDirectory "/home/root/gs-files"
-						// Mandatory. Amount of RAM available to machine.
-						machineMemoryMB 1600
-						// Mandatory. Hardware ID.
-						hardwareId hardwareId
-						// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
-						localDirectory "upload"
-						// Optional. Name of key file to use for authenticating to the remot machine. Remove this line if key files
-						// are not used.
-						keyFile keyFile
-	
-						username "root"
-						// Additional template options.
-						// When used with the default driver, the option names are considered
-						// method names invoked on the TemplateOptions object with the value as the parameter.
-						options ([
-									"securityGroupNames" : [securityGroup]as String[],
-									"keyPairName" : keyPair,
-									"generateKeyPair": false,
-									"autoAssignFloatingIp": false
-								])
-	
-						// Optional. Overrides to default cloud driver behavior.
-						// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
-						overrides ([
-							"jclouds.keystone.credential-type":"apiAccessKeyCredentials"
-						])
-	
-						// enable sudo.
-						privileged true
-	
-						// optional. A native command line to be executed before the cloudify agent is started.
-						// initializationCommand "echo Cloudify agent is about to start"
-	
-					},
-					SMALL_UBUNTU : computeTemplate{
-						// Mandatory. Image ID.
-						imageId ubuntuImageId
-						
-						// file transfer protocol
-						fileTransfer org.cloudifysource.dsl.cloud.FileTransferModes.SFTP
-						
-						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
-						remoteDirectory "/home/ubuntu/gs-files"
-						// Mandatory. Amount of RAM available to machine.
-						machineMemoryMB 1600
-						// Mandatory. Hardware ID.
-						hardwareId hardwareId
-						// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
-						localDirectory "upload"
-						// Optional. Name of key file to use for authenticating to the remote machine. Remove this line if key files
-						// are not used.
-						keyFile keyFile
-	
-						username "ubuntu"
-						// Additional template options.
-						// When used with the default driver, the option names are considered
-						// method names invoked on the TemplateOptions object with the value as the parameter.
-						options ([
-									"securityGroupNames" : [securityGroup]as String[],
-									"keyPairName" : keyPair,
-									"generateKeyPair": false,
-									"autoAssignFloatingIp": false
-								])
-	
-						// Optional. Overrides to default cloud driver behavior.
-						// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
-						overrides ([
-							"jclouds.keystone.credential-type":"apiAccessKeyCredentials"
-						])
-	
-						// enable sudo.
-						privileged true
-	
-						// optional. A native command line to be executed before the cloudify agent is started.
-						// initializationCommand "echo Cloudify agent is about to start"
-					}
-	
-	
+			// Mandatory. Template Name.
+			SMALL_LINUX : computeTemplate{
+				// Mandatory. Image ID.
+				imageId linuxImageId
+
+				// file transfer protocol
+				fileTransfer org.cloudifysource.dsl.cloud.FileTransferModes.SFTP
+
+				// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
+				remoteDirectory "/home/root/gs-files"
+				// Mandatory. Amount of RAM available to machine.
+				machineMemoryMB 1600
+				// Mandatory. Hardware ID.
+				hardwareId hardwareId
+				// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
+				localDirectory "upload"
+				// Optional. Name of key file to use for authenticating to the remot machine. Remove this line if key files
+				// are not used.
+				keyFile keyFile
+
+				username "root"
+				// Additional template options.
+				// When used with the default driver, the option names are considered
+				// method names invoked on the TemplateOptions object with the value as the parameter.
+				options ([
+					"securityGroupNames" : [securityGroup]as String[],
+					"keyPairName" : keyPair,
+					"generateKeyPair": false,
+					"autoAssignFloatingIp": false
 				])
-	
+
+				// Optional. Overrides to default cloud driver behavior.
+				// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
+				overrides ([
+					"jclouds.keystone.credential-type":"apiAccessKeyCredentials"
+				])
+
+				// enable sudo.
+				privileged true
+
+				// optional. A native command line to be executed before the cloudify agent is started.
+				// initializationCommand "echo Cloudify agent is about to start"
+
+			},
+			MEDIUM_LINUX : computeTemplate{
+				// Mandatory. Image ID.
+				imageId imageId
+
+
+				// file transfer protocol
+				fileTransfer org.cloudifysource.dsl.cloud.FileTransferModes.SFTP
+
+				// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
+				remoteDirectory "/home/root/gs-files"
+				// Mandatory. Amount of RAM available to machine.
+				machineMemoryMB 3200
+				// Mandatory. Hardware ID.
+				hardwareId "m1.medium"
+				// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
+				localDirectory "upload"
+				// Optional. Name of key file to use for authenticating to the remot machine. Remove this line if key files
+				// are not used.
+				keyFile keyFile
+
+				username "root"
+				// Additional template options.
+				// When used with the default driver, the option names are considered
+				// method names invoked on the TemplateOptions object with the value as the parameter.
+				options ([
+					"securityGroupNames" : ["test"]as String[],
+					"keyPairName" : keyPair,
+					"generateKeyPair": false,
+					"autoAssignFloatingIp": false
+
+				])
+
+				// Optional. Overrides to default cloud driver behavior.
+				// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
+				overrides ([
+					"jclouds.keystone.credential-type":"apiAccessKeyCredentials"
+				])
+
+				// enable sudo.
+				privileged true
+
+				// optional. A native command line to be executed before the cloudify agent is started.
+				// initializationCommand "echo Cloudify agent is about to start"
+
+			}
+
+
+			SMALL_UBUNTU : computeTemplate{
+				// Mandatory. Image ID.
+				imageId ubuntuImageId
+
+				// file transfer protocol
+				fileTransfer org.cloudifysource.dsl.cloud.FileTransferModes.SFTP
+
+				// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
+				remoteDirectory "/home/ubuntu/gs-files"
+				// Mandatory. Amount of RAM available to machine.
+				machineMemoryMB 1600
+				// Mandatory. Hardware ID.
+				hardwareId hardwareId
+				// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
+				localDirectory "upload"
+				// Optional. Name of key file to use for authenticating to the remote machine. Remove this line if key files
+				// are not used.
+				keyFile keyFile
+
+				username "ubuntu"
+				// Additional template options.
+				// When used with the default driver, the option names are considered
+				// method names invoked on the TemplateOptions object with the value as the parameter.
+				options ([
+					"securityGroupNames" : [securityGroup]as String[],
+					"keyPairName" : keyPair,
+					"generateKeyPair": false,
+					"autoAssignFloatingIp": false
+				])
+
+				// Optional. Overrides to default cloud driver behavior.
+				// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
+				overrides ([
+					"jclouds.keystone.credential-type":"apiAccessKeyCredentials"
+				])
+
+				// enable sudo.
+				privileged true
+
+				// optional. A native command line to be executed before the cloudify agent is started.
+				// initializationCommand "echo Cloudify agent is about to start"
+			}
+
+
+		])
+
 	}
 
 
