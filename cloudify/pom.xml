@@ -16,6 +16,8 @@
 		<module>../security-ldap</module>
 		<module>../restful</module>
 		<module>../dsl</module>
+		<module>../domain</module>
+		<module>../utility-domain</module>
 		<module>../rest-client</module>
 		<module>../management-space</module>
 	</modules>

@@ -28,7 +28,7 @@
 		<dependency>
 			<groupId>org.cloudifysource</groupId>
 			<artifactId>utility-domain</artifactId>
-			<version>2.6.0-SNAPSHOT</version>
+			<version>${cloudifyVersion}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.gigaspaces</groupId>

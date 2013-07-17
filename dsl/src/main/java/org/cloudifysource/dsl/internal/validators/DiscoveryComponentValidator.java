@@ -17,7 +17,6 @@ package org.cloudifysource.dsl.internal.validators;
 
 import org.cloudifysource.domain.DSLValidation;
 import org.cloudifysource.domain.cloud.DiscoveryComponent;
-import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 
@@ -38,11 +37,11 @@ public class DiscoveryComponentValidator extends GridComponentValidator implemen
 	
 	@DSLValidation
 	void validatePorts(final DSLValidationContext validationContext) throws DSLValidationException {
-		if (this.entity.getDiscoveryPort() == null) {
-			entity.setDiscoveryPort(CloudifyConstants.DEFAULT_LUS_PORT);
-		}
+//		if (this.entity.getDiscoveryPort() == null) {
+//			entity.setDiscoveryPort(CloudifyConstants.DEFAULT_LUS_PORT);
+//		}
 		super.validatePort(this.entity.getPort());
-		super.validatePort(this.entity.getDiscoveryPort());
+//		super.validatePort(this.entity.getDiscoveryPort());
 	}
 	
 	@DSLValidation

@@ -10,17 +10,27 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.utilitydomain.openspaces;
+package org.cloudifysource.dsl.internal;
 
-/**
- * 
- * @author adaml
- *
- */
-public class OpenspacesConstants {
+public class CloudDependentConfigHolder {
 
-  public static final int DEFAULT_LUS_PORT = net.jini.discovery.Constants
-		  .getDiscoveryPort();
+	private Integer defaultLusPort;
+	private String downloadUrl;
 	
-  public static final int DEFAULT_LOCALCLOUD_LUS_PORT = DEFAULT_LUS_PORT + 2;
+	public String getDownloadUrl() {
+		return downloadUrl;
+	}
+	
+	public void setDownloadUrl(String downloadUrl) {
+		this.downloadUrl = downloadUrl;
+	}
+
+	public Integer getDefaultLusPort() {
+		return defaultLusPort;
+	}
+
+	public void setDefaultLusPort(Integer defaultLusPort) {
+		this.defaultLusPort = defaultLusPort;
+	}
+
 }

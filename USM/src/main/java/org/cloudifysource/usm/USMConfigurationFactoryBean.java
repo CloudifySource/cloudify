@@ -99,7 +99,7 @@ public class USMConfigurationFactoryBean implements FactoryBean<ServiceConfigura
 			throw new DSLException("Failed to get canonical path of work directory: " + canonicalPath + ". Error was: "
 					+ e.getMessage(), e);
 		}
-		//TODO: Why are these the same
+		//TODO: Why are these the same? do I still need the isRunningInGSC flag?
 		if (isRunningInGSC) {
 			serviceContext = new ServiceContextImpl(clusterInfoToUseInGsc, canonicalPath);
 		} else {
@@ -107,7 +107,7 @@ public class USMConfigurationFactoryBean implements FactoryBean<ServiceConfigura
 		}
 
 		DSLReader dslReader = new DSLReader();
-		dslReader.setContext(serviceContext);
+		dslReader.setCreateServiceContext(false);
 		dslReader.setPropertiesFileName(propertiesFileName);
 		dslReader.setRunningInGSC(isRunningInGSC);
 		dslReader.setDslFile(dslFile);
