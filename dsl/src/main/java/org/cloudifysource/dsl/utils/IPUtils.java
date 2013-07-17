@@ -420,7 +420,7 @@ public final class IPUtils {
 	 * @return True if the two addresses represent the same address, False
 	 *         otherwise.
 	 */
-	public static boolean isSameIpv6Address(final String address1, final String address2) {
+	private static boolean isSameIpv6Address(final String address1, final String address2) {
 
 		boolean adressesEquals = false;
 		
@@ -433,6 +433,33 @@ public final class IPUtils {
 		}
 
 		return adressesEquals;
+	}
+	
+	/**
+	 * Compares two IP addresses. The addresses can be in the full IPv6 format,
+	 * short format or iPv4MappedIPv6Address.
+	 * If the IP address is empty or mis-formatted, False is returned.
+	 * 
+	 * @param address1
+	 *            The first IP address.
+	 * @param address2
+	 *            The second IP address.
+	 * @return True if the two addresses represent the same address, False otherwise.
+	 */
+	public static boolean isSameIpAddress(final String address1, final String address2) {
+		
+		boolean isSameAddress = false;
+		if (StringUtils.isBlank(address1) || StringUtils.isBlank(address2)) {
+			//remain false;
+		} else {
+			if (isIPv6Address(address1) && isIPv6Address(address2)) {
+				isSameAddress = isSameIpv6Address(address1, address2);
+			} else {
+				isSameAddress = address1.equalsIgnoreCase(address2);
+			}			
+		}
+		
+		return isSameAddress;
 	}
 
 	

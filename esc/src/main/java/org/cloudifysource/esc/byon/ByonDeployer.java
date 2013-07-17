@@ -397,10 +397,7 @@ public class ByonDeployer {
 		CustomNode selectedNode = null;
 
 		for (final CustomNode node : getAllNodesByTemplateName(templateName)) {
-			if ((StringUtils.isNotBlank(node.getPrivateIP()) && node
-					.getPrivateIP().equalsIgnoreCase(ipAddress))
-					|| (StringUtils.isNotBlank(node.getPrivateIP()) && node
-							.getPrivateIP().equalsIgnoreCase(ipAddress))) {
+			if (IPUtils.isSameIpAddress(node.getPrivateIP(), ipAddress)) {
 				selectedNode = node;
 				break;
 			}
