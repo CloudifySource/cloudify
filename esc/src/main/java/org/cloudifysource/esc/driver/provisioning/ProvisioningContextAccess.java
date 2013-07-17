@@ -19,13 +19,13 @@ package org.cloudifysource.esc.driver.provisioning;
  * @since 2.6.1
  * 
  */
-public final class ProvisioningContextAccess {
+public class ProvisioningContextAccess {
 
 	private static ThreadLocal<ProvisioningContext> contextHolder = new ThreadLocal<ProvisioningContext>();
 	private static ThreadLocal<ManagementProvisioningContext> mgtContextHolder =
 			new ThreadLocal<ManagementProvisioningContext>();
 
-	private ProvisioningContextAccess() {
+	public ProvisioningContextAccess() {
 
 	}
 
