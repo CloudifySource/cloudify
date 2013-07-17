@@ -480,7 +480,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		// GridServiceAgent agent = agentsMap.get(ipAddress);
 		GSA agent = null;
 		for (final Entry<String, GridServiceAgent> agentEntry : agentsMap.entrySet()) {
-			if (IPUtils.isSameIpv6Address(agentEntry.getKey(), ipAddress)
+			if (IPUtils.isSameIpAddress(agentEntry.getKey(), ipAddress)
 					|| agentEntry.getKey().equalsIgnoreCase(ipAddress)) {
 				agent = ((InternalGridServiceAgent) agentEntry.getValue()).getGSA();
 			}
