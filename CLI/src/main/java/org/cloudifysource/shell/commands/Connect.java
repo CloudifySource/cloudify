@@ -15,9 +15,12 @@
  *******************************************************************************/
 package org.cloudifysource.shell.commands;
 
+import java.lang.reflect.Method;
+
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
+import org.cloudifysource.dsl.internal.CloudDependentConfigHolder;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
 import org.fusesource.jansi.Ansi.Color;
@@ -69,5 +72,24 @@ public class Connect extends AbstractGSCommand {
         
         return formattedMessage;
     }
+    
+    public static void main(String[] args) {
+    	CloudDependentConfigHolder cloudDependentProps = getCloudDependentProps();
+    	System.out.println(cloudDependentProps.getDownloadUrl());
+    	System.out.println(cloudDependentProps.getDefaultLusPort());
+	}
+    
+	private static CloudDependentConfigHolder getCloudDependentProps() {
+		final String utilDomainClass = "org.cloudifysource.utilitydomain.openspaces.OpenspacesDomainUtils";
+		try {
+			final Object utilDomainClassInstance = Class.forName(utilDomainClass).newInstance();
+			final Method getCloudDependentConfMethod = utilDomainClassInstance.getClass().getMethod("getCloudDependentConfig"); 
+			return (CloudDependentConfigHolder) getCloudDependentConfMethod.invoke(utilDomainClassInstance, (Object[]) null);
+		} catch (Exception e) {
+			//Failed since openspaces is not in classpath.
+			//This could happen
+			return null;
+		}
+	}
 
 }

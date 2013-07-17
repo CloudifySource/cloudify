@@ -14,11 +14,6 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.cloudifysource</groupId>
-			<artifactId>utility-domain</artifactId>
-			<version>2.6.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 			<version>14.0</version>
@@ -34,6 +29,12 @@
 			<artifactId>dsl</artifactId>
 			<version>${cloudifyVersion}</version>
 			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<artifactId>domain</artifactId>
+					<groupId>org.cloudifysource</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.cloudifysource</groupId>
@@ -402,6 +403,10 @@
 					<artifactId>jsch</artifactId>
 					<groupId>com.jcraft</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>utility-domain</artifactId>
+					<groupId>org.cloudifysource</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -439,6 +444,16 @@
 		</dependency>
 
 
+		<dependency>
+			<groupId>org.cloudifysource</groupId>
+			<artifactId>domain</artifactId>
+			<version>${cloudifyVersion}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cloudifysource</groupId>
+			<artifactId>utility-domain</artifactId>
+			<version>${cloudifyVersion}</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<defaultGoal>install</defaultGoal>
@@ -485,7 +500,7 @@
 							<name>RestDoclet</name>
 							<description>REST ${project.version} API documentation.</description>
 							<doclet>org.cloudifysource.restDoclet.generation.RestDoclet</doclet>
-							<docletPath>${project.build.directory}/classes:${basedir}/../dsl/target/classes</docletPath>
+							<docletPath>${project.build.directory}/classes:${basedir}/../dsl/target/classes:${basedir}/../domain/target/classes</docletPath>
 							<sourcepath>${basedir}/src/main/java/org/cloudifysource/rest/controllers;</sourcepath>
 							<docletArtifacts>
 								<docletArtifact>
