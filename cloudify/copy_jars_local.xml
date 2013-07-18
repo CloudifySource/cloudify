@@ -53,6 +53,8 @@
 			        <include name="esc-${cloudify.version}-${cloudify.jars.suffix}*.jar" />
 			    </fileset>
 			</copy>
+			<copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../domain/target/domain.jar" />
+			<copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../utility-domain/target/utility-domain.jar" />
 		</sequential>
 	</macrodef>
 
