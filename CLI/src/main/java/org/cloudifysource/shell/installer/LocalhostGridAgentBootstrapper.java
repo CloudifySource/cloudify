@@ -154,7 +154,7 @@ public class LocalhostGridAgentBootstrapper {
 	private boolean noWebServices;
 	private boolean noManagementSpace;
 	private boolean notHighlyAvailableManagementSpace;
-	private int lusPort = OpenspacesConstants.DEFAULT_LUS_PORT;
+//	private int lusPort = OpenspacesConstants.DEFAULT_LUS_PORT;
 	private boolean waitForWebUi;
 
 	private String cloudFilePath;
@@ -631,8 +631,6 @@ public class LocalhostGridAgentBootstrapper {
 	}
 
 	private void setDefaultLocalcloudLookup() {
-
-		lusPort = OpenspacesConstants.DEFAULT_LOCALCLOUD_LUS_PORT;
 
 		if (lookupLocators == null) {
 			setLookupLocators(getLocalcloudLookupLocators());
@@ -1147,7 +1145,11 @@ public class LocalhostGridAgentBootstrapper {
 	}
 
 	private boolean fastExistingAgentCheck() {
-		return !ServiceUtils.isPortFree(lusPort);
+		if (isLocalCloud) {
+			return !ServiceUtils.isPortFree(OpenspacesConstants.DEFAULT_LOCALCLOUD_LUS_PORT);
+		}
+		return !ServiceUtils.isPortFree(
+				this.cloud.getConfiguration().getComponents().getDiscovery().getDiscoveryPort());
 	}
 
 	/**
@@ -1445,7 +1447,7 @@ public class LocalhostGridAgentBootstrapper {
 		String localCloudOptions =
 				"-Xmx" + CloudifyConstants.DEFAULT_LOCALCLOUD_GSA_GSM_ESM_LUS_MEMORY_IN_MB + "m" + " -D"
 						+ CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY + "="
-						+ lusPort + " -D" + GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE + "="
+						+ OpenspacesConstants.DEFAULT_LOCALCLOUD_LUS_PORT + " -D" + GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE + "="
 						+ GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL
 						+ " " + GSM_PENDING_REQUESTS_DELAY
 						+ " -D" + ZONES_PROPERTY + "=" + LOCALCLOUD_GSA_ZONES
