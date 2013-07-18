@@ -13,6 +13,6 @@ var ServicesDynamicProperties={
 	gscInstancesName:"USMs",
 	esmInstancesName:"Orchestrators",
 	lusInstancesName:"Discovery Services",	
-    deployAction:"Deploy",
-    undeployAction:"Undeploy"
+    deployAction:"Install",
+    undeployAction:"Uninstall"
 };
