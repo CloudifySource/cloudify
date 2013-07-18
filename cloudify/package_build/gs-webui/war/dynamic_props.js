@@ -12,5 +12,7 @@ var ServicesDynamicProperties={
 	gsmInstancesName:"Deployers",
 	gscInstancesName:"USMs",
 	esmInstancesName:"Orchestrators",
-	lusInstancesName:"Discovery Services"	
+	lusInstancesName:"Discovery Services",	
+    deployAction:"Deploy",
+    undeployAction:"Undeploy"
 };
