@@ -415,7 +415,7 @@ public class ByonDeployer {
 	 * @throws CloudProvisioningException
 	 *             Indicates the servers list could not be obtained for the given template name
 	 */
-	public Set<CustomNode> getAllNodesByTemplateName(final String templateName)
+	public synchronized Set<CustomNode> getAllNodesByTemplateName(final String templateName)
 			throws CloudProvisioningException {
 		final Set<CustomNode> allNodes = new HashSet<CustomNode>();
 
@@ -449,7 +449,7 @@ public class ByonDeployer {
 	 * @throws CloudProvisioningException
 	 *             Indicates the servers list could not be obtained for the given template name
 	 */
-	public Set<CustomNode> getFreeNodesByTemplateName(final String templateName)
+	public synchronized Set<CustomNode> getFreeNodesByTemplateName(final String templateName)
 			throws CloudProvisioningException {
 		final Set<CustomNode> allNodes = new HashSet<CustomNode>();
 
@@ -475,7 +475,7 @@ public class ByonDeployer {
 	 * @throws CloudProvisioningException
 	 *             Indicates the servers list could not be obtained for the given template name
 	 */
-	public Set<CustomNode> getAllocatedNodesByTemplateName(
+	public synchronized Set<CustomNode> getAllocatedNodesByTemplateName(
 			final String templateName) throws CloudProvisioningException {
 		final Set<CustomNode> allNodes = new HashSet<CustomNode>();
 
@@ -501,7 +501,7 @@ public class ByonDeployer {
 	 * @throws CloudProvisioningException
 	 *             Indicates the servers list could not be obtained for the given template name
 	 */
-	public Set<CustomNode> getInvalidNodesByTemplateName(
+	public synchronized Set<CustomNode> getInvalidNodesByTemplateName(
 			final String templateName) throws CloudProvisioningException {
 		final Set<CustomNode> allNodes = new HashSet<CustomNode>();
 
@@ -555,6 +555,39 @@ public class ByonDeployer {
 			invalidNodesPool.add(serverName);
 		}
 	}
+	
+	/**
+	 * Removes the specified templates.
+	 * @param redundantTemplates the redundant templates to remove
+	 * @throws CloudProvisioningException .
+	 */
+	public synchronized void removeTemplates(final List<String> redundantTemplates) 
+			throws CloudProvisioningException {
+		for (String templateName : redundantTemplates) {
+			Map<String, List<CustomNode>> nodesMap = nodesListsByTemplates.get(templateName);
+			List<CustomNode> allocatedNodesList = nodesMap.get(NODES_LIST_ALLOCATED);
+			if (allocatedNodesList != null && !allocatedNodesList.isEmpty()) {
+				String errMsg = "Failed to remove template [" + templateName
+						+ "] from deployer, some nodes are still allocated: " + allocatedNodesList;
+				logger.log(Level.WARNING, errMsg);
+				throw new CloudProvisioningException(errMsg);
+			}
+			nodesListsByTemplates.remove(templateName);
+		}
+	}
+	
+	
+	/**
+	 * Gets the templates' list.
+	 * @return A map, where the key is the template name and the value is a map of pool name (free/in use/invalid) vs. 
+	 * the matching nodes.
+	 */
+	public synchronized List<String> getTemplatesList() {
+		List<String> templatesList = new LinkedList<String>();
+		templatesList.addAll(nodesListsByTemplates.keySet());
+		return templatesList;
+	}
+	
 
 	/**
 	 * closes the deployer, currently not doing anything.
@@ -562,6 +595,8 @@ public class ByonDeployer {
 	public void close() {
 		// Do nothing
 	}
+	
+	// --------------------- private methods ---------------------
 
 	private List<CustomNode> getAllNodes() throws CloudProvisioningException {
 		final List<CustomNode> allNodes = new ArrayList<CustomNode>();
@@ -627,6 +662,7 @@ public class ByonDeployer {
 
 		nodesListsByTemplates.put(templateName, templateLists);
 	}
+	
 
 	private static List<CustomNode> removeDuplicates(
 			final List<CustomNode> customNodesList) {
@@ -638,6 +674,7 @@ public class ByonDeployer {
 		}
 		return totalList;
 	}
+	
 
 	private static Set<String> getDuplicateIPs(final List<CustomNode> oldNodes,
 			final List<CustomNode> newNodes) {
@@ -655,6 +692,7 @@ public class ByonDeployer {
 
 		return existingIPs;
 	}
+	
 
 	private static List<CustomNode> aggregateWithoutDuplicates(
 			final List<CustomNode> basicList, final List<CustomNode> newItems) {
@@ -667,26 +705,6 @@ public class ByonDeployer {
 		return totalList;
 	}
 
-	public List<String> getTemplatesList() {
-		List<String> templatesList = new LinkedList<String>();
-		templatesList.addAll(nodesListsByTemplates.keySet());
-		return templatesList;
-	}
-
-	public void removeTemplates(List<String> redundantTemplates) throws CloudProvisioningException {
-		for (String templateName : redundantTemplates) {
-			Map<String, List<CustomNode>> nodesMap = nodesListsByTemplates.get(templateName);
-			List<CustomNode> allocatedNodesList = nodesMap.get(NODES_LIST_ALLOCATED);
-			if (allocatedNodesList != null && !allocatedNodesList.isEmpty()) {
-				String errMsg = "Failed to remove template [" + templateName
-						+ "] from deployer, some nodes are still allocated: " + allocatedNodesList;
-				logger.log(Level.WARNING, errMsg);
-				throw new CloudProvisioningException(errMsg);
-			}
-			nodesListsByTemplates.remove(templateName);
-		}
-	}
-	
 	
 	/**
 	 * Builds a string representing the given list of nodes, including only their main details
