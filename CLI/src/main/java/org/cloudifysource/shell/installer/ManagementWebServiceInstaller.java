@@ -37,6 +37,7 @@ import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.exceptions.CLIException;
+import org.openspaces.admin.Admin;
 import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.gsc.GridServiceContainer;
 import org.openspaces.admin.pu.ProcessingUnit;
@@ -199,7 +200,8 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	public void waitForInstallation(final AdminFacade adminFacade, final GridServiceAgent agent, final long timeout,
 			final TimeUnit timeunit) throws InterruptedException, TimeoutException, CLIException {
 		final long startTime = System.currentTimeMillis();
-		final URL url = waitForProcessingUnitInstance(agent, timeout, timeunit);
+		waitForProcessingUnitInstance(agent, timeout, timeunit);
+		final URL url = getProcessingUnitUrl(agent);
 		final long remainingTime = timeunit.toMillis(timeout) - (System.currentTimeMillis() - startTime);
 		if (waitForConnection) {
 			waitForConnection(adminFacade, username, password, url, remainingTime, TimeUnit.MILLISECONDS);
@@ -213,6 +215,48 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	public void setWaitForConnection() {
 		waitForConnection = true;
 	}
+	
+	
+	@Override
+	public void validateManagementService(final Admin admin, final GridServiceAgent agent, final long timeout, 
+			final TimeUnit timeunit) throws InterruptedException, TimeoutException, CLIException {
+		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
+			private boolean messagePublished = false;
+
+			/**
+			 * {@inheritDoc}
+			 */
+			@Override
+			public boolean isDone() throws CLIException, InterruptedException {
+				logger.fine("Waiting for " + serviceName + " service.");
+				if (!messagePublished) {
+					messagePublished = true;
+				}
+				final ProcessingUnit pu = admin.getProcessingUnits().getProcessingUnit(serviceName);
+				boolean isDone = false;
+				if (pu != null) {
+					for (final ProcessingUnitInstance instance : pu) {
+						GridServiceContainer gsc = instance.getGridServiceContainer();
+						if (gsc != null) {
+							GridServiceAgent gsa = gsc.getGridServiceAgent();
+							if (gsa != null && (agent.equals(gsa))) {
+								isDone = true;
+								break;
+							}
+						}
+					}
+				}
+
+				if (!isDone) {
+					publishEvent(null);
+				}
+
+				return isDone;
+			}
+		});
+
+		return;
+	}
 
 	/**
 	 * Waits for a PU instance to be available, indicating the service is installed and running. If the
@@ -224,7 +268,6 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	 *            number of {@link TimeUnit}s to wait
 	 * @param timeunit
 	 *            The {@link TimeUnit} to use
-	 * @return URL The URL of the service
 	 * @throws InterruptedException
 	 *             Reporting the thread is interrupted while waiting
 	 * @throws TimeoutException
@@ -232,7 +275,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	 * @throws CLIException
 	 *             Reporting different errors while creating the connection to the PU
 	 */
-	public URL waitForProcessingUnitInstance(final GridServiceAgent agent, final long timeout, final TimeUnit timeunit)
+	public void waitForProcessingUnitInstance(final GridServiceAgent agent, final long timeout, final TimeUnit timeunit)
 			throws InterruptedException, TimeoutException, CLIException {
 
 		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
@@ -272,6 +315,15 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 			}
 		});
 
+	}
+	
+
+	/**
+	 * Gets the URL of the service.
+	 * @param agent The grid service agent to use
+	 * @return the URL of the service
+	 */
+	private URL getProcessingUnitUrl(final GridServiceAgent agent) {
 		// TODO [noak]: verify this always the correct port (SSL-wise) ?
 		final URL url = getWebProcessingUnitURL(agent, getProcessingUnit(), isSecureConnection);
 		final String serviceNameCapital = StringUtils.capitalize(serviceName);
@@ -282,7 +334,8 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 		publishEvent(formattedMessage);
 		return url;
 	}
-
+	
+	
 	/**
 	 * Waits for a connection to be established with the service. If the timeout is reached before a connection could be
 	 * established, a {@link TimeoutException} is thrown.

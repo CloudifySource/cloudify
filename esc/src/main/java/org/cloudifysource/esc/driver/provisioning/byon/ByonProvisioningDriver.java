@@ -127,7 +127,9 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		for (Entry<String, ComputeTemplate> templateEntry : templatesMap.entrySet()) {
 			String templateName = templateEntry.getKey();
 			try {
-				nodesList = ByonUtils.getTemplateNodesList(templateEntry.getValue());
+				ComputeTemplate template = templateEntry.getValue();
+				validateTemplate(templateName, template);
+				nodesList = ByonUtils.getTemplateNodesList(templateEntry.getValue());				
 			} catch (CloudProvisioningException e) {
 				publishEvent(CloudifyErrorMessages.MISSING_NODES_LIST.getName(), templateName);
 				throw new CloudProvisioningException("Failed to create BYON cloud deployer, invalid configuration for "
@@ -136,6 +138,35 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 			deployer.addNodesList(templateName, templatesMap.get(templateName), nodesList);
 		}
 	}
+	
+	// if the hosts list include IPv6 addresses - verify the file transfer protocol is SCP
+	private void validateTemplate(final String templateName, final ComputeTemplate template) 
+			throws CloudProvisioningException {
+		
+		boolean ipv6Used = false;
+		
+		try {
+			List<CustomNode> nodes = ByonUtils.parseCloudNodes(template);
+			for (CustomNode node : nodes) {
+				if (StringUtils.isNotBlank(node.getPrivateIP()) && IPUtils.isIPv6Address(node.getPrivateIP())) {
+					ipv6Used = true;
+					break;
+				}
+			}
+			
+			if (ipv6Used) {
+				//verify file transfer is set to SCP
+				FileTransferModes fileTransferMode = template.getFileTransfer();
+				if (fileTransferMode == null || !fileTransferMode.equals(FileTransferModes.SCP)) {
+					throw new CloudProvisioningException("Invalid file transfer set for template " 
+						+ templateName + ". Templates that use IPv6 addresses must use SCP for file transer.");
+				}
+			}
+		} catch (CloudProvisioningException e) {
+			throw new CloudProvisioningException("Invalid configuration for template " + templateName 
+					+ ", reported error: " + e.getMessage(), e);
+		}
+	}	
 	
 
 	/**********
@@ -666,39 +697,26 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		boolean ipv6Used = false;
 		Map<String, ComputeTemplate> templatesMap = cloud.getCloudCompute().getTemplates();
 		
+		validationContext.validationOngoingEvent(ValidationMessageType.GROUP_VALIDATION_MESSAGE,
+				getFormattedMessage("validating_all_templates"));
+		
 		for (Entry<String, ComputeTemplate> templateEntry : templatesMap.entrySet()) {
-			ipv6Used = false;
 			String templateName = templateEntry.getKey();
 			template = templateEntry.getValue();
-			
 			validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
 					getFormattedMessage("validating_template", templateName));
 			try {
-				List<CustomNode> nodes = ByonUtils.parseCloudNodes(template);
-				for (CustomNode node : nodes) {
-					if (StringUtils.isNotBlank(node.getPrivateIP()) && IPUtils.isIPv6Address(node.getPrivateIP())) {
-						ipv6Used = true;
-						break;
-					}
-				}
-				
-				if (ipv6Used) {
-					//verify file transfer is set to SCP
-					FileTransferModes fileTransferMode = template.getFileTransfer();
-					if (fileTransferMode == null || !fileTransferMode.equals(FileTransferModes.SCP)) {
-						throw new CloudProvisioningException("Invalid file transfer set for template " 
-							+ templateName + ". Templates that use IPv6 addresses must use SCP for file transer.");
-					}
-				}
+				validateTemplate(templateName, template);
 				validationContext.validationEventEnd(ValidationResultType.OK);
 			} catch (CloudProvisioningException e) {
 				validationContext.validationEventEnd(ValidationResultType.ERROR);
-				throw new CloudProvisioningException("Invalid configuration for template " + templateName 
-						+ ", reported error: " + e.getMessage(), e);
+				throw e;
 			}
 		}
 
+
 	}
+
 
 	@Override
 	public MachineDetails[] getExistingManagementServers() throws CloudProvisioningException {

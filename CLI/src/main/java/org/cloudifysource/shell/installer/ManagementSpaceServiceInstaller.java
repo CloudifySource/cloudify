@@ -23,6 +23,7 @@ import java.util.concurrent.TimeoutException;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.exceptions.CLIException;
+import org.openspaces.admin.Admin;
 import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.pu.ProcessingUnitAlreadyDeployedException;
 import org.openspaces.admin.pu.ProcessingUnitDeployment;
@@ -252,6 +253,14 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 			logger.fine("Management space is available.");
 		}
 	}
+	
+	
+	@Override
+	public void validateManagementService(final Admin admin, final GridServiceAgent agent, final long timeout, 
+			final TimeUnit timeunit) throws InterruptedException, TimeoutException, CLIException {
+		waitForInstallation(null /*adminFacade*/, agent, timeout, timeunit);
+	}
+	
 
 	/**
 	 * Returns the {@link GigaSpace} member used.
