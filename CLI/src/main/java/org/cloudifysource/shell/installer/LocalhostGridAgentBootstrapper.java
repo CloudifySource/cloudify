@@ -1044,7 +1044,7 @@ public class LocalhostGridAgentBootstrapper {
 		}
 	}
 	
-	private void waitForManagementServices(
+	/*private void waitForManagementServices(
 			final List<AbstractManagementServiceInstaller> managementServicesInstallers, final long end)
 			throws CLIException, InterruptedException, TimeoutException {
 		
@@ -1052,36 +1052,48 @@ public class LocalhostGridAgentBootstrapper {
 		connectionLogs.supressConnectionErrors();
 		final Admin admin = createAdmin();
 		
+		logger.fine("Starting waitForManagementServices to verify the management services are still up...");
+		
 		try {
 			setLookupDefaults(admin);
 			GridServiceAgent agent = null;
 			try {
 				try {
-					// wait for LUS, GSM and ESM services to start
+					// find the running agent
+					logger.fine("Attempting to find the running agent...");
 					if (!isLocalCloud || fastExistingAgentCheck()) {
 						agent = waitForExistingAgent(admin, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), 
 								TimeUnit.MILLISECONDS);
+						if (agent == null) {
+							// no existing agent running on local machine
+							logger.warning("Error! Failed to find a running agent after bootstrap completed");
+							throw new CLIValidationException(131, 
+									CloudifyErrorMessages.POST_BOOTSTRAP_NO_AGENT_FOUND.getName());
+						}
+						logger.fine("OK, agent was found.");
 					}
 				} catch (final Exception e) {
 					// no existing agent running on local machine
+					logger.warning("Error! Failed to find a running agent after bootstrap completed. Reported error: " 
+							+ e.getMessage());
 					throw new CLIValidationException(e, 131, 
 							CloudifyErrorMessages.POST_BOOTSTRAP_NO_AGENT_FOUND.getName());
 				}
 			} finally {
 				connectionLogs.restoreConnectionErrors();
 			}
-			
-			if (agent == null) {
-				// no existing agent running on local machine
-				throw new CLIValidationException(131, CloudifyErrorMessages.POST_BOOTSTRAP_NO_AGENT_FOUND.getName());
-			}
+
 
 			try {
-				// wait for LUS, GSM and ESM services to start
+				// wait for LUS, GSM and ESM components to start
+				logger.fine("Attempting to find the running management componenets (LUS, GSM and ESM)...");
 				waitForManagementProcesses(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), 
 						TimeUnit.MILLISECONDS);
+				logger.fine("OK, LUS, GSM and ESM are up and running.");
 			} catch (final Exception e) {
 				// LUS, GSM or ESM not found
+				logger.warning("Error! Some management components (LUS/ESM/GSM) are not available after bootstrap "
+						+ "completed. Reported error: "  + e.getMessage());
 				throw new CLIValidationException(e, 132, 
 						CloudifyErrorMessages.POST_BOOTSTRAP_MISSING_MGMT_COMPONENT.getName());
 			}
@@ -1090,14 +1102,22 @@ public class LocalhostGridAgentBootstrapper {
 			try {
 				for (final AbstractManagementServiceInstaller managementServiceInstaller 
 						: managementServicesInstallers) {
+					String serviceName = "";
 					try {
-						managementServiceInstaller.waitForInstallation(adminFacade, agent,
+						serviceName = managementServiceInstaller.getServiceName();
+						logger.fine("Attempting to find a running management service " + serviceName + "...");
+						//validateManagementService(admin, agent, serviceName, 
+						//		ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
+						managementServiceInstaller.validateManagementService(admin, agent,
 								ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
+						logger.fine("OK, management service " + serviceName + " is up and running.");
 					} catch (Exception e) {
 						// management service not found
+						logger.warning("Error! Management service " + serviceName + " is not available after bootstrap "
+								+ "completed. Reported error: "  + e.getMessage());
 						throw new CLIValidationException(e, 133, 
 								CloudifyErrorMessages.POST_BOOTSTRAP_MISSING_MGMT_SERVICE.getName(), 
-								managementServiceInstaller.getServiceName());
+								serviceName);
 					}					
 				}
 			} finally {
@@ -1106,7 +1126,7 @@ public class LocalhostGridAgentBootstrapper {
 		} finally {
 			admin.close();
 		}
-	}
+	}*/
 
 	
 	private String getGscLrmiCommandLineArg() {
@@ -1708,4 +1728,44 @@ public class LocalhostGridAgentBootstrapper {
 		this.cloudFilePath = cloudFilePath;
 	}
 
+
+	/*public void validateManagementService(final Admin admin, final GridServiceAgent agent, final String serviceName,
+			final long timeout, final TimeUnit timeunit) throws InterruptedException, TimeoutException, CLIException {
+		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
+			private boolean messagePublished = false;
+
+			/**
+			 * {@inheritDoc}
+			 */
+			/*@Override
+			public boolean isDone() throws CLIException, InterruptedException {
+				logger.fine("Waiting for " + serviceName + " service.");
+				if (!messagePublished) {
+					messagePublished = true;
+				}
+				final ProcessingUnit pu = admin.getProcessingUnits().getProcessingUnit(serviceName);
+				boolean isDone = false;
+				if (pu != null) {
+					for (final ProcessingUnitInstance instance : pu) {
+						GridServiceContainer gsc = instance.getGridServiceContainer();
+						if (gsc != null) {
+							GridServiceAgent gsa = gsc.getGridServiceAgent();
+							if (gsa != null && (agent.equals(gsa))) {
+								isDone = true;
+								break;
+							}
+						}
+					}
+				}
+
+				if (!isDone) {
+					publishEvent(null);
+				}
+
+				return isDone;
+			}
+		});
+
+		return;
+	}*/
 }

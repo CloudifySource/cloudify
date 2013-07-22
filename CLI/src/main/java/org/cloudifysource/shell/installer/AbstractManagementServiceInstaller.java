@@ -162,6 +162,27 @@ public abstract class AbstractManagementServiceInstaller {
 	 */
 	public abstract void waitForInstallation(AdminFacade adminFacade, GridServiceAgent agent, long timeout,
 			TimeUnit timeunit) throws InterruptedException, TimeoutException, CLIException;
+	
+	/**
+	 * Validates the service (management space or PU) is still available.
+	 *
+	 * @param admin
+	 *            An admin object
+	 * @param agent
+	 *            A grid service agent
+	 * @param timeout
+	 *            number of {@link TimeUnit}s to wait
+	 * @param timeunit
+	 *            The time unit to use
+	 * @throws InterruptedException
+	 *             Thrown when the thread is interrupted
+	 * @throws TimeoutException
+	 *             Reporting the time out was reached
+	 * @throws CLIException
+	 *             Reporting a failure to check the installation progress
+	 */
+	public abstract void validateManagementService(final Admin admin, final GridServiceAgent agent, final long timeout,
+			final TimeUnit timeunit) throws InterruptedException, TimeoutException, CLIException;
 
 	/**
 	 * Gets a Grid Service Manager to deploy the service.

@@ -155,6 +155,56 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		setCustomSettings(cloud);
 	}
 
+	@SuppressWarnings("unchecked")
+	private void addTemplatesToDeployer(final ByonDeployer deployer, final Map<String, ComputeTemplate> templatesMap)
+			throws Exception {
+		List<Map<String, String>> nodesList = null;
+		
+		for (Entry<String, ComputeTemplate> templateEntry : templatesMap.entrySet()) {
+			String templateName = templateEntry.getKey();
+			try {
+				ComputeTemplate template = templateEntry.getValue();
+				validateTemplate(templateName, template);
+				nodesList = ByonUtils.getTemplateNodesList(templateEntry.getValue());				
+			} catch (CloudProvisioningException e) {
+				publishEvent(CloudifyErrorMessages.MISSING_NODES_LIST.getName(), templateName);
+				throw new CloudProvisioningException("Failed to create BYON cloud deployer, invalid configuration for "
+						+ "tempalte " + templateName + ", reported error: " + e.getMessage(), e);
+			}
+			deployer.addNodesList(templateName, templatesMap.get(templateName), nodesList);
+		}
+	}
+	
+	// if the hosts list include IPv6 addresses - verify the file transfer protocol is SCP
+	private void validateTemplate(final String templateName, final ComputeTemplate template) 
+			throws CloudProvisioningException {
+		
+		boolean ipv6Used = false;
+		
+		try {
+			List<CustomNode> nodes = ByonUtils.parseCloudNodes(template);
+			for (CustomNode node : nodes) {
+				if (StringUtils.isNotBlank(node.getPrivateIP()) && IPUtils.isIPv6Address(node.getPrivateIP())) {
+					ipv6Used = true;
+					break;
+				}
+			}
+			
+			if (ipv6Used) {
+				//verify file transfer is set to SCP
+				FileTransferModes fileTransferMode = template.getFileTransfer();
+				if (fileTransferMode == null || !fileTransferMode.equals(FileTransferModes.SCP)) {
+					throw new CloudProvisioningException("Invalid file transfer set for template " 
+						+ templateName + ". Templates that use IPv6 addresses must use SCP for file transer.");
+				}
+			}
+		} catch (CloudProvisioningException e) {
+			throw new CloudProvisioningException("Invalid configuration for template " + templateName 
+					+ ", reported error: " + e.getMessage(), e);
+		}
+	}	
+	
+
 	/**********
 	 * .
 	 *
@@ -663,9 +713,26 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	@Override
 	public void validateCloudConfiguration(final ValidationContext validationContext) 
 			throws CloudProvisioningException {
-		// TODO Auto-generated method stub
-	}
 
+		ComputeTemplate template = null;
+		Map<String, ComputeTemplate> templatesMap = cloud.getCloudCompute().getTemplates();
+		
+		validationContext.validationOngoingEvent(ValidationMessageType.GROUP_VALIDATION_MESSAGE,
+				getFormattedMessage("validating_all_templates"));
+		
+		for (Entry<String, ComputeTemplate> templateEntry : templatesMap.entrySet()) {
+			String templateName = templateEntry.getKey();
+			template = templateEntry.getValue();
+			validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+					getFormattedMessage("validating_template", templateName));
+			try {
+				validateTemplate(templateName, template);
+				validationContext.validationEventEnd(ValidationResultType.OK);
+			} catch (CloudProvisioningException e) {
+				validationContext.validationEventEnd(ValidationResultType.ERROR);
+				throw e;
+			}
+		}
 	@Override
 	public MachineDetails[] getExistingManagementServers() throws CloudProvisioningException {
         throw new UnsupportedOperationException("Cannot retrieve existing management servers after shutting down"
