@@ -1044,7 +1044,7 @@ public class LocalhostGridAgentBootstrapper {
 		}
 	}
 	
-	/*private void waitForManagementServices(
+	private void waitForManagementServices(
 			final List<AbstractManagementServiceInstaller> managementServicesInstallers, final long end)
 			throws CLIException, InterruptedException, TimeoutException {
 		
@@ -1126,7 +1126,7 @@ public class LocalhostGridAgentBootstrapper {
 		} finally {
 			admin.close();
 		}
-	}*/
+	}
 
 	
 	private String getGscLrmiCommandLineArg() {
