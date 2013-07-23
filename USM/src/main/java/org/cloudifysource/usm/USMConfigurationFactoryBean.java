@@ -113,6 +113,7 @@ public class USMConfigurationFactoryBean implements FactoryBean<ServiceConfigura
 		dslReader.setDslFile(dslFile);
 		dslReader.setWorkDir(this.puExtDir);
 		dslReader.setDslFileNameSuffix(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX);
+		dslReader.setContext(serviceContext);
 
 		// When loading a service in the USM, expect the jar files to
 		// be available in the pu lib dir, and ignore the contents of usmlib
