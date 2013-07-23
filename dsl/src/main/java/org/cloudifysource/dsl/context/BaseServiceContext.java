@@ -18,7 +18,6 @@ package org.cloudifysource.dsl.context;
 import java.util.concurrent.TimeUnit;
 
 import org.cloudifysource.domain.Service;
-import org.cloudifysource.dsl.context.ServiceContext;
 import org.cloudifysource.dsl.context.blockstorage.StorageFacade;
 import org.cloudifysource.dsl.context.kvstorage.AttributesFacade;
 
@@ -48,16 +47,15 @@ public class BaseServiceContext implements ServiceContext {
 
 	@Override
 	public int getInstanceId() {
-		throw new UnsupportedOperationException("getInstanceId context method is not supported for" +
-				" services running outside a GSC.");
+		return 1;
 	}
 
 	@Override
 	public org.cloudifysource.dsl.context.Service waitForService(final String name, 
 																final int timeout, 
 																final TimeUnit unit) {
-		throw new UnsupportedOperationException("waitForService context method is not supported for" +
-				" services running outside a GSC.");
+		throw new UnsupportedOperationException("waitForService context method is not supported for"
+				+ " services running outside a GSC.");
 	}
 
 	@Override
@@ -84,8 +82,7 @@ public class BaseServiceContext implements ServiceContext {
 
 	@Override
 	public boolean isLocalCloud() {
-		throw new UnsupportedOperationException("isLocalCloud context method is not supported for"
-				+ " services running outside a GSC.");
+		return true;
 	}
 
 	@Override
