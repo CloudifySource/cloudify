@@ -18,7 +18,7 @@ package org.cloudifysource.usm.liveness;
 import java.util.List;
 import java.util.Map;
 
-import org.cloudifysource.dsl.context.ServiceContext;
+import org.cloudifysource.domain.context.ServiceContext;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.usm.Plugin;
 import org.cloudifysource.usm.UniversalServiceManagerBean;

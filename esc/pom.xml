@@ -53,6 +53,11 @@
 			<version>1.8.3</version>
 		</dependency>
 		<dependency>
+		    <groupId>com.googlecode.java-ipv6</groupId>
+		    <artifactId>java-ipv6</artifactId>
+		    <version>0.13</version>
+		</dependency>
+		<dependency>
 			<groupId>com.gigaspaces</groupId>
 			<artifactId>gs-runtime</artifactId>
 			<version>${gsVersion}</version>

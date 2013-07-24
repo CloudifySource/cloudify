@@ -13,34 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.usm;
+package org.cloudifysource.domain.context.kvstorage;
 
-import java.util.Map;
 
-import org.cloudifysource.domain.context.ServiceContext;
-
-/***********
- * All USM plugins implementation should implement this interface.
- * 
- * @author barakme
- * 
+/**
+ * Created with IntelliJ IDEA.
+ * User: elip
+ * Date: 4/8/13
+ * Time: 2:00 PM
  */
-public interface Plugin {
+public interface AttributesFacade {
 
-	/******************
-	 * Setter for the Service Context of the current service.
-	 * 
-	 * @param context
-	 *            the service context.
-	 */
-	void setServiceContext(ServiceContext context);
+    /**
+     *
+     * @return
+     */
+    AttributesAccessor getThisApplication();
 
-	/****************
-	 * Setter for the plugin parameters, as defined in the Recipe file.
-	 * 
-	 * @param config
-	 *            the plugin parameters.
-	 */
-	void setConfig(Map<String, Object> config);
+    /**
+     *
+     * @return
+     */
+    AttributesAccessor getGlobal();
 
+    /**
+     *
+     * @return
+     */
+    AttributesAccessor getThisService();
+
+    /**
+     *
+     * @return
+     */
+    AttributesAccessor getThisInstance();
+
+    /**
+     *
+     * @param property
+     * @return
+     */
+    Object getProperty(final String property);
 }

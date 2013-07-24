@@ -17,7 +17,7 @@
 package org.cloudifysource.esc.driver.provisioning.storage;
 
 import org.cloudifysource.domain.cloud.storage.StorageTemplate;
-import org.cloudifysource.dsl.context.blockstorage.RemoteStorageOperationException;
+import org.cloudifysource.domain.context.blockstorage.RemoteStorageOperationException;
 import org.cloudifysource.dsl.internal.context.RemoteStorageProvisioningDriver;
 
 import java.util.concurrent.TimeUnit;

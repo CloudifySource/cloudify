@@ -16,7 +16,7 @@ import java.io.File;
 
 import org.cloudifysource.domain.Service;
 import org.cloudifysource.domain.cloud.Cloud;
-import org.cloudifysource.dsl.context.ServiceContext;
+import org.cloudifysource.domain.context.ServiceContext;
 
 /*******
  * Result of reading a Service DSL file.

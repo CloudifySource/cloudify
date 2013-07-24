@@ -18,14 +18,14 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.cloudifysource.domain.Service;
-import org.cloudifysource.dsl.context.ServiceContext;
+import org.cloudifysource.domain.context.ServiceContext;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.utils.ServiceUtils;
-import org.cloudifysource.usm.context.ServiceContextImpl;
 import org.cloudifysource.usm.dsl.ServiceConfiguration;
+import org.cloudifysource.utilitydomain.context.ServiceContextImpl;
 import org.openspaces.core.cluster.ClusterInfo;
 import org.openspaces.core.cluster.ClusterInfoAware;
 import org.openspaces.core.properties.BeanLevelProperties;

@@ -18,7 +18,7 @@ package org.cloudifysource.usm.dsl;
 import java.io.File;
 
 import org.cloudifysource.domain.Service;
-import org.cloudifysource.dsl.context.ServiceContext;
+import org.cloudifysource.domain.context.ServiceContext;
 
 /************
  * DSL based USM configuration.

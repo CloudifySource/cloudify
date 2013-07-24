@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
+ * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,34 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.usm;
+package org.cloudifysource.domain.context.blockstorage;
 
-import java.util.Map;
-
-import org.cloudifysource.domain.context.ServiceContext;
-
-/***********
- * All USM plugins implementation should implement this interface.
+/**************************
+ * Classes relating to the Cloudify Block Storage Support within the service context.
  * 
- * @author barakme
  * 
- */
-public interface Plugin {
-
-	/******************
-	 * Setter for the Service Context of the current service.
-	 * 
-	 * @param context
-	 *            the service context.
-	 */
-	void setServiceContext(ServiceContext context);
-
-	/****************
-	 * Setter for the plugin parameters, as defined in the Recipe file.
-	 * 
-	 * @param config
-	 *            the plugin parameters.
-	 */
-	void setConfig(Map<String, Object> config);
-
-}
+ * @author barakme.
+ *****************************/

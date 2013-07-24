@@ -13,34 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.usm;
+package org.cloudifysource.utilitydomain.context.kvstore;
 
-import java.util.Map;
+import org.cloudifysource.domain.context.kvstorage.AttributesFacade;
+import org.cloudifysource.utilitydomain.kvstorage.spaceentries.ApplicationCloudifyAttribute;
 
-import org.cloudifysource.domain.context.ServiceContext;
-
-/***********
- * All USM plugins implementation should implement this interface.
- * 
- * @author barakme
- * 
+/**
+ * @author eitany
+ * @since 2.0
  */
-public interface Plugin {
+public class ApplicationAttributesAccessor extends AbstractAttributesAccessor {
 
-	/******************
-	 * Setter for the Service Context of the current service.
-	 * 
-	 * @param context
-	 *            the service context.
-	 */
-	void setServiceContext(ServiceContext context);
+	public ApplicationAttributesAccessor(final AttributesFacade attributesFacadeImpl, final String applicationName) {
+		super(attributesFacadeImpl, applicationName);
+	}
 
-	/****************
-	 * Setter for the plugin parameters, as defined in the Recipe file.
-	 * 
-	 * @param config
-	 *            the plugin parameters.
-	 */
-	void setConfig(Map<String, Object> config);
+	@Override
+	protected ApplicationCloudifyAttribute prepareAttributeTemplate() {
+		return new ApplicationCloudifyAttribute();
+	}
 
 }
