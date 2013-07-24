@@ -477,6 +477,7 @@ public final class ServiceReader {
 	private static void setDependentCloudProperties(
 			final CloudDependentConfigHolder dependentConfig, final Cloud cloud) {
 		if (StringUtils.isEmpty(cloud.getProvider().getCloudifyUrl())) {
+			//set the cloudify url according to the openspaces platform version.
 			if (dependentConfig != null) {
 				cloud.getProvider().setCloudifyUrl(dependentConfig.getDownloadUrl());
 			} else {
@@ -484,7 +485,9 @@ public final class ServiceReader {
 				cloud.getProvider().setCloudifyUrl(cloudDependentProps.getDownloadUrl());
 			}
 		}
+		
 		if (cloud.getConfiguration().getComponents().getDiscovery().getDiscoveryPort() == null) {
+			//Set the discovery port according to default os discovery port 
 			if (dependentConfig != null) {
 				cloud.getConfiguration().getComponents().getDiscovery()
 							.setDiscoveryPort(dependentConfig.getDefaultLusPort());
@@ -493,6 +496,14 @@ public final class ServiceReader {
 				cloud.getConfiguration().getComponents().getDiscovery()
 							.setDiscoveryPort(cloudDependentProps.getDefaultLusPort());
 			}
+		}
+		
+		if (cloud.getConfiguration().getComponents().getRest().getPort() == null) {
+			cloud.getConfiguration().getComponents().getRest().setPort(CloudifyConstants.DEFAULT_REST_PORT);
+		}
+		
+		if (cloud.getConfiguration().getComponents().getWebui().getPort() == null) {
+			cloud.getConfiguration().getComponents().getWebui().setPort(CloudifyConstants.DEFAULT_WEBUI_PORT);
 		}
 	}
 
