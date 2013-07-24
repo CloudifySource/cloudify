@@ -20,6 +20,7 @@ import java.util.Map;
 import org.cloudifysource.dsl.cloud.Cloud;
 import org.cloudifysource.dsl.cloud.ScriptLanguages;
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
+import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.esc.installer.EnvironmentFileBuilder;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.util.InstallationDetailsBuilder;
@@ -124,8 +125,8 @@ public class ProvisioningContextImpl implements ProvisioningContext, ManagementP
 		final Integer port = cloud.getConfiguration().getComponents().getDiscovery().getDiscoveryPort();
 		final StringBuilder lookupSb = new StringBuilder();
 		for (final MachineDetails detail : mds) {
-			final String ip = cloud.getConfiguration().isConnectToPrivateIp() ? detail
-					.getPrivateAddress() : detail.getPublicAddress();
+			final String ip = cloud.getConfiguration().isConnectToPrivateIp() ? IPUtils.getSafeIpAddress(detail
+					.getPrivateAddress()) : IPUtils.getSafeIpAddress(detail.getPublicAddress());
 
 			lookupSb.append(ip).append(":").append(port).append(',');
 		}
