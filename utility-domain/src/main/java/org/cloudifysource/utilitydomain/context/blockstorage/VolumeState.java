@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
+ ' * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,34 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.usm;
+package org.cloudifysource.utilitydomain.context.blockstorage;
 
-import java.util.Map;
-
-import org.cloudifysource.domain.context.ServiceContext;
-
-/***********
- * All USM plugins implementation should implement this interface.
- * 
- * @author barakme
- * 
+/**
+ * Created with IntelliJ IDEA.
+ *
+ * Enum indicating the state of a service volume.
+ *
+ * User: elip
+ * Date: 4/7/13
+ * Time: 6:39 PM
+ * To change this template use File | Settings | File Templates.
  */
-public interface Plugin {
+public enum VolumeState {
 
-	/******************
-	 * Setter for the Service Context of the current service.
-	 * 
-	 * @param context
-	 *            the service context.
-	 */
-	void setServiceContext(ServiceContext context);
-
-	/****************
-	 * Setter for the plugin parameters, as defined in the Recipe file.
-	 * 
-	 * @param config
-	 *            the plugin parameters.
-	 */
-	void setConfig(Map<String, Object> config);
-
+    CREATED,
+    ATTACHED,
+    FORMATTED,
+    MOUNTED
 }

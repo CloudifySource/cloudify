@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
+ * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,34 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.usm;
 
-import java.util.Map;
+package org.cloudifysource.domain.context.blockstorage;
 
-import org.cloudifysource.domain.context.ServiceContext;
 
-/***********
- * All USM plugins implementation should implement this interface.
- * 
- * @author barakme
- * 
+/**
+ * Exception used when failures occur during a remote call to the management machine.
+ * @see {@link StorageFacade#createVolume(String)}
+ * @author elip
+ *
  */
-public interface Plugin {
+public class RemoteStorageOperationException extends Exception {
 
-	/******************
-	 * Setter for the Service Context of the current service.
-	 * 
-	 * @param context
-	 *            the service context.
-	 */
-	void setServiceContext(ServiceContext context);
 
-	/****************
-	 * Setter for the plugin parameters, as defined in the Recipe file.
+	/**
 	 * 
-	 * @param config
-	 *            the plugin parameters.
 	 */
-	void setConfig(Map<String, Object> config);
+	private static final long serialVersionUID = 1L;
+	
+	public RemoteStorageOperationException(final String message, final Exception e) {
+		super(message, e);
+	}
+	
 
 }

@@ -18,7 +18,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import org.cloudifysource.dsl.context.ServiceContext;
+import org.cloudifysource.domain.context.ServiceContext;
 import org.cloudifysource.dsl.internal.debug.DebugModes;
 
 /**********

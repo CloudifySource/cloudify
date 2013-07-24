@@ -817,8 +817,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	/**
 	 * exposes the storage API of the cloud to agent machines.
-	 * 
-	 * @see {@link org.cloudifysource.dsl.context.blockstorage.StorageFacade}
+	 * @see {@link org.cloudifysource.domain.context.blockstorage.StorageFacade}
 	 * 
 	 *      <<<<<<< HEAD DO NOT refactor this method's name since it is called via reflection by the ESM. ======= DO NOT
 	 *      refactor this method's name since it is called via reflection by the ESM. >>>>>>> CLOUDIFY-1837 Scan all

@@ -12,7 +12,7 @@
 			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy</artifactId>
 			<version>${groovyVersion}</version>
-			<scope>test</scope>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -30,6 +30,12 @@
 			<groupId>org.cloudifysource</groupId>
 			<artifactId>dsl</artifactId>
 			<version>${cloudifyVersion}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.hyperic</groupId>
+			<artifactId>sigar</artifactId>
+			<version>${sigarVersion}</version>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
