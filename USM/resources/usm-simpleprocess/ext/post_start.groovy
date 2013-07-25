@@ -4,7 +4,7 @@ println "postStart fired"
 
 if (args && args[0].toFloat() > 0) numTweets = args[0]
 
-def context = org.cloudifysource.dsl.context.ServiceContextFactory.getServiceContext()
+def context = org.cloudifysource.utilitydomain.context.ServiceContextFactory.getServiceContext()
 println "context is:  " + context
 def puName = context.clusterInfo.name;
 println "PU name is: " + puName 
