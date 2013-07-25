@@ -15,7 +15,7 @@
 *******************************************************************************/
 import  org.openspaces.admin.AdminFactory;
 import  org.openspaces.admin.Admin;
-import org.cloudifysource.dsl.context.ServiceContextFactory
+import org.cloudifysource.utilitydomain.context.ServiceContextFactory
 import groovy.util.ConfigSlurper;
 import java.util.concurrent.TimeUnit
 

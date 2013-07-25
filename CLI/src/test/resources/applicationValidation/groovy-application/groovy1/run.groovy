@@ -1,4 +1,4 @@
-import org.cloudifysource.dsl.context.ServiceContext
+import org.cloudifysource.domain.context.ServiceContext
 import org.coudifysource.dsl.context.ServiceContextFactory
 
 
