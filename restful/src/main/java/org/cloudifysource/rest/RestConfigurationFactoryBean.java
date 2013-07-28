@@ -17,15 +17,17 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.compute.CloudCompute;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.security.CustomPermissionEvaluator;
 import org.cloudifysource.utilitydomain.data.CloudConfigurationHolder;
 import org.cloudifysource.utilitydomain.data.reader.ComputeTemplatesReader;
-import org.cloudifysource.security.CustomPermissionEvaluator;
 import org.openspaces.admin.Admin;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.context.GigaSpaceContext;

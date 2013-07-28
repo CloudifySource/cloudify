@@ -17,11 +17,18 @@
 			<groupId>org.cloudifysource</groupId>
 			<artifactId>utility-domain</artifactId>
 			<version>2.6.0-SNAPSHOT</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.cloudifysource</groupId>
 			<artifactId>dsl</artifactId>
 			<version>${project.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.cloudifysource</groupId>
+			<artifactId>domain</artifactId>
+			<version>${cloudifyVersion}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

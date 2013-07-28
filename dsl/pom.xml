@@ -107,6 +107,7 @@
 			<groupId>org.cloudifysource</groupId>
 			<artifactId>domain</artifactId>
 			<version>${cloudifyVersion}</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 

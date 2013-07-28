@@ -19,8 +19,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.beanutils.BeanUtils;
-import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
+import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.openspaces.admin.Admin;

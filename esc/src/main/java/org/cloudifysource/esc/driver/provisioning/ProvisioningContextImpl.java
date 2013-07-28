@@ -17,9 +17,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.ScriptLanguages;
-import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
+import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.domain.cloud.ScriptLanguages;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.esc.installer.EnvironmentFileBuilder;
 import org.cloudifysource.esc.installer.InstallationDetails;

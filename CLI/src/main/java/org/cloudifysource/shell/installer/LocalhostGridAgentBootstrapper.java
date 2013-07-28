@@ -356,7 +356,7 @@ public class LocalhostGridAgentBootstrapper {
 		if (nicAddress == null) {
 			throw new IllegalStateException("nicAddress cannot be null");
 		}
-		return IPUtils.getSafeIpAddress(nicAddress) + ":" + lusPort;
+		return IPUtils.getSafeIpAddress(nicAddress) + ":" + OpenspacesConstants.DEFAULT_LOCALCLOUD_LUS_PORT;
 	}
 
 	/**
@@ -1447,7 +1447,8 @@ public class LocalhostGridAgentBootstrapper {
 		String localCloudOptions =
 				"-Xmx" + CloudifyConstants.DEFAULT_LOCALCLOUD_GSA_GSM_ESM_LUS_MEMORY_IN_MB + "m" + " -D"
 						+ CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY + "="
-						+ OpenspacesConstants.DEFAULT_LOCALCLOUD_LUS_PORT + " -D" + GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE + "="
+						+ OpenspacesConstants.DEFAULT_LOCALCLOUD_LUS_PORT + " -D" 
+						+ GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE + "="
 						+ GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL
 						+ " " + GSM_PENDING_REQUESTS_DELAY
 						+ " -D" + ZONES_PROPERTY + "=" + LOCALCLOUD_GSA_ZONES

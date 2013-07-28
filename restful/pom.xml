@@ -32,6 +32,12 @@
 		</dependency>
 		<dependency>
 			<groupId>org.cloudifysource</groupId>
+			<artifactId>domain</artifactId>
+			<version>${cloudifyVersion}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.cloudifysource</groupId>
 			<artifactId>rest-client</artifactId>
 			<version>${cloudifyVersion}</version>
 			<scope>compile</scope>
@@ -440,6 +446,7 @@
 			<groupId>org.cloudifysource</groupId>
 			<artifactId>utility-domain</artifactId>
 			<version>${cloudifyVersion}</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 	<build>
@@ -522,7 +529,7 @@
 					<archive>
 						<manifestEntries>
 							<!-- The class-path entries MUST be in the same line! -->
-							<Class-Path><![CDATA[lib/platform/cloudify/dsl.jar lib/platform/cloudify/security-${cloudifyVersion}.jar lib/platform/cloudify/security-ldap-${cloudifyVersion}.jar tools/groovy/embeddable/groovy-all-1.8.6.jar tools/groovy/lib/ivy-2.2.0.jar]]></Class-Path>
+							<Class-Path><![CDATA[lib/platform/cloudify/dsl.jar lib/platform/cloudify/domain.jar lib/platform/cloudify/utility-domain.jar lib/platform/cloudify/security-${cloudifyVersion}.jar lib/platform/cloudify/security-ldap-${cloudifyVersion}.jar tools/groovy/embeddable/groovy-all-1.8.6.jar tools/groovy/lib/ivy-2.2.0.jar]]></Class-Path>
 						</manifestEntries>
 					</archive>
 					<webResources>
