@@ -7,11 +7,11 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 
-import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.CloudProvider;
-import org.cloudifysource.dsl.cloud.FileTransferModes;
-import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
-import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
+import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.domain.cloud.CloudProvider;
+import org.cloudifysource.domain.cloud.FileTransferModes;
+import org.cloudifysource.domain.cloud.RemoteExecutionModes;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.esc.util.InstallationDetailsBuilder;
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,7 +31,8 @@ public class ProvisioningContextImplTest {
 		cloud.getConfiguration().setManagementMachineTemplate(TEMPLATE_NAME);
 		cloud.getCloudCompute().setTemplates(new LinkedHashMap<String, ComputeTemplate>());
 		cloud.getCloudCompute().getTemplates().put(TEMPLATE_NAME, template);
-		
+		cloud.getConfiguration().getComponents().getRest().setPort(8100);
+		cloud.getConfiguration().getComponents().getWebui().setPort(8099);
 
 		final ProvisioningContextImpl ctx = new ProvisioningContextImpl();
 		ctx.setLocationId(null);

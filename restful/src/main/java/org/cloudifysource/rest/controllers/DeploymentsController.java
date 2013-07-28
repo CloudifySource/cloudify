@@ -795,7 +795,7 @@ public class DeploymentsController extends BaseRestController {
 
 	}
 
-	private List<Service> createServiceDependencyOrder(final org.cloudifysource.dsl.Application application) {
+	private List<Service> createServiceDependencyOrder(final org.cloudifysource.domain.Application application) {
 		final DirectedGraph<Service, DefaultEdge> graph = new DefaultDirectedGraph<Service, DefaultEdge>(
 				DefaultEdge.class);
 
