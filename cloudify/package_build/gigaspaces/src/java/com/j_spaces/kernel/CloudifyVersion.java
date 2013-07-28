@@ -26,7 +26,7 @@ public class CloudifyVersion implements ProductVersion {
 	// !!!IMPORTANT, read below
 	// Must be of this format otherwise PlatformLogicalVersion will fail
 	// parsing!!!
-	private String VERSION = "2.6.1";
+	private String VERSION = "2.7.0";
 	private String MILESTONE = "ga";
 	private String BUILD_TYPE = "regular";
 	private String V_NUM = VERSION + '-' + EDITION + '-' + MILESTONE;
@@ -34,10 +34,10 @@ public class CloudifyVersion implements ProductVersion {
 	// !!!IMPORTANT, read below
 	// Must be of either "int-int-string", "int-int" or "int" format otherwise
 	// PlatformLogicalVersion will fail parsing!!!
-	private final String BUILD_NUM = "5199-122";
+	private final String BUILD_NUM = "5980-2";
 	private final String V_NAME = "GigaSpaces";
 	private final String PRODUCT_HELP_URL = "http://www.cloudifysource.org/guide";
-    private final String BUILD_TIMESTAMP = "5199-122";
+    private final String BUILD_TIMESTAMP = "5980-2";
 
 	/** default constructor for Class.forName() - see com.j_spaces.kernel.PlatformVersion */
 	public CloudifyVersion() {
