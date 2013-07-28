@@ -479,7 +479,7 @@
         <!-- conditional task (with property: publish.cloudify.build) -->
         <ant target="publish.cloudify.to.storage" />
 
-        <!--ant target="publish.cloudify.jars.to.maven.repository" /-->
+        <ant target="publish.cloudify.jars.to.maven.repository" />
     </target>
 
     <target name="archive.cloudify.versions">
