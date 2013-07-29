@@ -1,10 +1,8 @@
 #!/bin/bash
 
 function setJSHome() {
-	SCRIPT_PATH="${BASH_SOURCE[0]}";
-	if([ -h "${SCRIPT_PATH}" ]) then
-	  while([ -h "${SCRIPT_PATH}" ]) do SCRIPT_PATH=`readlink "${SCRIPT_PATH}"`; done
-	fi
+	SCRIPT_PATH=$(dirname $0)
+	echo Script path is $SCRIPT_PATH
 	pushd . > /dev/null
 	cd `dirname ${SCRIPT_PATH}` > /dev/null
 	SCRIPT_PATH=`pwd`;
