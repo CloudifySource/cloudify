@@ -1,6 +1,6 @@
 /***************
  * Cloud configuration file for the Dynamic-Bring-Your-Own-Node (dynamic-byon) cloud.
- * See org.cloudifysource.dsl.cloud.Cloud for more details.
+ * See org.cloudifysource.domain.cloud.Cloud for more details.
  *
  * @author yael
  *
