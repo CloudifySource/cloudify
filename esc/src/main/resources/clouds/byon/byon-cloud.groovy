@@ -1,6 +1,6 @@
 /***************
  * Cloud configuration file for the Bring-Your-Own-Node (BYON) cloud.
- * See org.cloudifysource.dsl.cloud.Cloud for more details.
+ * See org.cloudifysource.domain.cloud.Cloud for more details.
  *
  * @author noak
  *

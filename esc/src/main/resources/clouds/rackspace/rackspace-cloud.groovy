@@ -1,6 +1,6 @@
 /***************
  * Cloud configuration file for the Rackspace (v2) cloud. Uses the default jclouds-based cloud driver.
- * See org.cloudifysource.dsl.cloud.Cloud for more details.
+ * See org.cloudifysource.domain.cloud.Cloud for more details.
  * @author noak
  *
  */
@@ -94,7 +94,7 @@ cloud {
 						locationId locationId
 						
 						// file transfer protocol
-						fileTransfer org.cloudifysource.dsl.cloud.FileTransferModes.SFTP
+						fileTransfer org.cloudifysource.domain.cloud.FileTransferModes.SFTP
 						
 						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
 						remoteDirectory "/home/root/gs-files"
@@ -127,7 +127,7 @@ cloud {
 						locationId locationId
 						
 						// file transfer protocol
-						fileTransfer org.cloudifysource.dsl.cloud.FileTransferModes.SFTP
+						fileTransfer org.cloudifysource.domain.cloud.FileTransferModes.SFTP
 						
 						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
 						remoteDirectory "/home/root/gs-files"
