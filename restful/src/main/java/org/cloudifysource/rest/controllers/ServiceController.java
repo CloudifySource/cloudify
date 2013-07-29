@@ -3941,10 +3941,8 @@ public class ServiceController implements ServiceDetailsProvider {
 				throw new RestErrorException(CloudifyErrorMessages.PARTLY_FAILED_TO_ADD_TEMPLATES.getName(),
 						failedToAddTemplatesByHost, addedTemplatesByHost);
 			}
-
 			logger.log(Level.INFO, "[addTemplates] - Successfully added templates: " + addedTemplatesByHost.toString());
 			return successStatus(expectedTemplates);
-
 		} finally {
 			FileUtils.deleteQuietly(unzippedTemplatesFolder);
 			FileUtils.deleteQuietly(loaclTemplatesZipFile);
@@ -4090,12 +4088,11 @@ public class ServiceController implements ServiceDetailsProvider {
 	// @PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
 	@RequestMapping(value = "templates/internal", method = RequestMethod.POST)
 	public @ResponseBody
-	Map<String, Object>
-			addTemplatesInternal(
+	Map<String, Object> addTemplatesInternal(
 					@RequestParam
 					(value = CloudifyConstants.TEMPLATES_DIR_PARAM_NAME, required = true) 
 					final MultipartFile templatesFolder)
-					throws IOException, DSLException, RestErrorException {
+					throws IOException, DSLException {
 		ComputeTemplatesReader reader = new ComputeTemplatesReader();
 		File localTemplatesFolder = reader.unzipCloudTemplatesFolder(copyMultipartFileToLocalFile(templatesFolder));
 
@@ -4122,12 +4119,12 @@ public class ServiceController implements ServiceDetailsProvider {
 	 *             If failed to read templates files.
 	 */
 	private Map<String, Object> addTemplatesToCloud(final File templatesFolder)
-			throws RestErrorException, DSLException {
+			throws DSLException {
 
 		logger.log(Level.FINE, "[addTemplatesToCloud] - Adding templates to cloud.");
 
 		// read cloud templates from templates folder
-		final List<ComputeTemplateHolder> cloudTemplatesHolders = readCloudTemplates(templatesFolder);
+		final List<ComputeTemplateHolder> cloudTemplatesHolders = new ComputeTemplatesReader().readCloudTemplatesFromDirectory(templatesFolder);
 
 		logger.log(Level.INFO, "[addTemplatesToCloud] - Successfully read " + cloudTemplatesHolders.size()
 				+ " templates from folder - " + templatesFolder);
@@ -4315,32 +4312,9 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @throws DSLException
 	 *             If failed to read templates.
 	 */
-	private List<ComputeTemplateHolder> readCloudTemplates(final File templatesFolder)
-			throws RestErrorException, DSLException {
-		List<ComputeTemplateHolder> cloudTemplatesHolders;
-		ComputeTemplatesReader reader = new ComputeTemplatesReader();
-		cloudTemplatesHolders = reader.readCloudTemplatesFromDirectory(templatesFolder);
-		if (cloudTemplatesHolders.isEmpty()) {
-			throw new RestErrorException("no_template_files", "templates folder missing templates files.",
-					templatesFolder.getAbsolutePath());
-		}
-		return cloudTemplatesHolders;
-	}
-
-	/**
-	 * Reads the templates from templatesFolder.
-	 *
-	 * @param templatesFolder
-	 *            .
-	 * @return the list of the read cloud templates.
-	 * @throws RestErrorException
-	 *             If no templates files were found.
-	 * @throws DSLException
-	 *             If failed to read templates.
-	 */
 	private List<String> readCloudTemplatesNames(final File templatesFolder)
-			throws RestErrorException, DSLException {
-		List<ComputeTemplateHolder> cloudTemplatesHolders = readCloudTemplates(templatesFolder);
+			throws DSLException {
+		List<ComputeTemplateHolder> cloudTemplatesHolders = new ComputeTemplatesReader().readCloudTemplatesFromDirectory(templatesFolder);
 		List<String> cloudTemplateNames = new LinkedList<String>();
 		for (ComputeTemplateHolder cloudTemplateHolder : cloudTemplatesHolders) {
 			cloudTemplateNames.add(cloudTemplateHolder.getName());

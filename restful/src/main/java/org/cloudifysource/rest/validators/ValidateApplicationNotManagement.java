@@ -25,6 +25,7 @@ import org.cloudifysource.rest.controllers.RestErrorException;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.application.Application;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Validator for uninstall application command that validates the application name is not 
@@ -33,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author adaml
  *
  */
+@Component
 public class ValidateApplicationNotManagement implements UninstallApplicationValidator{
 	
 	private static final Logger logger = Logger.getLogger(ValidateGsmState.class.getName());
@@ -41,7 +43,7 @@ public class ValidateApplicationNotManagement implements UninstallApplicationVal
 	private Admin admin;
 	
 	@Override
-	public void validate(UninstallApplicationValidationContext validationContext)
+	public void validate(final UninstallApplicationValidationContext validationContext)
 			throws RestErrorException {
 		final String appName = validationContext.getApplicationName();
 		final Application app = this.admin.getApplications().waitFor(

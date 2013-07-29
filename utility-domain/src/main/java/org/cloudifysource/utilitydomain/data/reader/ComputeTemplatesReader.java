@@ -35,38 +35,6 @@ public class ComputeTemplatesReader {
 	}
 
 	/**
-	 *
-	 * @param templatesZip
-	 * 					The templates zipped directory.
-	 * @return The templates read from the templates folder un-zipped from templatesZip.
-	 * @throws IOException .
-	 * @throws DSLException If failed to read the DSL template files.
-	 */
-	public List<ComputeTemplateHolder> readCloudTemplatesFromZip(final File templatesZip)
-			throws IOException, DSLException {
-		File templateDirectory = unzipCloudTemplatesFolder(templatesZip);
-		return readCloudTemplatesFromDirectory(templateDirectory);
-	}
-	/**
-	 *
-	 * @param templatesZip
-	 * 					The templates zipped directory.
-	 * @return The template names read from the templates folder un-zipped from templatesZip.
-	 * @throws IOException .
-	 * @throws DSLException If failed to read the DSL template files.
-	 */
-	public List<String> getCloudTemplatesNamesFromZip(final File templatesZip)
-			throws IOException, DSLException {
-		File templateDirectory = unzipCloudTemplatesFolder(templatesZip);
-		List<ComputeTemplateHolder> readCloudTemplates = readCloudTemplatesFromDirectory(templateDirectory);
-		List<String> templateNames = new ArrayList<String>(readCloudTemplates.size());
-		for (ComputeTemplateHolder cloudTemplateHolder : readCloudTemplates) {
-			templateNames.add(cloudTemplateHolder.getName());
-		}
-		return templateNames;
-	}
-
-	/**
 	 * Unzip the templates folder and validate it is a directory.
 	 * @param zipFile The file to unzip.
 	 * @return The unzipped file.
@@ -101,7 +69,8 @@ public class ComputeTemplatesReader {
 		File[] templateFiles =
 				DSLReader.findDefaultDSLFiles(DSLUtils.TEMPLATE_DSL_FILE_NAME_SUFFIX, templatesDir);
 		if (templateFiles == null || templateFiles.length == 0) {
-			return new LinkedList<ComputeTemplateHolder>();
+			throw new DSLException("There is no template files (files with the suffix " 
+					+ DSLUtils.TEMPLATE_DSL_FILE_NAME_SUFFIX + ") in the given folder [" + templatesDir + "]");
 		}
 		Map<String, ComputeTemplateHolder> cloudTemplatesMap = new HashMap<String, ComputeTemplateHolder>();
 		// for each file - reads the templates from it and creates a suitable CloudTemplateHolder object.
@@ -145,7 +114,8 @@ public class ComputeTemplatesReader {
 			throw new DSLException("Too many templates in one groovy file: " + templateFile + " declares " + size
 					+ " templates, only " + DSLUtils.MAX_TEMPLATES_PER_FILE + " allowed.");
 		}
-		List<ComputeTemplateHolder> cloudTemplateHolders = new ArrayList<ComputeTemplateHolder>(cloudTemplateMap.size());
+		List<ComputeTemplateHolder> cloudTemplateHolders = 
+				new ArrayList<ComputeTemplateHolder>(cloudTemplateMap.size());
 		for (Entry<String, ComputeTemplate> entry : cloudTemplateMap.entrySet()) {
 			ComputeTemplateHolder holder = new ComputeTemplateHolder();
 			holder.setName(entry.getKey());
@@ -173,13 +143,14 @@ public class ComputeTemplatesReader {
 		List<ComputeTemplateHolder> additionalTemplates = null;
 		// scan all templates folders and add the templates from each folder to the cloud.
 		for (File folder : templatesFolders) {
-			logger.info("addAdditionalTemplates - Adding templates to cloud from folder: " + folder.getAbsolutePath());
-			logger.info("addAdditionalTemplates - Folder's files: " + Arrays.toString(folder.listFiles()));
+			logger.log(Level.INFO, 
+					"[addAdditionalTemplates] - Adding templates to cloud from folder " + folder.getAbsolutePath());
+			logger.info("[addAdditionalTemplates] - Folder's files: " + Arrays.toString(folder.listFiles()));
 			try {
 				additionalTemplates = readCloudTemplatesFromDirectory(folder);
 			} catch (DSLException e) {
-				logger.log(Level.WARNING, "addAdditionalTemplates - " + "Failed to read templates from directory: "
-						+ folder.getAbsolutePath() + "Error: " + e.getMessage());
+				logger.log(Level.WARNING, "[addAdditionalTemplates] - Failed to read templates from directory ["
+						+ folder.getAbsolutePath() + "]. Error: " + e.getMessage());
 			}
 			// scan holders and add all templates to cloud.
 			for (ComputeTemplateHolder holder : additionalTemplates) {
@@ -187,7 +158,7 @@ public class ComputeTemplatesReader {
 				Map<String, ComputeTemplate> cloudTemplates = cloud.getCloudCompute().getTemplates();
 				// not supposed to happen
 				if (cloudTemplates.containsKey(templateName)) {
-					logger.log(Level.WARNING, "addAdditionalTemplates - " + "template already exist: " + templateName);
+					logger.log(Level.WARNING, "[addAdditionalTemplates] - template already exist: " + templateName);
 					continue;
 				}
 				// set the local absolute path to the upload directory
@@ -211,12 +182,18 @@ public class ComputeTemplatesReader {
 		String proeprtiesFileName = templateName + DSLUtils.TEMPLATES_PROPERTIES_FILE_NAME_SUFFIX;
 		File propertiesFile = new File(templateFolder, proeprtiesFileName);
 		if (propertiesFile.exists()) {
-			propertiesFile.delete();
+			boolean delete = propertiesFile.delete();
+			logger.log(Level.FINE, "[removeTemplateFiles] - " 
+					+ (delete ? "Successfully deleted" : "Failed to delete")
+					+ " template's properties file [" + propertiesFile.getAbsolutePath() + "].");
 		}
 		String overridesFileName = templateName + DSLUtils.TEMPLATES_OVERRIDES_FILE_NAME_SUFFIX;
 		File overridesFile = new File(templateFolder, overridesFileName);
 		if (overridesFile.exists()) {
-			overridesFile.delete();
+			boolean delete = overridesFile.delete();
+			logger.log(Level.FINE, "[removeTemplateFiles] - " 
+					+ (delete ? "Successfully deleted" : "Failed to delete")
+					+ " template's overrides file [" + overridesFile.getAbsolutePath() + "].");
 		}
 	}
 }

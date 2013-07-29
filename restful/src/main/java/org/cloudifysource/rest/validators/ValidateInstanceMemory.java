@@ -22,6 +22,11 @@ import org.cloudifysource.rest.controllers.RestErrorException;
 import org.cloudifysource.rest.util.IsolationUtils;
 import org.springframework.stereotype.Component;
 
+/**
+ * 
+ * @author yael
+ *
+ */
 @Component
 public class ValidateInstanceMemory implements InstallServiceValidator {
 

@@ -19,7 +19,6 @@ package org.cloudifysource.restclient;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Map;
@@ -58,7 +57,7 @@ import org.codehaus.jackson.type.TypeReference;
  *
  */
 public class RestClientExecutor {
-	private static final Logger logger = Logger.getLogger(RestClient.class.getName());
+	private static final Logger logger = Logger.getLogger(RestClientExecutor.class.getName());
 
     private static final String FORWARD_SLASH = "/";
     private static final int DEFAULT_TRIALS_NUM = 1;
@@ -289,20 +288,25 @@ public class RestClientExecutor {
     			}
     		}
     		if (lastException != null) {
+    			if (logger.isLoggable(Level.WARNING)) {
+					logger.warning("Execute get request to " + request.getURI()
+							+ " failed after " + numOfTrials + " tries. exception was: " + lastException);
+				}
     			throw MessagesUtils.createRestClientIOException(
     					RestClientMessageKeys.EXECUTION_FAILURE.getName(),
     					lastException,
     					request.getURI());
     		}
-    		checkForError(httpResponse, request.getURI());
-    		return getResponseObject(responseTypeReference, httpResponse);
+    		String url = request.getURI().toString();
+			checkForError(httpResponse, url);
+    		return getResponseObject(responseTypeReference, httpResponse, url);
     	} finally {
     		request.abort();
     	}
     }
 
 	private void checkForError(
-			final HttpResponse response, final URI requestUri)
+			final HttpResponse response, final String requestUri)
 					throws RestClientException {
 		StatusLine statusLine = response.getStatusLine();
 		final int statusCode = statusLine.getStatusCode();
@@ -314,6 +318,8 @@ public class RestClientExecutor {
                 // this means we managed to read the response
             	final Response<Void> entity =
             			new ObjectMapper().readValue(responseBody, new TypeReference<Response<Void>>() { });
+            	logger.log(Level.INFO, "[checkForError] - REST request to " + requestUri 
+            			+ "  failed. Error message: " + entity.getMessage());
                 // we also have the response in the proper format.
                 // remember, we only got here because some sort of error happened on the server.
                 throw new RestClientResponseException(entity.getMessageId(),
@@ -323,6 +329,8 @@ public class RestClientExecutor {
                                                       entity.getVerbose());
 
             } catch (final IOException e) {
+            	logger.log(Level.INFO, "[checkForError] - REST request to " + requestUri 
+            			+ "  failed and the response is not in the correct format: " + responseBody);
                 // this means we got the response, but it is not in the correct format.
                 // so some kind of error happened on the spring side.
                 throw MessagesUtils.createRestClientHttpException(
@@ -330,14 +338,14 @@ public class RestClientExecutor {
                 		statusCode,
                 		reasonPhrase,
                 		responseBody,
-                		RestClientMessageKeys.HTTP_FAILURE.getName(), requestUri);
+                		RestClientMessageKeys.HTTP_FAILURE.getName(), reasonPhrase, requestUri);
             }
         }
 	}
 
 	private <T> T getResponseObject(
 			final TypeReference<Response<T>> typeReference,
-			final HttpResponse httpResponse)
+			final HttpResponse httpResponse, final String url)
 					throws RestClientIOException, RestClientHttpException {
 		final String responseBody = getResponseBody(httpResponse);
 		Response<T> response;
@@ -348,12 +356,13 @@ public class RestClientExecutor {
             // this means we got the response, but it is not in the correct format.
             // so some kind of error happened on the spring side.
 			StatusLine statusLine = httpResponse.getStatusLine();
+			String reasonPhrase = statusLine.getReasonPhrase();
 			throw MessagesUtils.createRestClientHttpException(
             		e,
             		statusLine.getStatusCode(),
-            		statusLine.getReasonPhrase(),
+            		reasonPhrase,
             		responseBody,
-            		RestClientMessageKeys.HTTP_FAILURE.getName());
+            		RestClientMessageKeys.HTTP_FAILURE.getName(), reasonPhrase, url);
 		}
 	}
 

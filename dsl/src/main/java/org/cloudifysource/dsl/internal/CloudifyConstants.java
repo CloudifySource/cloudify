@@ -292,9 +292,11 @@ public final class CloudifyConstants {
      * REST API parameter names.
      */
     public static final String TEMPLATES_DIR_PARAM_NAME = "templatesFolder";
+    public static final String TEMPLATE_FOLDER_PREFIX = "templates_";
     public static final String SERVICE_OVERRIDES_FILE_PARAM = "serviceOverridesFile";
     public static final String APPLICATION_OVERRIDES_FILE_PARAM = "recipeOverridesFile";
     public static final String CLOUD_OVERRIDES_FILE_PARAM = "cloudOverridesFile";
+
 
     /**
      * Additional templates folder name.

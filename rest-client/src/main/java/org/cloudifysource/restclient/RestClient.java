@@ -41,7 +41,7 @@ import org.cloudifysource.dsl.rest.request.InstallApplicationRequest;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
 import org.cloudifysource.dsl.rest.request.SetServiceInstancesRequest;
 import org.cloudifysource.dsl.rest.response.AddTemplatesResponse;
-import org.cloudifysource.dsl.rest.response.AddTemplatesToPUResponse;
+import org.cloudifysource.dsl.rest.response.AddTemplatesInternalResponse;
 import org.cloudifysource.dsl.rest.response.ApplicationDescription;
 import org.cloudifysource.dsl.rest.response.DeploymentEvents;
 import org.cloudifysource.dsl.rest.response.GetTemplateResponse;
@@ -248,10 +248,11 @@ public class RestClient {
 				finalFileName);	
 		
 		final UploadResponse response = 
-				executor.postObject(
+				executor.postFile(
 						uploadUrl, 
 						file, 
-						new TypeReference<Response<UploadResponse>>() { });		
+						CloudifyConstants.UPLOAD_FILE_PARAM_NAME, 
+						new TypeReference<Response<UploadResponse>>() { });	
 		return response;
 	}
 	
@@ -490,7 +491,7 @@ public class RestClient {
 	}
 	
 	/**
-	 * Executes a rest API call to add templates from a specific folder.
+	 * Executes a rest API call to add templates to all REST instances.
 	 *  
 	 * @param request contains the templates folder.
 	 * @return AddTemplatesResponse.
@@ -508,26 +509,26 @@ public class RestClient {
 	}
 	
 	/**
-	 * Executes a rest API call to add templates from a specific folder
-	 * to a specific host.
+	 * Executes a rest API call to add templates to this instance only.
 	 *  
 	 * @param request contains the templates folder.
 	 * @return AddTemplatesResponse.
 	 * @throws RestClientException .
 	 */
-	public AddTemplatesToPUResponse addTemplatesInternal(final AddTemplatesInternalRequest request) 
+	public AddTemplatesInternalResponse addTemplatesInternal(final AddTemplatesInternalRequest request) 
 			throws RestClientException {
 		final String addTempaltesInternalUrl = getFormattedUrl(
 				versionedTemplatesControllerUrl, 
 				ADD_TEMPALTES_INTERNAL_URL_FORMAT);
+		logger.log(Level.INFO, "[addTemplatesInternal] - send post request to " + addTempaltesInternalUrl);
 		return executor.postObject(
 				addTempaltesInternalUrl, 
 				request, 
-				new TypeReference<Response<AddTemplatesToPUResponse>>() { });
+				new TypeReference<Response<AddTemplatesInternalResponse>>() { });
 	}
 	
 	/**
-	 * Executes a rest API call to remove template.
+	 * Executes a rest API call to remove template from all REST instances.
 	 * 
 	 * @param templateName the template's name to remove.
 	 * @throws RestClientException .
@@ -536,14 +537,15 @@ public class RestClient {
 			throws RestClientException {
 		final String removeTempalteUrl = getFormattedUrl(
 				versionedTemplatesControllerUrl, 
-				REMOVE_TEMPALTE_URL_FORMAT);
+				REMOVE_TEMPALTE_URL_FORMAT,
+				templateName);
 		executor.delete(
 				removeTempalteUrl, 
 				new TypeReference<Response<Void>>() { });
 	}
 	
 	/**
-	 * Executes a rest API call to remove template from a specific host.
+	 * Executes a rest API call to remove template from this instance only.
 	 * 
 	 * @param templateName the template's name to remove.
 	 * @throws RestClientException .
@@ -552,7 +554,8 @@ public class RestClient {
 			throws RestClientException {
 		final String removeTempalteUrl = getFormattedUrl(
 				versionedTemplatesControllerUrl, 
-				REMOVE_TEMPALTE_INTERNAL_URL_FORMAT);
+				REMOVE_TEMPALTE_INTERNAL_URL_FORMAT,
+				templateName);
 		executor.delete(
 				removeTempalteUrl, 
 				new TypeReference<Response<Void>>() { });

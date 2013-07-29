@@ -143,17 +143,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.sun.mail.iap.Response;
-
 /**
  * This controller is responsible for retrieving information about deployments. It is also the entry point for deploying
  * services and application. <br>
  * <br>
- * The response body will always return in a JSON representation of the {@link Response} Object. <br>
- * A controller method may return the {@link Response} Object directly. in this case this return value will be used as
- * the response body. Otherwise, an implicit wrapping will occur. the return value will be inserted into
+ * The response body will always return in a JSON representation of the 
+ * {@link org.cloudifysource.dsl.rest.response.Response} Object. <br>
+ * A controller method may return the {@link org.cloudifysource.dsl.rest.response.Response} Object directly. 
+ * in this case this return value will be used as the response body. 
+ * Otherwise, an implicit wrapping will occur. the return value will be inserted into
  * {@code Response#setResponse(Object)}. 
- * other fields of the {@link Response} object will be filled with default values. <br>
+ * other fields of the {@link org.cloudifysource.dsl.rest.response.Response} 
+ * object will be filled with default values. <br>
  * <h1>Important</h1> {@code @ResponseBody} annotations are not permitted. <br>
  * <br>
  * <h1>Possible return values</h1> 200 - OK<br>

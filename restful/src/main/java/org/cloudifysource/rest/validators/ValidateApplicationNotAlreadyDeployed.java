@@ -21,6 +21,7 @@ import org.openspaces.admin.Admin;
 import org.openspaces.admin.application.Application;
 import org.openspaces.admin.application.Applications;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Validate application is not already installed.
@@ -28,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author adaml
  *
  */
+@Component
 public class ValidateApplicationNotAlreadyDeployed implements InstallApplicationValidator {
 
 	@Autowired(required = true)

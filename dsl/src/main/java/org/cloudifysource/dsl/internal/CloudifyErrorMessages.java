@@ -229,41 +229,109 @@ public enum CloudifyErrorMessages {
 	 */
 	POST_BOOTSTRAP_MISSING_MGMT_SERVICE("post_bootstrap_missing_mgmt_service", 1),	
 
+	/**
+	 * 
+	 */
 	MANAGEMENT_SERVERS_WAITING_FOR_SHUTDOWN("shutdown_managers_initiated", 1),
 
+	/**
+	 * 
+	 */
 	MANAGEMENT_SERVERS_MANAGER_DOWN("shutdown_managers_manager_down", 1),
 
+	/**
+	 * 
+	 */
 	MANAGEMENT_SERVERS_SHUTDOWN_SUCCESS("shutdown_managers_completed", 0),
 
+	/**
+	 * 
+	 */
 	MANAGEMENT_SERVERS_SHUTDOWN_FAIL("shutdown_managers_timeout", 0),
 
+	/**
+	 * 
+	 */
 	FILE_NOT_EXISTS("file_doesnt_exist", 1),
 
 	/**
-	 * Cloud validations
+	 * Cloud validations.
 	 */
 	ONGOING_EVENT_SUCCEEDED("ongoing_event_succeeded", 0),
 	
+	/**
+	 * 
+	 */
 	ONGOING_EVENT_WARNING("ongoing_event_warning", 0),
 	
+	/**
+	 * 
+	 */
 	ONGOING_EVENT_FAILED("ongoing_event_failed", 0),
 	
+	/**
+	 * 
+	 */
 	EVENT_VALIDATE_CLOUD_CONFIG("validate_cloud_configuration", 1),
 
+	/**
+	 * 
+	 */
 	EVENT_CLOUD_CONFIG_VALIDATED("cloud_configuration_validated", 0),
-
+	
+	/**
+	 * 
+	 */
 	EVENT_VALIDATING_CLOUDIFY_URL("validating_cloudify_url", 1),
-
+	
+	/**
+	 * 
+	 */
 	EVENT_VALIDATING_LOCATION_ID("validating_location_id", 1),
-
+	
+	/**
+	 * 
+	 */
 	EVENT_VALIDATING_LOCATIONS("validating_locations", 0),
-
-	DEBUG_EVENTS_AND_ALL_SET("debug_events_and_all_set",0),
+	
+	/**
+	 * 
+	 */
+	DEBUG_EVENTS_AND_ALL_SET("debug_events_and_all_set", 0),
+	
+	/**
+	 * 
+	 */
 	DEBUG_EVENT_UNKNOWN("unknown_debug_event", 1),
+	
+	/**
+	 * 
+	 */
 	DEBUG_EVENT_REPEATS("debug_event_repeats", 1),
+	
+	/**
+	 * 
+	 */
 	DEBUG_UNKNOWN_MODE("debug_unknown_mode", 2),
-
-
+	
+	/**
+	 * Indicates a failure in removing template.
+	 */
+	TEMPLATE_NOT_EXIST("template_not_exist", 1),
+	
+	/**
+	 * Indicates a failure in removing template's file.
+	 */
+	FAILED_REMOVE_TEMPLATE_FILE("failed_to_remove_template_file", 2),
+	/**
+	 * Indicates a failure in removing template from at least one REST instance.
+	 */
+	FAILED_REMOVE_TEMPLATE("failed_to_remove_template", 2),
+	/**
+	 * Indicates a failure in creating REST client.
+	 */
+	FAILED_CREATE_REST_CLIENT("failed_to_create_REST_client", 1),
+	
 	// CHECKSTYLE:OFF
 	;
 	// CHECKSTYLE:ON

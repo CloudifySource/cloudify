@@ -17,6 +17,8 @@ package org.cloudifysource.shell.commands;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
+import org.cloudifysource.restclient.RestClient;
+import org.cloudifysource.shell.rest.RestAdminFacade;
 import org.fusesource.jansi.Ansi.Color;
 
 /**
@@ -35,7 +37,7 @@ import org.fusesource.jansi.Ansi.Color;
  */
 @Command(scope = "cloudify", name = "remove-template", 
 description = "Removes templates from the cloud")
-public class RemoveTemplate extends AdminAwareCommand {
+public class RemoveTemplate extends AdminAwareCommand implements NewRestClientCommand {
 	
 	@Argument(required = true, name = "name", description = "The name of the template to remove")
 	private String templateName;
@@ -44,6 +46,13 @@ public class RemoveTemplate extends AdminAwareCommand {
 	protected Object doExecute() throws Exception {
 		adminFacade.removeTemplate(templateName);
 		return getFormattedMessage("template_removed_successfully", Color.GREEN, templateName);
-		}
+	}
+
+	@Override
+	public Object doExecuteNewRestClient() throws Exception {
+		final RestClient newRestClient = ((RestAdminFacade) getRestAdminFacade()).getNewRestClient();
+		newRestClient.removeTemplate(templateName);
+		return getFormattedMessage("template_removed_successfully", Color.GREEN, templateName);
+	}
 
 }

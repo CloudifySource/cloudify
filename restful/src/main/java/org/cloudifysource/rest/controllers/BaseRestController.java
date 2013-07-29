@@ -13,6 +13,7 @@
 package org.cloudifysource.rest.controllers;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Locale;
 
 import javax.servlet.http.HttpServletResponse;
@@ -25,6 +26,7 @@ import org.cloudifysource.rest.exceptions.ResourceNotFoundException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.context.NoSuchMessageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -82,8 +84,13 @@ public abstract class BaseRestController {
         String messageId = (String) e.getErrorDescription().get("error");
         Object[] messageArgs = (Object[]) e.getErrorDescription().get(
                 "error_args");
-        String formattedMessage = messageSource.getMessage(messageId,
-                messageArgs, Locale.US);
+        String formattedMessage;
+        try {
+        	formattedMessage = messageSource.getMessage(messageId,
+        			messageArgs, Locale.US);
+        } catch (NoSuchMessageException ne) {
+        	formattedMessage = messageId + " [" + Arrays.toString(messageArgs) + "]";
+        }
 
         Response<Void> finalResponse = new Response<Void>();
         finalResponse.setStatus("Failed");
@@ -96,6 +103,12 @@ public abstract class BaseRestController {
         response.getOutputStream().write(responseString.getBytes());
     }
 
+    /**
+     * 
+     * @param response 
+     * @param e 
+     * @throws IOException 
+     */
     @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(value = HttpStatus.NOT_FOUND)
     public void handleResourceNotFoundException(final HttpServletResponse response,

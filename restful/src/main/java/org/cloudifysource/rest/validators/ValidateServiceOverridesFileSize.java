@@ -5,12 +5,14 @@ import java.io.File;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.rest.controllers.RestErrorException;
+import org.springframework.stereotype.Component;
 
 /**
  * Validate the service overrides file size.
  * @author yael
  *
  */
+@Component
 public class ValidateServiceOverridesFileSize implements InstallServiceValidator {
 
     private static final long DEFAULT_SERVICE_OVERRIDES_FILE_LENGTH_LIMIT_BYTES =

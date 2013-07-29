@@ -16,20 +16,22 @@ package org.cloudifysource.rest.controllers;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.rest.validators.AddTemplatesValidationContext;
 import org.cloudifysource.rest.validators.AddTemplatesValidator;
+import org.cloudifysource.rest.validators.ValidateTemplateOperation;
+import org.springframework.stereotype.Component;
 
 /**
  * 
  * @author yael
  * @since 2.7.0
  */
-public class ValidateAddTemplate implements AddTemplatesValidator {
+@Component
+public class ValidateAddTemplate extends ValidateTemplateOperation implements AddTemplatesValidator {
 
 	@Override
 	public void validate(final AddTemplatesValidationContext validationContext) throws RestErrorException {
 		
-		if (validationContext.getCloud() == null) {
-			throw new RestErrorException("local_cloud_not_support_templates_operations", "add-templates");
-		}
+		validationContext.setOperationName("add-templates");
+		super.validate(validationContext);
 		
 		if (validationContext.getRequest().getUploadKey() == null) {
 			throw new RestErrorException(CloudifyMessageKeys.UPLOAD_KEY_PARAMETER_MISSING.getName());

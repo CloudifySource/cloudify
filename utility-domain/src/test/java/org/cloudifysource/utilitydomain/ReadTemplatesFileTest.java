@@ -46,6 +46,23 @@ public class ReadTemplatesFileTest {
 	}
 	
 	@Test
+	public void readTemplateFilesFromEmptyFolder() {		
+		try {
+			File templatesFile = File.createTempFile("temp", null);
+			templatesFile.delete();
+			templatesFile.mkdir();
+			reader.readCloudTemplatesFromDirectory(templatesFile);
+			Assert.fail("Templates folder missing an upload folder yield no exception.");
+		} catch (DSLException e) {
+			Assert.assertTrue(e.getMessage().startsWith("There is no template files"));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			Assert.fail("Got " + e.getClass().getName() + " instead of DSLValidationException " 
+					+ "(The case is templates folder is empty)");
+		}
+	}
+	
+	@Test
 	public void illegalMultipleTemplatesInFileTest() {
 		try {
 			File templatesFile = new File(ILLEGAL_TEMPLATES_FILE_PATH);

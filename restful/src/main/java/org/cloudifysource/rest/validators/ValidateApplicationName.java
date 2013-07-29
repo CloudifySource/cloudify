@@ -18,12 +18,14 @@ package org.cloudifysource.rest.validators;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.rest.controllers.RestErrorException;
+import org.springframework.stereotype.Component;
 
 /**
  * validate application name does not contain invalid chars.
  * @author adaml
  *
  */
+@Component
 public class ValidateApplicationName implements InstallApplicationValidator{
 
 	@Override

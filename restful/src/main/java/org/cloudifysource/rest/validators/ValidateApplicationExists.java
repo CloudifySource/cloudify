@@ -25,6 +25,7 @@ import org.cloudifysource.rest.controllers.RestErrorException;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.application.Application;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Validator for uninstallApplication command that validates the application exists.
@@ -32,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author adaml
  *
  */
+@Component
 public class ValidateApplicationExists implements UninstallApplicationValidator {
 	
 	private static final Logger logger = Logger.getLogger(ValidateGsmState.class.getName());

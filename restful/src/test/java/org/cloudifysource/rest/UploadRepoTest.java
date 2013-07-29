@@ -47,7 +47,8 @@ public class UploadRepoTest {
  	private static final String TEST_FILE_NAME = "test.txt";
 	private static final String TXT_FILE_PATH = UPLOAD_DIR_PATH + File.separator + TEST_FILE_NAME;
     @Before
-    public void init() throws IOException {
+    public void init() 
+    		throws IOException, RestErrorException {
         repo = new UploadRepo();
         repo.init();
     }

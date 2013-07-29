@@ -1,4 +1,4 @@
-/*
+/*******************************************************************************
  * Copyright (c) 2013 GigaSpaces Technologies Ltd. All rights reserved
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -9,35 +9,36 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
- * *****************************************************************************
- */
+ *******************************************************************************/
 package org.cloudifysource.dsl.rest.response;
 
 import java.util.List;
+import java.util.Map;
 
 /**
+ * A POJO represent add templates response used for making a REST API response .
  * 
  * @author yael
  * @since 2.7.0
  */
 public class AddTemplatesResponse {
-	private List<String> addedTemplates;
-	private AddTemplatesPartialFailureResponse partialFailureResponse;
+	private Map<String, Map<String, String>> failedToAddTempaltes;
+	private List<String> successfullyAddedTempaltes;
 
-	public List<String> getAddedTemplates() {
-		return addedTemplates;
+	public Map<String, Map<String, String>> getFailedToAddTempaltes() {
+		return failedToAddTempaltes;
 	}
 
-	public void setAddedTemplates(final List<String> addedTemplates) {
-		this.addedTemplates = addedTemplates;
+	public void setFailedToAddTempaltes(final Map<String, Map<String, String>> failedToAddTempaltes) {
+		this.failedToAddTempaltes = failedToAddTempaltes;
 	}
 
-	public AddTemplatesPartialFailureResponse getPartialFailureResponse() {
-		return partialFailureResponse;
+	public List<String> getSuccessfullyAddedTempaltes() {
+		return successfullyAddedTempaltes;
 	}
 
-	public void setPartialFailureResponse(final AddTemplatesPartialFailureResponse partialFailureResponse) {
-		this.partialFailureResponse = partialFailureResponse;
+	public void setSuccessfullyAddedTempaltes(final List<String> successfullyAddedTempaltes) {
+		this.successfullyAddedTempaltes = successfullyAddedTempaltes;
 	}
 
 }

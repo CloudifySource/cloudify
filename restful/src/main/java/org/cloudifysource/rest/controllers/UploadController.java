@@ -70,8 +70,8 @@ public class UploadController extends BaseRestController {
         if (StringUtils.isEmpty(fileName)) {
             name = file.getOriginalFilename();
         }
-        if (logger.isLoggable(Level.FINER)) {
-            logger.finer("received request to upload file " + name);
+        if (logger.isLoggable(Level.FINE)) {
+            logger.fine("received request to upload file " + name);
         }
         // upload file using uploadRepo
         String uploadedFileDirName = null;

@@ -6,7 +6,10 @@ import java.util.Map.Entry;
 import org.apache.felix.gogo.commands.Command;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.rest.response.ListTemplatesResponse;
+import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.shell.ShellUtils;
+import org.cloudifysource.shell.rest.RestAdminFacade;
 
 /**
  * 
@@ -21,7 +24,7 @@ import org.cloudifysource.shell.ShellUtils;
  *
  */
 @Command(scope = "cloudify", name = "list-templates", description = "List all cloud's templates")
-public class ListTemplates extends AdminAwareCommand {
+public class ListTemplates extends AdminAwareCommand implements NewRestClientCommand {
 
 	@Override
 	protected Object doExecute() throws Exception {
@@ -57,6 +60,13 @@ public class ListTemplates extends AdminAwareCommand {
 		String result = sb.toString();
 		result = result.substring(0, result.lastIndexOf(","));
 		return result + CloudifyConstants.NEW_LINE + "}";
+	}
+
+	@Override
+	public Object doExecuteNewRestClient() throws Exception {
+		final RestClient newRestClient = ((RestAdminFacade) getRestAdminFacade()).getNewRestClient();
+		ListTemplatesResponse listTemplates = newRestClient.listTemplates();
+		return getTemplatesListAsString(listTemplates.getTemplates());
 	}
 
 }

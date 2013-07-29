@@ -16,6 +16,8 @@ public enum CloudifyMessageKeys {
 
     NOT_EXIST_ATTRIBUTE("not_exist_attribute"),
     
+    UPLOAD_DIRECTORY_CREATION_FAILED("failed_creating_upload_directory"),
+    
     UPLOAD_FILE_SIZE_LIMIT_EXCEEDED("upload_file_size_limit_exceeded"),
 
     UPLOAD_FAILED("failed_to_upload_file"),

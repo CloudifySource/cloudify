@@ -18,6 +18,7 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.rest.ResponseConstants;
 import org.cloudifysource.rest.controllers.RestErrorException;
 import org.openspaces.admin.pu.ProcessingUnit;
+import org.springframework.stereotype.Component;
 
 /*************
  * Validates that a service is marked as elastic.
@@ -25,6 +26,7 @@ import org.openspaces.admin.pu.ProcessingUnit;
  * @since 2.6.0
  *
  */
+@Component
 public class ValidateElasticServiceValidator implements SetServiceInstancesValidator {
 
 	@Override

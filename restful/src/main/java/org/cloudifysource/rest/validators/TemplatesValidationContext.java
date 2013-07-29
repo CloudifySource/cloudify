@@ -22,6 +22,7 @@ import org.cloudifysource.dsl.cloud.Cloud;
  */
 public class TemplatesValidationContext {
 	private Cloud cloud;
+	private String operationName;
 
 	public Cloud getCloud() {
 		return cloud;
@@ -29,5 +30,13 @@ public class TemplatesValidationContext {
 
 	public void setCloud(final Cloud cloud) {
 		this.cloud = cloud;
+	}
+
+	public String getOperationName() {
+		return operationName;
+	}
+
+	public void setOperationName(final String operationName) {
+		this.operationName = operationName;
 	}
 }
