@@ -251,7 +251,7 @@ public class ByonDeployer {
 			logger.log(Level.INFO, "Looking for " + ipAddress + " in the pool of \"free\" machines");
 			for (final CustomNode node : freeNodesPool) {
 				if (StringUtils.isNotBlank(node.getPrivateIP())) {
-					if (node.getPrivateIP().equalsIgnoreCase(ipAddress)) {
+					if (IPUtils.isSameIpAddress(node.getPrivateIP(), ipAddress)) {
 						freeNodesPool.remove(node);
 						if (!allocatedNodesPool.contains(node)) {
 							allocatedNodesPool.add(node);
@@ -646,8 +646,7 @@ public class ByonDeployer {
 
 		for (final CustomNode newNode : newNodes) {
 			for (final CustomNode oldNode : oldNodes) {
-				if (oldNode.getPrivateIP().equalsIgnoreCase(
-                        newNode.getPrivateIP())) {
+				if (IPUtils.isSameIpAddress(oldNode.getPrivateIP(), newNode.getPrivateIP())) {
 					existingIPs.add(oldNode.getPrivateIP());
 					break;
 				}

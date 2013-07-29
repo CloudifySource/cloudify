@@ -16,10 +16,11 @@
 		<module>../security-ldap</module>
 		<module>../restful</module>
 		<module>../dsl</module>
+		<module>../domain</module>
+		<module>../utility-domain</module>
 		<module>../rest-client</module>
 		<module>../management-space</module>
 	</modules>
-
 	<properties>
 		<gsVersion>9.6.0-SNAPSHOT</gsVersion>
 		<springVersion>3.1.3.RELEASE</springVersion>
@@ -71,21 +72,6 @@
 			</snapshots>
 		</pluginRepository>
 	</pluginRepositories>
-
-	<modules>
-		<module>../CLI</module>
-		<module>../esc</module>
-		<module>../esc-commands</module>
-		<module>../USM</module>
-		<module>../security</module>
-		<module>../security-ldap</module>
-		<module>../restful</module>
-		<module>../dsl</module>
-		<module>../domain</module>
-		<module>../utility-domain</module>
-		<module>../rest-client</module>
-		<module>../management-space</module>
-	</modules>
 	<distributionManagement>
 		<downloadUrl>http://maven-repository.openspaces.org</downloadUrl>
 		<repository>
