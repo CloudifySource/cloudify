@@ -2,9 +2,8 @@
 
 function setJSHome() {
 	SCRIPT_PATH=$(dirname $0)
-	echo Script path is $SCRIPT_PATH
 	pushd . > /dev/null
-	cd `dirname ${SCRIPT_PATH}` > /dev/null
+	cd ${SCRIPT_PATH} > /dev/null
 	SCRIPT_PATH=`pwd`;
 	JSHOMEDIR="$SCRIPT_PATH/../.."
 	popd  > /dev/null
