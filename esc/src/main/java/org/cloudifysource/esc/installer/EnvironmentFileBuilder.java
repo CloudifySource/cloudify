@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
@@ -251,6 +252,23 @@ public class EnvironmentFileBuilder {
 		final String pathWithBackslash = pathWithDriveLetter.replace("/", "\\");
 
 		return pathWithBackslash;
+	}
+
+	/**
+	 * Normalizes the path and returns a standard windows absolute path.
+	 * 
+	 * @param remoteDirectory
+	 * 			The remote path.
+	 * @return
+	 * 		a normalized absolute windows path.
+	 */
+	public static String normalizeLocalAbsolutePath(final String remoteDirectory) {
+		if (remoteDirectory.startsWith("/") && remoteDirectory.indexOf("$") == 2) {
+			// '$' is a special char.
+			final String quoteReplacement = Matcher.quoteReplacement("$");
+			return remoteDirectory.replaceFirst(quoteReplacement, ":").replaceFirst("/", "");
+		}
+		return remoteDirectory;
 	}
 
 	/********

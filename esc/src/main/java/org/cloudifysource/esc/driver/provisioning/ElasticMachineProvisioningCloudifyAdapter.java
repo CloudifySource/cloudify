@@ -953,9 +953,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			logger.severe("Missing cloud configuration property. Properties are: " + this.properties);
 			throw new IllegalArgumentException("Cloud configuration directory was not set!");
 		}
-
 		if (ServiceUtils.isWindows()) {
 			cloudConfigDirectoryPath = EnvironmentFileBuilder.normalizeCygwinPath(cloudConfigDirectoryPath);
+			cloudConfigDirectoryPath = EnvironmentFileBuilder.normalizeLocalAbsolutePath(cloudConfigDirectoryPath);
 		}
 		return cloudConfigDirectoryPath;
 	}
