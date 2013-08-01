@@ -1,4 +1,5 @@
 *.iml
+*.pem
 .metadata/
 .idea/*
 cloudify/.idea/*
