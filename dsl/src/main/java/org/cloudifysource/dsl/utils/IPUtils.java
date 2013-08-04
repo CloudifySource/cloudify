@@ -31,7 +31,7 @@ import com.googlecode.ipv6.IPv6Address;
  * A utility class for IP manipulation and validation.
  * 
  * @author noak
- * @since 2.1.0
+ * @since 2.6.1
  */
 public final class IPUtils {
 

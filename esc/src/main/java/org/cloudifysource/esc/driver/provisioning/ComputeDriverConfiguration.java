@@ -1,6 +1,6 @@
 package org.cloudifysource.esc.driver.provisioning;
 
-import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.domain.cloud.Cloud;
 import org.openspaces.admin.Admin;
 
 public class ComputeDriverConfiguration {

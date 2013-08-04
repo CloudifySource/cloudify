@@ -49,12 +49,14 @@ import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.rest.response.ControllerDetails;
+import org.cloudifysource.dsl.utils.IPUtils;
+import org.cloudifysource.esc.driver.provisioning.BaseComputeDriver;
+import org.cloudifysource.esc.driver.provisioning.ComputeDriverConfiguration;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ManagementLocator;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningContextAccess;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningContextImpl;
-import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriverBootstrapValidation;
 import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
@@ -69,9 +71,8 @@ import org.cloudifysource.esc.shell.ValidationContextImpl;
 import org.cloudifysource.esc.shell.listener.CliAgentlessInstallerListener;
 import org.cloudifysource.esc.shell.listener.CliProvisioningDriverListener;
 import org.cloudifysource.esc.util.CalcUtils;
-import org.cloudifysource.esc.util.ProvisioningDriverClassBuilder;
-import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.esc.util.InstallationDetailsBuilder;
+import org.cloudifysource.esc.util.ProvisioningDriverClassBuilder;
 import org.cloudifysource.esc.util.Utils;
 import org.cloudifysource.restclient.utils.NewRestClientUtils;
 import org.cloudifysource.shell.AdminFacade;
@@ -115,7 +116,7 @@ public class CloudGridAgentBootstrapper {
 
 	private int progressInSeconds;
 
-	private ProvisioningDriver provisioning;
+	private BaseComputeDriver provisioning;
 
 	private Cloud cloud;
 
@@ -275,7 +276,7 @@ public class CloudGridAgentBootstrapper {
 	}
 
 	private MachineDetails[] getOrCreateManagementServers(final long timeout, final TimeUnit timeoutUnit,
-			String keystorePassword, String securityProfile)
+			final String keystorePassword, final String securityProfile)
 			throws CLIException {
 
 		MachineDetails[] servers;
@@ -290,7 +291,7 @@ public class CloudGridAgentBootstrapper {
 		final ComputeTemplate template =
 				this.cloud.getCloudCompute().getTemplates()
 						.get(cloud.getConfiguration().getManagementMachineTemplate());
-		for (MachineDetails machineDetails : servers) {
+		for (final MachineDetails machineDetails : servers) {
 			if (machineDetails.getInstallerConfiguration() == null) {
 				machineDetails.setInstallerConfigutation(template.getInstaller());
 			}
@@ -299,13 +300,14 @@ public class CloudGridAgentBootstrapper {
 
 	}
 
-	private ProvisioningContextImpl setUpProvisioningContext(String keystorePassword,
-			String securityProfile) {
+	private ProvisioningContextImpl setUpProvisioningContext(final String keystorePassword,
+			final String securityProfile) {
 
 		final ProvisioningContextImpl ctx = new ProvisioningContextImpl();
 		ctx.setLocationId(null);
 		ctx.setCloudFile(this.cloudFile);
 		InstallationDetailsBuilder builder = ctx.getInstallationDetailsBuilder();
+
 		builder.setReservationId(null);
 		builder.setAdmin(null);
 
@@ -328,15 +330,15 @@ public class CloudGridAgentBootstrapper {
 	}
 
 	private MachineDetails[] createManagementServers(final long timeout, final TimeUnit timeoutUnit,
-			String keystorePassword, String securityProfile)
+			final String keystorePassword, final String securityProfile)
 			throws CLIException {
 		MachineDetails[] servers;
 
 		logger.warning("Creating provisioning Context");
 		final ProvisioningContextImpl context = setUpProvisioningContext(keystorePassword, securityProfile);
-		ProvisioningContextAccess.setCurrentManagementProvisioingContext(context);
+
 		try {
-			servers = provisioning.startManagementMachines(timeout, timeoutUnit);
+			servers = provisioning.startManagementMachines(context, timeout, timeoutUnit);
 		} catch (final CloudProvisioningException e) {
 			final CLIStatusException cliStatusException =
 					new CLIStatusException(e, CloudifyErrorMessages.CLOUD_API_ERROR.getName(), e.getMessage());
@@ -383,12 +385,12 @@ public class CloudGridAgentBootstrapper {
 
 	private MachineDetails[] locateManagementMachinesFromFile() throws CLIStatusException {
 		if (provisioning instanceof ManagementLocator) {
-			ObjectMapper mapper = new ObjectMapper();
+			final ObjectMapper mapper = new ObjectMapper();
 			ControllerDetails[] controllers = null;
 			try {
 				controllers =
 						mapper.readValue(this.existingManagersFile, TypeFactory.arrayType(ControllerDetails.class));
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				throw new IllegalArgumentException("Failed to read managers file: "
 						+ this.existingManagersFile.getAbsolutePath() + ". Error was: " + e.getMessage(), e);
 			}
@@ -555,7 +557,7 @@ public class CloudGridAgentBootstrapper {
 		provisioning.addListener(new CliProvisioningDriverListener());
 
 		final String serviceName = null;
-		ValidationContext validationContext = new ValidationContextImpl();
+		final ValidationContext validationContext = new ValidationContextImpl();
 
 		try {
 
@@ -563,8 +565,14 @@ public class CloudGridAgentBootstrapper {
 				validateCloudifyUrls(validationContext);
 			}
 
-			provisioning.setConfig(cloud, cloud.getConfiguration().getManagementMachineTemplate(),
-					true /* isManagement */, serviceName);
+			final ComputeDriverConfiguration configuration = new ComputeDriverConfiguration();
+			configuration.setAdmin(null);
+			configuration.setCloud(cloud);
+			configuration.setCloudTemplate(cloud.getConfiguration().getManagementMachineTemplate());
+			configuration.setManagement(true);
+			configuration.setServiceName(serviceName);
+
+			provisioning.setConfig(configuration);
 
 			if (performValidation && provisioning instanceof ProvisioningDriverBootstrapValidation) {
 				validationContext.validationEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE,
@@ -573,7 +581,7 @@ public class CloudGridAgentBootstrapper {
 				validationContext.validationEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE,
 						ShellUtils.getFormattedMessage(CloudifyErrorMessages.EVENT_CLOUD_CONFIG_VALIDATED.getName()));
 			}
-		} catch (CloudProvisioningException e) {
+		} catch (final CloudProvisioningException e) {
 			throw new CLIException(e.getMessage(), e);
 		}
 
@@ -669,7 +677,7 @@ public class CloudGridAgentBootstrapper {
 
 	}
 
-	private void uninstall(Collection<String> applicationsList, long millisToEnd)
+	private void uninstall(final Collection<String> applicationsList, final long millisToEnd)
 			throws CLIException, InterruptedException, TimeoutException {
 		final int minutesToEnd = (int) TimeUnit.MILLISECONDS
 				.toMinutes(millisToEnd);
@@ -696,11 +704,11 @@ public class CloudGridAgentBootstrapper {
 
 	}
 
-	private void uninstallNewRestClient(Collection<String> applicationsList, long millisToEnd)
+	private void uninstallNewRestClient(final Collection<String> applicationsList, final long millisToEnd)
 			throws CLIException {
 		for (final String application : applicationsList) {
 			if (!application.equals(MANAGEMENT_APPLICATION)) {
-				CLIApplicationUninstaller uninstaller = new CLIApplicationUninstaller();
+				final CLIApplicationUninstaller uninstaller = new CLIApplicationUninstaller();
 				uninstaller.setRestClient(((RestAdminFacade) adminFacade).getNewRestClient());
 				uninstaller.setApplicationName(application);
 				uninstaller.setAskOnTimeout(false);
@@ -883,7 +891,7 @@ public class CloudGridAgentBootstrapper {
 	}
 
 	private boolean isRebootstrapping() {
-		return this.useExistingManagers || (this.existingManagersFile != null);
+		return this.useExistingManagers || this.existingManagersFile != null;
 	}
 
 	/**
@@ -989,7 +997,7 @@ public class CloudGridAgentBootstrapper {
 				|| baseCloudifyUrl.endsWith(".zip")) {
 			validateUrl(baseCloudifyUrl, validationContext);
 		} else {
-			Set<String> scriptLanguages = getScriptLanguages();
+			final Set<String> scriptLanguages = getScriptLanguages();
 			if (scriptLanguages.contains(ScriptLanguages.LINUX_SHELL.toString())) {
 				validateUrl(baseCloudifyUrl + ".tar.gz", validationContext);
 			}
@@ -1004,26 +1012,26 @@ public class CloudGridAgentBootstrapper {
 	private void validateUrl(final String cloudifyUrl, final ValidationContext validationContext)
 			throws CloudProvisioningException {
 
-		DefaultHttpClient httpClient = new DefaultHttpClient();
+		final DefaultHttpClient httpClient = new DefaultHttpClient();
 
-		HttpHead httpMethod = new HttpHead(cloudifyUrl);
+		final HttpHead httpMethod = new HttpHead(cloudifyUrl);
 		try {
 			validationContext.validationOngoingEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE,
 					ShellUtils.getFormattedMessage(CloudifyErrorMessages.EVENT_VALIDATING_CLOUDIFY_URL.getName(),
 							cloudifyUrl));
-			HttpResponse response = httpClient.execute(httpMethod);
+			final HttpResponse response = httpClient.execute(httpMethod);
 			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
 				validationContext.validationEventEnd(ValidationResultType.ERROR);
 				logger.warning("Failed to validate Cloudify URL: " + cloudifyUrl);
 				throw new CloudProvisioningException("Invalid cloudify URL: " + cloudifyUrl);
 			}
 			validationContext.validationEventEnd(ValidationResultType.OK);
-		} catch (ClientProtocolException e) {
+		} catch (final ClientProtocolException e) {
 			validationContext.validationOngoingEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE,
 					" Unable to validate URL");
 			validationContext.validationEventEnd(ValidationResultType.WARNING);
 			logger.fine("Failed to validate Cloudify URL: " + cloudifyUrl);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			validationContext.validationOngoingEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE,
 					" Unable to validate URL");
 			validationContext.validationEventEnd(ValidationResultType.WARNING);
@@ -1032,10 +1040,10 @@ public class CloudGridAgentBootstrapper {
 	}
 
 	private Set<String> getScriptLanguages() {
-		Set<String> langs = new HashSet<String>();
+		final Set<String> langs = new HashSet<String>();
 
-		for (Entry<String, ComputeTemplate> entry : cloud.getCloudCompute().getTemplates().entrySet()) {
-			ComputeTemplate template = entry.getValue();
+		for (final Entry<String, ComputeTemplate> entry : cloud.getCloudCompute().getTemplates().entrySet()) {
+			final ComputeTemplate template = entry.getValue();
 			langs.add(template.getScriptLanguage().toString());
 		}
 

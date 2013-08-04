@@ -26,6 +26,7 @@ import org.openspaces.admin.Admin;
  * @author barakme
  *
  */
+@Deprecated
 public interface ProvisioningDriver {
 
 	/**************
