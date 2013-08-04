@@ -148,26 +148,26 @@ public class ComputeTemplatesReader {
 			logger.info("[addAdditionalTemplates] - Folder's files: " + Arrays.toString(folder.listFiles()));
 			try {
 				additionalTemplates = readCloudTemplatesFromDirectory(folder);
+				// scan holders and add all templates to cloud.
+				for (ComputeTemplateHolder holder : additionalTemplates) {
+					String templateName = holder.getName();
+					Map<String, ComputeTemplate> cloudTemplates = cloud.getCloudCompute().getTemplates();
+					// not supposed to happen
+					if (cloudTemplates.containsKey(templateName)) {
+						logger.log(Level.WARNING, "[addAdditionalTemplates] - template already exist: " + templateName);
+						continue;
+					}
+					// set the local absolute path to the upload directory
+					ComputeTemplate cloudTemplate = holder.getCloudTemplate();
+					String uploadAbsolutePath = new File(folder, cloudTemplate.getLocalDirectory()).getAbsolutePath();
+					cloudTemplate.setAbsoluteUploadDir(uploadAbsolutePath);
+					// add template to cloud
+					cloudTemplates.put(templateName, cloudTemplate);
+					addedTemplates.add(cloudTemplate);
+				}
 			} catch (DSLException e) {
 				logger.log(Level.WARNING, "[addAdditionalTemplates] - Failed to read templates from directory ["
 						+ folder.getAbsolutePath() + "]. Error: " + e.getMessage());
-			}
-			// scan holders and add all templates to cloud.
-			for (ComputeTemplateHolder holder : additionalTemplates) {
-				String templateName = holder.getName();
-				Map<String, ComputeTemplate> cloudTemplates = cloud.getCloudCompute().getTemplates();
-				// not supposed to happen
-				if (cloudTemplates.containsKey(templateName)) {
-					logger.log(Level.WARNING, "[addAdditionalTemplates] - template already exist: " + templateName);
-					continue;
-				}
-				// set the local absolute path to the upload directory
-				ComputeTemplate cloudTemplate = holder.getCloudTemplate();
-				String uploadAbsolutePath = new File(folder, cloudTemplate.getLocalDirectory()).getAbsolutePath();
-				cloudTemplate.setAbsoluteUploadDir(uploadAbsolutePath);
-				// add template to cloud
-				cloudTemplates.put(templateName, cloudTemplate);
-				addedTemplates.add(cloudTemplate);
 			}
 		}
 		return addedTemplates;

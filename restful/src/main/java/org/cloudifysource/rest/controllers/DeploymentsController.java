@@ -195,6 +195,7 @@ public class DeploymentsController extends BaseRestController {
 	private final SetServiceInstancesValidator[] setServiceInstancesValidators = new SetServiceInstancesValidator[0];
 
 	protected GigaSpace gigaSpace;
+	private Admin admin;
 	private CustomPermissionEvaluator permissionEvaluator;
 	private final ExecutorService serviceUndeployExecutor = Executors.newFixedThreadPool(10);
 	private EventsCache eventsCache;
@@ -207,8 +208,9 @@ public class DeploymentsController extends BaseRestController {
 	public void init() {
 		gigaSpace = restConfig.getGigaSpace();
 		permissionEvaluator = restConfig.getPermissionEvaluator();
-		this.eventsCache = new EventsCache(restConfig.getAdmin());
-		this.controllerHelper = new ControllerHelper(gigaSpace, restConfig.getAdmin());
+		this.admin = restConfig.getAdmin();
+		this.eventsCache = new EventsCache(admin);
+		this.controllerHelper = new ControllerHelper(gigaSpace, admin);
 	}
 
 	/**
@@ -893,7 +895,9 @@ public class DeploymentsController extends BaseRestController {
 			throws RestErrorException {
 
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(appName, serviceName);
-
+		
+		logger.info("[installService] - isntalling service " + serviceName);
+		
 		// this validation should only happen on install service.
 		String uploadKey = request.getServiceFolderUploadKey();
 		if (StringUtils.isBlank(uploadKey)) {
@@ -1091,12 +1095,14 @@ public class DeploymentsController extends BaseRestController {
 				new ApplicationDescriptionFactory(restConfig.getAdmin());
 		List<ServiceDescription> descriptions = new ArrayList<ServiceDescription>();
 		EventsCacheValue value = eventsCache.getIfExists(new EventsCacheKey(deploymentId));
-		for (ProcessingUnit pu : value.getProcessingUnits()) {
-			ServiceDescription serviceDescription = appDescriptionFactory.getServiceDescription(pu);
-			if (!serviceDescription.getInstancesDescription().isEmpty()) {
-				descriptions.add(serviceDescription);
-			} else {
-				// pu is stale. no instances
+		if (value != null) {
+			for (ProcessingUnit pu : value.getProcessingUnits()) {
+				ServiceDescription serviceDescription = appDescriptionFactory.getServiceDescription(pu);
+				if (!serviceDescription.getInstancesDescription().isEmpty()) {
+					descriptions.add(serviceDescription);
+				} else {
+					// pu is stale. no instances
+				}
 			}
 		}
 		return descriptions;
@@ -1531,6 +1537,7 @@ public class DeploymentsController extends BaseRestController {
 		final InstallServiceValidationContext validationContext = new InstallServiceValidationContext();
 		validationContext.setAbsolutePuName(absolutePuName);
 		validationContext.setCloud(restConfig.getCloud());
+		validationContext.setAdmin(admin);
 		validationContext.setRequest(request);
 		validationContext.setService(service);
 		validationContext.setTemplateName(templateName);

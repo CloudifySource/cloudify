@@ -238,7 +238,7 @@ public class AddTemplates extends AdminAwareCommand implements NewRestClientComm
 		}
 	}
 
-	private String getFailureMessage(List<ComputeTemplateHolder> expectedTemplates) {
+	private String getFailureMessage(final List<ComputeTemplateHolder> expectedTemplates) {
 		List<String> expectedTempalteNames = new LinkedList<String>();
 		for (ComputeTemplateHolder templateHolder : expectedTemplates) {
 			expectedTempalteNames.add(templateHolder.getName());
@@ -259,7 +259,8 @@ public class AddTemplates extends AdminAwareCommand implements NewRestClientComm
 			final Map<String, Map<String, String>> failedToAddTempaltes) {
 		final StringBuilder sb = new StringBuilder("Partial Failure:" + CloudifyConstants.NEW_LINE);
 		if (!successfullyAddedTempaltes.isEmpty()) {
-			sb.append("The following templates were added to all REST instances: " + successfullyAddedTempaltes);
+			sb.append("The following templates were successfully added to all REST instances: " 
+					+ successfullyAddedTempaltes);
 			sb.append(CloudifyConstants.NEW_LINE);
 		}
 		sb.append("The following templates failed to be added to one or more REST instances:");

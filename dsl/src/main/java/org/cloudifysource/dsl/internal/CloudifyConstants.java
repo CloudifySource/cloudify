@@ -417,6 +417,12 @@ public final class CloudifyConstants {
 
     // system property passed in test-recipe command
     public static final String TEST_RECIPE_TIMEOUT_SYSPROP = "com.gs.usm.RecipeShutdownTimeout";
+    
+    /**
+     * service controller url
+     */
+	public static final String SERVICE_CONTROLLER_URL = "service";
+
     // CHECKSTYLE:ON
 }
 

@@ -15,10 +15,8 @@ package org.cloudifysource.rest.controllers;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -106,6 +104,7 @@ public class TemplatesController extends BaseRestController {
 	 */
 	@PostConstruct
 	public void init() {
+		log(Level.INFO, "Initializing Templates controller.");
 		cloud = restConfig.getCloud();
 		admin = restConfig.getAdmin();
 		permissionEvaluator = restConfig.getPermissionEvaluator();
@@ -129,7 +128,7 @@ public class TemplatesController extends BaseRestController {
 	@RequestMapping(method = RequestMethod.POST)
 	public AddTemplatesResponse addTemplates(@RequestBody final AddTemplatesRequest request)
 			throws RestErrorException, IOException, DSLException {
-		logger.log(Level.INFO, "[addTemplates] - starting add templates.");
+		log(Level.INFO, "[addTemplates] - starting add templates.");
 		// validate
 		validateAddTemplates(request);
 		File templatesZippedFolder = null;
@@ -165,6 +164,7 @@ public class TemplatesController extends BaseRestController {
 		validateTemplateOperation("list-templates");
 		final ListTemplatesResponse response = new ListTemplatesResponse();
 		final Map<String, ComputeTemplate> templates = cloud.getCloudCompute().getTemplates();
+		log(Level.FINE, "listTemplates found " + templates.size() + " templates: " + templates);
 		response.setTemplates(templates);
 		return response;
 	}
@@ -189,7 +189,7 @@ public class TemplatesController extends BaseRestController {
 		final ComputeTemplate cloudTemplate = cloud.getCloudCompute().getTemplates().get(templateName);
 
 		if (cloudTemplate == null) {
-			logger.log(Level.WARNING, "[getTemplate] - template [" + templateName
+			log(Level.WARNING, "[getTemplate] - template [" + templateName
 					+ "] not found. cloud templates list: " + cloud.getCloudCompute().getTemplates());
 			throw new RestErrorException(CloudifyErrorMessages.TEMPLATE_NOT_EXIST.getName(), templateName);
 		}
@@ -258,12 +258,12 @@ public class TemplatesController extends BaseRestController {
 		final ProcessingUnitInstance[] instances = admin.getProcessingUnits().
 				waitFor("rest", RestUtils.TIMEOUT_IN_SECOND, TimeUnit.SECONDS).getInstances();
 		// execute add-template on each rest instance
-		logger.log(Level.INFO, "[addTemplatesToRestInstances] - sending add templates request to "
+		log(Level.INFO, "[addTemplatesToRestInstances] - sending add templates request to "
 				+ instances.length + " instances.");
 		for (final ProcessingUnitInstance puInstance : instances) {
 			final String port = Integer.toString(puInstance.getJeeDetails().getPort());
 			String hostAddress = puInstance.getMachine().getHostAddress();
-			logger.log(Level.INFO, "[addTemplatesToRestInstances] - execute add-templates to " + hostAddress);
+			log(Level.INFO, "[addTemplatesToRestInstances] - execute add-templates to " + hostAddress);
 			final AddTemplatesInternalResponse instanceResponse = 
 					executeAddTemplateOnInstance(hostAddress, port, request);
 			final Map<String, String> failedToAddTempaltesToHost = instanceResponse.getFailedToAddTempaltesAndReasons();
@@ -282,26 +282,26 @@ public class TemplatesController extends BaseRestController {
 					failedToAddTempaltes.put(templateName, templateFailedPUs);
 				}
 				final List<String> addedTempaltes = instanceResponse.getAddedTempaltes();
-				logger.log(Level.WARNING, "[addTemplatesToRestInstances] - failed to add templates to host ["
+				log(Level.WARNING, "[addTemplatesToRestInstances] - failed to add templates to host ["
 						+ hostAddress + "]: " + failedToAddTempaltesToHost);
 				if (addedTempaltes == null || addedTempaltes.isEmpty()) {
 					// all expected templates failed to be added
 					failedHostCount++;
 				} else {
 					// partial success
-					logger.log(Level.WARNING, "[addTemplatesToRestInstances] - successfully added templates: "
+					log(Level.WARNING, "[addTemplatesToRestInstances] - successfully added templates: "
 							+ addedTempaltes);
 				}
 			} else {
 				// all expected templates were added
-				logger.log(Level.INFO,
+				log(Level.INFO,
 						"[addTemplatesToRestInstances] - successfully added templates to host [" + hostAddress + "].");
 			}
 		}
 
 		// check if all PUs failed.
 		if (instances.length == failedHostCount) {
-			logger.log(Level.WARNING,
+			log(Level.WARNING,
 					"[sendAddTemplatesToRestInstances] - Failed to add templates: " + failedToAddTempaltes);
 			throw new RestErrorException(CloudifyErrorMessages.FAILED_TO_ADD_TEMPLATES.getName(),
 					failedToAddTempaltes.toString());
@@ -313,27 +313,6 @@ public class TemplatesController extends BaseRestController {
 		response.setSuccessfullyAddedTempaltes(successfullyAddedTemplates);
 		return response;
 
-	}
-
-	private boolean isLocalHost(final String hostAddress) {
-		String localhost;
-		// TODO : refine next log
-		logger.log(Level.INFO, "[isAddTemplateToSelf] - checking if " + hostAddress
-				+ " is local host.");
-		try {
-			localhost = InetAddress.getLocalHost().getHostAddress();
-		} catch (final UnknownHostException e) {
-			logger.log(Level.WARNING, "[isAddTemplateToSelf] - failed to get local host address, returning false."
-					+ " Error message: " + e.getMessage(), e);
-			return false;
-		}
-		final boolean equals = localhost.equals(hostAddress);
-		if (!equals) {
-			// TODO : refine next log
-			logger.log(Level.INFO, "[isAddTemplateToSelf] - the host to check [" + hostAddress
-					+ "] is not the local host [" + localhost + "].");
-		}
-		return equals;
 	}
 
 	/**
@@ -356,7 +335,7 @@ public class TemplatesController extends BaseRestController {
 		} catch (final RestClientException e) {
 			// the request failed => all expected templates failed to be added
 			// create a response that contains all expected templates in a failure map.
-			logger.log(Level.WARNING, "[executeAddTemplateOnInstance] - Failed to execute http request to "
+			log(Level.WARNING, "[executeAddTemplateOnInstance] - Failed to execute http request to "
 					+ host  + ". Error message: " + e.getMessageFormattedText());
 			final Map<String, String> failedMap = new HashMap<String, String>();
 			for (final String expectedTemplate : request.getExpectedTemplates()) {
@@ -367,23 +346,16 @@ public class TemplatesController extends BaseRestController {
 			return instanceResponse;
 		}
 		final List<String> addedTempaltes = instanceResponse.getAddedTempaltes();
-		// TODO : refine next log
-		logger.log(Level.INFO, "[executeAddTemplateOnInstance] - added "
+		log(Level.FINE, "[executeAddTemplateOnInstance] - added "
 				+ addedTempaltes.size() + " templates: " + addedTempaltes);
 		final Map<String, String> failedToAddTempaltesAndReasons =
 				instanceResponse.getFailedToAddTempaltesAndReasons();
 		final List<String> failedList = new ArrayList<String>(failedToAddTempaltesAndReasons.keySet());
-		// TODO : refine next log
-		logger.log(Level.INFO, "[executeAddTemplateOnInstance] - failed to add "
+		log(Level.FINE, "[executeAddTemplateOnInstance] - failed to add "
 				+ failedList.size() + " templates: " + failedList);
 		// addedTempaltes and failedList suppose to contain all templates from expectedTemplates.
 		final List<?> union = ListUtils.union(addedTempaltes, failedList);
-		// TODO : remove next log
-		logger.log(Level.INFO, "[executeAddTemplateOnInstance] - union of  addedTempaltes and failedList: " + union);
 		final List<?> subtract = ListUtils.subtract(request.getExpectedTemplates(), union);
-		// TODO : remove next log
-		logger.log(Level.INFO, "[executeAddTemplateOnInstance] - subtract union from expectedTemplates ["
-				+ request.getExpectedTemplates() + "]: " + subtract);
 		if (!subtract.isEmpty()) {
 			// add all missing templates to the failure map.
 			for (final Object templateName : subtract) {
@@ -422,7 +394,7 @@ public class TemplatesController extends BaseRestController {
 	private AddTemplatesInternalResponse
 			addTemplatesInternal(final File unzippedTemplatesFolder, final List<ComputeTemplateHolder> templates) {
 		try {
-			logger.log(Level.INFO, "[addTemplatesInternal] - adding templates from templates folder: "
+			log(Level.INFO, "[addTemplatesInternal] - adding templates from templates folder: "
 					+ unzippedTemplatesFolder.getAbsolutePath());
 			// add templates to the cloud and return the added templates.
 			return addTemplatesToCloud(unzippedTemplatesFolder, templates);
@@ -439,9 +411,8 @@ public class TemplatesController extends BaseRestController {
 	 */
 	private AddTemplatesInternalResponse addTemplatesToCloud(final File templatesFolder,
 			final List<ComputeTemplateHolder> templatesHolders) {
-
-		// TODO : refine next log
-		logger.log(Level.INFO, "[addTemplatesToCloud] - Adding " + templatesHolders.size() + " templates to cloud.");
+		log(Level.FINE, 
+				"[addTemplatesToCloud] - Adding " + templatesHolders.size() + " templates to cloud.");
 		// adds the templates to the cloud's templates list, deletes the failed to added templates from the folder.
 		final AddTemplatesInternalResponse addTemplatesToCloudListresponse =
 				addTemplatesToCloudList(templatesFolder, templatesHolders);
@@ -450,22 +421,21 @@ public class TemplatesController extends BaseRestController {
 				addTemplatesToCloudListresponse.getFailedToAddTempaltesAndReasons();
 		// if no templates were added, throw an exception
 		if (addedTemplates.isEmpty()) {
-			logger.log(Level.WARNING, "[addTemplatesToCloud] - Failed to add templates from "
-					+ templatesFolder.getAbsolutePath());
+			log(Level.WARNING, 
+					"[addTemplatesToCloud] - Failed to add templates from " + templatesFolder.getAbsolutePath());
 		} else {
 			// at least one template was added, copy files from template folder to a new folder.
-			logger.log(Level.INFO,
+			log(Level.INFO,
 					"[addTemplatesToCloud] - Coping templates files from " + templatesFolder.getAbsolutePath()
-							+ " to a new folder under " + cloudConfigurationDir.getAbsolutePath());
+					+ " to a new folder under " + cloudConfigurationDir.getAbsolutePath());
 			try {
 				final File localTemplatesDir = copyTemplateFilesToCloudConfigDir(templatesFolder);
-				// TODO : refine next log
-				logger.log(Level.INFO,
+				log(Level.INFO,
 						"[addTemplatesToCloud] - The templates files copied to " + localTemplatesDir.getAbsolutePath());
 				updateCloudTemplatesUploadPath(addedTemplates, localTemplatesDir);
 			} catch (final IOException e) {
 				// failed to copy files - remove all added templates from cloud and them to the failed map.
-				logger.log(Level.WARNING,
+				log(Level.WARNING,
 						"[addTemplatesToCloud] - Failed to copy templates files, error: " + e.getMessage(), e);
 				for (final String templateName : addedTemplates) {
 					cloud.getCloudCompute().getTemplates().remove(templateName);
@@ -476,7 +446,7 @@ public class TemplatesController extends BaseRestController {
 			}
 		}
 		if (!failedToAddTemplates.isEmpty()) {
-			logger.log(Level.INFO, "[addTemplatesToCloud] - Failed to add the following templates: "
+			log(Level.INFO, "[addTemplatesToCloud] - Failed to add the following templates: "
 					+ failedToAddTemplates.toString());
 		}
 		// create and return the result.
@@ -520,21 +490,16 @@ public class TemplatesController extends BaseRestController {
 			final File templatesFolder, final List<ComputeTemplateHolder> cloudTemplates) {
 		final List<String> addedTemplates = new LinkedList<String>();
 		final Map<String, String> failedToAddTemplates = new HashMap<String, String>();
-		// TODO : refine next log
-		logger.log(Level.INFO, "[addTemplatesToCloudList] - adding " + cloudTemplates.size()
-				+ " templates to cloud's list.");
+		log(Level.FINE, 
+				"[addTemplatesToCloudList] - adding " + cloudTemplates.size() + " templates to cloud's list.");
 		for (final ComputeTemplateHolder holder : cloudTemplates) {
 			final String templateName = holder.getName();
-			// TODO : remove next log
-			logger.log(Level.INFO, "[addTemplatesToCloudList] - adding " + templateName + " to cloud's list.");
 			final String originalTemplateFileName = holder.getTemplateFileName();
 			// check if template already exist
 			final Map<String, ComputeTemplate> templates = cloud.getCloudCompute().getTemplates();
-			// TODO : remove next log
-			logger.log(Level.INFO, "[addTemplatesToCloudList] - cloud's templates: " + templates);
 			if (templates.containsKey(templateName)) {
 				// template already exists
-				logger.log(Level.WARNING, "[addTemplatesToCloudList] - Template already exists: " + templateName);
+				log(Level.WARNING, "[addTemplatesToCloudList] - Template already exists: " + templateName);
 				failedToAddTemplates.put(templateName, "template already exists");
 				new File(templatesFolder, originalTemplateFileName).delete();
 				continue;
@@ -606,7 +571,7 @@ public class TemplatesController extends BaseRestController {
 			String newName = DSLUtils.renameCloudTemplateFileNameIfNeeded(templateFile, templateName,
 					DSLUtils.TEMPLATE_DSL_FILE_NAME_SUFFIX);
 			if (newName != null) {
-				logger.log(Level.INFO, "[renameTemplateFileIfNeeded] - Renamed template file name from "
+				log(Level.INFO, "[renameTemplateFileIfNeeded] - Renamed template file name from "
 						+ templateFileName + " to " + newName + ".");
 			}
 			if (propertiesFileName != null) {
@@ -614,8 +579,7 @@ public class TemplatesController extends BaseRestController {
 				newName = DSLUtils.renameCloudTemplateFileNameIfNeeded(propertiesFile, templateName,
 						DSLUtils.TEMPLATES_PROPERTIES_FILE_NAME_SUFFIX);
 				if (newName != null) {
-					logger.log(Level.INFO,
-							"[renameTemplateFileIfNeeded] - Renamed template's properties file name from"
+					log(Level.INFO, "[renameTemplateFileIfNeeded] - Renamed template's properties file name from"
 									+ " " + propertiesFileName + " to " + newName + ".");
 				}
 			}
@@ -624,16 +588,15 @@ public class TemplatesController extends BaseRestController {
 				newName = DSLUtils.renameCloudTemplateFileNameIfNeeded(overridesFile, templateName,
 						DSLUtils.TEMPLATES_OVERRIDES_FILE_NAME_SUFFIX);
 				if (newName != null) {
-					logger.log(Level.INFO,
-							"[renameTemplateFileIfNeeded] - Renamed template's overrides file name from "
+					log(Level.INFO, "[renameTemplateFileIfNeeded] - Renamed template's overrides file name from "
 									+ overridesFileName + " to " + newName + ".");
 				}
 			}
 		} catch (final IOException e) {
-			logger.log(Level.WARNING, "[renameTemplateFileIfNeeded] - Failed to rename template file name ["
+			log(Level.WARNING, "[renameTemplateFileIfNeeded] - Failed to rename template file name ["
 					+ templateFile.getName() + "] to "
 					+ templateName + DSLUtils.TEMPLATE_DSL_FILE_NAME_SUFFIX
-					+ ". The file will be deleted. Error:" + e);
+					+ ". The file will be deleted.", e);
 			// delete the groovy file to ensure the template file wont be copied.
 			templateFile.delete();
 			throw e;
@@ -689,21 +652,22 @@ public class TemplatesController extends BaseRestController {
 
 		validateTemplateOperation("remove-template");
 
-		logger.log(Level.INFO, "[removeTemplate] - removing template " + templateName);
+		log(Level.INFO, "[removeTemplate] - removing template " + templateName);
 
 		// check if the template is being used by at least one service, so it cannot be removed.
 		final List<String> templateServices = getTemplateServices(templateName);
 		if (!templateServices.isEmpty()) {
-			logger.log(Level.WARNING, "[removeTemplate] - failed to remove template [" + templateName
+			log(Level.WARNING, "[removeTemplate] - failed to remove template [" + templateName
 					+ "]. The template is being used by " + templateServices.size() + " services: " + templateServices);
 			throw new RestErrorException(CloudifyErrorMessages.TEMPLATE_IN_USE.getName(),
 					templateName, templateServices);
 		}
+
 		// remove template from all REST instances
 		final RemoveTemplatesResponse resposne = removeTemplateFromRestInstances(templateName);
 		// check
 		handleRemoveTemplateResponse(resposne, templateName);
-		logger.log(Level.INFO, "[removeTemplate] - successfully removed template [" + templateName + "].");
+		log(Level.INFO, "[removeTemplate] - successfully removed template [" + templateName + "].");
 	}
 
 	private void handleRemoveTemplateResponse(final RemoveTemplatesResponse resposne, final String templateName)
@@ -718,7 +682,7 @@ public class TemplatesController extends BaseRestController {
 			if (!successfullyRemovedFromHosts.isEmpty()) {
 				message += ". Succeeded to remove the template from: " + successfullyRemovedFromHosts;
 			}
-			logger.log(Level.WARNING, message);
+			log(Level.WARNING, message);
 			throw new RestErrorException(CloudifyErrorMessages.FAILED_REMOVE_TEMPLATE.getName(),
 					templateName, failedToRemoveFromHosts.toString());
 		}
@@ -743,7 +707,7 @@ public class TemplatesController extends BaseRestController {
 				admin.getProcessingUnits().waitFor("rest", RestUtils.TIMEOUT_IN_SECOND, TimeUnit.SECONDS);
 		final ProcessingUnitInstance[] instances = processingUnit.getInstances();
 		// invoke remove-template command on each REST instance.
-		logger.log(Level.INFO, "[removeTemplateFromRestInstances] - sending an http request to "
+		log(Level.INFO, "[removeTemplateFromRestInstances] - sending an http request to "
 				+ instances.length + " REST instances. Template's name is " + templateName);
 		final Map<String, String> failedToRemoveFromHosts = new HashMap<String, String>();
 		final List<String> successfullyRemovedFromHosts = new LinkedList<String>();
@@ -755,13 +719,13 @@ public class TemplatesController extends BaseRestController {
 				restClient.removeTemplateInternal(templateName);
 			} catch (final RestClientException e) {
 				failedToRemoveFromHosts.put(hostAddress, e.getMessageFormattedText());
-				logger.log(Level.WARNING, "[removeTemplateFromRestInstances] - remove template ["
+				log(Level.WARNING, "[removeTemplateFromRestInstances] - remove template ["
 					+ templateName + "] from instance [" + hostAddress + "] failed. Error: " 
 					+ e.getMessageFormattedText(), e);
 				continue;
 			}
 			successfullyRemovedFromHosts.add(hostAddress);
-			logger.log(Level.INFO, "[removeTemplateFromRestInstances] - Successfully removed template ["
+			log(Level.INFO, "[removeTemplateFromRestInstances] - Successfully removed template ["
 					+ templateName + "] from " + hostAddress);
 		}
 		final RemoveTemplatesResponse response = new RemoveTemplatesResponse();
@@ -785,11 +749,11 @@ public class TemplatesController extends BaseRestController {
 	public void
 			removeTemplateInternal(@PathVariable final String templateName)
 					throws RestErrorException {
-		logger.log(Level.INFO, "[removeTemplateInternal] - removing template [" + templateName + "].");
+		log(Level.INFO, "[removeTemplateInternal] - removing template [" + templateName + "].");
 		// check if the template is being used by at least one service, so it cannot be removed.
 		final List<String> templateServices = getTemplateServices(templateName);
 		if (!templateServices.isEmpty()) {
-			logger.log(Level.WARNING, "[removeTemplateInternal] - failed to remove template [" + templateName
+			log(Level.WARNING, "[removeTemplateInternal] - failed to remove template [" + templateName
 					+ "]. The template is being used by the following services: " + templateServices);
 			throw new RestErrorException(CloudifyErrorMessages.TEMPLATE_IN_USE.getName(),
 					templateName, templateServices);
@@ -798,17 +762,16 @@ public class TemplatesController extends BaseRestController {
 		try {
 			removeTemplateFromCloud(templateName);
 		} catch (final RestErrorException e) {
-			logger.log(Level.WARNING, "[removeTemplateInternal] - failed to remove template [" + templateName + "]."
-					+ " Error: " + e.getMessage(), e);
+			log(Level.WARNING, "[removeTemplateInternal] - failed to remove template [" + templateName + "].", e);
 			throw e;
 		}
-		logger.log(Level.INFO, "[removeTemplateInternal] - Successfully removed template [" + templateName + "].");
+		log(Level.INFO, "[removeTemplateInternal] - Successfully removed template [" + templateName + "].");
 	}
 
 	private void removeTemplateFromCloud(final String templateName)
 			throws RestErrorException {
 
-		logger.log(Level.INFO, "[removeTemplateFromCloud] - removing template [" + templateName + "] from cloud.");
+		log(Level.INFO, "[removeTemplateFromCloud] - removing template [" + templateName + "] from cloud.");
 
 		// delete template's file from the cloud configuration directory.
 		deleteTemplateFile(templateName);
@@ -841,13 +804,13 @@ public class TemplatesController extends BaseRestController {
 		}
 		// delete the file from the directory.
 		final String templatesPath = templateFile.getAbsolutePath();
-		logger.log(Level.FINE, "[deleteTemplateFile] - removing template file " + templatesPath);
+		log(Level.FINE, "[deleteTemplateFile] - removing template file " + templatesPath);
 
 		boolean deleted = false;
 		try {
 			deleted = templateFile.delete();
 		} catch (final SecurityException e) {
-			logger.log(Level.WARNING, "[deleteTemplateFile] - Failed to deleted template file " + templatesPath
+			log(Level.WARNING, "[deleteTemplateFile] - Failed to deleted template file " + templatesPath
 					+ ", Error: " + e.getMessage(), e);
 			throw new RestErrorException(CloudifyErrorMessages.FAILED_REMOVE_TEMPLATE_FILE.getName(),
 					templatesPath, "Security exception: " + e.getMessage());
@@ -856,14 +819,14 @@ public class TemplatesController extends BaseRestController {
 			throw new RestErrorException(CloudifyErrorMessages.FAILED_REMOVE_TEMPLATE_FILE.getName(),
 					templatesPath, "template file was not deleted.");
 		}
-		logger.log(Level.FINE, "[deleteTemplateFile] - Successfully deleted template file [" + templatesPath + "].");
+		log(Level.FINE, "[deleteTemplateFile] - Successfully deleted template file [" + templatesPath + "].");
 		// delete properties and overrides files if exist.
 		ComputeTemplatesReader.removeTemplateFiles(templateFolder, templateName);
 		deleteTemplateFolderIfNeeded(templateName, templateFolder);
 	}
 
 	private void deleteTemplateFolderIfNeeded(final String templateName, final File templateFolder) {
-		logger.log(Level.FINE,
+		log(Level.FINE,
 				"[deleteTemplateFile] - checking if the folder of template ["
 						+ templateName + "] can be deleted [" + templateFolder + "].");
 		final File[] templatesFiles =
@@ -871,14 +834,14 @@ public class TemplatesController extends BaseRestController {
 		if (templatesFiles == null || templatesFiles.length == 0) {
 			// no other templates files in this folder
 			try {
-				logger.log(Level.FINE, "[deleteTemplateFile] - templates folder is empty, deleting it.");
+				log(Level.FINE, "[deleteTemplateFile] - templates folder is empty, deleting it.");
 				FileUtils.deleteDirectory(templateFolder);
 			} catch (final IOException e) {
-				logger.log(Level.WARNING, "[deleteTemplateFile] - Failed to delete templates folder"
+				log(Level.WARNING, "[deleteTemplateFile] - Failed to delete templates folder"
 						+ templateFolder, e);
 			}
 		} else {
-			logger.log(Level.FINE, "[deleteTemplateFile] - templates folder is not empty.");
+			log(Level.FINE, "[deleteTemplateFile] - templates folder is not empty.");
 		}
 	}
 
@@ -887,7 +850,7 @@ public class TemplatesController extends BaseRestController {
 		final String absoluteUploadDir = computeTemplate.getAbsoluteUploadDir();
 		final File parentFile = new File(absoluteUploadDir).getParentFile();
 		if (parentFile == null) {
-			logger.log(Level.WARNING, "Failed to get template's folder for template " + templateName
+			log(Level.WARNING, "Failed to get template's folder for template " + templateName
 					+ ". The template's upload directory is " + absoluteUploadDir);
 		}
 		return parentFile;
@@ -902,7 +865,7 @@ public class TemplatesController extends BaseRestController {
 	 */
 	private File getTemplateFile(final String templateName, final File templateFolder) {
 		final String templateFileName = templateName + DSLUtils.TEMPLATE_DSL_FILE_NAME_SUFFIX;
-		logger.log(Level.FINE, "Searching for template file " + templateFileName + " in "
+		log(Level.FINE, "Searching for template file " + templateFileName + " in "
 				+ templateFolder.getAbsolutePath());
 		final File[] listFiles = templateFolder.listFiles(new FilenameFilter() {
 			@Override
@@ -912,12 +875,12 @@ public class TemplatesController extends BaseRestController {
 		});
 		final int length = listFiles.length;
 		if (length == 0) {
-			logger.log(Level.WARNING, "Didn't find template file with name " + templateName + " at "
+			log(Level.WARNING, "Didn't find template file with name " + templateName + " at "
 					+ templateFolder.getAbsolutePath());
 			return null;
 		}
 		if (length > 1) {
-			logger.log(Level.WARNING, "Found " + length + " templates files with name " + templateName
+			log(Level.WARNING, "Found " + length + " templates files with name " + templateName
 					+ ": " + Arrays.toString(listFiles) + ". Returning the first one found.");
 		}
 		return listFiles[0];
@@ -949,6 +912,18 @@ public class TemplatesController extends BaseRestController {
 		} catch (MalformedURLException e) {
 			throw new RestClientException(CloudifyErrorMessages.FAILED_CREATE_REST_CLIENT.getName(), 
 					"failed to create REST client", ExceptionUtils.getFullStackTrace(e));
+		}
+	}
+	
+	private void log(final Level level, final String content) {
+		if (logger.isLoggable(level)) {
+			logger.log(level, content);
+		}
+	}
+	
+	private void log(final Level level, final String content, final Throwable thrown) {
+		if (logger.isLoggable(level)) {
+			logger.log(level, content, thrown);
 		}
 	}
 }

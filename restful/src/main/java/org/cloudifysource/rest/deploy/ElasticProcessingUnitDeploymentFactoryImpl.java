@@ -644,6 +644,8 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 				deploymentConfig.getApplicationName())
 				.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS,
 						deploymentConfig.getAuthGroups())
+						.addContextProperty(
+								CloudifyConstants.CONTEXT_PROPERTY_TEMPLATE, deploymentConfig.getTemplateName())
 				.name(deploymentConfig.getAbsolutePUName());
 		// add context properties
 		final Properties contextProperties = createServiceContextProperties();

@@ -146,10 +146,20 @@ public class RestClient {
 	 */
 	public InstallServiceResponse installService(final String applicationName, final String serviceName,
 			final InstallServiceRequest request) throws RestClientException {
+		String effAppName = applicationName;
+		if (applicationName == null) {
+			effAppName = CloudifyConstants.DEFAULT_APPLICATION_NAME;
+		}
+		if (serviceName == null) {
+			throw new RestClientException("service_name_missing", "install service is missing service name", null);
+		}
+		if (request == null) {
+			throw new RestClientException("request_missing", "install service is missing install request", null);
+		}
 		final String installServiceUrl = getFormattedUrl(
 				versionedDeploymentControllerUrl, 
 				INSTALL_SERVICE_URL_FORMAT, 
-				applicationName,
+				effAppName,
 				serviceName);
 		return executor.postObject(installServiceUrl, request, new TypeReference<Response<InstallServiceResponse>>() {
 		});

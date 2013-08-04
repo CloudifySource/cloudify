@@ -41,7 +41,7 @@ public class VersionValidateInterceptor extends HandlerInterceptorAdapter {
 			.getLogger(VersionValidateInterceptor.class.getName());
 
 	public VersionValidateInterceptor() {
-		logger.log(Level.INFO, "Initialize VersionValidateHandler");
+		logger.log(Level.FINE, "Initialize VersionValidateHandler");
 	}
 
 	@Override
@@ -51,7 +51,8 @@ public class VersionValidateInterceptor extends HandlerInterceptorAdapter {
 		final String version = request.getHeader(CloudifyConstants.REST_API_VERSION_HEADER);
 		final String currentVersion = PlatformVersion.getVersionNumber();
 		if (logger.isLoggable(Level.FINEST)) {
-			logger.log(Level.FINEST, "Validating the value of "
+			logger.log(Level.FINEST, "pre handle request to " + request.getRequestURI() 
+					+ ". Validating the value of "
 					+ CloudifyConstants.REST_API_VERSION_HEADER + " header, request URI = "
 					+ request.getRequestURI() + ", request REST-API version = "
 					+ version + " current REST-API version = " + currentVersion);
