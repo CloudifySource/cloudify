@@ -16,8 +16,9 @@
 package org.cloudifysource.shell.exceptions;
 
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.restclient.ErrorStatusException;
-import org.cloudifysource.shell.exceptions.CLIException;
+
 
 /**
  * @author noak
@@ -73,6 +74,25 @@ public class CLIStatusException extends CLIException {
 		this.reasonCode = reasonCode;
 		this.args = args;
 		this.verboseData = null;
+	}
+	
+	/**********
+	 * Constructor.  
+	 * @param reasonCode the reason.
+	 * @param args optional arguments.
+	 */
+	public CLIStatusException(final CloudifyErrorMessages reasonCode, final Object... args) {
+		this(reasonCode.getName(), args);
+	}
+	
+	/**********
+	 * Constructor.  
+	 * @param reasonCode the reason.
+	 * @param args optional arguments.
+	 * @param cause the cause.
+	 */
+	public CLIStatusException(final Throwable cause, final CloudifyErrorMessages reasonCode, final Object... args) {
+		this(cause, reasonCode.getName(), args);
 	}
 
 	/**
