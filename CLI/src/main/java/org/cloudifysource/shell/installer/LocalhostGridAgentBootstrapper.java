@@ -892,13 +892,21 @@ public class LocalhostGridAgentBootstrapper {
 	}
 
 	private void cleanPUWorkDirectory() throws CLIStatusException {
+				
 		final String puWorkDirectoryName = Environment.getHomeDirectory() + "/work/processing-units";
 		final File workDirectory = new File(puWorkDirectoryName);
-		if (!workDirectory.exists() || !workDirectory.isDirectory()) {
+		
+		if (!workDirectory.exists()) {
+			// probably first time local cloud is bootstrapped.
+			return;
+		}
+		
+		if (!workDirectory.isDirectory()) {
 			throw new CLIStatusException(CloudifyErrorMessages.MISSING_WORK_DIRECTORY_BEFORE_BOOTSTRAP_LOCALCLOUD,
 					puWorkDirectoryName);
 		}
 
+		logger.fine("Deleting directories in: " + workDirectory);
 		final File[] filesToDelete = workDirectory.listFiles();
 		for (File file : filesToDelete) {
 			if (file.isDirectory()) {
