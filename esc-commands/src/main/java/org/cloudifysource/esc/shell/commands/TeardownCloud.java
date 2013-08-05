@@ -31,7 +31,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
-import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.utils.RecipePathResolver;
 import org.cloudifysource.esc.driver.provisioning.jclouds.DefaultProvisioningDriver;

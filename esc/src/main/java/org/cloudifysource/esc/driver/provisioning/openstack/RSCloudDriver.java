@@ -25,8 +25,8 @@ import javax.xml.xpath.XPathException;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
+import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.driver.provisioning.CloudDriverSupport;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;

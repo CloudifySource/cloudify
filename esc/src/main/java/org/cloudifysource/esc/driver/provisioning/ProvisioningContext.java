@@ -14,7 +14,7 @@ package org.cloudifysource.esc.driver.provisioning;
 
 import java.io.FileNotFoundException;
 
-import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 
 /**************************************************
  * Context for agent provisioning request.

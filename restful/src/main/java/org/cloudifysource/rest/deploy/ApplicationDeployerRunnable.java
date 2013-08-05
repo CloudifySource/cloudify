@@ -23,7 +23,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
 import org.apache.commons.io.FileUtils;
-import org.cloudifysource.dsl.Service;
+import org.cloudifysource.domain.Service;
 import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;

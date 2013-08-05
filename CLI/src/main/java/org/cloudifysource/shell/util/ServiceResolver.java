@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.cloudifysource.dsl.Service;
+import org.cloudifysource.domain.Service;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
@@ -99,7 +99,7 @@ public class ServiceResolver implements NameAndPackedFileResolver {
         serviceGroovyFile = DSLReader.findDefaultDSLFile(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX, serviceDirectory);
         try {
             this.service = ServiceReader.readService(serviceGroovyFile,
-                    serviceDirectory, null, null, null, false, overrides);
+                    serviceDirectory, null, false, overrides);
         } catch (final DSLException e) {
             throw new CLIStatusException(e, "read_dsl_file_failed",
                     serviceGroovyFile, e.getMessage());

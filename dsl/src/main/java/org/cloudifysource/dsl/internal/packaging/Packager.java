@@ -33,15 +33,13 @@ import java.util.jar.Manifest;
 import java.util.logging.Level;
 
 import org.apache.commons.io.FileUtils;
-import org.cloudifysource.dsl.Application;
-import org.cloudifysource.dsl.Service;
+import org.cloudifysource.domain.Application;
+import org.cloudifysource.domain.Service;
 import org.cloudifysource.dsl.internal.BaseDslScript;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.ServiceReader;
-
-import com.gigaspaces.internal.utils.StringUtils;
 
 /************
  * Implementation of the packaging logic required to create a zip file
@@ -332,7 +330,9 @@ public final class Packager {
 		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION,
 				"1.0");
 		manifest.getMainAttributes().putValue("Class-Path",
-				"lib/platform/cloudify/dsl.jar lib/platform/usm/usm.jar "
+				"lib/platform/cloudify/dsl.jar lib/platform/cloudify/domain.jar "
+				+ "lib/platform/cloudify/utility-domain.jar " 
+				+ "lib/platform/usm/usm.jar "
 				// added support for @grab annotation in groovy file - requires ivy and groovy in same classloader
 				+ "tools/groovy/embeddable/groovy-all-1.8.6.jar tools/groovy/lib/ivy-2.2.0.jar ");
 
@@ -576,7 +576,7 @@ public final class Packager {
 									+ BaseDslScript.EXTEND_PROPERTY_NAME.length());
 					line += " \"" + localExtendedServiceFile.getName() + "\"";
 				}
-				bufferedWriter.write(line + StringUtils.NEW_LINE);
+				bufferedWriter.write(line + System.getProperty("line.separator"));
 				line = bufferedReader.readLine();
 			}
 		} finally {

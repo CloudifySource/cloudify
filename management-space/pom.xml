@@ -14,14 +14,17 @@
 	</parent>
 
 	<dependencies>
-
+			<dependency>
+			<groupId>org.cloudifysource</groupId>
+			<artifactId>utility-domain</artifactId>
+			<version>${cloudifyVersion}</version>
+		</dependency>
 		<dependency>
 			<groupId>com.gigaspaces</groupId>
 			<artifactId>gs-openspaces</artifactId>
 			<version>${gsVersion}</version>
 			<scope>provided</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>org.cloudifysource</groupId>
 			<artifactId>dsl</artifactId>

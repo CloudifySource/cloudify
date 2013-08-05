@@ -27,14 +27,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.cloudifysource.dsl.internal.tools.download.ResourceDownloader;
 import org.cloudifysource.dsl.internal.tools.download.ResourceDownloadFacade;
 import org.cloudifysource.dsl.internal.tools.download.ResourceDownloadFacadeImpl;
+import org.cloudifysource.dsl.internal.tools.download.ResourceDownloader;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 import org.hyperic.sigar.ptql.ProcessFinder;
 
-import com.gigaspaces.internal.sigar.SigarHolder;
+//import com.gigaspaces.internal.sigar.SigarHolder;
 
 /******************
  * ServiceUtils exposes a range of methods that recipes can use in closures, including TCP port checks, HTTP requests
@@ -49,6 +49,7 @@ public final class ServiceUtils {
 
 	private static final int DEFAULT_HTTP_READ_TIMEOUT = 1000;
 	private static final int DEFAULT_HTTP_CONNECTION_TIMEOUT = 1000;
+	private static Sigar sigar;
 
 	private ServiceUtils() {
 		// private constructor to prevent initialization.
@@ -395,9 +396,9 @@ public final class ServiceUtils {
 		 * 
 		 * @return the sigar instance.
 		 */
-		public static Sigar getSigar() {
-			return SigarHolder.getSigar();
-		}
+//		public static Sigar getSigar() {
+//			return SigarHolder.getSigar();
+//		}
 
 		/*************
 		 * Executes a SIGAR PTQL query, returning the PIDs of the processes that match the query. For more info on
@@ -496,5 +497,23 @@ public final class ServiceUtils {
 		// // }
 		// }
 	}
+	
+	/***********
+	 * Retrieves an instance of SIGAR, which offers access to Operating System level information not typically
+	 * available in the JDK.
+	 * 
+	 * Important note: Not all SIGAR functions are implemented on all operating systems and architecture platforms.
+	 * If you use SIGAR directly, make sure to test first on your target platform.
+	 * 
+	 * For more information on SIGAR, please see: http://support.hyperic.com/display/SIGAR/Home
+	 * 
+	 * @return the sigar instance.
+	 */
+    public static synchronized Sigar getSigar() {
+        if (sigar == null) {
+            sigar = new Sigar();
+        }
+        return sigar;
+    }
 
 }

@@ -23,9 +23,9 @@ import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
-import org.cloudifysource.dsl.Plugin;
-import org.cloudifysource.dsl.context.ServiceContext;
+import org.cloudifysource.domain.context.ServiceContext;
 import org.cloudifysource.dsl.utils.ServiceUtils;
+import org.cloudifysource.usm.Plugin;
 import org.cloudifysource.usm.UniversalServiceManagerBean;
 import org.cloudifysource.usm.events.AbstractUSMEventListener;
 

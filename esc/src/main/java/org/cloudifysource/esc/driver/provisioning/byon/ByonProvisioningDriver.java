@@ -30,9 +30,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
 import org.apache.commons.lang.StringUtils;
-import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.FileTransferModes;
-import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
+import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.domain.cloud.FileTransferModes;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.rest.response.ControllerDetails;
@@ -51,6 +51,7 @@ import org.cloudifysource.esc.driver.provisioning.validation.ValidationMessageTy
 import org.cloudifysource.esc.driver.provisioning.validation.ValidationResultType;
 import org.cloudifysource.esc.util.FileUtils;
 import org.cloudifysource.esc.util.Utils;
+import org.cloudifysource.utilitydomain.openspaces.OpenspacesConstants;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
 import org.openspaces.admin.gsa.GridServiceAgent;
@@ -462,7 +463,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	protected Integer getLusPort() {
 		Integer discoveryPort = cloud.getConfiguration().getComponents().getDiscovery().getDiscoveryPort();
 		if (discoveryPort == null) {
-			discoveryPort = CloudifyConstants.DEFAULT_LUS_PORT;
+			discoveryPort = OpenspacesConstants.DEFAULT_LUS_PORT;
 		}
 		return discoveryPort;
 	}

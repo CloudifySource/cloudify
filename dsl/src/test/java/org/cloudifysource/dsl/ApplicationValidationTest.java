@@ -20,9 +20,11 @@ import java.io.File;
 import junit.framework.Assert;
 
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.domain.Application;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.dsl.internal.validators.ApplicationValidator;
 import org.junit.Test;
 
 /*******
@@ -51,9 +53,12 @@ public class ApplicationValidationTest {
 	public void testIllgalApplicationName() {
 		final Application app = new Application();
 
+		ApplicationValidator appValidator;
+		appValidator = new ApplicationValidator();
+		appValidator.setDSLEntity(app);
 		// application without a name
 		try {
-			app.validateName(new DSLValidationContext());
+			appValidator.validateName(new DSLValidationContext());
 			Assert.fail("An application without a name was successfully validated.");
 		} catch (final DSLValidationException e) {
 			// OK - the invalid application name caused the exception
@@ -62,7 +67,7 @@ public class ApplicationValidationTest {
 		// application with an empty name
 		app.setName(StringUtils.EMPTY);
 		try {
-			app.validateName(new DSLValidationContext());
+			appValidator.validateName(new DSLValidationContext());
 			Assert.fail("An application with an empty name was successfully validated.");
 		} catch (final DSLValidationException e) {
 			// OK - the invalid application name caused the exception
@@ -71,7 +76,7 @@ public class ApplicationValidationTest {
 		// application with an invalid name
 		app.setName(INVALID_APP_NAME);
 		try {
-			app.validateName(new DSLValidationContext());
+			appValidator.validateName(new DSLValidationContext());
 			Assert.fail("An application with an invalid name was successfully validated: " + INVALID_APP_NAME);
 		} catch (final DSLValidationException e) {
 			// OK - the invalid application name caused the exception

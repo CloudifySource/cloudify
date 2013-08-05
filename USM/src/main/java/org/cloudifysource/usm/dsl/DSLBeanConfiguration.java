@@ -18,25 +18,26 @@ package org.cloudifysource.usm.dsl;
 import groovy.lang.Closure;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
+import javax.activation.UnsupportedDataTypeException;
 import javax.annotation.PostConstruct;
 
-import org.cloudifysource.dsl.LifecycleEvents;
-import org.cloudifysource.dsl.Plugin;
-import org.cloudifysource.dsl.PluginDescriptor;
-import org.cloudifysource.dsl.Service;
-import org.cloudifysource.dsl.context.ServiceContext;
+import org.cloudifysource.domain.LifecycleEvents;
+import org.cloudifysource.domain.PluginDescriptor;
+import org.cloudifysource.domain.Service;
+import org.cloudifysource.domain.context.ServiceContext;
+import org.cloudifysource.domain.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.entry.ClosureExecutableEntry;
-import org.cloudifysource.dsl.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.entry.ExecutableDSLEntryFactory;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLValidationException;
-import org.cloudifysource.dsl.utils.UserInterfaceConverter;
+import org.cloudifysource.usm.Plugin;
 import org.cloudifysource.usm.TCPPortEventListener;
 import org.cloudifysource.usm.USMComponent;
 import org.cloudifysource.usm.USMException;
@@ -168,7 +169,8 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 	}
 
 	@Bean
-	public USMComponent getDslUIDetails() {
+	public USMComponent getDslUIDetails() 
+			throws UnsupportedDataTypeException, IllegalAccessException, InvocationTargetException {
 		if (!active) {
 			return null;
 		}
@@ -177,10 +179,9 @@ public class DSLBeanConfiguration implements ApplicationContextAware {
 			return null;
 		}
 
-		final UserInterface ui = this.service.getUserInterface();
-
+		//Create openspaces UI object and convert it to support backwards compatibility
 		UserInterfaceConverter converter = new UserInterfaceConverter();
-		UserInterface convertUserInterface = converter.convertUserInterface(ui);
+		UserInterface convertUserInterface = converter.convertUserInterface(this.service.getUserInterface());
 		return new UIDetails(convertUserInterface);
 
 	}

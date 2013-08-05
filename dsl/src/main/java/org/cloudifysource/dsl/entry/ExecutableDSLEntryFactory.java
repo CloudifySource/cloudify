@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.cloudifysource.domain.ExecutableEntriesMap;
+import org.cloudifysource.domain.entry.ExecutableDSLEntry;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 
 /***********

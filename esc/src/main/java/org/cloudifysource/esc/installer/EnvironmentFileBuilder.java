@@ -20,7 +20,7 @@ import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
-import org.cloudifysource.dsl.cloud.ScriptLanguages;
+import org.cloudifysource.domain.cloud.ScriptLanguages;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.utils.IPUtils;
 

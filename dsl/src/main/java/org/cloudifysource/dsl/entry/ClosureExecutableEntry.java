@@ -16,6 +16,9 @@
 
 package org.cloudifysource.dsl.entry;
 
+import org.cloudifysource.domain.entry.ExecutableDSLEntry;
+import org.cloudifysource.domain.entry.ExecutableDSLEntryType;
+
 import groovy.lang.Closure;
 
 

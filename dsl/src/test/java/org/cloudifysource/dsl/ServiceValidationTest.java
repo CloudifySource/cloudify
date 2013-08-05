@@ -18,20 +18,24 @@ package org.cloudifysource.dsl;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
 import junit.framework.Assert;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.domain.Service;
+import org.cloudifysource.domain.Unit;
+import org.cloudifysource.domain.UserInterface;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
+import org.cloudifysource.dsl.internal.validators.ServiceValidator;
 import org.junit.Test;
-import org.openspaces.ui.Unit;
-import org.openspaces.ui.UserInterface;
 
 /**
  * Test Service DSL Validations.
@@ -94,9 +98,11 @@ public class ServiceValidationTest {
 		//illegal number of instances:
 		try {
 			Service service = new Service();
+			ServiceValidator serviceValidator = new ServiceValidator();
+			serviceValidator.setDSLEntity(service);
 			service.setNumInstances(2);
 			service.setMaxAllowedInstances(1);
-			service.validateDefaultValues(new DSLValidationContext());
+			serviceValidator.validateDefaultValues(new DSLValidationContext());
 			fail("an invalid service was successfully validated");
 		} catch (DSLValidationException e) {
 			//OK - the invalid number of instances caused the exception
@@ -105,8 +111,10 @@ public class ServiceValidationTest {
 		//no num instances defined. using default values:
 		try {
 			Service service = new Service();
+			ServiceValidator serviceValidator = new ServiceValidator();
+			serviceValidator.setDSLEntity(service);
 			service.setType("WEB_SERVER");
-			service.validateDefaultValues(new DSLValidationContext());
+			serviceValidator.validateDefaultValues(new DSLValidationContext());
 		} catch (DSLValidationException e) {
 			fail("Validation of service failed");
 		}
@@ -114,10 +122,12 @@ public class ServiceValidationTest {
 		//test legal state:
 		try {
 			Service service = new Service();
+			ServiceValidator serviceValidator = new ServiceValidator();
+			serviceValidator.setDSLEntity(service);
 			service.setNumInstances(1);
 			service.setMaxAllowedInstances(1);
 			service.setType("WEB_SERVER");
-			service.validateDefaultValues(new DSLValidationContext());
+			serviceValidator.validateDefaultValues(new DSLValidationContext());
 		} catch (DSLValidationException e) {
 			fail("Validation of service failed");
 		}
@@ -131,8 +141,10 @@ public class ServiceValidationTest {
 		//invalid service type
 		try {
 			Service service = new Service();
+			ServiceValidator serviceValidator = new ServiceValidator();
+			serviceValidator.setDSLEntity(service);
 			service.setType("NonExistionType");
-			service.validateDefaultValues(new DSLValidationContext());
+			serviceValidator.validateDefaultValues(new DSLValidationContext());
 			fail("an invalid service was successfully validated");
 		} catch (DSLValidationException e) {
 			//OK - the invalid service type caused the exception
@@ -141,8 +153,10 @@ public class ServiceValidationTest {
 		//valid service type
 		try {
 			Service service = new Service();
+			ServiceValidator serviceValidator = new ServiceValidator();
+			serviceValidator.setDSLEntity(service);
 			service.setType("WEB_SERVER");
-			service.validateDefaultValues(new DSLValidationContext());
+			serviceValidator.validateDefaultValues(new DSLValidationContext());
 		} catch (DSLValidationException e) {
 			fail("Validation of service failed");
 		}
@@ -156,8 +170,10 @@ public class ServiceValidationTest {
 	@Test
 	public void testIllegalServiceName() {
 		Service service = new Service();
+		ServiceValidator serviceValidator = new ServiceValidator();
+		serviceValidator.setDSLEntity(service);
 		try {
-			service.validateName(new DSLValidationContext());
+			serviceValidator.validateName(new DSLValidationContext());
 			fail("A service without a name was successfully validated");
 		} catch (DSLValidationException e) {
 			//OK - the invalid service name caused the exception
@@ -165,7 +181,7 @@ public class ServiceValidationTest {
 
 		try {
 			service.setName(StringUtils.EMPTY);
-			service.validateName(new DSLValidationContext());
+			serviceValidator.validateName(new DSLValidationContext());
 			fail("A service with an empty name was successfully validated");
 		} catch (DSLValidationException e) {
 			//OK - the invalid service name caused the exception
@@ -173,7 +189,7 @@ public class ServiceValidationTest {
 		
 		try {
 			service.setName(INVALID_SERVICE_NAME);
-			service.validateName(new DSLValidationContext());
+			serviceValidator.validateName(new DSLValidationContext());
 			fail("A service with an invalid name was successfully validated");
 		} catch (DSLValidationException e) {
 			//OK - the invalid service name caused the exception
@@ -266,13 +282,15 @@ public class ServiceValidationTest {
 	public void testMissingServiceIcon() {
 
 		Service service = new Service();
+		ServiceValidator serviceValidator = new ServiceValidator();
+		serviceValidator.setDSLEntity(service);
 		service.setIcon(ICON_FILE);
 		DSLValidationContext validationContext = new DSLValidationContext();
 
 		//missing icon file:
 		try {
 			validationContext.setFilePath(SERVICE_WITHOUT_ICON_PATH);
-			service.validateIcon(validationContext);
+			serviceValidator.validateIcon(validationContext);
 			fail("an invalid icon path was successfully validated: " + SERVICE_WITHOUT_ICON_PATH);
 		} catch (DSLValidationException e) {
 			//OK - the invalid icon path caused the exception
@@ -281,27 +299,37 @@ public class ServiceValidationTest {
 		//valid icon file:
 		try {
 			validationContext.setFilePath(SERVICE_WITH_ICON_PATH);
-			service.validateIcon(validationContext);
+			serviceValidator.validateIcon(validationContext);
 		} catch (DSLValidationException e) {
 			fail("Validation of service failed on a valid icon path: " 
 					+ SERVICE_WITH_ICON_PATH + ": " + e.getMessage());
 		}
 	}
+	
+	private UserInterface createOpenspacesUIObject(
+			org.cloudifysource.domain.UserInterface userInterface) 
+					throws IllegalAccessException, InvocationTargetException {
+		UserInterface ui = new UserInterface();
+		BeanUtils.copyProperties(ui, userInterface);
+		return ui;
+	}
 
 	@Test
 	public void testBadUserInterfaceDef() 
-			throws PackagingException, DSLException {
+			throws PackagingException, DSLException, IllegalAccessException, InvocationTargetException {
 
 		Service service = ServiceReader.readService(new File(SERVICE_WITH_VALID_USER_INTERFACE));
+		ServiceValidator serviceValidator = new ServiceValidator();
+		serviceValidator.setDSLEntity(service);
 		DSLValidationContext validationContext = new DSLValidationContext();
 		validationContext.setFilePath(SERVICE_WITH_VALID_USER_INTERFACE);
 		try {
-			service.validateUserInterfaceObjectIsWellDefined(validationContext);
+			serviceValidator.validateUserInterfaceObjectIsWellDefined(validationContext);
 		} catch (DSLValidationException e) {
 			fail("Validation of a valid User Interface object failed");
 		}
 		validationContext.setFilePath(SERVICE_WITH_INVALID_USER_INTERFACE);
-		UserInterface userInterface = service.getUserInterface();
+		UserInterface userInterface = createOpenspacesUIObject(service.getUserInterface());
 		
 		//we change the UserInterface object a few times and run a validation test on it.
 
@@ -310,7 +338,7 @@ public class ServiceValidationTest {
 		firstInvalidMetricList.add(new Object());
 		userInterface.getMetricGroups().get(0).setMetrics(firstInvalidMetricList);
 		try {
-			service.validateUserInterfaceObjectIsWellDefined(validationContext);
+			serviceValidator.validateUserInterfaceObjectIsWellDefined(validationContext);
 			fail("Validation of User Interface object is expected to fail");
 		} catch (DSLValidationException e) {
 			//expected
@@ -324,7 +352,7 @@ public class ServiceValidationTest {
 		secondInvalidMetricList.add(invalidMetricListForm);
 		userInterface.getMetricGroups().get(0).setMetrics(secondInvalidMetricList);
 		try {
-			service.validateUserInterfaceObjectIsWellDefined(validationContext);
+			serviceValidator.validateUserInterfaceObjectIsWellDefined(validationContext);
 			fail("Validation of User Interface object is expected to fail");
 		} catch (DSLValidationException e) {
 			//expected
@@ -338,7 +366,7 @@ public class ServiceValidationTest {
 		thirdInvalidMetricList.add(invalidMetricListForm);
 		userInterface.getMetricGroups().get(0).setMetrics(thirdInvalidMetricList);
 		try {
-			service.validateUserInterfaceObjectIsWellDefined(validationContext);
+			serviceValidator.validateUserInterfaceObjectIsWellDefined(validationContext);
 			fail("Validation of User Interface object is expected to fail");
 		} catch (DSLValidationException e) {
 			//expected
@@ -354,7 +382,7 @@ public class ServiceValidationTest {
 		fourthInvalidMetricList.add(invalidMetricListForm);
 		userInterface.getMetricGroups().get(0).setMetrics(fourthInvalidMetricList);
 		try {
-			service.validateUserInterfaceObjectIsWellDefined(validationContext);
+			serviceValidator.validateUserInterfaceObjectIsWellDefined(validationContext);
 			fail("Validation of User Interface object is expected to fail");
 		} catch (DSLValidationException e) {
 			//expected

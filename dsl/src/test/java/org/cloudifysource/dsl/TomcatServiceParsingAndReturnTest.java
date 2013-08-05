@@ -19,7 +19,7 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 
-import org.cloudifysource.dsl.Service;
+import org.cloudifysource.domain.Service;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.junit.Test;
 

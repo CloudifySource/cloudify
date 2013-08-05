@@ -18,8 +18,8 @@ package org.cloudifysource.debug
 
 import java.text.*
 import groovy.json.JsonSlurper
-import org.cloudifysource.dsl.context.ServiceContextFactory
-import org.cloudifysource.dsl.context.ServiceContext
+import org.cloudifysource.utilitydomain.context.ServiceContextFactory
+import org.cloudifysource.domain.context.ServiceContext
 
 //A class containing commands useful for debug of groovy scripts
 //it accepts cli arguments passed from a wrapper script

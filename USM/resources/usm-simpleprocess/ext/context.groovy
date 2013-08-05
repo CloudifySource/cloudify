@@ -1,6 +1,6 @@
 
 try {
-	def context = org.cloudifysource.dsl.context.ServiceContextFactory.getServiceContext()
+	def context = org.cloudifysource.utilitydomain.context.ServiceContextFactory.getServiceContext()
 	Thread.sleep(2000)
 	println " context is:  " + context
 } catch(Exception e) {

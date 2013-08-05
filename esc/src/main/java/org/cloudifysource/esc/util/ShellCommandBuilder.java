@@ -17,7 +17,7 @@ package org.cloudifysource.esc.util;
 
 import java.util.regex.Pattern;
 
-import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
+import org.cloudifysource.domain.cloud.RemoteExecutionModes;
 
 /*******
  * A simple wrapper around a StringBuilder. Used to generate the command line

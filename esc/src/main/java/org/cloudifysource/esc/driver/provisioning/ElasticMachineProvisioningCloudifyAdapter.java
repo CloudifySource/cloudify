@@ -33,11 +33,10 @@ import net.jini.core.discovery.LookupLocator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.FileTransferModes;
-import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
+import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.domain.cloud.FileTransferModes;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.cloudifysource.dsl.internal.ComputeTemplatesReader;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
@@ -60,6 +59,7 @@ import org.cloudifysource.esc.util.CalcUtils;
 import org.cloudifysource.esc.util.InstallationDetailsBuilder;
 import org.cloudifysource.esc.util.ProvisioningDriverClassBuilder;
 import org.cloudifysource.esc.util.Utils;
+import org.cloudifysource.utilitydomain.data.reader.ComputeTemplatesReader;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
 import org.openspaces.admin.bean.BeanConfigurationException;
@@ -817,8 +817,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	/**
 	 * exposes the storage API of the cloud to agent machines.
-	 * 
-	 * @see {@link org.cloudifysource.dsl.context.blockstorage.StorageFacade}
+	 * @see {@link org.cloudifysource.domain.context.blockstorage.StorageFacade}
 	 * 
 	 *      <<<<<<< HEAD DO NOT refactor this method's name since it is called via reflection by the ESM. ======= DO NOT
 	 *      refactor this method's name since it is called via reflection by the ESM. >>>>>>> CLOUDIFY-1837 Scan all

@@ -26,8 +26,8 @@ import java.util.logging.Level;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.cloudifysource.dsl.Service;
-import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.domain.Service;
+import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
 import org.cloudifysource.dsl.internal.DSLReader;

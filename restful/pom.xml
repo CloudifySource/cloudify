@@ -32,6 +32,12 @@
 		</dependency>
 		<dependency>
 			<groupId>org.cloudifysource</groupId>
+			<artifactId>domain</artifactId>
+			<version>${cloudifyVersion}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.cloudifysource</groupId>
 			<artifactId>rest-client</artifactId>
 			<version>${cloudifyVersion}</version>
 			<scope>compile</scope>
@@ -397,6 +403,10 @@
 					<artifactId>jsch</artifactId>
 					<groupId>com.jcraft</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>utility-domain</artifactId>
+					<groupId>org.cloudifysource</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -432,8 +442,12 @@
 			<version>1.9.5</version>
 			<scope>test</scope>
 		</dependency>
-
-
+		<dependency>
+			<groupId>org.cloudifysource</groupId>
+			<artifactId>utility-domain</artifactId>
+			<version>${cloudifyVersion}</version>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<defaultGoal>install</defaultGoal>
@@ -480,7 +494,7 @@
 							<name>RestDoclet</name>
 							<description>REST ${project.version} API documentation.</description>
 							<doclet>org.cloudifysource.restDoclet.generation.RestDoclet</doclet>
-							<docletPath>${project.build.directory}/classes:${basedir}/../dsl/target/classes</docletPath>
+							<docletPath>${project.build.directory}/classes:${basedir}/../dsl/target/classes:${basedir}/../domain/target/classes</docletPath>
 							<sourcepath>${basedir}/src/main/java/org/cloudifysource/rest/controllers;</sourcepath>
 							<docletArtifacts>
 								<docletArtifact>
@@ -515,7 +529,7 @@
 					<archive>
 						<manifestEntries>
 							<!-- The class-path entries MUST be in the same line! -->
-							<Class-Path><![CDATA[lib/platform/cloudify/dsl.jar lib/platform/cloudify/security-${cloudifyVersion}.jar lib/platform/cloudify/security-ldap-${cloudifyVersion}.jar tools/groovy/embeddable/groovy-all-1.8.6.jar tools/groovy/lib/ivy-2.2.0.jar]]></Class-Path>
+							<Class-Path><![CDATA[lib/platform/cloudify/dsl.jar lib/platform/cloudify/domain.jar lib/platform/cloudify/utility-domain.jar lib/platform/cloudify/security-${cloudifyVersion}.jar lib/platform/cloudify/security-ldap-${cloudifyVersion}.jar tools/groovy/embeddable/groovy-all-1.8.6.jar tools/groovy/lib/ivy-2.2.0.jar]]></Class-Path>
 						</manifestEntries>
 					</archive>
 					<webResources>

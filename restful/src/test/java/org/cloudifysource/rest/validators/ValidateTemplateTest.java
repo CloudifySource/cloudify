@@ -18,8 +18,8 @@ package org.cloudifysource.rest.validators;
 import java.io.File;
 import java.io.IOException;
 
-import org.cloudifysource.dsl.Service;
-import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.domain.Service;
+import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;

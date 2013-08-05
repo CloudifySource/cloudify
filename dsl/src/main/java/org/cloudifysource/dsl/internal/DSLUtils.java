@@ -15,8 +15,6 @@ package org.cloudifysource.dsl.internal;
 import java.io.File;
 import java.io.IOException;
 
-import org.openspaces.admin.internal.pu.InternalProcessingUnit;
-
 /*********
  * Various utility functions used during DSL processing.
  * @author barakme
@@ -109,57 +107,57 @@ public final class DSLUtils {
 		// private constructor to prevent initialization
 	}
 
-	/**
-	 *
-	 * @param processingUnit
-	 *            processingUnit
-	 * @return the dependencies
-	 */
-	public static String getDependencies(final InternalProcessingUnit processingUnit) {
-		final String dependencies = getContextPropertyValue(
-				processingUnit, CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON);
-		if (dependencies == null) {
-			return "";
-		}
-		return dependencies;
-	}
-
-	/**
-	 *
-	 * @param processingUnit
-	 *            processingUnit
-	 * @return The tier type
-	 */
-	public static ServiceTierType getTierType(final InternalProcessingUnit processingUnit) {
-		final String tierTypeStr = getContextPropertyValue(
-				processingUnit, CloudifyConstants.CONTEXT_PROPERTY_SERVICE_TYPE);
-		if (tierTypeStr == null) {
-			return ServiceTierType.UNDEFINED;
-		}
-		return ServiceTierType.valueOf(tierTypeStr);
-	}
-
-	/**
-	 *
-	 * @param processingUnit
-	 *            processingUnit
-	 * @return The icon url
-	 */
-	public static String getIconUrl(final InternalProcessingUnit processingUnit) {
-		final String iconUrlStr = getContextPropertyValue(
-				processingUnit, CloudifyConstants.CONTEXT_PROPERTY_SERVICE_ICON);
-		if (iconUrlStr == null) {
-			return "";
-		}
-		return iconUrlStr;
-	}
-
-	private static String getContextPropertyValue(final InternalProcessingUnit processingUnit,
-			final String contextPropertyKey) {
-		final String value = processingUnit.getBeanLevelProperties().getContextProperties().getProperty(
-				contextPropertyKey);
-		return value;
-	}
+//	/**
+//	 *
+//	 * @param processingUnit
+//	 *            processingUnit
+//	 * @return the dependencies
+//	 */
+//	public static String getDependencies(final InternalProcessingUnit processingUnit) {
+//		final String dependencies = getContextPropertyValue(
+//				processingUnit, CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON);
+//		if (dependencies == null) {
+//			return "";
+//		}
+//		return dependencies;
+//	}
+//
+//	/**
+//	 *
+//	 * @param processingUnit
+//	 *            processingUnit
+//	 * @return The tier type
+//	 */
+//	public static ServiceTierType getTierType(final InternalProcessingUnit processingUnit) {
+//		final String tierTypeStr = getContextPropertyValue(
+//				processingUnit, CloudifyConstants.CONTEXT_PROPERTY_SERVICE_TYPE);
+//		if (tierTypeStr == null) {
+//			return ServiceTierType.UNDEFINED;
+//		}
+//		return ServiceTierType.valueOf(tierTypeStr);
+//	}
+//
+//	/**
+//	 *
+//	 * @param processingUnit
+//	 *            processingUnit
+//	 * @return The icon url
+//	 */
+//	public static String getIconUrl(final InternalProcessingUnit processingUnit) {
+//		final String iconUrlStr = getContextPropertyValue(
+//				processingUnit, CloudifyConstants.CONTEXT_PROPERTY_SERVICE_ICON);
+//		if (iconUrlStr == null) {
+//			return "";
+//		}
+//		return iconUrlStr;
+//	}
+//
+//	private static String getContextPropertyValue(final InternalProcessingUnit processingUnit,
+//			final String contextPropertyKey) {
+//		final String value = processingUnit.getBeanLevelProperties().getContextProperties().getProperty(
+//				contextPropertyKey);
+//		return value;
+//	}
 
 	/**
 	 * If dsl file name is tomcat-service.groovy than the properties file name expected to be tomcat-service.properties.

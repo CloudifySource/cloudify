@@ -40,13 +40,10 @@ import net.jini.core.discovery.LookupLocator;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.cloudifysource.dsl.Application;
-import org.cloudifysource.dsl.ComputeDetails;
-import org.cloudifysource.dsl.Service;
-import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.context.kvstorage.spaceentries.ApplicationCloudifyAttribute;
-import org.cloudifysource.dsl.context.kvstorage.spaceentries.InstanceCloudifyAttribute;
-import org.cloudifysource.dsl.context.kvstorage.spaceentries.ServiceCloudifyAttribute;
+import org.cloudifysource.domain.Application;
+import org.cloudifysource.domain.ComputeDetails;
+import org.cloudifysource.domain.Service;
+import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
@@ -113,6 +110,9 @@ import org.cloudifysource.rest.validators.UninstallServiceValidationContext;
 import org.cloudifysource.rest.validators.UninstallServiceValidator;
 import org.cloudifysource.security.CloudifyAuthorizationDetails;
 import org.cloudifysource.security.CustomPermissionEvaluator;
+import org.cloudifysource.utilitydomain.kvstorage.spaceentries.ApplicationCloudifyAttribute;
+import org.cloudifysource.utilitydomain.kvstorage.spaceentries.InstanceCloudifyAttribute;
+import org.cloudifysource.utilitydomain.kvstorage.spaceentries.ServiceCloudifyAttribute;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.alg.CycleDetector;
 import org.jgrapht.graph.DefaultDirectedGraph;
@@ -795,7 +795,7 @@ public class DeploymentsController extends BaseRestController {
 
 	}
 
-	private List<Service> createServiceDependencyOrder(final org.cloudifysource.dsl.Application application) {
+	private List<Service> createServiceDependencyOrder(final org.cloudifysource.domain.Application application) {
 		final DirectedGraph<Service, DefaultEdge> graph = new DefaultDirectedGraph<Service, DefaultEdge>(
 				DefaultEdge.class);
 

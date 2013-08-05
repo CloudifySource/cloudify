@@ -15,8 +15,20 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.cloudifysource</groupId>
+			<artifactId>utility-domain</artifactId>
+			<version>2.6.0-SNAPSHOT</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.cloudifysource</groupId>
 			<artifactId>dsl</artifactId>
 			<version>${project.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.cloudifysource</groupId>
+			<artifactId>domain</artifactId>
+			<version>${cloudifyVersion}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -189,7 +201,8 @@
 		</plugins>
 		<pluginManagement>
 			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
 					<artifactId>lifecycle-mapping</artifactId>

@@ -16,7 +16,7 @@ package org.cloudifysource.esc.installer.filetransfer;
 import java.net.URISyntaxException;
 
 import org.apache.commons.vfs2.VFS;
-import org.cloudifysource.dsl.cloud.FileTransferModes;
+import org.cloudifysource.domain.cloud.FileTransferModes;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
 import org.cloudifysource.esc.util.Utils;

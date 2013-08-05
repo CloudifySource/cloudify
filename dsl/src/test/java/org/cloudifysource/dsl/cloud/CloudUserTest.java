@@ -1,6 +1,8 @@
 package org.cloudifysource.dsl.cloud;
 
+import org.cloudifysource.domain.cloud.CloudUser;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
+import org.cloudifysource.dsl.internal.validators.CloudUserValidator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,11 +24,13 @@ public class CloudUserTest {
 	public void testValidateKeyFileDefaultValue_1()
 			throws Exception {
 		final CloudUser fixture = new CloudUser();
+		CloudUserValidator fixtureValidator = new CloudUserValidator();
+		fixtureValidator.setDSLEntity(fixture);
 		fixture.setUser("");
 		fixture.setApiKey("");
 		
 
-		fixture.validateDefaultValues(new DSLValidationContext());
+		fixtureValidator.validateDefaultValues(new DSLValidationContext());
 
 		// add additional test code here
 		// unverified
@@ -41,11 +45,13 @@ public class CloudUserTest {
 	public void testValidateKeyFileDefaultValue_2()
 			throws Exception {
 		final CloudUser fixture = new CloudUser();
+		CloudUserValidator fixtureValidator = new CloudUserValidator();
+		fixtureValidator.setDSLEntity(fixture);
 		fixture.setUser("ENTER_USER");
 		fixture.setApiKey("");
 		
 
-		fixture.validateDefaultValues(new DSLValidationContext());
+		fixtureValidator.validateDefaultValues(new DSLValidationContext());
 
 		// add additional test code here
 		// unverified
@@ -60,11 +66,13 @@ public class CloudUserTest {
 	public void testValidateKeyFileDefaultValue_3()
 			throws Exception {
 		final CloudUser fixture = new CloudUser();
+		CloudUserValidator fixtureValidator = new CloudUserValidator();
+		fixtureValidator.setDSLEntity(fixture);
 		fixture.setUser("");
 		fixture.setApiKey("ENTER_KEY");
 		
 
-		fixture.validateDefaultValues(new DSLValidationContext());
+		fixtureValidator.validateDefaultValues(new DSLValidationContext());
 
 		// add additional test code here
 		// unverified

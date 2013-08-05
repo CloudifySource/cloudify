@@ -3,7 +3,7 @@
         "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
 <hibernate-mapping>
 
-    <class name="org.cloudifysource.dsl.context.kvstorage.spaceentries.GlobalCloudifyAttribute" table="GlobalAttribute">
+    <class name="org.cloudifysource.utilitydomain.kvstorage.spaceentries.GlobalCloudifyAttribute" table="GlobalAttribute">
         <id name="uid" type="string">
             <column name="UID" length="256" />
         </id>
@@ -15,7 +15,7 @@
         </property>
     </class>
 
-    <class name="org.cloudifysource.dsl.context.kvstorage.spaceentries.ApplicationCloudifyAttribute" table="ApplicationAttribute">
+    <class name="org.cloudifysource.utilitydomain.kvstorage.spaceentries.ApplicationCloudifyAttribute" table="ApplicationAttribute">
         <id name="uid" type="string">
             <column name="UID" length="256" />
         </id>
@@ -30,7 +30,7 @@
         </property>
     </class>
 
-    <class name="org.cloudifysource.dsl.context.kvstorage.spaceentries.ServiceCloudifyAttribute" table="ServiceAttribute">
+    <class name="org.cloudifysource.utilitydomain.kvstorage.spaceentries.ServiceCloudifyAttribute" table="ServiceAttribute">
         <id name="uid" type="string">
             <column name="UID" length="256" />
         </id>
@@ -48,7 +48,7 @@
         </property>
     </class>
 
-    <class name="org.cloudifysource.dsl.context.kvstorage.spaceentries.InstanceCloudifyAttribute" table="InstanceAttribute">
+    <class name="org.cloudifysource.utilitydomain.kvstorage.spaceentries.InstanceCloudifyAttribute" table="InstanceAttribute">
         <id name="uid" type="string">
             <column name="UID" length="256" />
         </id>
@@ -69,7 +69,7 @@
         </property>
     </class>
 
-    <class name="org.cloudifysource.dsl.internal.packaging.CloudConfigurationHolder" table="CloudConfiguration">
+    <class name="org.cloudifysource.utilitydomain.data.CloudConfigurationHolder" table="CloudConfiguration">
         <id name="id" type="long">
             <column name="ID" />
         </id>

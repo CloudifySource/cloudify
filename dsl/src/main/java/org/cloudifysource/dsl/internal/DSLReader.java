@@ -38,18 +38,15 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
-import org.cloudifysource.dsl.Service;
-import org.cloudifysource.dsl.cloud.FileTransferModes;
-import org.cloudifysource.dsl.cloud.RemoteExecutionModes;
-import org.cloudifysource.dsl.cloud.ScriptLanguages;
-import org.cloudifysource.dsl.internal.context.ServiceContextImpl;
-import org.cloudifysource.dsl.utils.ServiceUtils;
+import org.cloudifysource.domain.Service;
+import org.cloudifysource.domain.cloud.FileTransferModes;
+import org.cloudifysource.domain.cloud.RemoteExecutionModes;
+import org.cloudifysource.domain.cloud.ScriptLanguages;
+import org.cloudifysource.domain.context.BaseServiceContext;
+import org.cloudifysource.domain.context.ServiceContext;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
-import org.openspaces.admin.Admin;
-import org.openspaces.core.cluster.ClusterInfo;
-import org.openspaces.ui.UserInterface;
 
 /*******
  * Generic Cloudify DSL Reader.
@@ -60,6 +57,9 @@ import org.openspaces.ui.UserInterface;
 
 public class DSLReader {
 
+	public DSLReader() {
+		
+	}
 	// Groovy DSL prefix, used for handling print and println correctly
 	private static final String GROOVY_SERVICE_PREFIX =
 			"Object.metaClass.println = {x->this.println(x)}; Object.metaClass.print =  {x->this.print(x)};";
@@ -72,9 +72,8 @@ public class DSLReader {
 
 	private boolean loadUsmLib = true;
 
-	private ClusterInfo clusterInfo;
-	private Admin admin;
-	private ServiceContextImpl context;
+
+	private ServiceContext context;
 
 	private String propertiesFileName;
 
@@ -112,8 +111,7 @@ public class DSLReader {
 	private GroovyClassLoader dslClassLoader;
 
 	private static final String[] STAR_IMPORTS = new String[] {
-			org.cloudifysource.dsl.Service.class.getPackage().getName(), UserInterface.class.getPackage().getName(),
-			org.cloudifysource.dsl.internal.context.ServiceImpl.class.getPackage().getName(),
+			org.cloudifysource.domain.Service.class.getPackage().getName(), 
 			FileTransferModes.class.getName(),
 			RemoteExecutionModes.class.getName(),
 			ScriptLanguages.class.getName() };
@@ -350,10 +348,6 @@ public class DSLReader {
 		if (this.variables != null) {
 			properties.putAll(this.variables);
 		}
-		ClusterInfo clusterInfoToUseInGsc = this.clusterInfo;
-		if (clusterInfoToUseInGsc == null) {
-			clusterInfoToUseInGsc = new ClusterInfo(null, 1, 0, 1, 0);
-		}
 
 		// create an uninitialized service context
 		if (this.createServiceContext) {
@@ -365,13 +359,8 @@ public class DSLReader {
 						+ e.getMessage(), e);
 			}
 			if (this.context == null) {
-				if (isRunningInGSC) {
-					this.context = new ServiceContextImpl(clusterInfoToUseInGsc, canonicalPath);
-				} else {
-					this.context = new ServiceContextImpl(new ClusterInfo(null, 1, 0, 1, 0), canonicalPath);
-				}
+					this.context = new BaseServiceContext(canonicalPath);
 			}
-
 		}
 
 		// create the groovy shell, loaded with our settings
@@ -389,17 +378,7 @@ public class DSLReader {
 								+ "Set the 'createServiceContext' option to false if you do not need a service conext");
 			}
 
-			if (isRunningInGSC) {
-				if (clusterInfoToUseInGsc.getName() == null) {
-					clusterInfoToUseInGsc.setName(ServiceUtils.getAbsolutePUName(
-							CloudifyConstants.DEFAULT_APPLICATION_NAME, ((Service) result).getName()));
-				}
-
-				this.context.init((Service) result, admin, clusterInfoToUseInGsc);
-			} else {
-
-				this.context.initInIntegratedContainer((Service) result);
-			}
+			((BaseServiceContext)this.context).init((Service) result);
 		}
 
 		this.dslClassLoader = gs.getClassLoader();
@@ -615,7 +594,7 @@ public class DSLReader {
 
 		ic.addImports(CLASS_IMPORTS);
 
-		ic.addStaticImport("Statistics", org.cloudifysource.dsl.statistics.AbstractStatisticsDetails.class.getName(),
+		ic.addStaticImport("Statistics", org.cloudifysource.domain.statistics.AbstractStatisticsDetails.class.getName(),
 				"STATISTICS_FACTORY");
 		cc.addCompilationCustomizers(ic);
 		//cc.addCompilationCustomizers(ic, new ASTTransformationCustomizer(new DebugHookTransformar()));
@@ -726,27 +705,11 @@ public class DSLReader {
 	// Accessors ///
 	// //////////////
 
-	public ClusterInfo getClusterInfo() {
-		return clusterInfo;
-	}
-
-	public void setClusterInfo(final ClusterInfo clusterInfo) {
-		this.clusterInfo = clusterInfo;
-	}
-
-	public Admin getAdmin() {
-		return admin;
-	}
-
-	public void setAdmin(final Admin admin) {
-		this.admin = admin;
-	}
-
-	public ServiceContextImpl getContext() {
+	public ServiceContext getContext() {
 		return context;
 	}
 
-	public void setContext(final ServiceContextImpl context) {
+	public void setContext(final ServiceContext context) {
 		this.context = context;
 	}
 

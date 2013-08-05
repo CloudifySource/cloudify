@@ -1,7 +1,9 @@
 
 package org.cloudifysource.dsl;
 
+import org.cloudifysource.domain.ServiceNetwork;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
+import org.cloudifysource.dsl.internal.validators.ServiceNetworkValidator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,10 +30,12 @@ public class ServiceNetworkTest {
 	public void testCheckDescription_1()
 			throws Exception {
 		final ServiceNetwork fixture = new ServiceNetwork();
+		ServiceNetworkValidator fixtureValidator = new ServiceNetworkValidator();
+		fixtureValidator.setDSLEntity(fixture);
 		fixture.setPort(1);
 		fixture.setProtocolDescription("");
 
-		fixture.checkDescription(new DSLValidationContext());
+		fixtureValidator.checkDescription(new DSLValidationContext());
 
 		// add additional test code here
 		// unverified
@@ -48,10 +52,12 @@ public class ServiceNetworkTest {
 	public void testCheckDescription_2()
 			throws Exception {
 		final ServiceNetwork fixture = new ServiceNetwork();
+		ServiceNetworkValidator fixtureValidator = new ServiceNetworkValidator();
+		fixtureValidator.setDSLEntity(fixture);
 		fixture.setPort(1);
 		fixture.setProtocolDescription((String) null);
 
-		fixture.checkDescription(new DSLValidationContext());
+		fixtureValidator.checkDescription(new DSLValidationContext());
 
 	}
 
@@ -66,10 +72,12 @@ public class ServiceNetworkTest {
 	public void testCheckPortValue_1()
 			throws Exception {
 		final ServiceNetwork fixture = new ServiceNetwork();
+		ServiceNetworkValidator fixtureValidator = new ServiceNetworkValidator();
+		fixtureValidator.setDSLEntity(fixture);
 		fixture.setPort(1);
 		fixture.setProtocolDescription("");
 
-		fixture.checkPortValue(new DSLValidationContext());
+		fixtureValidator.checkPortValue(new DSLValidationContext());
 
 	}
 
@@ -84,10 +92,12 @@ public class ServiceNetworkTest {
 	public void testCheckPortValue_2()
 			throws Exception {
 		final ServiceNetwork fixture = new ServiceNetwork();
+		ServiceNetworkValidator fixtureValidator = new ServiceNetworkValidator();
+		fixtureValidator.setDSLEntity(fixture);
 		fixture.setPort(0);
 		fixture.setProtocolDescription("");
-
-		fixture.checkPortValue(new DSLValidationContext());
+		
+		fixtureValidator.checkPortValue(new DSLValidationContext());
 
 	}
 

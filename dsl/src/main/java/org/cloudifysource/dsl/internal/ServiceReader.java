@@ -17,17 +17,17 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
-import org.cloudifysource.dsl.Application;
-import org.cloudifysource.dsl.Service;
-import org.cloudifysource.dsl.cloud.Cloud;
+import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.domain.Application;
+import org.cloudifysource.domain.Service;
+import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
 import org.codehaus.groovy.control.CompilationFailedException;
-import org.openspaces.admin.Admin;
-import org.openspaces.core.cluster.ClusterInfo;
 
 /****************
  * Utility methods for commonly used DSL parsers.
@@ -149,7 +149,7 @@ public final class ServiceReader {
 	 */
 	public static DSLServiceCompilationResult getServiceFromDirectory(final File dir)
 			throws DSLException {
-		return ServiceReader.getServiceFromFile(null, dir, null, null, null, true, null /* overrides file */);
+		return ServiceReader.getServiceFromFile(null, dir, null, true, null /* overrides file */);
 	}
 
 	/**
@@ -167,7 +167,7 @@ public final class ServiceReader {
 	 */
 	public static DSLServiceCompilationResult getServiceFromFile(
 			final File dslFile, final File workDir) throws DSLException {
-		return ServiceReader.getServiceFromFile(dslFile, workDir, null, null,
+		return ServiceReader.getServiceFromFile(dslFile, workDir,
 				null, true, null /* overrides file */);
 	}
 
@@ -219,13 +219,10 @@ public final class ServiceReader {
 	 * @throws DSLException .
 	 */
 	public static DSLServiceCompilationResult getServiceFromFile(final File dslFile, final File workDir,
-			final Admin admin, final ClusterInfo clusterInfo, final String propertiesFileName,
-			final boolean isRunningInGSC, final File overridesFile)
+			final String propertiesFileName, final boolean isRunningInGSC, final File overridesFile)
 			throws DSLException {
 
 		final DSLReader dslReader = new DSLReader();
-		dslReader.setAdmin(admin);
-		dslReader.setClusterInfo(clusterInfo);
 		dslReader.setPropertiesFileName(propertiesFileName);
 		dslReader.setRunningInGSC(isRunningInGSC);
 		dslReader.setDslFile(dslFile);
@@ -270,7 +267,7 @@ public final class ServiceReader {
 		if (dslFileOrDir.isFile()) {
 			return getServiceFromFile(dslFileOrDir);
 		} else if (dslFileOrDir.isDirectory()) {
-			return getServiceFromFile(null, dslFileOrDir, null, null, null, true, null).getService();
+			return getServiceFromFile(null, dslFileOrDir, null, true, null).getService();
 		} else {
 			throw new IllegalArgumentException(dslFileOrDir + " is neither a file nor a directory");
 		}
@@ -297,9 +294,8 @@ public final class ServiceReader {
 	 * @throws DSLException .
 	 */
 	public static Service readService(final File dslFile, final File workDir,
-			final Admin admin, final ClusterInfo clusterInfo, final String propertiesFileName,
-			final boolean isRunningInGSC, final File overridesFile) throws DSLException {
-		return getServiceFromFile(dslFile, workDir, admin, clusterInfo, propertiesFileName
+			final String propertiesFileName, final boolean isRunningInGSC, final File overridesFile) throws DSLException {
+		return getServiceFromFile(dslFile, workDir, propertiesFileName
 				, isRunningInGSC, overridesFile).getService();
 	}
 
@@ -410,7 +406,7 @@ public final class ServiceReader {
 	 * @return A temporary directory.
 	 * @throws IOException .
 	 */
-	protected static File createTempDir(final String suffix)
+	public static File createTempDir(final String suffix)
 			throws IOException {
 		final File tempFile = File.createTempFile("GS_tmp_dir", "." + suffix);
 		final String path = tempFile.getAbsolutePath();
@@ -442,7 +438,7 @@ public final class ServiceReader {
 	 * @throws IOException .
 	 * @throws DSLException .
 	 */
-	public static org.cloudifysource.dsl.cloud.Cloud readCloud(final File dslFile)
+	public static Cloud readCloud(final File dslFile)
 			throws IOException,
 			DSLException {
 
@@ -451,9 +447,81 @@ public final class ServiceReader {
 		}
 
 		final String dslContents = FileUtils.readFileToString(dslFile);
-
-		return readCloud(dslContents, dslFile);
+		final Cloud cloud = readCloud(dslContents, dslFile);
+		setDependentCloudProperties(null, cloud);
+		return cloud; 
 	}
+	/**
+	 *
+	 * @param dslFile
+	 * @param dependentConfig
+	 *            .
+	 * @return The cloud.
+	 * @throws IOException .
+	 * @throws DSLException .
+	 */
+	public static Cloud readCloud(final File dslFile, final CloudDependentConfigHolder dependentConfig)
+			throws IOException,
+			DSLException {
+
+		if (!dslFile.exists()) {
+			throw new FileNotFoundException(dslFile.getAbsolutePath());
+		}
+
+		final String dslContents = FileUtils.readFileToString(dslFile);
+		final Cloud cloud = readCloud(dslContents, dslFile);
+		setDependentCloudProperties(dependentConfig, cloud);
+		return cloud; 
+	}
+
+	private static void setDependentCloudProperties(
+			final CloudDependentConfigHolder dependentConfig, final Cloud cloud) {
+		if (StringUtils.isEmpty(cloud.getProvider().getCloudifyUrl())) {
+			//set the cloudify url according to the openspaces platform version.
+			if (dependentConfig != null) {
+				cloud.getProvider().setCloudifyUrl(dependentConfig.getDownloadUrl());
+			} else {
+				CloudDependentConfigHolder cloudDependentProps = getDependentCloudProps();
+				cloud.getProvider().setCloudifyUrl(cloudDependentProps.getDownloadUrl());
+			}
+		}
+		
+		if (cloud.getConfiguration().getComponents().getDiscovery().getDiscoveryPort() == null) {
+			//Set the discovery port according to default os discovery port 
+			if (dependentConfig != null) {
+				cloud.getConfiguration().getComponents().getDiscovery()
+							.setDiscoveryPort(dependentConfig.getDefaultLusPort());
+			} else {
+				CloudDependentConfigHolder cloudDependentProps = getDependentCloudProps();
+				cloud.getConfiguration().getComponents().getDiscovery()
+							.setDiscoveryPort(cloudDependentProps.getDefaultLusPort());
+			}
+		}
+		
+		if (cloud.getConfiguration().getComponents().getRest().getPort() == null) {
+			cloud.getConfiguration().getComponents().getRest().setPort(CloudifyConstants.DEFAULT_REST_PORT);
+		}
+		
+		if (cloud.getConfiguration().getComponents().getWebui().getPort() == null) {
+			cloud.getConfiguration().getComponents().getWebui().setPort(CloudifyConstants.DEFAULT_WEBUI_PORT);
+		}
+	}
+
+	private static CloudDependentConfigHolder getDependentCloudProps() {
+		final String utilDomainClass = "org.cloudifysource.utilitydomain.openspaces.OpenspacesDomainUtils";
+		try {
+			final Object utilDomainClassInstance = Class.forName(utilDomainClass).newInstance();
+			final Method getCloudDependentConfMethod = utilDomainClassInstance.getClass()
+					.getMethod("getCloudDependentConfig"); 
+			return (CloudDependentConfigHolder) getCloudDependentConfMethod
+					.invoke(utilDomainClassInstance, (Object[]) null);
+		} catch (Exception e) {
+			//Failed since openspaces is not in classpath.
+			//This can happen. An empty holder will be returned instead.
+			return new CloudDependentConfigHolder();
+		}
+	}
+
 
 	/**
 	 *
@@ -464,11 +532,7 @@ public final class ServiceReader {
 	 */
 	public static Cloud readCloudFromDirectory(final File cloudConfigDirectory)
 			throws DSLException {
-		final DSLReader reader = new DSLReader();
-		reader.setDslFileNameSuffix(DSLUtils.CLOUD_DSL_FILE_NAME_SUFFIX);
-		reader.setWorkDir(cloudConfigDirectory);
-		reader.setCreateServiceContext(false);
-		return reader.readDslEntity(Cloud.class);
+		return readCloudFromDirectory(cloudConfigDirectory.getAbsolutePath(), null);
 	}
 
 	/**
@@ -480,11 +544,7 @@ public final class ServiceReader {
 	 */
 	public static Cloud readCloudFromDirectory(final String cloudConfigDirectory)
 			throws DSLException {
-		final DSLReader reader = new DSLReader();
-		reader.setDslFileNameSuffix(DSLUtils.CLOUD_DSL_FILE_NAME_SUFFIX);
-		reader.setWorkDir(new File(cloudConfigDirectory));
-		reader.setCreateServiceContext(false);
-		return reader.readDslEntity(Cloud.class);
+		return readCloudFromDirectory(cloudConfigDirectory, null);
 	}
 
 	/**
@@ -503,6 +563,8 @@ public final class ServiceReader {
 		reader.setWorkDir(new File(cloudConfigDirectory));
 		reader.setCreateServiceContext(false);
 		reader.setOverridesScript(overridesScript);
-		return reader.readDslEntity(Cloud.class);
+		final Cloud cloud = reader.readDslEntity(Cloud.class);
+		setDependentCloudProperties(null, cloud);
+		return cloud;
 	}
 }

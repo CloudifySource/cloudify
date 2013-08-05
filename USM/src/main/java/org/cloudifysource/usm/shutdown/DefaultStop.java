@@ -19,7 +19,7 @@ package org.cloudifysource.usm.shutdown;
 import java.util.List;
 import java.util.logging.Level;
 
-import org.cloudifysource.dsl.Service;
+import org.cloudifysource.domain.Service;
 import org.cloudifysource.usm.USMException;
 import org.cloudifysource.usm.USMUtils;
 import org.cloudifysource.usm.events.AbstractUSMEventListener;

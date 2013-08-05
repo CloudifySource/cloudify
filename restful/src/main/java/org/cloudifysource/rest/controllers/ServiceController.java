@@ -77,33 +77,26 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.cloudifysource.dsl.ComputeDetails;
-import org.cloudifysource.dsl.DataGrid;
-import org.cloudifysource.dsl.Service;
-import org.cloudifysource.dsl.Sla;
-import org.cloudifysource.dsl.StatefulProcessingUnit;
-import org.cloudifysource.dsl.StatelessProcessingUnit;
-import org.cloudifysource.dsl.cloud.Cloud;
-import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
-import org.cloudifysource.dsl.context.kvstorage.spaceentries.ApplicationCloudifyAttribute;
-import org.cloudifysource.dsl.context.kvstorage.spaceentries.InstanceCloudifyAttribute;
-import org.cloudifysource.dsl.context.kvstorage.spaceentries.ServiceCloudifyAttribute;
+import org.cloudifysource.domain.ComputeDetails;
+import org.cloudifysource.domain.DataGrid;
+import org.cloudifysource.domain.Service;
+import org.cloudifysource.domain.Sla;
+import org.cloudifysource.domain.StatefulProcessingUnit;
+import org.cloudifysource.domain.StatelessProcessingUnit;
+import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
-import org.cloudifysource.dsl.internal.ComputeTemplateHolder;
-import org.cloudifysource.dsl.internal.ComputeTemplatesReader;
 import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLServiceCompilationResult;
 import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.ServiceReader;
-import org.cloudifysource.dsl.internal.packaging.CloudConfigurationHolder;
 import org.cloudifysource.dsl.internal.packaging.FileAppender;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
-import org.cloudifysource.dsl.internal.space.ServiceInstanceAttemptData;
 import org.cloudifysource.dsl.internal.tools.ServiceDetailsHelper;
 import org.cloudifysource.dsl.rest.response.ApplicationDescription;
 import org.cloudifysource.dsl.rest.response.ControllerDetails;
@@ -127,6 +120,13 @@ import org.cloudifysource.restclient.GSRestClient;
 import org.cloudifysource.restclient.RestException;
 import org.cloudifysource.security.CloudifyAuthorizationDetails;
 import org.cloudifysource.security.CustomPermissionEvaluator;
+import org.cloudifysource.utilitydomain.data.CloudConfigurationHolder;
+import org.cloudifysource.utilitydomain.data.ComputeTemplateHolder;
+import org.cloudifysource.utilitydomain.data.ServiceInstanceAttemptData;
+import org.cloudifysource.utilitydomain.data.reader.ComputeTemplatesReader;
+import org.cloudifysource.utilitydomain.kvstorage.spaceentries.ApplicationCloudifyAttribute;
+import org.cloudifysource.utilitydomain.kvstorage.spaceentries.InstanceCloudifyAttribute;
+import org.cloudifysource.utilitydomain.kvstorage.spaceentries.ServiceCloudifyAttribute;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.hyperic.sigar.Sigar;
 import org.jgrapht.DirectedGraph;
@@ -1895,7 +1895,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	private List<Service> createServiceDependencyOrder(
-			final org.cloudifysource.dsl.Application application) {
+			final org.cloudifysource.domain.Application application) {
 		final DirectedGraph<Service, DefaultEdge> graph = new DefaultDirectedGraph<Service, DefaultEdge>(
 				DefaultEdge.class);
 
@@ -2040,7 +2040,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	// TODO: Start executer service
 	private UUID startPollingForLifecycleEvents(
-			final org.cloudifysource.dsl.Application application, final String applicationName,
+			final org.cloudifysource.domain.Application application, final String applicationName,
 			final int timeout, final TimeUnit timeUnit) {
 
 		final LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
@@ -3006,7 +3006,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	}
 
 	private void validateTemplate(
-			final org.cloudifysource.dsl.Application application)
+			final org.cloudifysource.domain.Application application)
 			throws RestErrorException {
 		final List<Service> services = application.getServices();
 		for (final Service service : services) {

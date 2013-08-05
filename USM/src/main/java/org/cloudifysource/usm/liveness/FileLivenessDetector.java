@@ -21,8 +21,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.input.Tailer;
-import org.cloudifysource.dsl.Plugin;
-import org.cloudifysource.dsl.context.ServiceContext;
+import org.cloudifysource.domain.context.ServiceContext;
+import org.cloudifysource.usm.Plugin;
 import org.cloudifysource.usm.USMException;
 import org.cloudifysource.usm.events.AbstractUSMEventListener;
 

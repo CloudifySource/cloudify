@@ -5,7 +5,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyConstants.USMState;
-import org.cloudifysource.dsl.internal.space.ServiceInstanceAttemptData;
+import org.cloudifysource.utilitydomain.data.ServiceInstanceAttemptData;
+import org.cloudifysource.utilitydomain.openspaces.OpenspacesConstants;
 import org.hyperic.sigar.Sigar;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -47,7 +48,7 @@ public class FeaturesTest {
 		ClusterInfo clusterInfo = new ClusterInfo(null, 1, null, 1, null);
 		urlSpaceConfigurer =
 				new UrlSpaceConfigurer("/./" + CloudifyConstants.MANAGEMENT_SPACE_NAME + "?locators=127.0.0.1:"
-						+ CloudifyConstants.DEFAULT_LOCALCLOUD_LUS_PORT);
+						+ OpenspacesConstants.DEFAULT_LOCALCLOUD_LUS_PORT);
 		final IJSpace space =
 				urlSpaceConfigurer
 						.clusterInfo(clusterInfo)
