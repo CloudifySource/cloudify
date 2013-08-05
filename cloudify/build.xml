@@ -269,12 +269,12 @@
     		
 	        <echo message="Copy domain component"/>
 	        <copy todir="@{installation.dir}/lib/platform/cloudify" overwrite="true">
-		        <fileset dir="${domain.local.copy}/target/" includes="*.jar" excludes=".svn"/>
+		        <fileset dir="${domain.local.copy}/target/" includes="domain.jar" excludes=".svn"/>
 	        </copy>
     		
 	        <echo message="Copy utility-domain component"/>
 	        <copy todir="@{installation.dir}/lib/platform/cloudify" overwrite="true">
-		        <fileset dir="${utility.domain.local.copy}/target/" includes="*.jar" excludes=".svn"/>
+		        <fileset dir="${utility.domain.local.copy}/target/" includes="utility-domain.jar" excludes=".svn"/>
 	        </copy>
 	
 	        <echo message="Copy CLOUDIFY CLI component"/>
