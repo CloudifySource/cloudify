@@ -106,7 +106,8 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 			} else {
 				logger.fine("and with authGroups: " + collectionToDelimitedString(authDetails.getAuthGroups(), ","));
 			}
-			logger.fine("requested permission: " + permission.toString());
+
+			logger.fine("requested permission: " + permission == null ? "" : permission.toString());
 			logger.fine("on target authGroups: " + targetDomainObject == null ? "" : targetDomainObject.toString());
 		}		
 		
