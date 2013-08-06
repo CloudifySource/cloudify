@@ -530,7 +530,6 @@ public class RestClient {
 		final String addTempaltesInternalUrl = getFormattedUrl(
 				versionedTemplatesControllerUrl, 
 				ADD_TEMPALTES_INTERNAL_URL_FORMAT);
-		logger.log(Level.INFO, "[addTemplatesInternal] - send post request to " + addTempaltesInternalUrl);
 		return executor.postObject(
 				addTempaltesInternalUrl, 
 				request, 
