@@ -1,6 +1,4 @@
-<<<<<<< HEAD:utility-domain/src/main/java/org/cloudifysource/utilitydomain/data/ComputeTemplateHolder.java
 package org.cloudifysource.utilitydomain.data;
-=======
 /*******************************************************************************
  * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
  * 
@@ -13,8 +11,6 @@ package org.cloudifysource.utilitydomain.data;
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.dsl.internal;
->>>>>>> CLOUDIFY-1900 added templates operation to the new rest client.:dsl/src/main/java/org/cloudifysource/dsl/internal/ComputeTemplateHolder.java
 
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 
