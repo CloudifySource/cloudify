@@ -308,6 +308,14 @@ public class TemplatesController extends BaseRestController {
 			throw new RestErrorException(CloudifyErrorMessages.FAILED_TO_ADD_TEMPLATES.getName(),
 					failedToAddTempaltes.toString());
 		}
+		
+		if (failedToAddTempaltes.isEmpty()) {
+			log(Level.INFO, "successfully added all templates to all " + instances.length + " REST instances.");
+		} else {
+			log(Level.INFO, "successfully added tempaltes: " + successfullyAddedTemplates 
+					+ ", failed to be added templates: " + failedToAddTempaltes);
+		}
+		
 		// no failure => there is at least one PU that successfully added at least one template.
 		// create and return the response.
 		final AddTemplatesResponse response = new AddTemplatesResponse();
@@ -391,7 +399,7 @@ public class TemplatesController extends BaseRestController {
 		final File unzippedTemplatesFolder = reader.unzipCloudTemplatesFolder(templatesFolder);
 
 		try {
-			log(Level.INFO, "[addTemplatesInternal] - adding templates [" + request.getExpectedTemplates() + "]");
+			log(Level.INFO, "[addTemplatesInternal] - adding templates " + request.getExpectedTemplates());
 			// add templates to the cloud and return the added templates.
 			return addTemplatesToCloud(unzippedTemplatesFolder, request.getCloudTemplates());
 		} finally {
