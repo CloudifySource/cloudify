@@ -85,7 +85,7 @@
 		<dependency>
 		    <groupId>com.googlecode.java-ipv6</groupId>
 		    <artifactId>java-ipv6</artifactId>
-		    <version>0.13</version>
+		    <version>0.14</version>
 		</dependency>
 		<!-- We want the rest client to be available by default to all recipes -->
 		<dependency>
