@@ -72,7 +72,7 @@ public class UploadControllerTest extends ControllerTest {
     private UploadRepo uploadRepo;
 
     private static final int TEST_UPLOAD_SIZE_LIMIT_BYTES = 10;
-    private static final int TEST_CLEANUP_TIMOUT_MILLIS = 1000;
+    private static final int TEST_CLEANUP_TIMOUT_MILLIS = 3000;
 
 
     @Before
@@ -149,20 +149,22 @@ public class UploadControllerTest extends ControllerTest {
             Object[] expectedArgs = {UPLOADED_FILE_NAME, fileSize, uploadRepo.getUploadSizeLimitBytes()};
             Assert.assertArrayEquals(expectedArgs, args);
         }  finally {
+        	System.out.println("setting the upload size limit back to "
+        			+ CloudifyConstants.DEFAULT_UPLOAD_SIZE_LIMIT_BYTES + " bytes.");
             uploadRepo.setUploadSizeLimitBytes(CloudifyConstants.DEFAULT_UPLOAD_SIZE_LIMIT_BYTES);
-            System.out.println("set the upload size limit back to " + uploadRepo.getUploadSizeLimitBytes() + " bytes.");
         }
     }
 
     @Test
     public void testUploadTimeout() throws Exception {
     	int cleanupTimeoutMillis = uploadRepo.getCleanupTimeoutMillis();
+    	System.out.println("setting the cleanup timeout " + TEST_CLEANUP_TIMOUT_MILLIS + " millis.");
         uploadRepo.resetTimeout(TEST_CLEANUP_TIMOUT_MILLIS);
         try {       	
         	File file = new File(TEST_FILE_PATH);
         	UploadResponse uploadResponse = uploadFile(file);
         	String uploadKey = uploadResponse.getUploadKey();
-        	System.out.println("uploaded file with key " + uploadKey);
+        	System.out.println("successfully uploaded file " + file.getName() + " upload key is " + uploadKey);
         	Assert.assertNotNull(uploadKey);
         	File uploadedFile = assertUploadedFileExists(file, uploadKey);
         	String parentPath = uploadedFile.getParentFile().getAbsolutePath();
@@ -181,7 +183,6 @@ public class UploadControllerTest extends ControllerTest {
         } finally {
         	System.out.println("setting the cleanup timeout back to " + cleanupTimeoutMillis + " millis");
         	uploadRepo.resetTimeout(cleanupTimeoutMillis);
-        	System.out.println("timeout has been reset to " + uploadRepo.getCleanupTimeoutMillis() + " milliseconds");
         }
     }
 
