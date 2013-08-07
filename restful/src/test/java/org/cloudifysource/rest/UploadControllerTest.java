@@ -96,7 +96,17 @@ public class UploadControllerTest extends ControllerTest {
     }
 
     private UploadResponse uploadFile(final File file) throws Exception {
-        MockHttpServletResponse response = testPostFile(versionedUploadUri, file);
+        System.out.println("tring to upload file " + file.getName() 
+        		+ ", repo upload size limit in bytes: " + uploadRepo.getUploadSizeLimitBytes() 
+        		+ ", repo cleanup timeout in millis: " + uploadRepo.getCleanupTimeoutMillis());
+        MockHttpServletResponse response;
+        try {
+        	response = testPostFile(versionedUploadUri, file);
+        } catch (Exception e) {
+            System.out.println("upload response thrown an exception: " + e.getMessage());
+        	throw e;
+        }
+        System.out.println("upload response's content: " + response.getContentAsString());
         ObjectMapper objectMapper = new ObjectMapper();
         Response<UploadResponse> readValue = objectMapper.readValue(response.getContentAsString(),
                 new TypeReference<Response<UploadResponse>>() { });
@@ -107,9 +117,6 @@ public class UploadControllerTest extends ControllerTest {
     @Test
     public void testUpload() throws Exception {
         File file = new File(TEST_FILE_PATH);
-        System.out.println("tring to upload file " + file.getAbsolutePath() 
-        		+ ", repo upload size limit in bytes: " + uploadRepo.getUploadSizeLimitBytes() 
-        		+ ", repo cleanup timeout in millis: " + uploadRepo.getCleanupTimeoutMillis());
         UploadResponse uploadResponse = uploadFile(file);
         String uploadKey = uploadResponse.getUploadKey();
         System.out.println("file has been uploaded. the upload key is " + uploadKey);
