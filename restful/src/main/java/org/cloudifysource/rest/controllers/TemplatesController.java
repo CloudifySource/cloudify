@@ -34,6 +34,7 @@ import javax.annotation.PostConstruct;
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.cloudifysource.domain.ComputeTemplateHolder;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -50,6 +51,7 @@ import org.cloudifysource.dsl.rest.response.GetTemplateResponse;
 import org.cloudifysource.dsl.rest.response.ListTemplatesResponse;
 import org.cloudifysource.dsl.rest.response.RemoveTemplatesResponse;
 import org.cloudifysource.rest.RestConfiguration;
+import org.cloudifysource.rest.internal.RestClientInternal;
 import org.cloudifysource.rest.repo.UploadRepo;
 import org.cloudifysource.rest.util.RestUtils;
 import org.cloudifysource.rest.validators.AddTemplatesValidationContext;
@@ -57,10 +59,8 @@ import org.cloudifysource.rest.validators.AddTemplatesValidator;
 import org.cloudifysource.rest.validators.TemplatesValidationContext;
 import org.cloudifysource.rest.validators.TemplatesValidator;
 import org.cloudifysource.restDoclet.annotations.InternalMethod;
-import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.restclient.exceptions.RestClientException;
 import org.cloudifysource.security.CustomPermissionEvaluator;
-import org.cloudifysource.utilitydomain.data.ComputeTemplateHolder;
 import org.cloudifysource.utilitydomain.data.reader.ComputeTemplatesReader;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.pu.ProcessingUnit;
@@ -340,8 +340,8 @@ public class TemplatesController extends BaseRestController {
 		AddTemplatesInternalResponse instanceResponse;
 		try {
 			// invoke add-templates command on each REST instance.
-			RestClient createRestClient = createRestClient(host, port);
-			instanceResponse = createRestClient.addTemplatesInternal(request);
+			RestClientInternal client = createRestClientInternal(host, port);
+			instanceResponse = client.addTemplatesInternal(request);
 		} catch (final RestClientException e) {
 			// the request failed => all expected templates failed to be added
 			// create a response that contains all expected templates in a failure map.
@@ -719,9 +719,9 @@ public class TemplatesController extends BaseRestController {
 			String hostAddress = puInstance.getMachine().getHostAddress();
 			final String port = Integer.toString(puInstance.getJeeDetails().getPort());
 			try {
-				RestClient restClient = createRestClient(hostAddress, port);
+				RestClientInternal client = createRestClientInternal(hostAddress, port);
 				log(Level.INFO, "sending request to " + hostAddress);
-				restClient.removeTemplateInternal(templateName);
+				client.removeTemplateInternal(templateName);
 			} catch (final RestClientException e) {
 				failedToRemoveFromHosts.put(hostAddress, e.getMessageFormattedText());
 				log(Level.WARNING, "[removeTemplateFromRestInstances] - remove template ["
@@ -928,13 +928,13 @@ public class TemplatesController extends BaseRestController {
 		return "http";
 	}
 
-	private RestClient createRestClient(final String host, final String port) 
+	private RestClientInternal createRestClientInternal(final String host, final String port) 
 			throws RestClientException {
 		final String protocol = getRestProtocol(permissionEvaluator != null);
 		final String baseUrl = protocol + "://" + host + ":" + port;
 		final String apiVersion = PlatformVersion.getVersion();
 		try {
-			return new RestClient(new URL(baseUrl), "", "", apiVersion);
+			return new RestClientInternal(new URL(baseUrl), "", "", apiVersion);
 		} catch (MalformedURLException e) {
 			throw new RestClientException(CloudifyErrorMessages.FAILED_CREATE_REST_CLIENT.getName(), 
 					"failed to create REST client", ExceptionUtils.getFullStackTrace(e));

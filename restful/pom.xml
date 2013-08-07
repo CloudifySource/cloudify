@@ -544,6 +544,6 @@
 		<finalName>rest</finalName>
 	</build>
 	<properties>
-		<docletVersion>0.5.1</docletVersion>
+		<docletVersion>0.5.2</docletVersion>
 	</properties>
 </project>

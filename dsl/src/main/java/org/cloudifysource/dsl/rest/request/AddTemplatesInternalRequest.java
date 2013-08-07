@@ -15,6 +15,8 @@ package org.cloudifysource.dsl.rest.request;
 
 import java.util.List;
 
+import org.cloudifysource.domain.ComputeTemplateHolder;
+
 /**
  * 
  * @author yael

@@ -35,13 +35,11 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.cloudifysource.dsl.rest.request.AddTemplatesInternalRequest;
 import org.cloudifysource.dsl.rest.request.AddTemplatesRequest;
 import org.cloudifysource.dsl.rest.request.InstallApplicationRequest;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
 import org.cloudifysource.dsl.rest.request.SetServiceInstancesRequest;
 import org.cloudifysource.dsl.rest.response.AddTemplatesResponse;
-import org.cloudifysource.dsl.rest.response.AddTemplatesInternalResponse;
 import org.cloudifysource.dsl.rest.response.ApplicationDescription;
 import org.cloudifysource.dsl.rest.response.DeploymentEvents;
 import org.cloudifysource.dsl.rest.response.GetTemplateResponse;
@@ -83,20 +81,18 @@ public class RestClient {
 	private static final String GET_SERVICE_DESCRIPTION_URL_FORMAT = "%s/service/%s/description";
 	private static final String GET_SERVICES_DESCRIPTION_URL_FORMAT = "%s/description";
 	private static final String GET_APPLICATION_DESCRIPTION_URL_FORMAT = "applications/%s/description";
-	private static final String ADD_TEMPALTES_INTERNAL_URL_FORMAT = "internal";
 	private static final String ADD_TEMPALTES_URL_FORMAT = "";
 	private static final String GET_TEMPALTE_URL_FORMAT = "%s";
 	private static final String LIST_TEMPALTES_URL_FORMAT = "";
 	private static final String REMOVE_TEMPALTE_URL_FORMAT = "%s";
-	private static final String REMOVE_TEMPALTE_INTERNAL_URL_FORMAT = "internal/%s";
 
 	private static final String SET_INSTANCES_URL_FORMAT = "%s/services/%s/count";
 	private static final String GET_LAST_EVENT_URL_FORMAT = "%s/events/last/";
 
-	private final RestClientExecutor executor;
+	protected final RestClientExecutor executor;
 	private String versionedDeploymentControllerUrl;
 	private String versionedUploadControllerUrl;
-	private String versionedTemplatesControllerUrl;
+	protected String versionedTemplatesControllerUrl;
 
 	public RestClient(final URL url,
 			final String username,
@@ -465,7 +461,14 @@ public class RestClient {
 		}
 	}
 
-	private String getFormattedUrl(final String controllerUrl, final String format, final String... args) {
+	/**
+	 * 
+	 * @param controllerUrl .
+	 * @param format .
+	 * @param args .
+	 * @return the formatted URL.
+	 */
+	protected String getFormattedUrl(final String controllerUrl, final String format, final String... args) {
 		return controllerUrl + String.format(format, (Object[]) args);
 	}
 
@@ -519,24 +522,6 @@ public class RestClient {
 	}
 	
 	/**
-	 * Executes a rest API call to add templates to this instance only.
-	 *  
-	 * @param request contains the templates folder.
-	 * @return AddTemplatesResponse.
-	 * @throws RestClientException .
-	 */
-	public AddTemplatesInternalResponse addTemplatesInternal(final AddTemplatesInternalRequest request) 
-			throws RestClientException {
-		final String addTempaltesInternalUrl = getFormattedUrl(
-				versionedTemplatesControllerUrl, 
-				ADD_TEMPALTES_INTERNAL_URL_FORMAT);
-		return executor.postObject(
-				addTempaltesInternalUrl, 
-				request, 
-				new TypeReference<Response<AddTemplatesInternalResponse>>() { });
-	}
-	
-	/**
 	 * Executes a rest API call to remove template from all REST instances.
 	 * 
 	 * @param templateName the template's name to remove.
@@ -547,23 +532,6 @@ public class RestClient {
 		final String removeTempalteUrl = getFormattedUrl(
 				versionedTemplatesControllerUrl, 
 				REMOVE_TEMPALTE_URL_FORMAT,
-				templateName);
-		executor.delete(
-				removeTempalteUrl, 
-				new TypeReference<Response<Void>>() { });
-	}
-	
-	/**
-	 * Executes a rest API call to remove template from this instance only.
-	 * 
-	 * @param templateName the template's name to remove.
-	 * @throws RestClientException .
-	 */
-	public void removeTemplateInternal(final String templateName) 
-			throws RestClientException {
-		final String removeTempalteUrl = getFormattedUrl(
-				versionedTemplatesControllerUrl, 
-				REMOVE_TEMPALTE_INTERNAL_URL_FORMAT,
 				templateName);
 		executor.delete(
 				removeTempalteUrl, 

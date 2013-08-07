@@ -4,9 +4,9 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.cloudifysource.domain.ComputeTemplateHolder;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLValidationException;
-import org.cloudifysource.utilitydomain.data.ComputeTemplateHolder;
 import org.cloudifysource.utilitydomain.data.reader.ComputeTemplatesReader;
 import org.junit.Assert;
 import org.junit.Test;

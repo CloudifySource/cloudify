@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.cloudifysource.domain.ComputeTemplateHolder;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.DSLException;
@@ -19,7 +20,6 @@ import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.ZipUtils;
-import org.cloudifysource.utilitydomain.data.ComputeTemplateHolder;
 
 /**
  * A reader for external cloud templates.

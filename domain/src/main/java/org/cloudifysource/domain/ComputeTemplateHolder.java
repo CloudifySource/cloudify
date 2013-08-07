@@ -1,4 +1,4 @@
-package org.cloudifysource.utilitydomain.data;
+package org.cloudifysource.domain;
 /*******************************************************************************
  * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
  * 

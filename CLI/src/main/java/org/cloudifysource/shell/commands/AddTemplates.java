@@ -23,6 +23,7 @@ import java.util.logging.Level;
 
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
+import org.cloudifysource.domain.ComputeTemplateHolder;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.DSLReader;
@@ -36,7 +37,6 @@ import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.exceptions.CLIStatusException;
 import org.cloudifysource.shell.installer.CLIEventsDisplayer;
 import org.cloudifysource.shell.rest.RestAdminFacade;
-import org.cloudifysource.utilitydomain.data.ComputeTemplateHolder;
 import org.cloudifysource.utilitydomain.data.reader.ComputeTemplatesReader;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.fusesource.jansi.Ansi.Color;
