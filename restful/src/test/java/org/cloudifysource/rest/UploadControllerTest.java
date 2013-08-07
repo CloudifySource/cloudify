@@ -76,7 +76,7 @@ public class UploadControllerTest extends ControllerTest {
 
 
     @Before
-    public void init() throws NoSuchMethodException, IOException {
+    public void init() throws NoSuchMethodException {
         String version = PlatformVersion.getVersion();
         versionedUploadUri = "/" + version + UPLOAD_URI;
         controller = applicationContext.getBean(UploadController.class);
@@ -107,7 +107,9 @@ public class UploadControllerTest extends ControllerTest {
     @Test
     public void testUpload() throws Exception {
         File file = new File(TEST_FILE_PATH);
-        System.out.println("tring to upload file " + file.getAbsolutePath());
+        System.out.println("tring to upload file " + file.getAbsolutePath() 
+        		+ ", repo upload size limit in bytes: " + uploadRepo.getUploadSizeLimitBytes() 
+        		+ ", repo cleanup timeout in millis: " + uploadRepo.getCleanupTimeoutMillis());
         UploadResponse uploadResponse = uploadFile(file);
         String uploadKey = uploadResponse.getUploadKey();
         System.out.println("file has been uploaded. the upload key is " + uploadKey);
@@ -126,10 +128,13 @@ public class UploadControllerTest extends ControllerTest {
 
     @Test
     public void testUploadExceededSizeLimitFile() throws Exception {
+        System.out.println("set the upload size limit to " + TEST_UPLOAD_SIZE_LIMIT_BYTES + " bytes.");
         uploadRepo.setUploadSizeLimitBytes(TEST_UPLOAD_SIZE_LIMIT_BYTES);
         File uploadFile = new File(TEST_FILE_PATH);
         MockHttpServletResponse response = null;
         long fileSize = uploadFile.length();
+        System.out.println("trying to upload file of size " + fileSize 
+        		+ " expecting " + CloudifyMessageKeys.UPLOAD_FILE_SIZE_LIMIT_EXCEEDED.getName());
         try {
             response = testPostFile(versionedUploadUri, uploadFile);
             Assert.fail("Tring to upload a file of zise " + fileSize + "expected to failed. response "
@@ -145,6 +150,7 @@ public class UploadControllerTest extends ControllerTest {
             Assert.assertArrayEquals(expectedArgs, args);
         }  finally {
             uploadRepo.setUploadSizeLimitBytes(CloudifyConstants.DEFAULT_UPLOAD_SIZE_LIMIT_BYTES);
+            System.out.println("set the upload size limit back to " + uploadRepo.getUploadSizeLimitBytes() + " bytes.");
         }
     }
 
