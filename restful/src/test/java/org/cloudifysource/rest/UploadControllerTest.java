@@ -95,8 +95,9 @@ public class UploadControllerTest extends ControllerTest {
         return hashMap.get(requestMethod);
     }
 
-    private UploadResponse uploadFile(final File file) throws Exception {
-        System.out.println("tring to upload file " + file.getName() 
+    private UploadResponse uploadFile(final File file, final String testName)
+    		throws Exception {
+        System.out.println("[" + testName + "] - tring to upload file " + file.getName() 
         		+ ", repo upload size limit in bytes: " + uploadRepo.getUploadSizeLimitBytes() 
         		+ ", repo cleanup timeout in millis: " + uploadRepo.getCleanupTimeoutMillis());
         MockHttpServletResponse response;
@@ -117,7 +118,7 @@ public class UploadControllerTest extends ControllerTest {
     @Test
     public void testUpload() throws Exception {
         File file = new File(TEST_FILE_PATH);
-        UploadResponse uploadResponse = uploadFile(file);
+        UploadResponse uploadResponse = uploadFile(file, "testUpload");
         String uploadKey = uploadResponse.getUploadKey();
         System.out.println("file has been uploaded. the upload key is " + uploadKey);
         Assert.assertNotNull(uploadKey);
@@ -127,7 +128,7 @@ public class UploadControllerTest extends ControllerTest {
     @Test
     public void testUploadDifferentName() throws Exception {
         File file = new File(TEST_FILE1_PATH);
-        UploadResponse uploadResponse = uploadFile(file);
+        UploadResponse uploadResponse = uploadFile(file, "testUploadDifferentName");
         String uploadKey = uploadResponse.getUploadKey();
         Assert.assertNotNull(uploadKey);
         assertUploadedFileExists(file, uploadKey);
@@ -169,7 +170,7 @@ public class UploadControllerTest extends ControllerTest {
         uploadRepo.resetTimeout(TEST_CLEANUP_TIMOUT_MILLIS);
         try {       	
         	File file = new File(TEST_FILE_PATH);
-        	UploadResponse uploadResponse = uploadFile(file);
+        	UploadResponse uploadResponse = uploadFile(file, "testUploadTimeout");
         	String uploadKey = uploadResponse.getUploadKey();
         	System.out.println("successfully uploaded file " + file.getName() + " upload key is " + uploadKey);
         	Assert.assertNotNull(uploadKey);
@@ -194,14 +195,17 @@ public class UploadControllerTest extends ControllerTest {
     }
 
     @Test
-    public void testUplaodFileNotExist() throws Exception {
+    public void testUplaodFileNotExist() {
         File file = new File("notExist.zip");
         try {
-            uploadFile(file);
-            Assert.fail();
+            uploadFile(file, "testUplaodFileNotExist");
+            Assert.fail("[testUplaodFileNotExist] - FileNotFoundException expected");
         } catch (FileNotFoundException e) {
-
-        }
+        	System.out.println("cought exeption " + e.getMessage() + " as expected");
+        } catch (Exception e) {
+            Assert.fail("cought exception other than FileNotFoundException [" 
+            		+ e.getClass() + "] message: " + e.getMessage());
+		}
 
     }
 
