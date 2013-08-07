@@ -51,6 +51,8 @@ import org.cloudifysource.shell.exceptions.CLIStatusException;
 import org.cloudifysource.shell.exceptions.CLIValidationException;
 import org.cloudifysource.shell.rest.RestAdminFacade;
 import org.cloudifysource.shell.rest.inspect.CLIApplicationUninstaller;
+import org.cloudifysource.shell.validators.CloudifyMachineValidator;
+import org.cloudifysource.shell.validators.CloudifyMachineValidatorsFactory;
 import org.cloudifysource.utilitydomain.data.CloudConfigurationHolder;
 import org.cloudifysource.utilitydomain.openspaces.OpenspacesConstants;
 import org.openspaces.admin.Admin;
