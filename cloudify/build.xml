@@ -636,7 +636,26 @@
             <arg value="-Dput.target=org/cloudifysource/management-space/${s3.cloudify.publish.folder}" />
             <arg value="-Dput.container=${cloudify.maven.container}"/>
         </exec>
-	</target>
+
+        <exec executable="${mvn.executable}">
+            <arg value="s3client:deploy-native" />
+            <arg value="-Dput.user=${put.user}" />
+            <arg value="-Dput.key=${put.key}" />
+            <arg value="-Dput.source=${maven.repo.local}/org/cloudifysource/domain/${s3.cloudify.publish.folder}" />
+            <arg value="-Dput.target=org/cloudifysource/domain/${s3.cloudify.publish.folder}" />
+            <arg value="-Dput.container=${cloudify.maven.container}"/>
+        </exec>
+
+        <exec executable="${mvn.executable}">
+            <arg value="s3client:deploy-native" />
+            <arg value="-Dput.user=${put.user}" />
+            <arg value="-Dput.key=${put.key}" />
+            <arg value="-Dput.source=${maven.repo.local}/org/cloudifysource/utility-domain/${s3.cloudify.publish.folder}" />
+            <arg value="-Dput.target=org/cloudifysource/utility-domain/${s3.cloudify.publish.folder}" />
+            <arg value="-Dput.container=${cloudify.maven.container}"/>
+        </exec>
+
+    </target>
 	
 	<target name="publish.cloudify.jars.to.maven.snapshot.repository" unless="release.build">
 		
@@ -653,10 +672,18 @@
 			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/esc.jar -Dsources=target/esc-sources.jar"/>
 		</exec>
 		
+		<exec executable="${mvn.executable}" dir="${domain.local.copy}">
+			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/domain-${s3.cloudify.snapshot.publish.folder}.jar"/>
+		</exec>
+
+		<exec executable="${mvn.executable}" dir="${utility.domain.local.copy}">
+			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/utility-domain-${s3.cloudify.snapshot.publish.folder}.jar"/>
+		</exec>
+
 		<exec executable="${mvn.executable}" dir="${security.local.copy}">
 			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/security-${s3.cloudify.snapshot.publish.folder}.jar"/>
 		</exec>
-			
+
 		<exec executable="${mvn.executable}" dir="${security-ldap.local.copy}">
 			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/security-ldap-${s3.cloudify.snapshot.publish.folder}.jar"/>
 		</exec>
