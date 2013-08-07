@@ -13,7 +13,7 @@
  */
 package org.cloudifysource.rest.validators;
 
-import org.cloudifysource.dsl.cloud.Cloud;
+import org.cloudifysource.domain.cloud.Cloud;
 
 /**
  * 

@@ -14,7 +14,7 @@ package org.cloudifysource.dsl.rest.response;
 
 import java.util.Map;
 
-import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 
 /**
  * 
