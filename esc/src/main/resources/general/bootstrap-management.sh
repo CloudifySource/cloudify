@@ -75,7 +75,6 @@ else
 fi
 
 source ${ENV_FILE_PATH}
-HOME_DIR="/tmp/noak/byon"
 
 # Execute pre-bootstrap customization script if exists
 run_script "pre-bootstrap"
@@ -108,15 +107,15 @@ else
 	wget -q -O $WORKING_HOME_DIRECTORY/java.bin $GIGASPACES_AGENT_ENV_JAVA_URL || error_exit $? 101 "Failed downloading Java installation from $GIGASPACES_AGENT_ENV_JAVA_URL"
 	chmod +x $WORKING_HOME_DIRECTORY/java.bin
 	echo -e "\n" > $WORKING_HOME_DIRECTORY/input.txt
-	rm -rf $HOME_DIR/java || error_exit $? 102 "Failed removing old java installation directory"
-	mkdir $HOME_DIR/java
-	cd $HOME_DIR/java
+	rm -rf ~/java || error_exit $? 102 "Failed removing old java installation directory"
+	mkdir ~/java
+	cd ~/java
 	
 	echo Installing JDK
 	$WORKING_HOME_DIRECTORY/java.bin < $WORKING_HOME_DIRECTORY/input.txt > /dev/null
-	mv $HOME_DIR/java/*/* $HOME_DIR/java || error_exit $? 103 "Failed moving JDK installation"
+	mv ~/java/*/* ~/java || error_exit $? 103 "Failed moving JDK installation"
 	rm -f $WORKING_HOME_DIRECTORY/input.txt
-    export JAVA_HOME=$HOME_DIR/java
+    export JAVA_HOME=~/java
 fi  
 
 export EXT_JAVA_OPTIONS="-Dcom.gs.multicast.enabled=false"
@@ -132,32 +131,32 @@ if [ ! -z "$GIGASPACES_OVERRIDES_LINK" ]; then
 fi
 
 # Todo: Check this condition
-if [ ! -d "$HOME_DIR/gigaspaces" -o $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz -nt $HOME_DIR/gigaspaces ]; then
-	rm -rf $HOME_DIR/gigaspaces || error_exit $? 106 "Failed removing old gigaspaces directory"
-	mkdir $HOME_DIR/gigaspaces || error_exit $? 107 "Failed creating gigaspaces directory"
+if [ ! -d "~/gigaspaces" -o $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz -nt ~/gigaspaces ]; then
+	rm -rf ~/gigaspaces || error_exit $? 106 "Failed removing old gigaspaces directory"
+	mkdir ~/gigaspaces || error_exit $? 107 "Failed creating gigaspaces directory"
 
 	# 2 is the error level threshold. 1 means only warnings
 	# this is needed for testing purposes on zip files created on the windows platform
-	tar xfz $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz -C $HOME_DIR/gigaspaces || error_exit_on_level $? 108 "Failed extracting cloudify installation" 2
+	tar xfz $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz -C ~/gigaspaces || error_exit_on_level $? 108 "Failed extracting cloudify installation" 2
 
 	# Todo: consider removing this line
-	chmod -R 777 $HOME_DIR/gigaspaces || error_exit $? 109 "Failed changing permissions in cloudify installation"
-	mv $HOME_DIR/gigaspaces/*/* $HOME_DIR/gigaspaces || error_exit $? 110 "Failed moving cloudify installation"
+	chmod -R 777 ~/gigaspaces || error_exit $? 109 "Failed changing permissions in cloudify installation"
+	mv ~/gigaspaces/*/* ~/gigaspaces || error_exit $? 110 "Failed moving cloudify installation"
 
 	if [ ! -z "$GIGASPACES_OVERRIDES_LINK" ]; then
 		echo Copying overrides into cloudify distribution
-		tar xfz $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz -C $HOME_DIR/gigaspaces || error_exit_on_level $? 111 "Failed extracting cloudify overrides" 2
+		tar xfz $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz -C ~/gigaspaces || error_exit_on_level $? 111 "Failed extracting cloudify overrides" 2
 	fi
 fi
 
 # if an overrides directory exists, copy it into the cloudify distribution
 if [ -d $WORKING_HOME_DIRECTORY/cloudify-overrides ]; then
-	cp -rf $WORKING_HOME_DIRECTORY/cloudify-overrides/* $HOME_DIR/gigaspaces
+	cp -rf $WORKING_HOME_DIRECTORY/cloudify-overrides/* ~/gigaspaces
 fi
 
 # UPDATE SETENV SCRIPT...
 echo Updating environment script
-cd $HOME_DIR/gigaspaces/bin || error_exit $? 112 "Failed changing directory to bin directory"
+cd ~/gigaspaces/bin || error_exit $? 112 "Failed changing directory to bin directory"
 
 sed -i "2i . ${ENV_FILE_PATH}" setenv.sh || error_exit $? 113 "Failed updating setenv.sh"
 sed -i "2i export NIC_ADDR=$MACHINE_IP_ADDRESS" setenv.sh || error_exit $? 113 "Failed updating setenv.sh"
@@ -207,7 +206,7 @@ if [ ! -z "$GIGASPACES_AGENT_ENV_INIT_COMMAND" ]; then
 	$GIGASPACES_AGENT_ENV_INIT_COMMAND
 fi
 
-cd $HOME_DIR/gigaspaces/tools/cli || error_exit $? 118 "Failed changing directory to cli directory"
+cd ~/gigaspaces/tools/cli || error_exit $? 118 "Failed changing directory to cli directory"
 
 # Removing old nohup.out
 if [ -f nohup.out ]; then
