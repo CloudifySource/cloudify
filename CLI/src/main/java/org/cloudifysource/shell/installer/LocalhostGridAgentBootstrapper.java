@@ -1611,6 +1611,11 @@ public class LocalhostGridAgentBootstrapper {
 				environment.put("NIC_ADDR", nicAddress);
 
 			}
+			// the RMI_OPTIONS is populated with a default value the first time the setenv script is called
+			// when the cli starts. When the bootstrap localcloud command calls the agent script, it loads
+			// setenv again, but this time the RMI_OPTIONS var is already loaded, and the NIC_ADDR
+			// var is not used to create the correct options. The line below should clear this up.
+			environment.put("RMI_OPTIONS", "");
 		}
 
 		// start process
