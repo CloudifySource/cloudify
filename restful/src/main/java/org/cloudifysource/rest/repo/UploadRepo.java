@@ -60,8 +60,16 @@ public class UploadRepo {
 	@PostConstruct
 	public void init()
 			throws IOException, RestErrorException {
+		try {
 		createUploadDir();
 		createScheduledExecutor();
+		} catch (IOException e) {
+			logger.log(Level.WARNING, "failed to initialize UploadRepo, got IOException: - " + e.getMessage());
+			throw e;
+		} catch (RestErrorException e) {
+			logger.log(Level.WARNING, "failed to initialize UploadRepo, got RestErrorException: - " + e.getMessage());
+			throw e;
+		}
 	}
 
 	private void createScheduledExecutor() {
@@ -142,8 +150,8 @@ public class UploadRepo {
 			throws IOException, RestErrorException {
 		final String name = fileName == null ? multipartFile.getOriginalFilename() : fileName;
 		// enforce size limit
-		if (logger.isLoggable(Level.FINE)) {
-			logger.log(Level.FINE, "uploading file " + name);
+		if (logger.isLoggable(Level.INFO)) {
+			logger.log(Level.INFO, "uploading file " + name);
 		}
 		final long fileSize = multipartFile.getSize();
 		if (fileSize > getUploadSizeLimitBytes()) {
@@ -157,12 +165,12 @@ public class UploadRepo {
 		final File srcDir = new File(restUploadDir, dirName);
 		srcDir.mkdirs();
 		final File storedFile = new File(srcDir, name);
-		if (logger.isLoggable(Level.FINE)) {
-			logger.log(Level.FINE, "Uploading file to " + storedFile.getAbsolutePath());
+		if (logger.isLoggable(Level.INFO)) {
+			logger.log(Level.INFO, "Uploading file to " + storedFile.getAbsolutePath());
 		}
 		copyMultipartFileToLocalFile(multipartFile, storedFile);
-		if (logger.isLoggable(Level.FINE)) {
-			logger.log(Level.FINE, "File [" + storedFile.getAbsolutePath() + "] uploaded successfully.");
+		if (logger.isLoggable(Level.INFO)) {
+			logger.log(Level.INFO, "File [" + storedFile.getAbsolutePath() + "] uploaded successfully.");
 		}
 		return dirName;
 	}

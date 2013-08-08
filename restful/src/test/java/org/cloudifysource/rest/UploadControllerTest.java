@@ -97,7 +97,7 @@ public class UploadControllerTest extends ControllerTest {
 
     private UploadResponse uploadFile(final File file, final String testName)
     		throws Exception {
-        System.out.println("[" + testName + "] - tring to upload file " + file.getName() 
+        System.out.println("[" + testName + "] - trying to upload file " + file.getName() 
         		+ ", repo upload size limit in bytes: " + uploadRepo.getUploadSizeLimitBytes() 
         		+ ", repo cleanup timeout in millis: " + uploadRepo.getCleanupTimeoutMillis());
         MockHttpServletResponse response;
