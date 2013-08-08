@@ -14,6 +14,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.esc.driver.provisioning.CloudDriverSupport;
@@ -144,9 +145,14 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 		}
 		this.deploymentSlot = (String) this.template.getCustom().get(
 				AZURE_DEPLOYMENT_SLOT);
-		if (deploymentSlot == null) {
+		if (StringUtils.isBlank(deploymentSlot)) {
 			deploymentSlot = "Staging";
-		}
+		} else {
+            if (!deploymentSlot.equals("Staging") && !deploymentSlot.equals("Production")) {
+                throw new IllegalArgumentException(AZURE_DEPLOYMENT_SLOT + " property must be either 'Staging' or " +
+                        "'Production'");
+            }
+        }
 		this.endpoints = (List<Map<String, String>>) this.template.getCustom()
 				.get(AZURE_ENDPOINTS);
 
