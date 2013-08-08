@@ -80,10 +80,8 @@ HOME_DIR="/tmp/noak/byon"
 # Execute pre-bootstrap customization script if exists
 run_script "pre-bootstrap"
 
-#JAVA_32_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-i586.bin"
-#JAVA_64_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-x64.bin"
-JAVA_32_URL="http://tarzan/builds/GigaSpacesBuilds/tools/quality/java/1.6.0_32/jdk-6u32-linux-i586.bin"
-JAVA_64_URL="http://tarzan/builds/GigaSpacesBuilds/tools/quality/java/1.6.0_32/jdk-6u32-linux-x64.bin"
+JAVA_32_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-i586.bin"
+JAVA_64_URL="http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-x64.bin"
 
 # If not JDK specified, determine which JDK to install based on hardware architecture
 if [ -z "$GIGASPACES_AGENT_ENV_JAVA_URL" ]; then
