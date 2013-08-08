@@ -18,6 +18,7 @@
 			<groupId>org.cloudifysource</groupId>
 			<artifactId>utility-domain</artifactId>
 			<version>${cloudifyVersion}</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.gigaspaces</groupId>
