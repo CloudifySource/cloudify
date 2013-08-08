@@ -24,7 +24,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
 
-import org.apache.commons.collections.MapUtils;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.rest.response.Response;
@@ -137,7 +136,7 @@ public class ApiVersionValidationAndRestResponseBuilderInterceptor extends Handl
     	Object methodReturnObject = null;
     	Map<String, Object> model = modelAndView.getModel();
     	
-    	if (MapUtils.isNotEmpty(model)) {
+    	if (!model.isEmpty()) {
     		// the model is not empty. The return value is the first value that is not a BindingResult
     		for (Map.Entry<String, Object> entry : model.entrySet()) {
                 Object value = entry.getValue();
