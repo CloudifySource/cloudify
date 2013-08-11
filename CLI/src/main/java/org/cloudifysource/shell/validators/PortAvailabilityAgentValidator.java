@@ -23,7 +23,7 @@ public class PortAvailabilityAgentValidator extends PortAvailabilityValidator im
 	
 	@Override
 	public void validate() throws CLIValidationException {
-		validateGscPorts();
+//		validateGscPorts();
 		validateGsaPorts();
 	}
 	
