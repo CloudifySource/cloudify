@@ -640,13 +640,17 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 	// adds all shared properties among all deployment types
 	private void addSharedDeploymentParameters(
 			final ElasticDeploymentTopology deployment) {
-		deployment.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME,
-				deploymentConfig.getApplicationName())
+		ElasticDeploymentTopology addContextProperty = 
+				deployment
+				.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, 
+						deploymentConfig.getApplicationName())
 				.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS,
-						deploymentConfig.getAuthGroups())
-						.addContextProperty(
-								CloudifyConstants.CONTEXT_PROPERTY_TEMPLATE, deploymentConfig.getTemplateName())
-				.name(deploymentConfig.getAbsolutePUName());
+						deploymentConfig.getAuthGroups());
+		if (deploymentConfig.getTemplateName() != null) {
+			addContextProperty.addContextProperty(
+					CloudifyConstants.CONTEXT_PROPERTY_TEMPLATE, deploymentConfig.getTemplateName());
+		}
+		addContextProperty.name(deploymentConfig.getAbsolutePUName());
 		// add context properties
 		final Properties contextProperties = createServiceContextProperties();
 		setContextProperties(deployment, contextProperties);
