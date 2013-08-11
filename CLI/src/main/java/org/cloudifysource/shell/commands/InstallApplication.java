@@ -404,6 +404,7 @@ public class InstallApplication extends AdminAwareCommand implements NewRestClie
         installer.setInitialTimeout(timeoutInMinutes);
         installer.setRestClient(newRestClient);
         installer.setSession(session);
+        installer.install();
 
 		if (!applicationFile.isFile()) {
 			final boolean delete = packedFile.delete();

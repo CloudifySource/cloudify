@@ -61,9 +61,22 @@ public class ApplicationInstallationProcessInspector extends InstallationProcess
     }
 
     @Override
-    public boolean lifeCycleEnded() throws RestClientException {
-        ApplicationDescription applicationDescription = restClient.getApplicationDescription(applicationName);
-        return applicationDescription.getApplicationState().equals(CloudifyConstants.DeploymentState.STARTED);
+    public boolean lifeCycleEnded() throws RestClientException {        
+       	boolean spplicationIsInstalled = false;
+    	try {
+            ApplicationDescription applicationDescription = restClient
+                    .getApplicationDescription(applicationName);
+            spplicationIsInstalled = 
+            		applicationDescription.getApplicationState().equals(CloudifyConstants.DeploymentState.STARTED);
+    	} catch (final RestClientResponseException e) {
+    		if (e.getStatusCode() == RESOURCE_NOT_FOUND_EXCEPTION_CODE) {
+        		// the application is not available yet
+    			spplicationIsInstalled = false;
+    		} else {
+    			throw e;
+    		}
+    	}
+    	return spplicationIsInstalled;
     }
 
 

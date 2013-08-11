@@ -315,7 +315,7 @@ public class RestClient {
 	 * @return list of {@link ServiceDescription}
 	 * @throws RestClientException 
 	 */
-	public List<ServiceDescription> getServicesDescription(final String deploymentId)
+	public List<ServiceDescription> getServiceDescriptions(final String deploymentId)
 			throws RestClientException {
 		String url = getFormattedUrl(
 				versionedDeploymentControllerUrl, 

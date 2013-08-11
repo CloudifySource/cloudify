@@ -76,13 +76,13 @@ public class ServiceUninstallationProcessInspector extends UninstallationProcess
 
 	@Override
 	public boolean lifeCycleEnded() throws RestClientException {
-        return restClient.getServicesDescription(deploymentId).isEmpty();
+        return restClient.getServiceDescriptions(deploymentId).isEmpty();
 	}
 
 	@Override
 	public int getNumberOfRunningInstances(final String serviceName) throws RestClientException {
         List<ServiceDescription> servicesDescription = restClient
-                .getServicesDescription(deploymentId);
+                .getServiceDescriptions(deploymentId);
         // there should only be one service
         if (servicesDescription.isEmpty()) {
             return 0;

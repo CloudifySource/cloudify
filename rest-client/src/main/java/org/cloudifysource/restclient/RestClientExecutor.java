@@ -318,8 +318,6 @@ public class RestClientExecutor {
                 // this means we managed to read the response
             	final Response<Void> entity =
             			new ObjectMapper().readValue(responseBody, new TypeReference<Response<Void>>() { });
-            	logger.log(Level.INFO, "[checkForError] - REST request to " + requestUri 
-            			+ "  failed. Error message: " + entity.getMessage());
                 // we also have the response in the proper format.
                 // remember, we only got here because some sort of error happened on the server.
                 throw new RestClientResponseException(entity.getMessageId(),

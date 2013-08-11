@@ -64,12 +64,12 @@ public class ApplicationUninstallationProcessInspector extends UninstallationPro
     @Override
     public boolean lifeCycleEnded() throws RestClientException {
         // all services before undeploy are still present
-        return restClient.getServicesDescription(deploymentId).isEmpty();
+        return restClient.getServiceDescriptions(deploymentId).isEmpty();
     }
 
     @Override
     public int getNumberOfRunningInstances(final String serviceName) throws RestClientException {
-        List<ServiceDescription> servicesDescription = restClient.getServicesDescription(deploymentId);
+        List<ServiceDescription> servicesDescription = restClient.getServiceDescriptions(deploymentId);
         for (ServiceDescription serviceDescription : servicesDescription) {
             if (serviceDescription.getServiceName().contains(serviceName)) {
                 return serviceDescription.getInstanceCount();
