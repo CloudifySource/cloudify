@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  ******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning;
 
@@ -38,8 +35,6 @@ import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContext;
-import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.jclouds.util.CredentialUtils;
 import org.openspaces.admin.Admin;
 
@@ -47,8 +42,7 @@ import org.openspaces.admin.Admin;
  * @author noak
  * @since 2.0.1
  */
-public abstract class BaseProvisioningDriver implements ProvisioningDriver, ProvisioningDriverClassContextAware, 
-		ProvisioningDriverBootstrapValidation {
+public abstract class BaseProvisioningDriver extends BaseComputeDriver {
 
 	protected static final int MULTIPLE_SHUTDOWN_REQUEST_IGNORE_TIMEOUT = 120000;
 	protected static final int WAIT_THREAD_SLEEP_MILLIS = 10000;
@@ -70,7 +64,6 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	protected String cloudTemplateName;
 	protected Admin admin;
 	protected Cloud cloud;
-	protected ProvisioningDriverClassContext context;
 
 	protected final java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(this.getClass().getName());
@@ -79,20 +72,13 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	protected Boolean cleanRemoteDirectoryOnStart = false;
 	protected boolean isVerboseValidation = true;
 
-
 	/**
-	 * Initializing the cloud deployer according to the given cloud
-	 * configuration.
-	 *
+	 * Initializing the cloud deployer according to the given cloud configuration.
+	 * 
 	 * @param cloud
 	 *            Cloud object to use
 	 */
 	protected abstract void initDeployer(final Cloud cloud);
-	
-	@Override
-	public void setProvisioningDriverClassContext(final ProvisioningDriverClassContext context) {
-		this.context = context;
-	}
 
 	@Override
 	public String getCloudName() {
@@ -100,25 +86,15 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	}
 
 	@Override
-	public void setAdmin(final Admin admin) {
-		this.admin = admin;
+	public void setConfig(final ComputeDriverConfiguration configuration) throws CloudProvisioningException {
+		// TODO Auto-generated method stub
+		super.setConfig(configuration);
 
-	}
-
-	@Override
-	public void addListener(final ProvisioningDriverListener pdl) {
-		this.eventsListenersList.add(pdl);
-	}
-
-
-	@Override
-	public void setConfig(final Cloud cloud, final String cloudTemplateName, final boolean management, 
-			final String serviceName) throws CloudProvisioningException {
-
-		this.cloud = cloud;
-		this.cloudTemplateName = cloudTemplateName;
-		this.management = management;
+		this.cloud = configuration.getCloud();
+		this.cloudTemplateName = configuration.getCloudTemplate();
+		this.management = configuration.isManagement();
 		this.cloudName = cloud.getName();
+
 		Object bol = cloud.getCustom().get(CloudifyConstants.CUSTOM_PROPERTY_VERBOSE_VALIDATION);
 		if (bol == null) {
 			this.isVerboseValidation = true;
@@ -153,7 +129,6 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 		initCleanRemoteOnStart(cloud);
 	}
 
-
 	private void initCleanRemoteOnStart(final Cloud cloud) {
 		// set custom settings
 		final Map<String, Object> customSettings = cloud.getCustom();
@@ -176,7 +151,6 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 		}
 	}
 
-
 	private void logServerDetails(final MachineDetails machineDetails, final File tempFile) {
 		if (logger.isLoggable(Level.FINE)) {
 			final String nodePrefix = "[" + machineDetails.getMachineId() + "] ";
@@ -195,17 +169,15 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	}
 
 	/**
-	 * Handles credentials for accessing the server - in this order: 1. pem file
-	 * (set as a key file on the user block in the groovy file) 2. machine's
-	 * remote password (set previously by the cloud driver)
-	 *
+	 * Handles credentials for accessing the server - in this order: 1. pem file (set as a key file on the user block in
+	 * the groovy file) 2. machine's remote password (set previously by the cloud driver)
+	 * 
 	 * @param machineDetails
 	 *            The MachineDetails object that represents this server
 	 * @param template
 	 *            the cloud template.
 	 * @throws CloudProvisioningException
-	 *             Indicates missing credentials or IOException (when a key file
-	 *             is used)
+	 *             Indicates missing credentials or IOException (when a key file is used)
 	 */
 	protected void handleServerCredentials(final MachineDetails machineDetails, final ComputeTemplate template)
 			throws CloudProvisioningException {
@@ -216,7 +188,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 			keyFile = machineDetails.getKeyFile();
 			if (!keyFile.isFile()) {
 				throw new CloudProvisioningException("The specified key file could not be found: "
-					+ keyFile.getAbsolutePath());
+						+ keyFile.getAbsolutePath());
 			}
 		} else if (StringUtils.isNotBlank(template.getKeyFile())) {
 			final String keyFileStr = template.getKeyFile();
@@ -227,7 +199,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 			}
 			if (keyFile != null && !keyFile.exists()) {
 				throw new CloudProvisioningException("The specified key file could not be found: "
-					+ keyFile.getAbsolutePath());
+						+ keyFile.getAbsolutePath());
 			}
 		} else {
 			// using a password
@@ -265,9 +237,8 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	}
 
 	/**
-	 * Publish a provisioning event occurred for the listeners registered on
-	 * this class.
-	 *
+	 * Publish a provisioning event occurred for the listeners registered on this class.
+	 * 
 	 * @param eventName
 	 *            The name of the event (must be in the message bundle)
 	 * @param args
@@ -279,11 +250,9 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 		}
 	}
 
-	
 	/*********
-	 * Created a machine details with basic settings from the given cloud
-	 * template.
-	 *
+	 * Created a machine details with basic settings from the given cloud template.
+	 * 
 	 * @param template
 	 *            the cloud template.
 	 * @return the newly created machine details.
@@ -308,8 +277,11 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 
 	/*********
 	 * .
-	 * @param endTime .
-	 * @param numberOfManagementMachines .
+	 * 
+	 * @param endTime
+	 *            .
+	 * @param numberOfManagementMachines
+	 *            .
 	 * @return .
 	 * @throws TimeoutException .
 	 * @throws CloudProvisioningException .
@@ -378,10 +350,10 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 			}
 		}
 	}
-	
+
 	/**
 	 * returns the message as it appears in the DefaultProvisioningDriver message bundle.
-	 *
+	 * 
 	 * @param messageBundle
 	 *            The message bundle containing the specified message
 	 * @param msgName
@@ -390,7 +362,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 	 *            the message arguments
 	 * @return the formatted message according to the message key.
 	 */
-	protected String getFormattedMessage(final ResourceBundle messageBundle, final String msgName, 
+	protected String getFormattedMessage(final ResourceBundle messageBundle, final String msgName,
 			final Object... arguments) {
 		final String message = messageBundle.getString(msgName);
 		if (message == null) {
@@ -411,10 +383,11 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 
 	protected abstract void handleProvisioningFailure(int numberOfManagementMachines,
 			int numberOfErrors, Exception firstCreationException, MachineDetails[] createdManagementMachines)
-					throws CloudProvisioningException;
+			throws CloudProvisioningException;
+
 	@Override
-	public void onServiceUninstalled(long duration, TimeUnit unit)
+	public void onServiceUninstalled(final long duration, final TimeUnit unit)
 			throws InterruptedException, TimeoutException, CloudProvisioningException {
-		
+
 	}
 }

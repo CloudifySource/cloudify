@@ -1,18 +1,27 @@
 package org.cloudifysource.esc.driver.provisioning;
 
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.cloudifysource.dsl.rest.response.ControllerDetails;
+import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContext;
+import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
+
 public abstract class BaseComputeDriver {
 
-	private ComputeDriverConfiguration configuration;
+	protected ComputeDriverConfiguration configuration;
 	protected final List<ProvisioningDriverListener> eventsListenersList = new LinkedList<ProvisioningDriverListener>();
+	protected ProvisioningDriverClassContext provisioningContext;
+	protected File customDataFile;
 
 	/**************
 	 * Called once on startup of the cloud driver, passing the cloud configuration to it.
 	 * 
+	 * @param configuration
+	 *            the driver configuration.
 	 * @throws CloudProvisioningException
 	 *             Indicates invalid cloud configuration
 	 */
@@ -39,8 +48,8 @@ public abstract class BaseComputeDriver {
 	 *            Time duration to wait for the instance.
 	 * @param unit
 	 *            Time unit to wait for the instance.
-	 * @param locationId
-	 *            the location to allocate the machine to.
+	 * @param context
+	 *            the provisioning context for this machine.
 	 * @return The details of the started instance.
 	 * @throws TimeoutException
 	 *             In case the instance was not started in the allotted time.
@@ -65,6 +74,8 @@ public abstract class BaseComputeDriver {
 	 *            timeout duration.
 	 * @param unit
 	 *            timeout unit.
+	 * @param context
+	 *            the provisioning context for this request.
 	 * @return The created machine details.
 	 * @throws TimeoutException
 	 *             If creating the new machines exceeded the given timeout.
@@ -123,10 +134,10 @@ public abstract class BaseComputeDriver {
 	 * @return the name of the cloud.
 	 */
 	public String getCloudName() {
-		{
-			unsupported();
-			return null;
-		}
+
+		unsupported();
+		return null;
+
 	}
 
 	/*************
@@ -169,6 +180,68 @@ public abstract class BaseComputeDriver {
 	 */
 	public void onServiceUninstalled(final long duration, final TimeUnit unit)
 			throws InterruptedException, TimeoutException, CloudProvisioningException {
+
+	}
+
+	/*******
+	 * Setter for the provisioning context.
+	 * 
+	 * @param context
+	 *            the provisioning context.
+	 */
+	public void setProvisioningDriverClassContext(final ProvisioningDriverClassContext context) {
+		this.provisioningContext = context;
+	}
+
+	/*********
+	 * Sets the custom data file for the cloud driver instance of a specific service.
+	 * 
+	 * @param customDataFile
+	 *            the custom data file (may be a folder).
+	 */
+	public void setCustomDataFile(final File customDataFile) {
+		this.customDataFile = customDataFile;
+	}
+
+	/**********
+	 * Return existing management servers.
+	 * 
+	 * @return the existing management servers, or a 0-length array if non exist.
+	 * @throws CloudProvisioningException
+	 *             if failed to load servers list from cloud.
+	 */
+	public MachineDetails[] getExistingManagementServers() throws CloudProvisioningException {
+		unsupported();
+		return null;
+	}
+
+	/**********
+	 * Return existing management servers based on controller information saved previously.
+	 * 
+	 * @param controllers
+	 *            the controller information used to locate the machine details.
+	 * @return the existing management servers, or a 0-length array if non exist.
+	 * @throws CloudProvisioningException
+	 *             if failed to load servers list from cloud.
+	 * @throws UnsupportedOperationException
+	 *             if the cloud driver does not support this operation.
+	 */
+	public MachineDetails[] getExistingManagementServers(final ControllerDetails[] controllers)
+			throws CloudProvisioningException, UnsupportedOperationException {
+		unsupported();
+		return null;
+	}
+
+	/**
+	 * Cloud-specific validations called after setConfig and before machines are allocated.
+	 * 
+	 * @param validationContext
+	 *            The object through which writing of validation messages is done
+	 * @throws CloudProvisioningException
+	 *             Indicates invalid configuration
+	 */
+	public void validateCloudConfiguration(final ValidationContext validationContext)
+			throws CloudProvisioningException {
 
 	}
 

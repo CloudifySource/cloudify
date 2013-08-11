@@ -22,6 +22,7 @@ import org.cloudifysource.dsl.rest.response.ControllerDetails;
  * @author barakme
  * @since 2.5.0
  */
+@Deprecated
 public interface ManagementLocator {
 
 	/**********

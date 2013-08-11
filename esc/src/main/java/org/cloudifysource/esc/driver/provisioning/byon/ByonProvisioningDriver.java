@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -43,9 +43,8 @@ import org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.CustomNode;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
-import org.cloudifysource.esc.driver.provisioning.ManagementLocator;
-import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
-import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
+import org.cloudifysource.esc.driver.provisioning.ManagementProvisioningContext;
+import org.cloudifysource.esc.driver.provisioning.ProvisioningContext;
 import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
 import org.cloudifysource.esc.driver.provisioning.validation.ValidationMessageType;
 import org.cloudifysource.esc.driver.provisioning.validation.ValidationResultType;
@@ -66,45 +65,40 @@ import com.gigaspaces.grid.gsa.GSA;
  * A bring-your-own-node (BYON) CloudifyProvisioning implementation. Parses a groovy file as a source of available
  * machines to operate as cloud nodes, assuming the nodes are Linux machines with SSH installed. If GigaSpaces is not
  * already installed on a node, this class will install GigaSpaces and run the agent.
- *
+ * 
  * @author noak
  * @since 2.0.1
- *
+ * 
  */
-public class ByonProvisioningDriver extends BaseProvisioningDriver implements ProvisioningDriver,
-		ProvisioningDriverClassContextAware, ManagementLocator {
+public class ByonProvisioningDriver extends BaseProvisioningDriver {
 
 	private static final int MANAGEMENT_LOCATION_TIMEOUT = 10;
 	private static final int THREAD_WAITING_IDLE_TIME_IN_SECS = 10;
 	private static final int AGENT_SHUTDOWN_TIMEOUT_IN_MINUTES = 2;
-	private static final String CLOUD_NODES_LIST = "nodesList";
 	private static final String CLEAN_GS_FILES_ON_SHUTDOWN = "cleanGsFilesOnShutdown";
 	private static final String CLOUDIFY_ITEMS_TO_CLEAN = "itemsToClean";
-	// TODO: should it be volatile?
 	private static ResourceBundle byonProvisioningDriverMessageBundle;
-
 
 	private boolean cleanGsFilesOnShutdown = false;
 	private List<String> cloudifyItems;
 	private ByonDeployer deployer;
 	private Integer restPort;
 
-
-	
 	@Override
 	protected void initDeployer(final Cloud cloud) {
 		try {
-			deployer = (ByonDeployer) context.getOrCreate("UNIQUE_BYON_DEPLOYER_ID", new Callable<Object>() {
+			deployer = (ByonDeployer) provisioningContext.getOrCreate("UNIQUE_BYON_DEPLOYER_ID",
+					new Callable<Object>() {
 
-				@Override
-				public Object call()
-						throws Exception {
-					logger.info("Creating BYON context deployer for cloud: " + cloud.getName());
-					final ByonDeployer newDeployer = new ByonDeployer();
-					addTemplatesToDeployer(newDeployer, cloud.getCloudCompute().getTemplates());
-					return newDeployer;
-				}
-			});
+						@Override
+						public Object call()
+								throws Exception {
+							logger.info("Creating BYON context deployer for cloud: " + cloud.getName());
+							final ByonDeployer newDeployer = new ByonDeployer();
+							addTemplatesToDeployer(newDeployer, cloud.getCloudCompute().getTemplates());
+							return newDeployer;
+						}
+					});
 		} catch (final Exception e) {
 			publishEvent("connection_to_cloud_api_failed", cloud.getProvider().getProvider());
 			throw new IllegalStateException("Failed to create cloud deployer", e);
@@ -117,15 +111,13 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		}
 		setCustomSettings(cloud);
 	}
-	
 
-	@SuppressWarnings("unchecked")
 	private void addTemplatesToDeployer(final ByonDeployer deployer, final Map<String, ComputeTemplate> templatesMap)
 			throws Exception {
 		List<Map<String, String>> nodesList = null;
-		
-		for (Entry<String, ComputeTemplate> templateEntry : templatesMap.entrySet()) {
-			String templateName = templateEntry.getKey();
+
+		for (final Entry<String, ComputeTemplate> templateEntry : templatesMap.entrySet()) {
+			final String templateName = templateEntry.getKey();
 			try {
 				ComputeTemplate template = templateEntry.getValue();
 				validateTemplate(templateName, template);
@@ -138,6 +130,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 			deployer.addNodesList(templateName, templatesMap.get(templateName), nodesList);
 		}
 	}
+
 	
 	// if the hosts list include IPv6 addresses - verify the file transfer protocol is SCP
 	private void validateTemplate(final String templateName, final ComputeTemplate template) 
@@ -171,7 +164,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 	/**********
 	 * .
-	 *
+	 * 
 	 * @param cloud
 	 *            .
 	 * @throws Exception .
@@ -234,9 +227,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	}
 
 	@Override
-	public MachineDetails startMachine(final String locationId, final long timeout, final TimeUnit timeUnit)
-			throws TimeoutException,
-			CloudProvisioningException {
+	public MachineDetails startMachine(final ProvisioningContext context, final long timeout, final TimeUnit timeUnit)
+			throws TimeoutException, CloudProvisioningException {
 
 		final long endTime = System.currentTimeMillis() + timeUnit.toMillis(timeout);
 
@@ -299,7 +291,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	/*********
 	 * Looks for a free server name by appending a counter to the pre-calculated server name prefix. If the max counter
 	 * value is reached, code will loop back to 0, so that previously used server names will be reused.
-	 *
+	 * 
 	 * @return the server name.
 	 * @throws org.cloudifysource.esc.driver.provisioning.CloudProvisioningException
 	 *             Indicated a free server name was not found.
@@ -333,9 +325,10 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	}
 
 	@Override
-	public MachineDetails[] startManagementMachines(final long duration, final TimeUnit unit)
-			throws TimeoutException,
-			CloudProvisioningException {
+	public MachineDetails[] startManagementMachines(final ManagementProvisioningContext context, final long duration,
+			final TimeUnit unit)
+			throws TimeoutException, CloudProvisioningException {
+
 		if (duration < 0) {
 			throw new TimeoutException("Starting a new machine timed out");
 		}
@@ -375,8 +368,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 				return managementMachines;
 			} else {
-                logger.warning("Failed locating existing management servers");
-            }
+				logger.warning("Failed locating existing management servers");
+			}
 			return new MachineDetails[0];
 		} catch (final InterruptedException e) {
 			publishEvent("prov_management_lookup_failed");
@@ -485,10 +478,10 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 		return existingManagementServers;
 	}
-	
 
 	/**
 	 * Gets The configured lus port, or the default if no port is configured.
+	 * 
 	 * @return the lus port.
 	 */
 	protected Integer getLusPort() {
@@ -499,7 +492,6 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		return discoveryPort;
 	}
 
-	
 	private void stopAgentAndWait(final int expectedGsmCount, final String ipAddress)
 			throws TimeoutException, InterruptedException {
 
@@ -554,7 +546,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 			if (machineDetails.getKeyFile() != null) {
 				keyFile = machineDetails.getKeyFile().getAbsolutePath();
 			}
-			
+
 			FileUtils.deleteFileSystemObjects(machineDetails.getPrivateAddress(), machineDetails.getRemoteUsername(),
 					machineDetails.getRemotePassword(), keyFile, cloudifyItems,
 					machineDetails.getFileTransferMode());
@@ -612,6 +604,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		final MachineDetails md = createMachineDetailsForTemplate(template);
 
 		md.setMachineId(node.getId());
+
 //		md.setPrivateAddress(node.getHostName());
 		md.setPrivateAddress(node.getPrivateIP());
 		md.setPublicAddress(node.getPublicIP());
@@ -628,11 +621,11 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 				&& StringUtils.isNotBlank(template.getKeyFile())) {
 			md.setRemoteUsername(template.getUsername());
 			setKeyFile(md, template.getKeyFile(), template.getAbsoluteUploadDir());
-        } else if (StringUtils.isNotBlank(template.getUsername())
+		} else if (StringUtils.isNotBlank(template.getUsername())
 				&& StringUtils.isNotBlank(template.getPassword())) {
 			md.setRemoteUsername(template.getUsername());
 			md.setRemotePassword(template.getPassword());
-        } else {
+		} else {
 			final String nodeStr = node.toString();
 			logger.severe("Cloud node loading failed, missing credentials for server: " + nodeStr);
 			publishEvent("prov_node_loading_failed", nodeStr);
@@ -643,7 +636,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		return md;
 	}
 
-    private void shutdownServerGracefully(final CustomNode cloudNode, final boolean isManagement)
+	private void shutdownServerGracefully(final CustomNode cloudNode, final boolean isManagement)
 			throws CloudProvisioningException {
 		try {
 			if (cleanGsFilesOnShutdown) {
@@ -685,16 +678,17 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	public Object getComputeContext() {
 		return null;
 	}
-	
+
 	@Override
-	public void validateCloudConfiguration(final ValidationContext validationContext) 
+	public void validateCloudConfiguration(final ValidationContext validationContext)
 			throws CloudProvisioningException {
 		// if the hosts list include IPv6 addresses - verify the file transfer protocol is SCP
 		validationContext.validationOngoingEvent(ValidationMessageType.GROUP_VALIDATION_MESSAGE,
 				getFormattedMessage("validating_all_templates"));
-		
+
 		ComputeTemplate template = null;
 		boolean ipv6Used = false;
+
 		Map<String, ComputeTemplate> templatesMap = cloud.getCloudCompute().getTemplates();
 		
 		validationContext.validationOngoingEvent(ValidationMessageType.GROUP_VALIDATION_MESSAGE,
@@ -708,8 +702,9 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 			try {
 				validateTemplate(templateName, template);
 				validationContext.validationEventEnd(ValidationResultType.OK);
-			} catch (CloudProvisioningException e) {
+			} catch (final CloudProvisioningException e) {
 				validationContext.validationEventEnd(ValidationResultType.ERROR);
+
 				throw e;
 			}
 		}
@@ -720,8 +715,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 
 	@Override
 	public MachineDetails[] getExistingManagementServers() throws CloudProvisioningException {
-        throw new UnsupportedOperationException("Cannot retrieve existing management servers after shutting down"
-        		+ " agents");
+		throw new UnsupportedOperationException("Cannot retrieve existing management servers after shutting down"
+				+ " agents");
 	}
 
 	@Override
@@ -751,26 +746,26 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		return result;
 
 	}
-	
-	private void setKeyFile(final MachineDetails md, final String keyFileName, final String parentFolder) 
+
+	private void setKeyFile(final MachineDetails md, final String keyFileName, final String parentFolder)
 			throws CloudProvisioningException {
-		
+
 		File keyFile = new File(keyFileName);
 		if (!keyFile.isAbsolute()) {
 			keyFile = new File(parentFolder, keyFileName);
 		}
-		
+
 		if (!keyFile.isFile()) {
 			throw new CloudProvisioningException("The specified key file could not be found: "
 					+ keyFile.getAbsolutePath());
 		}
-		
+
 		md.setKeyFile(keyFile);
 	}
-	
+
 	/**
 	 * returns the message as it appears in the ByonProvisioningDriver message bundle.
-	 *
+	 * 
 	 * @param msgName
 	 *            the message key as it is defined in the message bundle.
 	 * @param arguments
@@ -780,10 +775,10 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 	protected String getFormattedMessage(final String msgName, final Object... arguments) {
 		return getFormattedMessage(getByonProvisioningDriverMessageBundle(), msgName, arguments);
 	}
-	
+
 	/**
 	 * Returns the message bundle of this cloud driver.
-	 *
+	 * 
 	 * @return the message bundle of this cloud driver.
 	 */
 	protected static ResourceBundle getByonProvisioningDriverMessageBundle() {
@@ -793,6 +788,5 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		}
 		return byonProvisioningDriverMessageBundle;
 	}
-
 
 }

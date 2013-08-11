@@ -18,6 +18,7 @@ package org.cloudifysource.esc.driver.provisioning.context;
  * @author itaif
  * 
  */
+@Deprecated
 public interface ProvisioningDriverClassContextAware {
 
 	/*******

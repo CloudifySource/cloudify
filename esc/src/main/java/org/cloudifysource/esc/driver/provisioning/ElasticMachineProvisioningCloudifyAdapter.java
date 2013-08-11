@@ -45,7 +45,6 @@ import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContext;
-import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.cloudifysource.esc.driver.provisioning.events.MachineStartRequestedCloudifyEvent;
 import org.cloudifysource.esc.driver.provisioning.events.MachineStartedCloudifyEvent;
 import org.cloudifysource.esc.driver.provisioning.storage.BaseStorageDriver;
@@ -341,7 +340,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		// configure drivers if this is first time
 		try {
 			configureDrivers();
-		} catch (CloudProvisioningException e) {
+		} catch (final CloudProvisioningException e) {
 			throw new ElasticMachineProvisioningException("Failed to configure cloud driver for first use: "
 					+ e.getMessage(), e);
 		}
@@ -358,7 +357,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		}
 
 		final ComputeTemplate template = cloud.getCloudCompute().getTemplates().get(this.cloudTemplateName);
-		String locationId = findLocationIdInZones(zones, template);
+		final String locationId = findLocationIdInZones(zones, template);
 
 		fireMachineStartEvent(locationId);
 
@@ -929,13 +928,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				// this.cloudifyProvisioning =
 				// (ProvisioningDriver) Class.forName(this.cloud.getConfiguration().getClassName()).newInstance();
 
-				if (cloudifyProvisioning instanceof ProvisioningDriverClassContextAware) {
-					final ProvisioningDriverClassContext provisioningDriverContext =
-							lazyCreateProvisioningDriverClassContext(cloudifyProvisioning);
-					final ProvisioningDriverClassContextAware contextAware =
-							(ProvisioningDriverClassContextAware) cloudifyProvisioning;
-					contextAware.setProvisioningDriverClassContext(provisioningDriverContext);
-				}
+				final ProvisioningDriverClassContext provisioningDriverContext =
+						lazyCreateProvisioningDriverClassContext(cloudifyProvisioning);
+				this.cloudifyProvisioning.setProvisioningDriverClassContext(provisioningDriverContext);
 
 				// checks if a service level configuration exists. If so, save
 				// the configuration to local file and pass
@@ -1087,17 +1082,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 			final File serviceCloudConfigurationFile = childFiles[0];
 
-			if (this.cloudifyProvisioning instanceof CustomServiceDataAware) {
-				logger.info("Setting service cloud configuration in cloud driver to: " + serviceCloudConfigurationFile);
-				final CustomServiceDataAware custom = (CustomServiceDataAware) this.cloudifyProvisioning;
-				custom.setCustomDataFile(serviceCloudConfigurationFile);
-			} else {
-				throw new BeanConfigurationException(
-						"Cloud driver configuration inclouded a service cloud configuration file,"
-								+ " but the cloud driver "
-								+ this.cloudifyProvisioning.getClass().getName() + " does not implement the "
-								+ CustomServiceDataAware.class.getName() + " interface");
-			}
+			logger.info("Setting service cloud configuration in cloud driver to: " + serviceCloudConfigurationFile);
+			this.cloudifyProvisioning.setCustomDataFile(serviceCloudConfigurationFile);
+			
 		}
 	}
 

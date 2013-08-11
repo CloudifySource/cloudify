@@ -25,6 +25,7 @@ import java.io.File;
  * @since 2.2.0
  * 
  */
+@Deprecated
 public interface CustomServiceDataAware {
 
 	/*********

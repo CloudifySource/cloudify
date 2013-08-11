@@ -24,6 +24,7 @@ import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
  * @author noak
  *
  */
+@Deprecated
 public interface ProvisioningDriverBootstrapValidation {
 
 	

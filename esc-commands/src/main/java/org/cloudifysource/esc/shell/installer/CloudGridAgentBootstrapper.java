@@ -51,15 +51,12 @@ import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.rest.response.ControllerDetails;
 import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.esc.driver.provisioning.BaseComputeDriver;
-import org.cloudifysource.esc.driver.provisioning.ComputeDriverConfiguration;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
+import org.cloudifysource.esc.driver.provisioning.ComputeDriverConfiguration;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
-import org.cloudifysource.esc.driver.provisioning.ManagementLocator;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningContextAccess;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningContextImpl;
-import org.cloudifysource.esc.driver.provisioning.ProvisioningDriverBootstrapValidation;
 import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverClassContext;
-import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
 import org.cloudifysource.esc.driver.provisioning.jclouds.ManagementWebServiceInstaller;
 import org.cloudifysource.esc.driver.provisioning.validation.ValidationMessageType;
@@ -359,62 +356,61 @@ public class CloudGridAgentBootstrapper {
 	}
 
 	private MachineDetails[] locateManagementMachines() throws CLIStatusException {
-		if (provisioning instanceof ManagementLocator) {
-			final ManagementLocator locator = (ManagementLocator) provisioning;
-			MachineDetails[] mds;
-			try {
-				mds = locator.getExistingManagementServers();
-			} catch (final CloudProvisioningException e) {
-				throw new CLIStatusException(e, CloudifyErrorMessages.MANAGEMENT_SERVERS_FAILED_TO_READ.getName(),
-						e.getMessage());
-			}
-			if (mds.length == 0) {
-				throw new CLIStatusException(CloudifyErrorMessages.MANAGEMENT_SERVERS_NOT_LOCATED.getName());
-			}
-			if (mds.length != this.cloud.getProvider().getNumberOfManagementMachines()) {
-				throw new CLIStatusException(CloudifyErrorMessages.MANAGEMENT_SERVERS_NUMBER_NOT_MATCH.getName(),
-						cloud.getProvider().getNumberOfManagementMachines(), mds.length);
-			}
 
-			return mds;
-		} else {
+		MachineDetails[] mds;
+		try {
+			mds = provisioning.getExistingManagementServers();
+		} catch (final CloudProvisioningException e) {
+			throw new CLIStatusException(e, CloudifyErrorMessages.MANAGEMENT_SERVERS_FAILED_TO_READ.getName(),
+					e.getMessage());
+		} catch (final UnsupportedOperationException e) {
 			throw new CLIStatusException(CloudifyErrorMessages.MANAGEMENT_LOCATOR_NOT_SUPPORTED.getName(),
 					this.cloud.getName());
 		}
+		if (mds.length == 0) {
+			throw new CLIStatusException(CloudifyErrorMessages.MANAGEMENT_SERVERS_NOT_LOCATED.getName());
+		}
+		if (mds.length != this.cloud.getProvider().getNumberOfManagementMachines()) {
+			throw new CLIStatusException(CloudifyErrorMessages.MANAGEMENT_SERVERS_NUMBER_NOT_MATCH.getName(),
+					cloud.getProvider().getNumberOfManagementMachines(), mds.length);
+		}
+
+		return mds;
+
 	}
 
 	private MachineDetails[] locateManagementMachinesFromFile() throws CLIStatusException {
-		if (provisioning instanceof ManagementLocator) {
-			final ObjectMapper mapper = new ObjectMapper();
-			ControllerDetails[] controllers = null;
-			try {
-				controllers =
-						mapper.readValue(this.existingManagersFile, TypeFactory.arrayType(ControllerDetails.class));
-			} catch (final IOException e) {
-				throw new IllegalArgumentException("Failed to read managers file: "
-						+ this.existingManagersFile.getAbsolutePath() + ". Error was: " + e.getMessage(), e);
-			}
-			final ManagementLocator locator = (ManagementLocator) provisioning;
-			MachineDetails[] mds;
-			try {
-				mds = locator.getExistingManagementServers(controllers);
-			} catch (final CloudProvisioningException e) {
-				throw new CLIStatusException(e, CloudifyErrorMessages.MANAGEMENT_SERVERS_FAILED_TO_READ.getName(),
-						e.getMessage());
-			}
-			if (mds.length == 0) {
-				throw new CLIStatusException(CloudifyErrorMessages.MANAGEMENT_SERVERS_NOT_LOCATED.getName());
-			}
-			if (mds.length != this.cloud.getProvider().getNumberOfManagementMachines()) {
-				throw new CLIStatusException(CloudifyErrorMessages.MANAGEMENT_SERVERS_NUMBER_NOT_MATCH.getName(),
-						cloud.getProvider().getNumberOfManagementMachines(), mds.length);
-			}
 
-			return mds;
-		} else {
+		final ObjectMapper mapper = new ObjectMapper();
+		ControllerDetails[] controllers = null;
+		try {
+			controllers =
+					mapper.readValue(this.existingManagersFile, TypeFactory.arrayType(ControllerDetails.class));
+		} catch (final IOException e) {
+			throw new IllegalArgumentException("Failed to read managers file: "
+					+ this.existingManagersFile.getAbsolutePath() + ". Error was: " + e.getMessage(), e);
+		}
+
+		MachineDetails[] mds;
+		try {
+			mds = provisioning.getExistingManagementServers(controllers);
+		} catch (final CloudProvisioningException e) {
+			throw new CLIStatusException(e, CloudifyErrorMessages.MANAGEMENT_SERVERS_FAILED_TO_READ.getName(),
+					e.getMessage());
+		} catch (final UnsupportedOperationException e) {
 			throw new CLIStatusException(CloudifyErrorMessages.MANAGEMENT_LOCATOR_NOT_SUPPORTED.getName(),
 					this.cloud.getName());
 		}
+		if (mds.length == 0) {
+			throw new CLIStatusException(CloudifyErrorMessages.MANAGEMENT_SERVERS_NOT_LOCATED.getName());
+		}
+		if (mds.length != this.cloud.getProvider().getNumberOfManagementMachines()) {
+			throw new CLIStatusException(CloudifyErrorMessages.MANAGEMENT_SERVERS_NUMBER_NOT_MATCH.getName(),
+					cloud.getProvider().getNumberOfManagementMachines(), mds.length);
+		}
+
+		return mds;
+
 	}
 
 	private void validateServers(final MachineDetails[] servers) throws CLIException {
@@ -548,11 +544,8 @@ public class CloudGridAgentBootstrapper {
 					"Failed to load provisioning class for cloud: "
 							+ cloud.getName(), e);
 		}
-		if (provisioning instanceof ProvisioningDriverClassContextAware) {
-			final ProvisioningDriverClassContextAware contextAware = (ProvisioningDriverClassContextAware) provisioning;
-			contextAware
-					.setProvisioningDriverClassContext(new DefaultProvisioningDriverClassContext());
-		}
+
+		provisioning.setProvisioningDriverClassContext(new DefaultProvisioningDriverClassContext());
 
 		provisioning.addListener(new CliProvisioningDriverListener());
 
@@ -574,10 +567,14 @@ public class CloudGridAgentBootstrapper {
 
 			provisioning.setConfig(configuration);
 
-			if (performValidation && provisioning instanceof ProvisioningDriverBootstrapValidation) {
+			if (performValidation) {
 				validationContext.validationEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE,
 						ShellUtils.getFormattedMessage(CloudifyErrorMessages.EVENT_VALIDATE_CLOUD_CONFIG.getName()));
-				((ProvisioningDriverBootstrapValidation) provisioning).validateCloudConfiguration(validationContext);
+				try {
+					provisioning.validateCloudConfiguration(validationContext);
+				} catch (final UnsupportedOperationException e) {
+					// ignore
+				}
 				validationContext.validationEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE,
 						ShellUtils.getFormattedMessage(CloudifyErrorMessages.EVENT_CLOUD_CONFIG_VALIDATED.getName()));
 			}

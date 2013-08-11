@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -40,11 +40,9 @@ import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.rest.response.ControllerDetails;
 import org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
-import org.cloudifysource.esc.driver.provisioning.CustomServiceDataAware;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
-import org.cloudifysource.esc.driver.provisioning.ManagementLocator;
-import org.cloudifysource.esc.driver.provisioning.ProvisioningDriver;
-import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
+import org.cloudifysource.esc.driver.provisioning.ManagementProvisioningContext;
+import org.cloudifysource.esc.driver.provisioning.ProvisioningContext;
 import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
 import org.cloudifysource.esc.driver.provisioning.validation.ValidationMessageType;
 import org.cloudifysource.esc.driver.provisioning.validation.ValidationResultType;
@@ -79,13 +77,11 @@ import com.j_spaces.kernel.Environment;
  * A jclouds-based CloudifyProvisioning implementation. Uses the JClouds Compute Context API to provision an image with
  * linux installed and ssh available. If GigaSpaces is not already installed on the new machine, this class will install
  * gigaspaces and run the agent.
- *
+ * 
  * @author barakme, noak
  * @since 2.0.0
  */
-public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
-		ProvisioningDriver, ProvisioningDriverClassContextAware,
-		CustomServiceDataAware, ManagementLocator {
+public class DefaultProvisioningDriver extends BaseProvisioningDriver {
 
 	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
 	private static final String PUBLIC_IP_REGEX = "org.cloudifysource.default-cloud-driver.public-ip-regex";
@@ -102,14 +98,13 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	private static final String CLOUDS_FOLDER_PATH = Environment.getHomeDirectory() + "clouds";
 	private static final int MAX_VERBOSE_IDS_LENGTH = 5;
 
-
 	// TODO: should it be volatile?
 	private static ResourceBundle defaultProvisioningDriverMessageBundle;
 
 	private String cloudFolder;
 	private String groovyFile;
-	private String propertiesFile;	
-	
+	private String propertiesFile;
+
 	private JCloudsDeployer deployer;
 	private SubnetInfo privateSubnetInfo;
 	private Pattern privateIpPattern;
@@ -187,13 +182,12 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 
 	@Override
-	public MachineDetails startMachine(final String locationId, final long timeout,
-			final TimeUnit unit) throws TimeoutException,
-			CloudProvisioningException {
+	public MachineDetails startMachine(final ProvisioningContext context, final long duration, final TimeUnit unit)
+			throws TimeoutException, CloudProvisioningException {
 
 		logger.fine(this.getClass().getName()
 				+ ": startMachine, management mode: " + management);
-		final long end = System.currentTimeMillis() + unit.toMillis(timeout);
+		final long end = System.currentTimeMillis() + unit.toMillis(duration);
 
 		if (System.currentTimeMillis() > end) {
 			throw new TimeoutException("Starting a new machine timed out");
@@ -202,7 +196,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		try {
 			final String groupName = createNewServerName();
 			logger.fine("Starting a new cloud server with group: " + groupName);
-			final MachineDetails md = createServer(end, groupName, locationId);
+			final MachineDetails md = createServer(end, groupName, context.getLocationId());
 			return md;
 		} catch (final Exception e) {
 			throw new CloudProvisioningException(
@@ -376,7 +370,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	/*********
 	 * Looks for a free server name by appending a counter to the pre-calculated server name prefix. If the max counter
 	 * value is reached, code will loop back to 0, so that previously used server names will be reused.
-	 *
+	 * 
 	 * @return the server name.
 	 * @throws CloudProvisioningException
 	 *             if no free server name could be found.
@@ -410,9 +404,9 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 
 	@Override
-	public MachineDetails[] startManagementMachines(final long duration,
-			final TimeUnit unit) throws TimeoutException,
-			CloudProvisioningException {
+	public MachineDetails[] startManagementMachines(final ManagementProvisioningContext context, final long duration,
+			final TimeUnit unit)
+			throws TimeoutException, CloudProvisioningException {
 
 		if (duration < 0) {
 			throw new TimeoutException("Starting a new machine timed out");
@@ -536,7 +530,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.cloudifysource.esc.driver.provisioning.jclouds.ManagementLocator#getExistingManagementServers()
 	 */
 	@Override
@@ -613,7 +607,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 	private void populateIPs(final NodeMetadata node, final MachineDetails md, final ComputeTemplate template) {
 
-		CloudAddressResolver resolver = new CloudAddressResolver();
+		final CloudAddressResolver resolver = new CloudAddressResolver();
 		final String privateAddress =
 				resolver.getAddress(node.getPrivateAddresses(), node.getPublicAddresses(), privateSubnetInfo,
 						this.privateIpPattern);
@@ -755,29 +749,29 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		// TODO : move the security groups to the Template section (instead of custom map),
 		// it is now supported by jclouds.
 
-		String providerName = cloud.getProvider().getProvider();
+		final String providerName = cloud.getProvider().getProvider();
 		cloudFolder = CLOUDS_FOLDER_PATH + FILE_SEPARATOR + cloud.getName();
 		groovyFile = cloudFolder + FILE_SEPARATOR + cloud.getName() + "-cloud.groovy";
 		propertiesFile = cloudFolder + FILE_SEPARATOR + cloud.getName() + "-cloud.properties";
-		
+
 		String apiId;
 		boolean endpointRequired = false;
 
 		try {
 			validationContext.validationOngoingEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE,
 					getFormattedMessage("validating_provider_or_api_name", providerName));
-			ProviderMetadata providerMetadata = Providers.withId(providerName);
-			ApiMetadata apiMetadata = providerMetadata.getApiMetadata();
+			final ProviderMetadata providerMetadata = Providers.withId(providerName);
+			final ApiMetadata apiMetadata = providerMetadata.getApiMetadata();
 			apiId = apiMetadata.getId();
 			validationContext.validationEventEnd(ValidationResultType.OK);
-		} catch (NoSuchElementException e) {
+		} catch (final NoSuchElementException e) {
 			// there is no jclouds Provider by that name, this could be the name of an API used in a private cloud
 			try {
-				ApiMetadata apiMetadata = Apis.withId(providerName);
+				final ApiMetadata apiMetadata = Apis.withId(providerName);
 				apiId = apiMetadata.getId();
 				endpointRequired = true;
 				validationContext.validationEventEnd(ValidationResultType.OK);
-			} catch (NoSuchElementException ex) {
+			} catch (final NoSuchElementException ex) {
 				validationContext.validationEventEnd(ValidationResultType.ERROR);
 				throw new CloudProvisioningException(getFormattedMessage("error_provider_or_api_name_validation",
 						providerName, cloudFolder), ex);
@@ -785,7 +779,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		}
 		validateComputeTemplates(endpointRequired, apiId, validationContext);
 	}
-	
 
 	private void validateComputeTemplates(final boolean endpointRequired, final String apiId,
 			final ValidationContext validationContext) throws CloudProvisioningException {
@@ -799,12 +792,12 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		try {
 			validationContext.validationEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE,
 					getFormattedMessage("validating_all_templates"));
-			for (Entry<String, ComputeTemplate> entry : cloud.getCloudCompute().getTemplates().entrySet()) {
+			for (final Entry<String, ComputeTemplate> entry : cloud.getCloudCompute().getTemplates().entrySet()) {
 				templateName = entry.getKey();
 				validationContext.validationEvent(ValidationMessageType.GROUP_VALIDATION_MESSAGE,
 						getFormattedMessage("validating_template", templateName));
-				ComputeTemplate template = entry.getValue();
-				String endpoint = getEndpoint(template);
+				final ComputeTemplate template = entry.getValue();
+				final String endpoint = getEndpoint(template);
 				if (endpointRequired && StringUtils.isBlank(endpoint)) {
 					throw new CloudProvisioningException("Endpoint not defined. Please add a \"jclouds.endpoint\""
 							+ " entry in the template's overrides section");
@@ -814,7 +807,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 					validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
 							getFormattedMessage("validating_cloud_credentials"));
 					final Properties templateProps = new Properties();
-					Map<String, Object> templateOverrides = template.getOverrides();
+					final Map<String, Object> templateOverrides = template.getOverrides();
 					templateProps.putAll(templateOverrides);
 					logger.fine("Creating a new cloud deployer");
 					deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(),
@@ -823,6 +816,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 					deployer.getAllLocations();
 					validationContext.validationEventEnd(ValidationResultType.OK);
 				} catch (Exception e) {
+
 					closeDeployer(deployer);
 					validationContext.validationEventEnd(ValidationResultType.ERROR);
 					throw new CloudProvisioningException(getFormattedMessage("error_cloud_credentials_validation",
@@ -847,7 +841,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 					// calling JCloudsDeployer.getTemplate effectively tests the above configuration through jclouds
 					deployer.getTemplate(locationId);
 					validationContext.validationEventEnd(ValidationResultType.OK);
-				} catch (Exception ex) {
+				} catch (final Exception ex) {
 					validationContext.validationEventEnd(ValidationResultType.ERROR);
 					if (apiId.equalsIgnoreCase(OPENSTACK_API) && this.isVerboseValidation) {
 						validateLocationID(locationId);
@@ -856,9 +850,9 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 					}
 					throw new CloudProvisioningException(
 							getFormattedMessage("error_image_hardware_location_combination_validation",
-							imageId == null ? "" : imageId,
+									imageId == null ? "" : imageId,
 									hardwareId == null ? "" : hardwareId, locationId == null ? "" : locationId,
-											groovyFile, propertiesFile), ex);
+									groovyFile, propertiesFile), ex);
 				}
 
 				if (isKnownAPI(apiId)) {
@@ -874,6 +868,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			closeDeployer(deployer);
 		}
 	}
+
 
 	private void validateImageID(final String imageId) throws CloudProvisioningException {
 		Image img = deployer.getContext().getComputeService().getImage(imageId);
@@ -951,6 +946,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		return sb.toString();
 	}
 
+
 	private void validateSecurityGroupsForTemplate(final ComputeTemplate template, final String apiId,
 			final ComputeServiceContext computeServiceContext, final ValidationContext validationContext)
 			throws CloudProvisioningException {
@@ -971,7 +967,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 		if (securityGroupsObj != null) {
 			if (securityGroupsObj instanceof String[]) {
-				String[] securityGroupsArr = (String[]) securityGroupsObj;
+				final String[] securityGroupsArr = (String[]) securityGroupsObj;
 
 				if (securityGroupsArr.length > 0) {
 					try {
@@ -988,10 +984,10 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 						}
 
 						if (apiId.equalsIgnoreCase(EC2_API)) {
-							RestContext<EC2Client, EC2AsyncClient> unwrapped = computeServiceContext.unwrap();
+							final RestContext<EC2Client, EC2AsyncClient> unwrapped = computeServiceContext.unwrap();
 							validateEc2SecurityGroups(unwrapped.getApi(), locationId, securityGroupsArr);
 						} else if (apiId.equalsIgnoreCase(OPENSTACK_API)) {
-							RestContext<NovaApi, NovaAsyncApi> unwrapped = computeServiceContext.unwrap();
+							final RestContext<NovaApi, NovaAsyncApi> unwrapped = computeServiceContext.unwrap();
 							validateOpenstackSecurityGroups(unwrapped.getApi(), locationId,
 									securityGroupsArr);
 						} else if (apiId.equalsIgnoreCase(CLOUDSTACK)) {
@@ -1009,7 +1005,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 						}
 
 						validationContext.validationEventEnd(ValidationResultType.OK);
-					} catch (CloudProvisioningException ex) {
+					} catch (final CloudProvisioningException ex) {
 						validationContext.validationEventEnd(ValidationResultType.ERROR);
 						throw ex;
 					}
@@ -1019,7 +1015,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			}
 		}
 	}
-	
 
 	private void validateKeyPairForTemplate(final ComputeTemplate template, final String apiId,
 			final ComputeServiceContext computeServiceContext, final ValidationContext validationContext)
@@ -1044,7 +1039,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 				throw new CloudProvisioningException("Invalid configuration: keyPair must be of type String");
 			}
 
-			String keyPairString = (String) keyPairObj;
+			final String keyPairString = (String) keyPairObj;
 			if (StringUtils.isNotBlank(keyPairString)) {
 				try {
 					validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
@@ -1068,42 +1063,39 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 					}
 
 					validationContext.validationEventEnd(ValidationResultType.OK);
-					
-				} catch (CloudProvisioningException ex) {
+
+				} catch (final CloudProvisioningException ex) {
 					validationContext.validationEventEnd(ValidationResultType.ERROR);
 					throw ex;
 				}
 			}
 		}
 	}
-	
 
 	private void validateEC2KeyPair(final ComputeServiceContext computeServiceContext, final String locationId,
 			final String keyPairName) throws CloudProvisioningException {
-		RestContext<EC2Client, EC2AsyncClient> unwrapped = computeServiceContext.unwrap();
-		EC2Client ec2Client = unwrapped.getApi();
-		KeyPairClient ec2KeyPairClient = ec2Client.getKeyPairServices();
-		String region = JCloudsUtils.getEC2region(ec2Client, locationId);
-		Set<KeyPair> foundKeyPairs = ec2KeyPairClient.describeKeyPairsInRegion(region, keyPairName);
+		final RestContext<EC2Client, EC2AsyncClient> unwrapped = computeServiceContext.unwrap();
+		final EC2Client ec2Client = unwrapped.getApi();
+		final KeyPairClient ec2KeyPairClient = ec2Client.getKeyPairServices();
+		final String region = JCloudsUtils.getEC2region(ec2Client, locationId);
+		final Set<KeyPair> foundKeyPairs = ec2KeyPairClient.describeKeyPairsInRegion(region, keyPairName);
 		if (foundKeyPairs == null || foundKeyPairs.size() == 0 || foundKeyPairs.iterator().next() == null) {
-			throw new CloudProvisioningException(getFormattedMessage("error_key_pair_validation", keyPairName, 
+			throw new CloudProvisioningException(getFormattedMessage("error_key_pair_validation", keyPairName,
 					groovyFile, propertiesFile));
 		}
 	}
-	
 
 	private void validateOpenstackKeyPair(final ComputeServiceContext computeServiceContext, final String locationId,
 			final String keyPairName) throws CloudProvisioningException {
-		RestContext<NovaApi, NovaAsyncApi> unwrapped = computeServiceContext.unwrap();
-		KeyPairApi keyPairApi = unwrapped.getApi().getKeyPairExtensionForZone(locationId).get();
-		Predicate<org.jclouds.openstack.nova.v2_0.domain.KeyPair> keyPairNamePredicate =
+		final RestContext<NovaApi, NovaAsyncApi> unwrapped = computeServiceContext.unwrap();
+		final KeyPairApi keyPairApi = unwrapped.getApi().getKeyPairExtensionForZone(locationId).get();
+		final Predicate<org.jclouds.openstack.nova.v2_0.domain.KeyPair> keyPairNamePredicate =
 				org.jclouds.openstack.nova.v2_0.predicates.KeyPairPredicates.nameEquals(keyPairName);
 		if (!keyPairApi.list().anyMatch(keyPairNamePredicate)) {
-			throw new CloudProvisioningException(getFormattedMessage("error_key_pair_validation", keyPairName, 
+			throw new CloudProvisioningException(getFormattedMessage("error_key_pair_validation", keyPairName,
 					groovyFile, propertiesFile));
 		}
 	}
-	
 
 	private boolean isKnownAPI(final String apiName) {
 		boolean supported = false;
@@ -1117,17 +1109,17 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 
 		return supported;
 	}
-	
 
 	private void validateEc2SecurityGroups(final EC2Client ec2Client, final String locationId,
 			final String[] securityGroupsInRegion) throws CloudProvisioningException {
 
-		String region = JCloudsUtils.getEC2region(ec2Client, locationId);
-		org.jclouds.ec2.services.SecurityGroupClient ec2SecurityGroupsClient = ec2Client.getSecurityGroupServices();
-		Set<String> missingSecurityGroups = new HashSet<String>();
+		final String region = JCloudsUtils.getEC2region(ec2Client, locationId);
+		final org.jclouds.ec2.services.SecurityGroupClient ec2SecurityGroupsClient =
+				ec2Client.getSecurityGroupServices();
+		final Set<String> missingSecurityGroups = new HashSet<String>();
 
-		for (String securityGroupName : securityGroupsInRegion) {
-			Set<org.jclouds.ec2.domain.SecurityGroup> foundGroups =
+		for (final String securityGroupName : securityGroupsInRegion) {
+			final Set<org.jclouds.ec2.domain.SecurityGroup> foundGroups =
 					ec2SecurityGroupsClient.describeSecurityGroupsInRegion(region, securityGroupName);
 			if (foundGroups == null || foundGroups.size() == 0 || foundGroups.iterator().next() == null) {
 				missingSecurityGroups.add(securityGroupName);
@@ -1142,16 +1134,15 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 					Arrays.toString(missingSecurityGroups.toArray()), groovyFile, propertiesFile));
 		}
 	}
-	
 
 	private void validateOpenstackSecurityGroups(final NovaApi novaApi, final String region,
 			final String[] securityGroupsInRegion) throws CloudProvisioningException {
 
-		Set<String> missingSecurityGroups = new HashSet<String>();
-		SecurityGroupApi securityGroupApi = novaApi.getSecurityGroupExtensionForZone(region).get();
+		final Set<String> missingSecurityGroups = new HashSet<String>();
+		final SecurityGroupApi securityGroupApi = novaApi.getSecurityGroupExtensionForZone(region).get();
 
-		for (String securityGroupName : securityGroupsInRegion) {
-			Predicate<org.jclouds.openstack.nova.v2_0.domain.SecurityGroup> securityGroupNamePredicate =
+		for (final String securityGroupName : securityGroupsInRegion) {
+			final Predicate<org.jclouds.openstack.nova.v2_0.domain.SecurityGroup> securityGroupNamePredicate =
 					org.jclouds.openstack.nova.v2_0.predicates.SecurityGroupPredicates.nameEquals(securityGroupName);
 			if (!securityGroupApi.list().anyMatch(securityGroupNamePredicate)) {
 				missingSecurityGroups.add(securityGroupName);
@@ -1166,19 +1157,17 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 					Arrays.toString(missingSecurityGroups.toArray()), groovyFile, propertiesFile));
 		}
 	}
-	
 
 	private String getEndpoint(final ComputeTemplate template) {
 		String endpoint = null;
 
-		Map<String, Object> templateOverrides = template.getOverrides();
+		final Map<String, Object> templateOverrides = template.getOverrides();
 		if (templateOverrides != null && templateOverrides.size() > 0) {
 			endpoint = (String) templateOverrides.get(ENDPOINT_OVERRIDE);
 		}
 
 		return endpoint;
 	}
-	
 
 	private void closeDeployer(final JCloudsDeployer jcloudsDeployer) {
 		if (jcloudsDeployer != null) {
@@ -1187,7 +1176,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			logger.fine("Cloud deployer closed");
 		}
 	}
-	
 
 	private String getOpenstackLocationByHardwareId(final String hardwareId) {
 		String region = "";
@@ -1209,11 +1197,10 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		logger.fine("region: " + region);
 		return region;
 	}
-	
 
 	/**
 	 * returns the message as it appears in the DefaultProvisioningDriver message bundle.
-	 *
+	 * 
 	 * @param msgName
 	 *            the message key as it is defined in the message bundle.
 	 * @param arguments
@@ -1223,11 +1210,10 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	protected String getFormattedMessage(final String msgName, final Object... arguments) {
 		return getFormattedMessage(getDefaultProvisioningDriverMessageBundle(), msgName, arguments);
 	}
-	
 
 	/**
 	 * Returns the message bundle of this cloud driver.
-	 *
+	 * 
 	 * @return the message bundle of this cloud driver.
 	 */
 	protected static ResourceBundle getDefaultProvisioningDriverMessageBundle() {
