@@ -78,7 +78,9 @@ public class UploadController extends BaseRestController {
         try {
             uploadedFileDirName = uploadRepo.put(name, file);
         } catch (IOException e) {
-            logger.warning("could not upload file " + name + " error was - " + e.getMessage());
+        	if (logger.isLoggable(Level.WARNING)) {
+        		logger.warning("could not upload file " + name + " error was - " + e.getMessage());
+        	}
             throw new RestErrorException(
                     CloudifyMessageKeys.UPLOAD_FAILED.getName(), name, e.getMessage());
         }

@@ -79,8 +79,8 @@ public class UploadRepo {
 		try {
 			executor.scheduleAtFixedRate(cleanupThread, 0, cleanupTimeoutMillis, TimeUnit.MILLISECONDS);
 		} catch (final RejectedExecutionException e) {
-			if (logger.isLoggable(Level.INFO)) {
-				logger.log(Level.INFO, "failed to scheduled for execution - " + e.getMessage());
+			if (logger.isLoggable(Level.WARNING)) {
+				logger.log(Level.WARNING, "failed to scheduled for execution - " + e.getMessage());
 			}
 			throw e;
 		}
@@ -150,13 +150,15 @@ public class UploadRepo {
 			throws IOException, RestErrorException {
 		final String name = fileName == null ? multipartFile.getOriginalFilename() : fileName;
 		// enforce size limit
-		if (logger.isLoggable(Level.INFO)) {
-			logger.log(Level.INFO, "uploading file " + name);
+		if (logger.isLoggable(Level.FINE)) {
+			logger.log(Level.FINE, "uploading file " + name);
 		}
 		final long fileSize = multipartFile.getSize();
 		if (fileSize > getUploadSizeLimitBytes()) {
-			logger.warning("Upload file [" + name + "] size ("
-					+ fileSize + ") exceeded the permitted size limit (" + getUploadSizeLimitBytes() + ").");
+			if (logger.isLoggable(Level.WARNING)) {
+				logger.warning("Upload file [" + name + "] size ("
+						+ fileSize + ") exceeded the permitted size limit (" + getUploadSizeLimitBytes() + ").");
+			}
 			throw new RestErrorException(
 					CloudifyMessageKeys.UPLOAD_FILE_SIZE_LIMIT_EXCEEDED.getName(),
 					name, fileSize, getUploadSizeLimitBytes());
@@ -165,12 +167,12 @@ public class UploadRepo {
 		final File srcDir = new File(restUploadDir, dirName);
 		srcDir.mkdirs();
 		final File storedFile = new File(srcDir, name);
-		if (logger.isLoggable(Level.INFO)) {
-			logger.log(Level.INFO, "Uploading file to " + storedFile.getAbsolutePath());
+		if (logger.isLoggable(Level.FINER)) {
+			logger.log(Level.FINER, "Uploading file to " + storedFile.getAbsolutePath());
 		}
 		copyMultipartFileToLocalFile(multipartFile, storedFile);
-		if (logger.isLoggable(Level.INFO)) {
-			logger.log(Level.INFO, "File [" + storedFile.getAbsolutePath() + "] uploaded successfully.");
+		if (logger.isLoggable(Level.FINE)) {
+			logger.log(Level.FINE, "File [" + storedFile.getAbsolutePath() + "] uploaded successfully.");
 		}
 		return dirName;
 	}
@@ -184,13 +186,13 @@ public class UploadRepo {
 	 */
 	public File get(final String key) {
 		if (key == null) {
-			if (logger.isLoggable(Level.FINER)) {
-				logger.finer("failed to get uploaded file, key is null.");
+			if (logger.isLoggable(Level.WARNING)) {
+				logger.warning("failed to get uploaded file, key is null.");
 			}
 			return null;
 		}
-		if (logger.isLoggable(Level.FINER)) {
-			logger.finer("Getting uploaded file with key " + key);
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Getting uploaded file with key " + key);
 		}
 		if (restUploadDir == null) {
 			if (logger.isLoggable(Level.WARNING)) {
@@ -212,25 +214,25 @@ public class UploadRepo {
 		final File dir = new File(restUploadDir, key);
 		if (dir.exists()) {
 			if (!dir.isDirectory()) {
-				if (logger.isLoggable(Level.FINER)) {
-					logger.finer("The file found is not a directory [" + dir.getAbsolutePath() + "].");
+				if (logger.isLoggable(Level.WARNING)) {
+					logger.warning("The file found is not a directory [" + dir.getAbsolutePath() + "].");
 				}
 				return null;
 			}
 			final File[] listFiles = dir.listFiles();
 			if (listFiles.length > 0) {
 				final File uploadedFile = listFiles[0];
-				if (logger.isLoggable(Level.FINER)) {
-					logger.finer("Returning the found uploaded file [" + uploadedFile.getAbsolutePath() + "].");
+				if (logger.isLoggable(Level.FINE)) {
+					logger.fine("Returning the found uploaded file [" + uploadedFile.getAbsolutePath() + "].");
 				}
 				return uploadedFile;
 			}
-			if (logger.isLoggable(Level.FINER)) {
-				logger.finer("The directory [" + dir.getAbsolutePath() + "] does not contain an uploaded file.");
+			if (logger.isLoggable(Level.WARNING)) {
+				logger.warning("The directory [" + dir.getAbsolutePath() + "] is empty.");
 			}
 		} else {
-			if (logger.isLoggable(Level.FINER)) {
-				logger.finer("No directory with name " + key + " was found at " + restUploadDir.getAbsolutePath());
+			if (logger.isLoggable(Level.WARNING)) {
+				logger.warning("No directory with name " + key + " was found at " + restUploadDir.getAbsolutePath());
 			}
 		}
 		return null;
@@ -247,7 +249,9 @@ public class UploadRepo {
 	 *            .
 	 */
 	public void resetTimeout(final int cleanupTimeoutMillis) {
-		logger.info("reset timeout to " + cleanupTimeoutMillis + " milliseconds.");
+		if (logger.isLoggable(Level.INFO)) {
+			logger.info("reset timeout to " + cleanupTimeoutMillis + " milliseconds.");
+		}
 		this.setCleanupTimeoutMillis(cleanupTimeoutMillis);
 		reset();
 	}

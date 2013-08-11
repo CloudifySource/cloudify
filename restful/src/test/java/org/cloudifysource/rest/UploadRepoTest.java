@@ -17,6 +17,8 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import junit.framework.Assert;
 
@@ -38,6 +40,7 @@ import org.springframework.web.multipart.MultipartFile;
  *
  */
 public class UploadRepoTest {
+	private static final Logger logger = Logger.getLogger(UploadRepoTest.class.getName());
 
     private UploadRepo repo;
  	private static final int CLEANUP_TIMEOUT_MILLIS = 1000;
@@ -72,16 +75,14 @@ public class UploadRepoTest {
         	File file = new File(ZIP_FILE_PATH);
         	String dirName = null;
         	try {
-        		System.out.println("tring to put file " + file.getAbsolutePath() + " in repo.");
+        		logger.log(Level.INFO, "tring to put " + file.getAbsolutePath());
         		dirName = putTest(file);
         	} catch (RestErrorException e) {
         		fail(e.getMessage());
         	}
         	File uploadedFile = repo.get(dirName);
-        	System.out.println("got from repo " 
-        			+  ((uploadedFile == null) 
-        					? "upload file [dir name = " + dirName + "] not exist in repo" 
-        							: uploadedFile.getAbsolutePath()));
+            logger.log(Level.FINE, "got from repo " +  ((uploadedFile == null) 
+            		? "upload file [dir name = " + dirName + "] not exist in repo" : uploadedFile.getAbsolutePath()));
         	assertUploadedFile(uploadedFile);
 
         	// wait until the file is deleted.

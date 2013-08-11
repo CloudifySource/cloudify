@@ -20,6 +20,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.time.DateUtils;
@@ -57,6 +59,7 @@ import com.j_spaces.kernel.PlatformVersion;
 @ContextConfiguration({"classpath:META-INF/spring/applicationContext.xml",
 		"classpath:META-INF/spring/webmvc-config-upload-test.xml" })
 public class UploadControllerTest extends ControllerTest {
+	private static final Logger logger = Logger.getLogger(UploadControllerTest.class.getName());
 
     private static final String UPLOAD_RESOURCES_PATH = "src" + File.separator + "test" + File.separator
             + "resources" + File.separator + "upload";
@@ -97,17 +100,18 @@ public class UploadControllerTest extends ControllerTest {
 
     private UploadResponse uploadFile(final File file, final String testName)
     		throws Exception {
-        System.out.println("[" + testName + "] - trying to upload file " + file.getName() 
+    	logger.log(Level.FINE, 
+    			"[" + testName + "] - trying to upload file " + file.getName() 
         		+ ", repo upload size limit in bytes: " + uploadRepo.getUploadSizeLimitBytes() 
         		+ ", repo cleanup timeout in millis: " + uploadRepo.getCleanupTimeoutMillis());
         MockHttpServletResponse response;
         try {
         	response = testPostFile(versionedUploadUri, file);
         } catch (Exception e) {
-            System.out.println("upload response thrown an exception: " + e.getMessage());
+        	logger.log(Level.WARNING, "upload response thrown an exception: " + e.getMessage());
         	throw e;
         }
-        System.out.println("upload response's content: " + response.getContentAsString());
+    	logger.log(Level.FINE, "upload response's content: " + response.getContentAsString());
         ObjectMapper objectMapper = new ObjectMapper();
         Response<UploadResponse> readValue = objectMapper.readValue(response.getContentAsString(),
                 new TypeReference<Response<UploadResponse>>() { });
@@ -120,7 +124,7 @@ public class UploadControllerTest extends ControllerTest {
         File file = new File(TEST_FILE_PATH);
         UploadResponse uploadResponse = uploadFile(file, "testUpload");
         String uploadKey = uploadResponse.getUploadKey();
-        System.out.println("file has been uploaded. the upload key is " + uploadKey);
+    	logger.log(Level.FINE, "file has been uploaded. the upload key is " + uploadKey);
         Assert.assertNotNull(uploadKey);
         assertUploadedFileExists(file, uploadKey);
     }
@@ -136,12 +140,13 @@ public class UploadControllerTest extends ControllerTest {
 
     @Test
     public void testUploadExceededSizeLimitFile() throws Exception {
-        System.out.println("set the upload size limit to " + TEST_UPLOAD_SIZE_LIMIT_BYTES + " bytes.");
+    	logger.log(Level.FINE, "set the upload size limit to " + TEST_UPLOAD_SIZE_LIMIT_BYTES + " bytes.");
         uploadRepo.setUploadSizeLimitBytes(TEST_UPLOAD_SIZE_LIMIT_BYTES);
         File uploadFile = new File(TEST_FILE_PATH);
         MockHttpServletResponse response = null;
         long fileSize = uploadFile.length();
-        System.out.println("trying to upload file of size " + fileSize 
+    	logger.log(Level.FINE, 
+    			"trying to upload file of size " + fileSize 
         		+ " expecting " + CloudifyMessageKeys.UPLOAD_FILE_SIZE_LIMIT_EXCEEDED.getName());
         try {
             response = testPostFile(versionedUploadUri, uploadFile);
@@ -157,7 +162,8 @@ public class UploadControllerTest extends ControllerTest {
             Object[] expectedArgs = {UPLOADED_FILE_NAME, fileSize, uploadRepo.getUploadSizeLimitBytes()};
             Assert.assertArrayEquals(expectedArgs, args);
         }  finally {
-        	System.out.println("setting the upload size limit back to "
+        	logger.log(Level.FINE, 
+        			"setting the upload size limit back to "
         			+ CloudifyConstants.DEFAULT_UPLOAD_SIZE_LIMIT_BYTES + " bytes.");
             uploadRepo.setUploadSizeLimitBytes(CloudifyConstants.DEFAULT_UPLOAD_SIZE_LIMIT_BYTES);
         }
@@ -166,30 +172,28 @@ public class UploadControllerTest extends ControllerTest {
     @Test
     public void testUploadTimeout() throws Exception {
     	int cleanupTimeoutMillis = uploadRepo.getCleanupTimeoutMillis();
-    	System.out.println("setting the cleanup timeout " + TEST_CLEANUP_TIMOUT_MILLIS + " millis.");
+        logger.log(Level.FINE, "setting the cleanup timeout " + TEST_CLEANUP_TIMOUT_MILLIS + " millis.");
         uploadRepo.resetTimeout(TEST_CLEANUP_TIMOUT_MILLIS);
         try {       	
         	File file = new File(TEST_FILE_PATH);
         	UploadResponse uploadResponse = uploadFile(file, "testUploadTimeout");
         	String uploadKey = uploadResponse.getUploadKey();
-        	System.out.println("successfully uploaded file " + file.getName() + " upload key is " + uploadKey);
+        	logger.log(Level.FINE, "successfully uploaded file " + file.getName() + " upload key is " + uploadKey);
         	Assert.assertNotNull(uploadKey);
         	File uploadedFile = assertUploadedFileExists(file, uploadKey);
         	String parentPath = uploadedFile.getParentFile().getAbsolutePath();
-
-        	System.out.println("sleeping for " 
-        	+ (TEST_CLEANUP_TIMOUT_MILLIS * 3) / DateUtils.MILLIS_PER_SECOND + " seconds");
+            logger.log(Level.INFO, 
+            		"sleeping for " + (TEST_CLEANUP_TIMOUT_MILLIS * 3) / DateUtils.MILLIS_PER_SECOND + " seconds");
         	Thread.sleep(TEST_CLEANUP_TIMOUT_MILLIS * 3);
         	File expectedToBeDeletedFolder = new File(parentPath);
-        	System.out.println("validate that the folder [" 
+        	logger.log(Level.FINE, "validate that the folder [" 
         			+ expectedToBeDeletedFolder.getAbsolutePath() + "] was deleted:");
         	boolean exists = expectedToBeDeletedFolder.exists();
-        	System.out.println("The folder [" + expectedToBeDeletedFolder.getAbsolutePath() 
-        			+ "] (expected to be deleted at this point) " 
-        	+ (exists ? " exists" : " not exists."));
+        	logger.log(Level.FINE, "The folder [" + expectedToBeDeletedFolder.getAbsolutePath() 
+        			+ "] (expected to be deleted at this point) " + (exists ? " exists" : " not exists."));
 			Assert.assertFalse(exists);
         } finally {
-        	System.out.println("setting the cleanup timeout back to " + cleanupTimeoutMillis + " millis");
+        	logger.log(Level.FINE, "setting the cleanup timeout back to " + cleanupTimeoutMillis + " millis");
         	uploadRepo.resetTimeout(cleanupTimeoutMillis);
         }
     }
@@ -201,7 +205,7 @@ public class UploadControllerTest extends ControllerTest {
             uploadFile(file, "testUplaodFileNotExist");
             Assert.fail("[testUplaodFileNotExist] - FileNotFoundException expected");
         } catch (FileNotFoundException e) {
-        	System.out.println("cought exeption " + e.getMessage() + " as expected");
+        	logger.log(Level.FINE, "cought exeption " + e.getMessage() + " as expected");
         } catch (Exception e) {
             Assert.fail("cought exception other than FileNotFoundException [" 
             		+ e.getClass() + "] message: " + e.getMessage());
@@ -214,20 +218,21 @@ public class UploadControllerTest extends ControllerTest {
         File restTempDir = new File(CloudifyConstants.REST_FOLDER);
         File uploadsFolder = new File(restTempDir, CloudifyConstants.UPLOADS_FOLDER_NAME);
         File uploadedFileDir = new File(uploadsFolder, uploadKey);
-        System.out.println("uploaded file's folder: " + uploadedFileDir.getAbsolutePath());
+        logger.log(Level.FINE, "uploaded file's folder: " + uploadedFileDir.getAbsolutePath());
         Assert.assertNotNull(uploadedFileDir);
-        System.out.println("uploaded file's folder exists: " + uploadedFileDir.exists());
+        logger.log(Level.FINE, "uploaded file's folder exists: " + uploadedFileDir.exists());
         Assert.assertTrue(uploadedFileDir.exists());
-        System.out.println("uploaded file's folder isDirectory: " + uploadedFileDir.isDirectory());
+        logger.log(Level.FINE, "uploaded file's folder isDirectory: " + uploadedFileDir.isDirectory());
         Assert.assertTrue(uploadedFileDir.isDirectory());
         File uploadedFile = new File(uploadedFileDir, UPLOADED_FILE_NAME);
-        System.out.println("uploaded file " + uploadedFile.getAbsolutePath() 
+        logger.log(Level.FINE, "uploaded file " + uploadedFile.getAbsolutePath() 
         		+ (uploadedFile.exists() ? "" : " not") + " exists.");
         Assert.assertTrue(uploadedFile.exists());
-        System.out.println("uploaded file isFile: " + uploadedFile.isFile());
+        logger.log(Level.FINE, "uploaded file isFile: " + uploadedFile.isFile());
         Assert.assertTrue(uploadedFile.isFile());
         boolean contentEquals = FileUtils.contentEquals(expectedFile, uploadedFile);
-        System.out.println("uploaded file [" + uploadedFile.getAbsolutePath() 
+        logger.log(Level.FINE, 
+        		"uploaded file [" + uploadedFile.getAbsolutePath() 
         		+ "] content is " + (contentEquals ? "" : "not") 
         		+ " equal to the expected content [ of file - " 
         		+ expectedFile.getAbsolutePath() + "]");
