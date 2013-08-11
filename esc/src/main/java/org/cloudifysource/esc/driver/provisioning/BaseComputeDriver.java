@@ -1,3 +1,18 @@
+/*******************************************************************************
+ * Copyright (c) 2013 GigaSpaces Technologies Ltd. All rights reserved
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning;
 
 import java.io.File;
@@ -10,6 +25,16 @@ import org.cloudifysource.dsl.rest.response.ControllerDetails;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
 
+/***********
+ * Base class for all compute driver implementations. A compute driver is a class that is responsible for allocating
+ * compute resources for Cloudify service instances.
+ * 
+ * Includes some default implementations. This is the core
+ * 
+ * @author barakme
+ * @since 2.7.0
+ * 
+ */
 public abstract class BaseComputeDriver {
 
 	protected ComputeDriverConfiguration configuration;
@@ -31,9 +56,10 @@ public abstract class BaseComputeDriver {
 	}
 
 	/**
-	 * Returns the compute context.
+	 * A compute driver may choose to give access to the internal 'context' which is used to communicate with the cloud
+	 * API. This is an optional interface, and defaults to returning null.
 	 * 
-	 * @return Compute context object or null if not set
+	 * @return Compute context object or null if not set.
 	 */
 	public Object getComputeContext() {
 		return null;
@@ -60,10 +86,6 @@ public abstract class BaseComputeDriver {
 			throws TimeoutException, CloudProvisioningException {
 		unsupported();
 		return null;
-	}
-
-	private void unsupported() {
-		throw new UnsupportedOperationException("Method not implemented");
 	}
 
 	/******************
@@ -245,4 +267,7 @@ public abstract class BaseComputeDriver {
 
 	}
 
+	private void unsupported() {
+		throw new UnsupportedOperationException("Method not implemented");
+	}
 }
