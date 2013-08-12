@@ -813,8 +813,10 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 					logger.fine("Creating a new cloud deployer");
 					deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(),
 							cloud.getUser().getApiKey(), templateProps);
+					logger.log(Level.FINE, "making API call");
+					deployer.getAllLocations();
 					validationContext.validationEventEnd(ValidationResultType.OK);
-				} catch (IOException e) {
+				} catch (Exception e) {
 					closeDeployer(deployer);
 					validationContext.validationEventEnd(ValidationResultType.ERROR);
 					throw new CloudProvisioningException(getFormattedMessage("error_cloud_credentials_validation",
