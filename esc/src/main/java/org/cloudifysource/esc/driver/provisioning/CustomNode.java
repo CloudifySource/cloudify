@@ -85,7 +85,7 @@ public interface CustomNode {
     /**
      * Resolve the addresses of this node. this method should populate the privateIp and hostName fields of the node
      * with the resolved value as defined in the network.
-     * @throws UnknownHostException
+     * @throws UnknownHostException .
      */
     void resolve() throws UnknownHostException;
 

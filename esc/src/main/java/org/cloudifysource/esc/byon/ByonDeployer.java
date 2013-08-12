@@ -95,7 +95,7 @@ public class ByonDeployer {
 				resolvedNodes.add(node);
 			} catch (final Exception ex) {
 				// this node is not reachable - add it to the invalid nodes pool
-				logger.log(Level.INFO, "Failed to resolve node: " + node.toShortString() + ", exception: " 
+				logger.log(Level.WARNING, "Failed to resolve node: " + node.toShortString() + ", exception: " 
 				+ ex.getMessage(), ex);
 				unresolvedNodes.add(node);
 			}
@@ -532,6 +532,7 @@ public class ByonDeployer {
 	 */
 	public synchronized void invalidateServer(final String templateName,
 			final CustomNode serverName) throws CloudProvisioningException {
+		logger.warning("Invalidaing node: " + serverName + " from template: " + templateName);
 		// attempting to remove the invalid node from the active lists so it
 		// will not be used anymore, just to
 		// be sure.
