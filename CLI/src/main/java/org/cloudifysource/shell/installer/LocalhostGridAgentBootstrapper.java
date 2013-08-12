@@ -105,7 +105,7 @@ public class LocalhostGridAgentBootstrapper {
 			+ " Configure the timeout using the -timeout flag.";
 	private static final String REST_FILE = "tools" + File.separator + "rest" + File.separator + "rest.war";
 
-	private static final String WEBUI_FILE = EnvironmentUtils.findWebuiWar();
+	
 
 	private static final String MANAGEMENT_SPACE_NAME = CloudifyConstants.MANAGEMENT_SPACE_NAME;
 
@@ -1143,14 +1143,16 @@ public class LocalhostGridAgentBootstrapper {
 		final String gscLrmiCommandLineArg = getGscLrmiCommandLineArg();
 		final String webuiMemory = getWebServiceMemory(CloudifyConstants.WEBUI_MAX_MEMORY_ENVIRONMENT_VAR);
 		final int webuiPort = getWebservicePort(CloudifyConstants.WEBUI_PORT_ENV_VAR, isSecureConnection);
-
+		
+		final String webUiFileName = EnvironmentUtils.findWebuiWar();
+		
 		final ManagementWebServiceInstaller webuiInstaller = new ManagementWebServiceInstaller();
 		webuiInstaller.setAdmin(agent.getAdmin());
 		webuiInstaller.setVerbose(verbose);
 		webuiInstaller.setProgress(progressInSeconds, TimeUnit.SECONDS);
 		webuiInstaller.setMemory(MemoryUnit.toMegaBytes(webuiMemory), MemoryUnit.MEGABYTES);
-		webuiInstaller.setPort(webuiPort);
-		webuiInstaller.setWarFile(new File(WEBUI_FILE));
+		webuiInstaller.setPort(webuiPort);		
+		webuiInstaller.setWarFile(new File(webUiFileName));
 		webuiInstaller.setServiceName(CloudifyConstants.MANAGEMENT_WEBUI_SERVICE_NAME);
 		webuiInstaller.setManagementZone(MANAGEMENT_ZONE);
 		webuiInstaller.addListeners(this.eventsListenersList);
