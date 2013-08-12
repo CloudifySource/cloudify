@@ -357,18 +357,18 @@ public class DeploymentsController extends BaseRestController {
 	/********************************
 	 * Returns the last event for a specific operation.
 	 * 
-	 * @param operationId
+	 * @param deploymentId
 	 *            the operation ID.
 	 * @return the last event received for this operation. May be an empty set.
 	 * @throws Throwable
 	 *             in case of an error while retrieving events.
 	 */
-	@RequestMapping(value = "{operationId}/events/last", method = RequestMethod.GET)
+	@RequestMapping(value = "{deploymentId}/events/last", method = RequestMethod.GET)
 	public DeploymentEvents getLastDeploymentEvent(
-			@PathVariable final String operationId)
+			@PathVariable final String deploymentId)
 			throws Throwable {
 
-		EventsCacheKey key = new EventsCacheKey(operationId);
+		EventsCacheKey key = new EventsCacheKey(deploymentId);
 		logger.fine(EventsUtils.getThreadId()
 				+ " Received request for last event of key : " + key);
 		EventsCacheValue value;

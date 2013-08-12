@@ -88,7 +88,7 @@ public class RestLifecycleEventsLatch {
 					lifecycleEventLogs = (Map<String, Object>) client.get(url);
 				} catch (final ErrorStatusException e) {
 					if (e.getCause() instanceof IOException) {
-						displayer.printEvent("Communication Error accessing "+ url); 
+						displayer.printEvent("Communication Error accessing " + url); 
 						return false;
 					} 
 					throw new CLIException("Operation failed. Reason: " + e.getMessage(), e);

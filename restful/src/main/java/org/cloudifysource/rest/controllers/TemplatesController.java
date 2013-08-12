@@ -669,7 +669,6 @@ public class TemplatesController extends BaseRestController {
 
 		// remove template from all REST instances
 		final RemoveTemplatesResponse resposne = removeTemplateFromRestInstances(templateName);
-		// check
 		handleRemoveTemplateResponse(resposne, templateName);
 		log(Level.INFO, "[removeTemplate] - successfully removed template [" + templateName + "].");
 	}

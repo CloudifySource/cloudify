@@ -141,7 +141,7 @@ public class CLIApplicationUninstaller {
         if (!lastDeploymentEvents.getEvents().isEmpty()) {
             lastEventId = lastDeploymentEvents.getEvents().iterator().next().getIndex();
         }
-        return lastEventId+1;
+        return lastEventId + 1;
     }
 
     private boolean promptWouldYouLikeToContinueQuestion() throws IOException {
