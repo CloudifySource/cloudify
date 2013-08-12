@@ -16,12 +16,17 @@
  *******************************************************************************/
 package org.cloudifysource.rest.doclet;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang.ClassUtils;
+import org.cloudifysource.domain.ComputeTemplateHolder;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
+import org.cloudifysource.dsl.rest.response.AddTemplatesResponse;
 import org.cloudifysource.dsl.rest.response.ApplicationDescription;
 import org.cloudifysource.dsl.rest.response.DeleteApplicationAttributeResponse;
 import org.cloudifysource.dsl.rest.response.DeleteServiceAttributeResponse;
@@ -30,8 +35,10 @@ import org.cloudifysource.dsl.rest.response.DeploymentEvents;
 import org.cloudifysource.dsl.rest.response.GetApplicationAttributesResponse;
 import org.cloudifysource.dsl.rest.response.GetServiceAttributesResponse;
 import org.cloudifysource.dsl.rest.response.GetServiceInstanceAttributesResponse;
+import org.cloudifysource.dsl.rest.response.GetTemplateResponse;
 import org.cloudifysource.dsl.rest.response.InstallApplicationResponse;
 import org.cloudifysource.dsl.rest.response.InstallServiceResponse;
+import org.cloudifysource.dsl.rest.response.ListTemplatesResponse;
 import org.cloudifysource.dsl.rest.response.Response;
 import org.cloudifysource.dsl.rest.response.ServiceDescription;
 import org.cloudifysource.dsl.rest.response.ServiceDetails;
@@ -159,11 +166,27 @@ public class RESTResposneExampleGenerator implements IDocExampleGenerator {
 			serviceInstanceDetails.setPublicIp(RESTExamples.getPublicIp());
 			serviceInstanceDetails.setServiceInstanceName(RESTExamples.getInstanceName(serviceName, appName));
 			serviceInstanceDetails.setServiceName(serviceName);
-			serviceInstanceDetails.setTemplateName(RESTExamples.getTemplateName());
+			serviceInstanceDetails.setTemplateName("SMALL_UBUNTU");
 			
 			example = serviceInstanceDetails;
 		} else if (ServiceDescription.class.equals(clazz)) {
 			example = RESTExamples.getServicesDescription();
+		} else if (AddTemplatesResponse.class.equals(clazz)) {
+			example = new AddTemplatesResponse();
+			((AddTemplatesResponse) example).setFailedToAddTempaltes(new HashMap<String, Map<String, String>>());
+			List<String> successfullyAddedTempaltes = new LinkedList<String>();
+			successfullyAddedTempaltes.add("SMALL_UBUNTU");
+			successfullyAddedTempaltes.add("SMALL_SUSE");
+			((AddTemplatesResponse) example).setSuccessfullyAddedTempaltes(successfullyAddedTempaltes);
+		} else if (ListTemplatesResponse.class.equals(clazz)) {
+			example = new ListTemplatesResponse();
+			Map<String, ComputeTemplate> templates = new HashMap<String, ComputeTemplate>();
+			ComputeTemplateHolder templateHolder = RESTExamples.getTemplate(); 
+			templates.put(templateHolder.getName(), templateHolder.getCloudTemplate());
+			((ListTemplatesResponse) example).setTemplates(templates);
+		} else if (GetTemplateResponse.class.equals(clazz)) {
+			example = new GetTemplateResponse();
+			((GetTemplateResponse) example).setTemplate(RESTExamples.getTemplate().getCloudTemplate());
 		}  else if (clazz.isPrimitive()) {
 			example = PrimitiveExampleValues.getValue(clazz);
 		} else if (String.class.equals(clazz)) {

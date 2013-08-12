@@ -23,7 +23,13 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.lang.math.RandomUtils;
+import org.cloudifysource.domain.ComputeTemplateHolder;
+import org.cloudifysource.domain.cloud.FileTransferModes;
+import org.cloudifysource.domain.cloud.RemoteExecutionModes;
+import org.cloudifysource.domain.cloud.ScriptLanguages;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants.DeploymentState;
+import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.debug.DebugModes;
 import org.cloudifysource.dsl.rest.response.DeploymentEvent;
 import org.cloudifysource.dsl.rest.response.InstanceDescription;
@@ -39,6 +45,7 @@ public final class RESTExamples {
 
 	private static final int TIMEOUT_MINUTES_EXAMPLE = 5;
 	private static final int MAX_INSTANCE_ID = 5;
+	private static final int MACHINE_MEMORY_MB = 1600;
 
 	private RESTExamples() {
 	}
@@ -212,9 +219,38 @@ public final class RESTExamples {
 	}
 
 	static String getTemplateName() {
-		return "SMALL_LINUX";
+		return "MY_TEMPLATE_" + getInstanceId();
 	}
 
+	static ComputeTemplateHolder getTemplate() {
+		ComputeTemplateHolder holder = new ComputeTemplateHolder();
+		String templateName = getTemplateName();
+		holder.setName(templateName);
+		holder.setTemplateFileName(templateName + DSLUtils.TEMPLATE_DSL_FILE_NAME_SUFFIX);
+		holder.setPropertiesFileName(templateName + DSLUtils.TEMPLATES_PROPERTIES_FILE_NAME_SUFFIX);
+		ComputeTemplate cloudTemplate = new ComputeTemplate();
+		cloudTemplate.setImageId("eu-west-1/ami-c1aaabb5");
+		cloudTemplate.setMachineMemoryMB(MACHINE_MEMORY_MB);
+		cloudTemplate.setHardwareId("m1.small");
+		cloudTemplate.setLocationId("eu-west-1");
+		cloudTemplate.setNumberOfCores(1);
+		cloudTemplate.setRemoteDirectory("upload");
+		cloudTemplate.setLocalDirectory("upload");
+		cloudTemplate.setScriptLanguage(ScriptLanguages.LINUX_SHELL);
+		cloudTemplate.setFileTransfer(FileTransferModes.SFTP);
+		cloudTemplate.setKeyFile("key-file.pem");
+		cloudTemplate.setUsername(templateName.toLowerCase());
+		cloudTemplate.setRemoteExecution(RemoteExecutionModes.SSH);
+		cloudTemplate.setPrivileged(true);
+		Map<String, Object> options = new HashMap<String, Object>();
+		options.put("keyPair", "key-pair-eu");
+		String[] securityGroups = {"default"};
+		options.put("securityGroups", securityGroups);
+		cloudTemplate.setOptions(options);
+		holder.setCloudTemplate(cloudTemplate);
+		return holder;
+	}
+	
 	private static int getRandomInt(final int max) {
 		return RandomUtils.nextInt(max);
 	}

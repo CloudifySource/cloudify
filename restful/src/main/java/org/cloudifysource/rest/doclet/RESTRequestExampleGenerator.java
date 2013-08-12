@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang.ClassUtils;
+import org.cloudifysource.dsl.rest.request.AddTemplatesRequest;
 import org.cloudifysource.dsl.rest.request.InstallApplicationRequest;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
 import org.cloudifysource.dsl.rest.request.SetApplicationAttributesRequest;
@@ -53,8 +54,7 @@ public class RESTRequestExampleGenerator implements IDocExampleGenerator {
 		
 	}
 	
-	private Object getRequestExample(final Class<?> clazz) 
-			throws InstantiationException, IllegalAccessException {
+	private Object getRequestExample(final Class<?> clazz) {
 		Object example = null;
 		if (clazz.equals(InstallApplicationRequest.class)) {
 			InstallApplicationRequest installApplicationRequest = new InstallApplicationRequest();
@@ -102,6 +102,9 @@ public class RESTRequestExampleGenerator implements IDocExampleGenerator {
 			setServiceInstancesRequest.setLocationAware(false);
 			setServiceInstancesRequest.setTimeout(RESTExamples.getTimeoutMinutes());
 			example = setServiceInstancesRequest;
+		} else if (AddTemplatesRequest.class.equals(clazz)) {
+			example = new AddTemplatesRequest();
+			((AddTemplatesRequest) example).setUploadKey(RESTExamples.getUploadKey());
 		} else if (MultipartFile.class.isAssignableFrom(clazz)) {
 			example = "file's content";
 		} else if (clazz.isPrimitive()) {
