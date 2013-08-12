@@ -77,6 +77,7 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 
 	protected final List<ProvisioningDriverListener> eventsListenersList = new LinkedList<ProvisioningDriverListener>();
 	protected Boolean cleanRemoteDirectoryOnStart = false;
+	protected boolean isVerboseValidation = true;
 
 
 	/**
@@ -118,6 +119,8 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 		this.cloudTemplateName = cloudTemplateName;
 		this.management = management;
 		this.cloudName = cloud.getName();
+		this.isVerboseValidation = cloud.getCustom().get("verboseValidation") == null 
+				? true : (Boolean) cloud.getCustom().get("verboseValidation");
 		
 		publishEvent(EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
 		initDeployer(cloud);

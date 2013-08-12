@@ -15,8 +15,10 @@ package org.cloudifysource.esc.driver.provisioning.jclouds;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -53,7 +55,10 @@ import org.jclouds.apis.ApiMetadata;
 import org.jclouds.apis.Apis;
 import org.jclouds.compute.ComputeServiceContext;
 import org.jclouds.compute.domain.ComputeMetadata;
+import org.jclouds.compute.domain.Hardware;
+import org.jclouds.compute.domain.Image;
 import org.jclouds.compute.domain.NodeMetadata;
+import org.jclouds.domain.Location;
 import org.jclouds.domain.LoginCredentials;
 import org.jclouds.ec2.EC2AsyncClient;
 import org.jclouds.ec2.EC2Client;
@@ -843,6 +848,11 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 					validationContext.validationEventEnd(ValidationResultType.OK);
 				} catch (Exception ex) {
 					validationContext.validationEventEnd(ValidationResultType.ERROR);
+					if (apiId.equalsIgnoreCase(OPENSTACK_API) && this.isVerboseValidation) {
+						validateLocationID(locationId);
+						validateHardwareID(hardwareId);
+						validateImageID(imageId);
+					}
 					throw new CloudProvisioningException(
 							getFormattedMessage("error_image_hardware_location_combination_validation",
 							imageId == null ? "" : imageId,
@@ -863,7 +873,51 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			closeDeployer(deployer);
 		}
 	}
-	
+
+	private void validateImageID(final String imageId) throws CloudProvisioningException {
+		Set<? extends Image> allImages = deployer.getAllImages();
+		final List<String> ids = new ArrayList<String>();
+		for (Image image : allImages) {
+			if (imageId.equalsIgnoreCase(image.getId())) {
+				return;
+			}
+			ids.add(image.getId());
+		}
+		throw new CloudProvisioningException(
+				getFormattedMessage("error_image_id_validation",
+						imageId == null ? "" : imageId, Arrays.toString(ids.toArray())));
+		
+	}
+
+	private void validateHardwareID(final String hardwareId) throws CloudProvisioningException {
+		final Set<? extends Hardware> allHardwareProfiles = deployer.getContext()
+				.getComputeService().listHardwareProfiles();
+		final List<String> ids = new ArrayList<String>();
+		for (Hardware hardware : allHardwareProfiles) {
+			if (hardwareId.equalsIgnoreCase(hardware.getId())) {
+				return;
+			}
+			ids.add(hardware.getId());
+		}
+		throw new CloudProvisioningException(
+				getFormattedMessage("error_hardware_id_validation",
+						hardwareId == null ? "" : hardwareId, Arrays.toString(ids.toArray())));
+	}
+
+	private void validateLocationID(final String locationId) 
+			throws CloudProvisioningException {
+		Set<? extends Location> allLocations = deployer.getAllLocations();
+		final List<String> ids = new ArrayList<String>();
+		for (Location location : allLocations) {
+			if (locationId.equalsIgnoreCase(location.getId())) {
+				return;
+			}
+			ids.add(location.getId());
+		}
+		throw new CloudProvisioningException(
+				getFormattedMessage("error_location_id_validation",
+						locationId == null ? "" : locationId, Arrays.toString(ids.toArray())));
+	}
 
 	private void validateSecurityGroupsForTemplate(final ComputeTemplate template, final String apiId,
 			final ComputeServiceContext computeServiceContext, final ValidationContext validationContext)
