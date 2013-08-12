@@ -12,13 +12,6 @@
  *******************************************************************************/
 package org.cloudifysource.shell.validators;
 
-import java.io.IOException;
-import java.net.UnknownHostException;
-
-import org.apache.commons.lang.StringUtils;
-import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
-import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.shell.exceptions.CLIValidationException;
 
 /**
@@ -49,38 +42,38 @@ public class LusConnectionValidator implements CloudifyAgentValidator {
 	@Override
 	public void validate() throws CLIValidationException {
 
-		// get lus IP address from the environment variable if not already set
-		if (StringUtils.isBlank(lusIpAddress)) {
-			lusIpAddress = System.getenv(CloudifyConstants.LUS_IP_ADDRESS_ENV);
-		}
-
-		// TODO noak : throw CLIValidationException with custom exit code (130) instead?
-		if (StringUtils.isBlank(lusIpAddress)) {
-			throw new IllegalArgumentException("LUS IP address not configred. The environment variable \"" 
-					+ CloudifyConstants.LUS_IP_ADDRESS_ENV + "\" is not set.");
-		}
-
-		//parse the ip address and port
-		String hostAddress = IPUtils.getHostFromFullAddress(lusIpAddress);
-		int port = IPUtils.getPortFromFullAddress(lusIpAddress);		
-
-		try {
-			IPUtils.validateConnection(hostAddress, port);
-		} catch (UnknownHostException uhe) {
-			// thrown if the IP address of the host could not be determined.
-			throw new CLIValidationException(uhe, 127,
-					CloudifyErrorMessages.LUS_CONNECTION_VALIDATION_ABORTED_UNKNOWN_HOST.getName(), hostAddress);
-		} catch (IOException ioe) {
-			// thrown if an I/O error occurs when creating the socket or connecting.
-			throw new CLIValidationException(ioe, 128,
-					CloudifyErrorMessages.LUS_CONNECTION_VALIDATION_ABORTED_IO_ERROR.getName(), hostAddress, port,
-					ioe.getMessage());
-		} catch (SecurityException se) {
-			// thrown if a security manager exists and permission to resolve the host name is denied.
-			throw new CLIValidationException(se,  129,
-					CloudifyErrorMessages.LUS_CONNECTION_VALIDATION_ABORTED_NO_PERMISSION.getName(), hostAddress, port,
-					se.getMessage());
-		}
+//		// get lus IP address from the environment variable if not already set
+//		if (StringUtils.isBlank(lusIpAddress)) {
+//			lusIpAddress = System.getenv(CloudifyConstants.LUS_IP_ADDRESS_ENV);
+//		}
+//
+//		// TODO noak : throw CLIValidationException with custom exit code (130) instead?
+//		if (StringUtils.isBlank(lusIpAddress)) {
+//			throw new IllegalArgumentException("LUS IP address not configred. The environment variable \"" 
+//					+ CloudifyConstants.LUS_IP_ADDRESS_ENV + "\" is not set.");
+//		}
+//
+//		//parse the ip address and port
+//		String hostAddress = IPUtils.getHostFromFullAddress(lusIpAddress);
+//		int port = IPUtils.getPortFromFullAddress(lusIpAddress);		
+//
+//		try {
+//			IPUtils.validateConnection(hostAddress, port);
+//		} catch (UnknownHostException uhe) {
+//			// thrown if the IP address of the host could not be determined.
+//			throw new CLIValidationException(uhe, 127,
+//					CloudifyErrorMessages.LUS_CONNECTION_VALIDATION_ABORTED_UNKNOWN_HOST.getName(), hostAddress);
+//		} catch (IOException ioe) {
+//			// thrown if an I/O error occurs when creating the socket or connecting.
+//			throw new CLIValidationException(ioe, 128,
+//					CloudifyErrorMessages.LUS_CONNECTION_VALIDATION_ABORTED_IO_ERROR.getName(), hostAddress, port,
+//					ioe.getMessage());
+//		} catch (SecurityException se) {
+//			// thrown if a security manager exists and permission to resolve the host name is denied.
+//			throw new CLIValidationException(se,  129,
+//					CloudifyErrorMessages.LUS_CONNECTION_VALIDATION_ABORTED_NO_PERMISSION.getName(), hostAddress, port,
+//					se.getMessage());
+//		}
 		
 	}
 
