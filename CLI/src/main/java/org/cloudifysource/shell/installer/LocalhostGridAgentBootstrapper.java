@@ -158,7 +158,7 @@ public class LocalhostGridAgentBootstrapper {
 	private boolean noWebServices;
 	private boolean noManagementSpace;
 	private boolean notHighlyAvailableManagementSpace;
-//	private int lusPort = OpenspacesConstants.DEFAULT_LUS_PORT;
+	// private int lusPort = OpenspacesConstants.DEFAULT_LUS_PORT;
 	private boolean waitForWebUi;
 
 	private String cloudFilePath;
@@ -325,29 +325,28 @@ public class LocalhostGridAgentBootstrapper {
 			final int timeout, final TimeUnit timeunit) throws CLIException, InterruptedException, TimeoutException {
 
 		final long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
-		
+
 		final List<AbstractManagementServiceInstaller> managementServicesInstallers =
 				new LinkedList<AbstractManagementServiceInstaller>();
-		
+
 		setDefaultNicAddress();
 
 		setDefaultLocalcloudLookup();
 
 		if (isWindows()) {
 			startManagementOnLocalhostAndWaitInternal(LOCALCLOUD_WIN_MANAGEMENT_ARGUMENTS, securityProfile,
-					securityFilePath, username, password, keystoreFilePath, keystorePassword, 
+					securityFilePath, username, password, keystoreFilePath, keystorePassword,
 					managementServicesInstallers, end, true);
 		} else {
 			startManagementOnLocalhostAndWaitInternal(LOCALCLOUD_LINUX_MANAGEMENT_ARGUMENTS, securityProfile,
 					securityFilePath, username, password, keystoreFilePath, keystorePassword,
 					managementServicesInstallers, end, true);
 		}
-		
+
 		// validate the services are still up
 		waitForManagementServices(managementServicesInstallers, end);
 	}
 
-	
 	private void setDefaultNicAddress() throws CLIException {
 
 		if (nicAddress == null) {
@@ -406,7 +405,7 @@ public class LocalhostGridAgentBootstrapper {
 			final int timeout, final TimeUnit timeunit) throws CLIException, InterruptedException, TimeoutException {
 
 		final long end = System.currentTimeMillis() + timeunit.toMillis(timeout);
-		
+
 		try {
 			this.cloud = ServiceReader.readCloud(new File(this.cloudFilePath));
 		} catch (final IOException e) {
@@ -418,8 +417,8 @@ public class LocalhostGridAgentBootstrapper {
 		setDefaultNicAddress();
 
 		// pre validations
-		List<CloudifyMachineValidator> preValidatorsList = 
-				CloudifyMachineValidatorsFactory.getValidators(true/*isManagement*/, nicAddress);
+		List<CloudifyMachineValidator> preValidatorsList =
+				CloudifyMachineValidatorsFactory.getValidators(true/* isManagement */, nicAddress);
 		for (CloudifyMachineValidator cloudifyMachineValidator : preValidatorsList) {
 			cloudifyMachineValidator.validate();
 		}
@@ -431,12 +430,11 @@ public class LocalhostGridAgentBootstrapper {
 				new LinkedList<AbstractManagementServiceInstaller>();
 		startManagementOnLocalhostAndWaitInternal(CLOUD_MANAGEMENT_ARGUMENTS, securityProfile, securityFilePath,
 				username, password, keystoreFilePath, keystorePassword, managementServicesInstallers, end, false);
-		
+
 		// validate the services are still up
 		waitForManagementServices(managementServicesInstallers, end);
 
 	}
-
 
 	private void redeployManagement() throws CLIException {
 		final ManagementRedeployer redeployer = new ManagementRedeployer();
@@ -569,12 +567,12 @@ public class LocalhostGridAgentBootstrapper {
 	}
 
 	private void uninstall(
-			final Collection<String> applicationsList, 
-			final long timeout, 
-			final TimeUnit timeunit, 
+			final Collection<String> applicationsList,
+			final long timeout,
+			final TimeUnit timeunit,
 			final boolean applicationsExist)
 			throws InterruptedException, TimeoutException, CLIException {
-		
+
 		for (final String appName : applicationsList) {
 			try {
 				if (!appName.equals(MANAGEMENT_APPLICATION)) {
@@ -611,31 +609,31 @@ public class LocalhostGridAgentBootstrapper {
 		}
 
 	}
-	
+
 	private void uninstallNewRestClient(
-			final Collection<String> applicationsList, 
-			final long timeout, 
-			final TimeUnit timeunit, 
+			final Collection<String> applicationsList,
+			final long timeout,
+			final TimeUnit timeunit,
 			final boolean applicationsExist) throws CLIException {
 		for (final String application : applicationsList) {
-            if (!application.equals(MANAGEMENT_APPLICATION)) {
-                CLIApplicationUninstaller uninstaller = new CLIApplicationUninstaller();
-                uninstaller.setRestClient(((RestAdminFacade) adminFacade).getNewRestClient());
-                uninstaller.setApplicationName(application);
-                uninstaller.setAskOnTimeout(false);
-                uninstaller.setInitialTimeout((int) timeout);
-                try {
-                    uninstaller.uninstall();
-                } catch (final Exception e) {
-                    if (force) {
-                        logger.warning("Failed uninstalling application " + application
-                                + ". Teardown will continue");
-                    } else {
-                        throw new CLIException(e.getMessage(), e);
-                    }
-                }
-            }
-        }
+			if (!application.equals(MANAGEMENT_APPLICATION)) {
+				CLIApplicationUninstaller uninstaller = new CLIApplicationUninstaller();
+				uninstaller.setRestClient(((RestAdminFacade) adminFacade).getNewRestClient());
+				uninstaller.setApplicationName(application);
+				uninstaller.setAskOnTimeout(false);
+				uninstaller.setInitialTimeout((int) timeout);
+				try {
+					uninstaller.uninstall();
+				} catch (final Exception e) {
+					if (force) {
+						logger.warning("Failed uninstalling application " + application
+								+ ". Teardown will continue");
+					} else {
+						throw new CLIException(e.getMessage(), e);
+					}
+				}
+			}
+		}
 	}
 
 	private void waitForUninstallApplications(final long timeout, final TimeUnit timeunit) throws InterruptedException,
@@ -1009,8 +1007,7 @@ public class LocalhostGridAgentBootstrapper {
 							ShellUtils.isSecureConnection(securityProfile), agent, managementServicesInstallers);
 				}
 
-				for (final AbstractManagementServiceInstaller managementServiceInstaller 
-						: managementServicesInstallers) {
+				for (final AbstractManagementServiceInstaller managementServiceInstaller : managementServicesInstallers) {
 					managementServiceInstaller.waitForInstallation(adminFacade, agent,
 							ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
 					if (managementServiceInstaller instanceof ManagementSpaceServiceInstaller) {
@@ -1042,17 +1039,17 @@ public class LocalhostGridAgentBootstrapper {
 			admin.close();
 		}
 	}
-	
+
 	private void waitForManagementServices(
 			final List<AbstractManagementServiceInstaller> managementServicesInstallers, final long end)
 			throws CLIException, InterruptedException, TimeoutException {
-		
+
 		final ConnectionLogsFilter connectionLogs = new ConnectionLogsFilter();
 		connectionLogs.supressConnectionErrors();
 		final Admin admin = createAdmin();
-		
+
 		logger.fine("Starting waitForManagementServices to verify the management services are still up...");
-		
+
 		try {
 			setLookupDefaults(admin);
 			GridServiceAgent agent = null;
@@ -1061,63 +1058,62 @@ public class LocalhostGridAgentBootstrapper {
 					// find the running agent
 					logger.fine("Attempting to find the running agent...");
 					if (!isLocalCloud || fastExistingAgentCheck()) {
-						agent = waitForExistingAgent(admin, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), 
+						agent = waitForExistingAgent(admin, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
 								TimeUnit.MILLISECONDS);
 						if (agent == null) {
 							// no existing agent running on local machine
 							logger.warning("Error! Failed to find a running agent after bootstrap completed");
-							throw new CLIValidationException(131, 
+							throw new CLIValidationException(131,
 									CloudifyErrorMessages.POST_BOOTSTRAP_NO_AGENT_FOUND.getName());
 						}
 						logger.fine("OK, agent was found.");
 					}
 				} catch (final Exception e) {
 					// no existing agent running on local machine
-					logger.warning("Error! Failed to find a running agent after bootstrap completed. Reported error: " 
+					logger.warning("Error! Failed to find a running agent after bootstrap completed. Reported error: "
 							+ e.getMessage());
-					throw new CLIValidationException(e, 131, 
+					throw new CLIValidationException(e, 131,
 							CloudifyErrorMessages.POST_BOOTSTRAP_NO_AGENT_FOUND.getName());
 				}
 			} finally {
 				connectionLogs.restoreConnectionErrors();
 			}
 
-
 			try {
 				// wait for LUS, GSM and ESM components to start
 				logger.fine("Attempting to find the running management componenets (LUS, GSM and ESM)...");
-				waitForManagementProcesses(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), 
+				waitForManagementProcesses(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
 						TimeUnit.MILLISECONDS);
 				logger.fine("OK, LUS, GSM and ESM are up and running.");
 			} catch (final Exception e) {
 				// LUS, GSM or ESM not found
 				logger.warning("Error! Some management components (LUS/ESM/GSM) are not available after bootstrap "
-						+ "completed. Reported error: "  + e.getMessage());
-				throw new CLIValidationException(e, 132, 
+						+ "completed. Reported error: " + e.getMessage());
+				throw new CLIValidationException(e, 132,
 						CloudifyErrorMessages.POST_BOOTSTRAP_MISSING_MGMT_COMPONENT.getName());
 			}
-			
+
 			connectionLogs.supressConnectionErrors();
 			try {
-				for (final AbstractManagementServiceInstaller managementServiceInstaller 
-						: managementServicesInstallers) {
+				for (final AbstractManagementServiceInstaller managementServiceInstaller : managementServicesInstallers) {
 					String serviceName = "";
 					try {
 						serviceName = managementServiceInstaller.getServiceName();
 						logger.fine("Attempting to find a running management service " + serviceName + "...");
-						//validateManagementService(admin, agent, serviceName, 
-						//		ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
+						// validateManagementService(admin, agent, serviceName,
+						// ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
 						managementServiceInstaller.validateManagementService(admin, agent,
 								ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
 						logger.fine("OK, management service " + serviceName + " is up and running.");
 					} catch (Exception e) {
 						// management service not found
-						logger.warning("Error! Management service " + serviceName + " is not available after bootstrap "
-								+ "completed. Reported error: "  + e.getMessage());
-						throw new CLIValidationException(e, 133, 
-								CloudifyErrorMessages.POST_BOOTSTRAP_MISSING_MGMT_SERVICE.getName(), 
+						logger.warning("Error! Management service " + serviceName
+								+ " is not available after bootstrap "
+								+ "completed. Reported error: " + e.getMessage());
+						throw new CLIValidationException(e, 133,
+								CloudifyErrorMessages.POST_BOOTSTRAP_MISSING_MGMT_SERVICE.getName(),
 								serviceName);
-					}					
+					}
 				}
 			} finally {
 				connectionLogs.restoreConnectionErrors();
@@ -1127,7 +1123,6 @@ public class LocalhostGridAgentBootstrapper {
 		}
 	}
 
-	
 	private String getGscLrmiCommandLineArg() {
 		String lrmiPortRangeCommandLineArgument = "";
 		if (!isLocalCloud) {
@@ -1332,14 +1327,14 @@ public class LocalhostGridAgentBootstrapper {
 		final Admin admin = createAdmin();
 		try {
 			setLookupDefaults(admin);
-			
+
 			// pre validations
-			List<CloudifyMachineValidator> preValidatorsList = 
-					CloudifyMachineValidatorsFactory.getValidators(false/*isManagement*/, nicAddress);
+			List<CloudifyMachineValidator> preValidatorsList =
+					CloudifyMachineValidatorsFactory.getValidators(false/* isManagement */, nicAddress);
 			for (CloudifyMachineValidator cloudifyMachineValidator : preValidatorsList) {
 				cloudifyMachineValidator.validate();
 			}
-			
+
 			try {
 				waitForExistingAgent(admin, WAIT_EXISTING_AGENT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 				throw new CLIException("Agent already running on local machine. Use shutdown-agent first.");
@@ -1570,7 +1565,7 @@ public class LocalhostGridAgentBootstrapper {
 		String localCloudOptions =
 				"-Xmx" + CloudifyConstants.DEFAULT_LOCALCLOUD_GSA_GSM_ESM_LUS_MEMORY_IN_MB + "m" + " -D"
 						+ CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY + "="
-						+ OpenspacesConstants.DEFAULT_LOCALCLOUD_LUS_PORT + " -D" 
+						+ OpenspacesConstants.DEFAULT_LOCALCLOUD_LUS_PORT + " -D"
 						+ GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE + "="
 						+ GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL
 						+ " " + GSM_PENDING_REQUESTS_DELAY
@@ -1603,11 +1598,17 @@ public class LocalhostGridAgentBootstrapper {
 			}
 			environment.put(CloudifyConstants.SPRING_SECURITY_CONFIG_FILE_ENV_VAR, securityFilePath);
 			if (nicAddress != null) {
-				environment.put(CloudifyConstants.GIGASPACES_AGENT_ENV_PRIVATE_IP, nicAddress);
-				environment.put(CloudifyConstants.GIGASPACES_AGENT_ENV_PUBLIC_IP, nicAddress);
+				final String publicLocalCloudIp =
+						getEnvWithDefault(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP, nicAddress);
+				final String privateLocalCloudIp =
+						getEnvWithDefault(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP, nicAddress);
 
-				environment.put(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP, nicAddress);
-				environment.put(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP, nicAddress);
+				environment.put(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP, publicLocalCloudIp);
+				environment.put(CloudifyConstants.GIGASPACES_AGENT_ENV_PUBLIC_IP, publicLocalCloudIp);
+
+				environment.put(CloudifyConstants.GIGASPACES_AGENT_ENV_PRIVATE_IP, privateLocalCloudIp);
+				environment.put(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP, privateLocalCloudIp);
+
 				environment.put("NIC_ADDR", nicAddress);
 
 			}
@@ -1645,6 +1646,14 @@ public class LocalhostGridAgentBootstrapper {
 		} catch (final IOException e) {
 			throw new CLIException("Error while starting agent", e);
 		}
+	}
+
+	private String getEnvWithDefault(final String key, final String defaultValue) {
+		String publicLocalCloudIp = defaultValue;
+		if (System.getenv().containsKey(key)) {
+			publicLocalCloudIp = System.getenv().get(key);
+		}
+		return publicLocalCloudIp;
 	}
 
 	private String createSpringProfilesList(final String securityProfile) {
@@ -1737,44 +1746,26 @@ public class LocalhostGridAgentBootstrapper {
 		this.cloudFilePath = cloudFilePath;
 	}
 
-
-	/*public void validateManagementService(final Admin admin, final GridServiceAgent agent, final String serviceName,
-			final long timeout, final TimeUnit timeunit) throws InterruptedException, TimeoutException, CLIException {
-		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
-			private boolean messagePublished = false;
-
-			/**
-			 * {@inheritDoc}
-			 */
-			/*@Override
-			public boolean isDone() throws CLIException, InterruptedException {
-				logger.fine("Waiting for " + serviceName + " service.");
-				if (!messagePublished) {
-					messagePublished = true;
-				}
-				final ProcessingUnit pu = admin.getProcessingUnits().getProcessingUnit(serviceName);
-				boolean isDone = false;
-				if (pu != null) {
-					for (final ProcessingUnitInstance instance : pu) {
-						GridServiceContainer gsc = instance.getGridServiceContainer();
-						if (gsc != null) {
-							GridServiceAgent gsa = gsc.getGridServiceAgent();
-							if (gsa != null && (agent.equals(gsa))) {
-								isDone = true;
-								break;
-							}
-						}
-					}
-				}
-
-				if (!isDone) {
-					publishEvent(null);
-				}
-
-				return isDone;
-			}
-		});
-
-		return;
-	}*/
+	/*
+	 * public void validateManagementService(final Admin admin, final GridServiceAgent agent, final String serviceName,
+	 * final long timeout, final TimeUnit timeunit) throws InterruptedException, TimeoutException, CLIException {
+	 * createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() { private boolean messagePublished
+	 * = false;
+	 * 
+	 * /** {@inheritDoc}
+	 */
+	/*
+	 * @Override public boolean isDone() throws CLIException, InterruptedException { logger.fine("Waiting for " +
+	 * serviceName + " service."); if (!messagePublished) { messagePublished = true; } final ProcessingUnit pu =
+	 * admin.getProcessingUnits().getProcessingUnit(serviceName); boolean isDone = false; if (pu != null) { for (final
+	 * ProcessingUnitInstance instance : pu) { GridServiceContainer gsc = instance.getGridServiceContainer(); if (gsc !=
+	 * null) { GridServiceAgent gsa = gsc.getGridServiceAgent(); if (gsa != null && (agent.equals(gsa))) { isDone =
+	 * true; break; } } } }
+	 * 
+	 * if (!isDone) { publishEvent(null); }
+	 * 
+	 * return isDone; } });
+	 * 
+	 * return; }
+	 */
 }
