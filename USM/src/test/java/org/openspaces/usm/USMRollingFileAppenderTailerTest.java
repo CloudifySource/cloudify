@@ -55,7 +55,8 @@ public class USMRollingFileAppenderTailerTest {
 	
 	// We use the root logger for everything so we can capture all of the output
 	// from shared libraries that use Log4j too
-	public static final Logger logger = Logger.getRootLogger();
+	public static final Logger testLogger = Logger.getRootLogger();
+	private java.util.logging.Logger logger = java.util.logging.Logger.getLogger(this.getClass().getName());
 	
 	private String logsDirectory = new File(System.getProperty("java.io.tmpdir"), "testRollingFileAppenderTailer").getAbsolutePath();
 	private String regex = "my.*\\.log";
@@ -63,7 +64,8 @@ public class USMRollingFileAppenderTailerTest {
 	
 	@Before
 	public void before() throws Exception {
-
+		//add console handler for the test log.
+		logger.addHandler(new ConsoleHandler());
 		// Where the logs will go.
 		final File logDir = new File(logsDirectory);
 
@@ -91,14 +93,14 @@ public class USMRollingFileAppenderTailerTest {
 		rfp.setMaxFileSize(MAX_LOG_FILE_SIZE);
 
 		// Set the default level of this logger.
-		logger.setLevel(Level.INFO);
+		testLogger.setLevel(Level.INFO);
 		// This logger will use the rolling appender.
-		logger.addAppender(rfp);
+		testLogger.addAppender(rfp);
 		
-		logger.getAllAppenders();
+		testLogger.getAllAppenders();
 		
 		
-	    logger.info("Log directory: " + logDir.getAbsolutePath());
+	    testLogger.info("Log directory: " + logDir.getAbsolutePath());
 		
 	}
 	
@@ -137,16 +139,19 @@ public class USMRollingFileAppenderTailerTest {
 			}
 		});
 		//Check file rolling occurred.
-		Assert.assertTrue(files.length == EXPECTED_NUMBER_OF_FILE_PARTS);
+		logger.log(java.util.logging.Level.INFO, "Asserting number of file parts is " + EXPECTED_NUMBER_OF_FILE_PARTS);
+		Assert.assertTrue("Was expecting " + EXPECTED_NUMBER_OF_FILE_PARTS + " files. Got " + files.length,
+				files.length == EXPECTED_NUMBER_OF_FILE_PARTS);
 		
 		//Test file sizes
+		logger.log(java.util.logging.Level.INFO, "Asserting files do not exceed the maximal log file size " + MAX_LOG_FILE_SIZE_DOUBLE + 1);
 		for (File file : files) {
 			long fileSize = file.length();
 			double fileSizeInKB = (double)fileSize/LOG_IO_BUFFER_SIZE_BYTES;
 			//assert no file is over the size limit defined in the RollingFileAppender.
-			Assert.assertTrue(fileSizeInKB < MAX_LOG_FILE_SIZE_DOUBLE + 1);
+			Assert.assertTrue("Expecting filesize " + fileSize + " to be smaller then max allowed size " + MAX_LOG_FILE_SIZE_DOUBLE 
+					,fileSizeInKB < MAX_LOG_FILE_SIZE_DOUBLE + 1);
 		}
-		
 	}
 
 	private void assertJavaUtilsTailedLogging(String loggedMessages) {
@@ -156,7 +161,9 @@ public class USMRollingFileAppenderTailerTest {
 		counter += seporatedLines.length;
 		
 		//worst case is that the tailer will miss the last line of a file before it's being rolled,
-		//So we expect for the number of lines to be [Total number of lines - number of files] in the worst case. 
+		//So we expect for the number of lines to be [Total number of lines - number of files] in the worst case.
+		logger.log(java.util.logging.Level.INFO, "asserting number of lines tailed. expecting "
+				+ (NUMBER_OF_LINES_TO_LOG - counter) + " to be smaller then " + EXPECTED_NUMBER_OF_FILE_PARTS);
 		Assert.assertTrue(NUMBER_OF_LINES_TO_LOG - counter < EXPECTED_NUMBER_OF_FILE_PARTS);
 		
 	}
@@ -167,7 +174,7 @@ public class USMRollingFileAppenderTailerTest {
 	 */
 	private void startLogging() {
 		for(int i = 0; i < NUMBER_OF_LINES_TO_LOG; i++){
-			logger.info( "Epoch is " + new Date().getTime() + "  " + i);
+			testLogger.info( "Epoch is " + new Date().getTime() + "  " + i);
 			try {
 				Thread.sleep(RFAT_SAMPLING_RATE_MILLISECOND * 2);
 			} catch (InterruptedException e) {
