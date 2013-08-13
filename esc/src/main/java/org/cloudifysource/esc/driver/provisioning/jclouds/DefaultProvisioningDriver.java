@@ -879,14 +879,24 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 		Image img = deployer.getContext().getComputeService().getImage(imageId);
 		if (img == null) {
 			Set<? extends Image> allImages = deployer.getAllImages();
-			final List<String> ids = new ArrayList<String>();
+			StringBuilder sb = new StringBuilder();
+			sb.append(System.getProperty("line.separator"));
+			int index = 0;
 			for (Image image : allImages) {
-				ids.add(image.getId());
+				if (index > MAX_VERBOSE_IDS_LENGTH) {
+					sb.append("etc...");
+					break;
+				}
+				index++;
+				sb.append(image.getId());
+				if (image.getName() != null) {
+					 sb.append(" - " + image.getName());
+				}
+				sb.append(System.getProperty("line.separator"));
 			}
-			final String message = createVerboseIdValidationMessage(ids);
 			throw new CloudProvisioningException(
 					getFormattedMessage("error_image_id_validation",
-							imageId == null ? "" : imageId, message));
+							imageId == null ? "" : imageId, sb.toString()));
 		}
 
 	}
@@ -896,7 +906,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 				.getComputeService().listHardwareProfiles();
 		final List<String> ids = new ArrayList<String>();
 		for (Hardware hardware : allHardwareProfiles) {
-			if (hardware.getId().equalsIgnoreCase(hardwareId)) {
+			if (hardware.getId().equals(hardwareId)) {
 				return;
 			}
 			ids.add(hardware.getId());
@@ -913,7 +923,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 			Set<? extends Location> allLocations = deployer.getAllLocations();
 			final List<String> ids = new ArrayList<String>();
 			for (Location location : allLocations) {
-				if (location.getId().equalsIgnoreCase(locationId)) {
+				if (location.getId().equals(locationId)) {
 					return;
 				}
 				ids.add(location.getId());
@@ -934,7 +944,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 				sb.append("etc...");
 				break;
 			}
-			sb.append(" - " + string);
+			sb.append(string);
 			sb.append(System.getProperty("line.separator"));
 			index++;
 		}
