@@ -580,8 +580,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver implements Pr
 		final MachineDetails md = createMachineDetailsForTemplate(template);
 
 		md.setMachineId(node.getId());
-		md.setPrivateAddress(node.getHostName());
-		//md.setPrivateAddress(node.getPrivateIP());
+//		md.setPrivateAddress(node.getHostName());
+		md.setPrivateAddress(node.getPrivateIP());
 		md.setPublicAddress(node.getPublicIP());
 
 		// prefer node settings over template setting
