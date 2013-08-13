@@ -119,9 +119,15 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 		this.cloudTemplateName = cloudTemplateName;
 		this.management = management;
 		this.cloudName = cloud.getName();
-		this.isVerboseValidation = cloud.getCustom().get(CloudifyConstants.CUSTOM_PROPERTY_VERBOSE_VALIDATION) == null 
-				? true : (Boolean) cloud.getCustom().get(CloudifyConstants.CUSTOM_PROPERTY_VERBOSE_VALIDATION);
-		
+		Object bol = cloud.getCustom().get(CloudifyConstants.CUSTOM_PROPERTY_VERBOSE_VALIDATION);
+		if (bol == null) {
+			this.isVerboseValidation = true;
+		} else if (bol instanceof String) {
+			this.isVerboseValidation = Boolean.parseBoolean((String) bol);
+		} else if (bol instanceof Boolean) {
+			this.isVerboseValidation = 
+					(Boolean) cloud.getCustom().get(CloudifyConstants.CUSTOM_PROPERTY_VERBOSE_VALIDATION);
+		}
 		publishEvent(EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
 		initDeployer(cloud);
 		publishEvent(EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
