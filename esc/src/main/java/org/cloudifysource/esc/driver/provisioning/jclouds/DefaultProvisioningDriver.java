@@ -100,6 +100,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	private static final String CLOUDSTACK = "cloudstack";
 	private static final String ENDPOINT_OVERRIDE = "jclouds.endpoint";
 	private static final String CLOUDS_FOLDER_PATH = Environment.getHomeDirectory() + "clouds";
+	private static final int MAX_VERBOSE_IDS_LENGTH = 5;
 
 
 	// TODO: should it be volatile?
@@ -873,18 +874,19 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 	}
 
 	private void validateImageID(final String imageId) throws CloudProvisioningException {
-		Set<? extends Image> allImages = deployer.getAllImages();
-		final List<String> ids = new ArrayList<String>();
-		for (Image image : allImages) {
-			if (imageId.equalsIgnoreCase(image.getId())) {
-				return;
+		Image img = deployer.getContext().getComputeService().getImage(imageId);
+		if (img == null) {
+			Set<? extends Image> allImages = deployer.getAllImages();
+			final List<String> ids = new ArrayList<String>();
+			for (Image image : allImages) {
+				ids.add(image.getId());
 			}
-			ids.add(image.getId());
+			final String message = createVerboseIdValidationMessage(ids);
+			throw new CloudProvisioningException(
+					getFormattedMessage("error_image_id_validation",
+							imageId == null ? "" : imageId, message));
 		}
-		throw new CloudProvisioningException(
-				getFormattedMessage("error_image_id_validation",
-						imageId == null ? "" : imageId, Arrays.toString(ids.toArray())));
-		
+
 	}
 
 	private void validateHardwareID(final String hardwareId) throws CloudProvisioningException {
@@ -892,29 +894,49 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver implements
 				.getComputeService().listHardwareProfiles();
 		final List<String> ids = new ArrayList<String>();
 		for (Hardware hardware : allHardwareProfiles) {
-			if (hardwareId.equalsIgnoreCase(hardware.getId())) {
+			if (hardware.getId().equalsIgnoreCase(hardwareId)) {
 				return;
 			}
 			ids.add(hardware.getId());
 		}
+		final String message = createVerboseIdValidationMessage(ids);
 		throw new CloudProvisioningException(
 				getFormattedMessage("error_hardware_id_validation",
-						hardwareId == null ? "" : hardwareId, Arrays.toString(ids.toArray())));
+						hardwareId == null ? "" : hardwareId, message));
 	}
 
 	private void validateLocationID(final String locationId) 
 			throws CloudProvisioningException {
-		Set<? extends Location> allLocations = deployer.getAllLocations();
-		final List<String> ids = new ArrayList<String>();
-		for (Location location : allLocations) {
-			if (locationId.equalsIgnoreCase(location.getId())) {
-				return;
+		if (locationId != null) {
+			Set<? extends Location> allLocations = deployer.getAllLocations();
+			final List<String> ids = new ArrayList<String>();
+			for (Location location : allLocations) {
+				if (location.getId().equalsIgnoreCase(locationId)) {
+					return;
+				}
+				ids.add(location.getId());
 			}
-			ids.add(location.getId());
+			String message = createVerboseIdValidationMessage(ids);
+			throw new CloudProvisioningException(
+					getFormattedMessage("error_location_id_validation",
+							locationId, message));
 		}
-		throw new CloudProvisioningException(
-				getFormattedMessage("error_location_id_validation",
-						locationId == null ? "" : locationId, Arrays.toString(ids.toArray())));
+	}
+
+	private String createVerboseIdValidationMessage(final List<String> ids) {
+		final StringBuilder sb = new StringBuilder();
+		sb.append(System.getProperty("line.separator"));
+		int index = 1;
+		for (String string : ids) {
+			if (index > MAX_VERBOSE_IDS_LENGTH) {
+				sb.append("etc...");
+				break;
+			}
+			sb.append(" - " + string);
+			sb.append(System.getProperty("line.separator"));
+			index++;
+		}
+		return sb.toString();
 	}
 
 	private void validateSecurityGroupsForTemplate(final ComputeTemplate template, final String apiId,
