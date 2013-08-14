@@ -14,6 +14,8 @@ package org.cloudifysource.shell.validators;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -28,6 +30,8 @@ import org.cloudifysource.shell.exceptions.CLIValidationException;
  */
 public class LusConnectionValidator implements CloudifyAgentValidator {
 	
+	private final Logger logger = Logger.getLogger(this.getClass().getName());
+	private static final int MAX_NUM_RETRIES = 3;
 	private String lusIpAddresses;
 	
 	// TODO noa run only on agent
@@ -78,7 +82,22 @@ public class LusConnectionValidator implements CloudifyAgentValidator {
 		//parse the ip address and port
 		final String hostAddress = IPUtils.getHostFromFullAddress(address);
 		final int port = IPUtils.getPortFromFullAddress(address);		
-		
+		for (int i = 0; i < MAX_NUM_RETRIES; i++) {
+			try {
+				validateConnection(hostAddress, port);
+				return;
+			} catch (CLIValidationException e) {
+				if (i == 2) {
+					throw e;
+				}
+				logger.log(Level.WARNING, "Failed validating connection to lus. "
+						 + "Attempting to reconnect.", e);
+			}
+		}
+	}
+
+	void validateConnection(final String hostAddress, final int port)
+			throws CLIValidationException {
 		try {
 			IPUtils.validateConnection(hostAddress, port);
 			return;
@@ -98,5 +117,4 @@ public class LusConnectionValidator implements CloudifyAgentValidator {
 					port, se.getMessage());
 		}
 	}
-
 }
