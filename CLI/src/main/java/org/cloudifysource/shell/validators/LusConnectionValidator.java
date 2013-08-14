@@ -20,6 +20,7 @@ import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
+import org.cloudifysource.dsl.utils.IOUtils;
 import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.shell.exceptions.CLIValidationException;
 
@@ -30,6 +31,7 @@ import org.cloudifysource.shell.exceptions.CLIValidationException;
  */
 public class LusConnectionValidator implements CloudifyAgentValidator {
 	
+	private static final long TWO_SECONDS_MILLI = 2000;
 	private final Logger logger = Logger.getLogger(this.getClass().getName());
 	private static final int MAX_NUM_RETRIES = 3;
 	private String lusIpAddresses;
@@ -90,9 +92,11 @@ public class LusConnectionValidator implements CloudifyAgentValidator {
 				if (i == 2) {
 					throw e;
 				}
-				logger.log(Level.WARNING, "Failed validating connection to lus. "
-						 + "Attempting to reconnect.", e);
+				logger.log(Level.WARNING, "Failed validating connection to lus. " 
+						+ "Error was: " + e.getMessage()
+							+ "Attempting to reconnect.", e);
 			}
+			IOUtils.threadSleep(TWO_SECONDS_MILLI);
 		}
 	}
 

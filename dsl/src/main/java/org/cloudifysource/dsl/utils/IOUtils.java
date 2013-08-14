@@ -153,6 +153,20 @@ public final class IOUtils {
 		return getHttpReturnCode(
 				url, DEFAULT_HTTP_CONNECTION_TIMEOUT, DEFAULT_HTTP_READ_TIMEOUT);
 	}
+	
+	
+	/********
+	 * sleep for a specified duration of time.
+	 * @param duration
+	 * 			sleep duration.
+	 */
+	public static void threadSleep(final long duration) {
+		try {
+			Thread.sleep(duration);
+		} catch (InterruptedException e) {
+			//DO NOTING
+		}
+	}
 
 	/*********
 	 * Executes an HTTP GET Request to the given URL.
