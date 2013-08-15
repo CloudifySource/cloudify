@@ -29,6 +29,7 @@ import org.cloudifysource.usm.tail.RollingFileAppenderTailer;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.BlockJUnit4ClassRunner;
@@ -104,6 +105,7 @@ public class USMRollingFileAppenderTailerTest {
 		
 	}
 	
+	@Ignore
 	@Test
 	public void rollingFileAppenderTailer() throws InterruptedException {
 		
