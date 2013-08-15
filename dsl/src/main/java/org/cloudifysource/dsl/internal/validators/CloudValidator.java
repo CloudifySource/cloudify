@@ -15,6 +15,7 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.internal.validators;
 
+import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -23,6 +24,7 @@ import org.cloudifysource.domain.DSLValidation;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.CloudConfiguration;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
+import org.cloudifysource.dsl.internal.CloudDependentConfigHolder;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLValidationContext;
 import org.cloudifysource.dsl.internal.DSLValidationException;
@@ -34,10 +36,13 @@ import org.cloudifysource.dsl.internal.DSLValidationException;
  */
 public class CloudValidator implements DSLValidator {
 
+	private static final String GET_CLOUD_DEPEDENT_CONFIG_METHOD_NAME = "getCloudDependentConfig";
+	private static final String UTIL_DOMAIN_COMPLEMENTARY_CLASS = 
+			"org.cloudifysource.utilitydomain.openspaces.OpenspacesDomainUtils";
 	private Cloud entity;
 
 	@Override
-	public void setDSLEntity(Object dslEntity) {
+	public void setDSLEntity(final Object dslEntity) {
 		this.entity = (Cloud) dslEntity;
 	}
 	
@@ -106,6 +111,7 @@ public class CloudValidator implements DSLValidator {
 			}
 		}
 	}
+	
 
 	private void validateClosureExists(final Map<String, Object> customMap, final String key,
 			final String templateName) throws DSLValidationException {
@@ -116,4 +122,42 @@ public class CloudValidator implements DSLValidator {
 		}
 	}
 
+	//This is a special case. properties that depend on openspaces will be assigned here.
+	/**
+	 * Set all properties that depend on openspaces using reflection.
+	 */
+	@DSLValidation
+	public void setDependentCloudProps(final DSLValidationContext validationContext) {
+		final String utilDomainClass = UTIL_DOMAIN_COMPLEMENTARY_CLASS;
+		try {
+			final Object utilDomainClassInstance = Class.forName(utilDomainClass).newInstance();
+			final Method getCloudDependentConfMethod = utilDomainClassInstance.getClass()
+					.getMethod(GET_CLOUD_DEPEDENT_CONFIG_METHOD_NAME); 
+			CloudDependentConfigHolder holder = (CloudDependentConfigHolder) getCloudDependentConfMethod
+					.invoke(utilDomainClassInstance, (Object[]) null);
+			
+			//Setting the dependent properties.
+			if (StringUtils.isEmpty(entity.getProvider().getCloudifyUrl())) {
+				//set the cloudify url according to the openspaces platform version.
+				entity.getProvider().setCloudifyUrl(holder.getDownloadUrl());
+			}
+			
+			if (entity.getConfiguration().getComponents().getDiscovery().getDiscoveryPort() == null) {
+				//Set the discovery port according to default os discovery port 
+				entity.getConfiguration().getComponents().getDiscovery()
+				.setDiscoveryPort(holder.getDefaultLusPort());
+			}
+			
+			if (entity.getConfiguration().getComponents().getRest().getPort() == null) {
+				entity.getConfiguration().getComponents().getRest().setPort(CloudifyConstants.DEFAULT_REST_PORT);
+			}
+			
+			if (entity.getConfiguration().getComponents().getWebui().getPort() == null) {
+				entity.getConfiguration().getComponents().getWebui().setPort(CloudifyConstants.DEFAULT_WEBUI_PORT);
+			}
+		} catch (Exception e) {
+			//Failed since openspaces is not in classpath.
+			//This can happen.
+		}
+	}
 }

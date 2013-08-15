@@ -12,6 +12,11 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.internal;
 
+/**
+ * Complementary config holder.
+ * @author adaml
+ *
+ */
 public class CloudDependentConfigHolder {
 
 	private Integer defaultLusPort;
@@ -21,7 +26,7 @@ public class CloudDependentConfigHolder {
 		return downloadUrl;
 	}
 	
-	public void setDownloadUrl(String downloadUrl) {
+	public void setDownloadUrl(final String downloadUrl) {
 		this.downloadUrl = downloadUrl;
 	}
 
@@ -29,7 +34,7 @@ public class CloudDependentConfigHolder {
 		return defaultLusPort;
 	}
 
-	public void setDefaultLusPort(Integer defaultLusPort) {
+	public void setDefaultLusPort(final Integer defaultLusPort) {
 		this.defaultLusPort = defaultLusPort;
 	}
 
