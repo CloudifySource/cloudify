@@ -50,6 +50,7 @@ import org.cloudifysource.dsl.rest.response.AddTemplatesResponse;
 import org.cloudifysource.dsl.rest.response.GetTemplateResponse;
 import org.cloudifysource.dsl.rest.response.ListTemplatesResponse;
 import org.cloudifysource.dsl.rest.response.RemoveTemplatesResponse;
+import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.rest.RestConfiguration;
 import org.cloudifysource.rest.internal.RestClientInternal;
 import org.cloudifysource.rest.repo.UploadRepo;
@@ -930,7 +931,7 @@ public class TemplatesController extends BaseRestController {
 	private RestClientInternal createRestClientInternal(final String host, final String port) 
 			throws RestClientException {
 		final String protocol = getRestProtocol(permissionEvaluator != null);
-		final String baseUrl = protocol + "://" + host + ":" + port;
+		final String baseUrl = protocol + "://" + IPUtils.getSafeIpAddress(host) + ":" + port;
 		final String apiVersion = PlatformVersion.getVersion();
 		try {
 			return new RestClientInternal(new URL(baseUrl), "", "", apiVersion);
