@@ -56,6 +56,7 @@ public final class IPUtils {
 	private static final String SPRING_PROFILE_NON_SECURE = "nonsecure";
 
 	private static final String SPRING_SECURITY_PROFILE = System.getenv(SPRING_ACTIVE_PROFILE_ENV_VAR);
+	private static final int PORT_VALIDATION_RETRY_COUNT = 3;
 
 	/**
 	 * Converts a standard IP address to a long-format IP address.
@@ -374,22 +375,32 @@ public final class IPUtils {
 	 * @throws SecurityException .
 	 */
 	public static void validatePortIsFree(final String host, final int port) throws IOException,
-	SecurityException {
-		ServerSocket serverSocket = null;
-		try {
-			InetSocketAddress socketAddress = new InetSocketAddress(host, port);
-			serverSocket = new ServerSocket();
-			serverSocket.bind(socketAddress);
-		} finally {
-			if (serverSocket != null) {
-				try {
-					serverSocket.close();
-				} catch (Exception e) {
-					//ignore
-				}
-			}
-		}
-	}
+ 	SecurityException {
+ 		ServerSocket serverSocket = null;
+		IOException ex = null;
+		for (int i = 0; i < PORT_VALIDATION_RETRY_COUNT; i++) {
+			try {
+				InetSocketAddress socketAddress = new InetSocketAddress(host, port);
+				serverSocket = new ServerSocket();
+				serverSocket.bind(socketAddress);
+				return;
+			} catch (final IOException e) {
+				ex = e;
+				//wait for two seconds.
+				IOUtils.threadSleep(MILLISECONDS_IN_A_SECOND * 2);
+			} finally {
+				if (serverSocket != null) {
+					try {
+						serverSocket.close();
+						serverSocket = null;
+					} catch (Exception e) {
+						//ignore
+					}
+ 				}
+ 			}
+ 		}
+		throw ex;
+ 	}
 	
 
 	/**
