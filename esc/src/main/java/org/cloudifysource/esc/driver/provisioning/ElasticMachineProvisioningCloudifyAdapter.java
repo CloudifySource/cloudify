@@ -677,7 +677,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		final GridServiceAgent[] allAgents = originalESMAdmin.getGridServiceAgents().getAgents();
 
 		for (final GridServiceAgent gridServiceAgent : allAgents) {
-			if (gridServiceAgent.getMachine().getHostAddress().equals(machineIp) 
+			if (IPUtils.isSameIpAddress(gridServiceAgent.getMachine().getHostAddress(), machineIp)
 					|| 	gridServiceAgent.getMachine().getHostName().equals(machineIp)) {
 				// Check if the reservation ID of the located machine is the one we expect.
 				// This handles the rare error where the Admin for some reason caches an entry for an old
