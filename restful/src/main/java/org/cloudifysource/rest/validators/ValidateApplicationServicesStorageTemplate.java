@@ -34,11 +34,11 @@ public class ValidateApplicationServicesStorageTemplate implements InstallApplic
 	public void validate(final InstallApplicationValidationContext validationContext)
 			throws RestErrorException {
 		final Cloud cloud = validationContext.getCloud();
+		final ValidateStorageTemplateExists validator = new ValidateStorageTemplateExists();
 		for (Service service : validationContext.getApplication().getServices()) {
 			final StorageDetails storage = service.getStorage();
 			if (storage != null) {
 				final String serviceTemplateName = storage.getTemplate();
-				final ValidateStorageTemplateExists validator = new ValidateStorageTemplateExists();
 				validator.validateStorageTemplateExists(serviceTemplateName, cloud);
 			}
 		}
