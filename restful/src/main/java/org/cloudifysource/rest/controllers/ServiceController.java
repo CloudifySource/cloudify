@@ -2193,6 +2193,9 @@ public class ServiceController implements ServiceDetailsProvider {
 				result.getApplication(), applicationName, timeout, TimeUnit.MINUTES);
 
 		installer.setTaskPollingId(lifecycleEventContainerID);
+		
+		// remove any any trace of application attributes.
+		deleteApplicationScopeAttributes(applicationName);
 
 		if (installer.isAsyncInstallPossibleForApplication()) {
 			installer.run();
@@ -2568,7 +2571,7 @@ public class ServiceController implements ServiceDetailsProvider {
 
 	/**
 	 *
-	 * @param serviceName
+	 * @param absolutePUName
 	 *            .
 	 * @param applicationName
 	 *            .
@@ -2606,7 +2609,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	 * @throws DSLException .
 	 */
 	public String deployElasticProcessingUnit(
-			final String serviceName,
+			final String absolutePUName,
 			final String applicationName,
 			final String authGroups,
 			final String zone,
@@ -2720,30 +2723,32 @@ public class ServiceController implements ServiceDetailsProvider {
 		} else {
 			agentZones = new String[] { zone };
 		}
-
+		// remove any existing attributes.
+		deleteServiceAttributes(applicationName, 
+				ServiceUtils.getApplicationServiceName(absolutePUName, applicationName));
 		if (service == null) {
-			doDeploy(applicationName, serviceName, effectiveAuthGroups, templateName, agentZones,
+			doDeploy(applicationName, absolutePUName, effectiveAuthGroups, templateName, agentZones,
 					editSrcFile, propsFile, selfHealing, cloudOverrides);
 		} else if (service.getLifecycle() != null) {
-			doDeploy(applicationName, serviceName, effectiveAuthGroups, templateName, agentZones,
+			doDeploy(applicationName, absolutePUName, effectiveAuthGroups, templateName, agentZones,
 					editSrcFile, propsFile, service,
 					serviceCloudConfigurationContents, selfHealing, cloudOverrides);
 		} else if (service.getDataGrid() != null) {
-			deployDataGrid(applicationName, serviceName, effectiveAuthGroups, agentZones, editSrcFile,
+			deployDataGrid(applicationName, absolutePUName, effectiveAuthGroups, agentZones, editSrcFile,
 					propsFile, service.getDataGrid(), templateName,
 					service.isLocationAware(), cloudOverrides);
 		} else if (service.getStatelessProcessingUnit() != null) {
-			deployStatelessProcessingUnitAndWait(applicationName, serviceName, effectiveAuthGroups,
+			deployStatelessProcessingUnitAndWait(applicationName, absolutePUName, effectiveAuthGroups,
 					agentZones, new File(projectDir, "ext"), propsFile,
 					service.getStatelessProcessingUnit(), templateName,
 					service.getNumInstances(), service.isLocationAware(), cloudOverrides);
 		} else if (service.getMirrorProcessingUnit() != null) {
-			deployStatelessProcessingUnitAndWait(applicationName, serviceName, effectiveAuthGroups,
+			deployStatelessProcessingUnitAndWait(applicationName, absolutePUName, effectiveAuthGroups,
 					agentZones, new File(projectDir, "ext"), propsFile,
 					service.getMirrorProcessingUnit(), templateName,
 					service.getNumInstances(), service.isLocationAware(), cloudOverrides);
 		} else if (service.getStatefulProcessingUnit() != null) {
-			deployStatefulProcessingUnit(applicationName, serviceName, effectiveAuthGroups,
+			deployStatefulProcessingUnit(applicationName, absolutePUName, effectiveAuthGroups,
 					agentZones, new File(projectDir, "ext"), propsFile,
 					service.getStatefulProcessingUnit(), templateName,
 					service.isLocationAware(), cloudOverrides);
@@ -2770,7 +2775,7 @@ public class ServiceController implements ServiceDetailsProvider {
 					"Starting to poll for installation lifecycle events.");
 			if (service == null) {
 				lifecycleEventContainerID = startPollingForLifecycleEvents(
-						ServiceUtils.getApplicationServiceName(serviceName,
+						ServiceUtils.getApplicationServiceName(absolutePUName,
 								applicationName), applicationName, 1, true,
 						timeout, timeUnit).toString();
 			} else {
@@ -2912,7 +2917,7 @@ public class ServiceController implements ServiceDetailsProvider {
 				cloudConfigurationContents = FileUtils
 						.readFileToByteArray(cloudConfigurationFile);
 			}
-
+			
 			lifecycleEventsContainerID = deployElasticProcessingUnit(
 					absolutePuName,
 					applicationName,

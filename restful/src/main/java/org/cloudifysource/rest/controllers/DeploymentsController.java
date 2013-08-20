@@ -671,6 +671,9 @@ public class DeploymentsController extends BaseRestController {
 		// create a deployment ID that would be used across all services.
 		final String deploymentID = UUID.randomUUID().toString();
 
+		// remove any existing attributes for this application.
+		deleteApplicationScopeAttributes(request.getApplicationName());
+		
 		final ApplicationDeployerRunnable installer =
 				new ApplicationDeployerRunnable(this,
 						request,
@@ -1016,6 +1019,10 @@ public class DeploymentsController extends BaseRestController {
 		} catch (IOException e) {
 			throw new RestErrorException("Failed reading cloud overrides file.", e);
 		}
+		
+		// remove any leftover service attributes.
+		deleteServiceAttributes(appName, serviceName);
+		
 		// deploy
 		final DeploymentConfig deployConfig = new DeploymentConfig();
 		final String locators = extractLocators(restConfig.getAdmin());
