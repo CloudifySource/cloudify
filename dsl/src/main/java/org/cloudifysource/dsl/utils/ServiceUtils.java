@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.dsl.utils;
 
@@ -34,7 +31,7 @@ import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 import org.hyperic.sigar.ptql.ProcessFinder;
 
-//import com.gigaspaces.internal.sigar.SigarHolder;
+// import com.gigaspaces.internal.sigar.SigarHolder;
 
 /******************
  * ServiceUtils exposes a range of methods that recipes can use in closures, including TCP port checks, HTTP requests
@@ -60,7 +57,8 @@ public final class ServiceUtils {
 	/***********
 	 * Tests if a port of the localhost interface is in use.
 	 * 
-	 * @param port the port number.
+	 * @param port
+	 *            the port number.
 	 * @return true if the port is not in use, false otherwise.
 	 */
 	public static boolean isPortFree(final int port) {
@@ -70,7 +68,8 @@ public final class ServiceUtils {
 	/**
 	 * Checks that the specified ports are free.
 	 * 
-	 * @param portList - list of ports to check.
+	 * @param portList
+	 *            - list of ports to check.
 	 * @return - true if all ports are free
 	 */
 	public static boolean arePortsFree(final List<Integer> portList) {
@@ -92,7 +91,8 @@ public final class ServiceUtils {
 	/**
 	 * Checks whether the specified port is in use on the the localhost ("127.0.0.1") interface.
 	 * 
-	 * @param port the port to check.
+	 * @param port
+	 *            the port to check.
 	 * @return true if in use, false otherwise.
 	 */
 	public static boolean isPortOccupied(final int port) {
@@ -102,8 +102,10 @@ public final class ServiceUtils {
 	/**
 	 * Checks whether a specified port is occupied.
 	 * 
-	 * @param host - the interface/host to test.
-	 * @param port - port to check.
+	 * @param host
+	 *            - the interface/host to test.
+	 * @param port
+	 *            - port to check.
 	 * @return - true if port is occupied.
 	 */
 	public static boolean isPortOccupied(final String host, final int port) {
@@ -131,7 +133,8 @@ public final class ServiceUtils {
 	 * whether the ports are open. Having all the tested ports opened means that the process has completed loading
 	 * successfully and is up and running.
 	 * 
-	 * @param portList list of port to check.
+	 * @param portList
+	 *            list of port to check.
 	 * @return true if all ports are in use, false otherwise.
 	 * 
 	 * 
@@ -153,7 +156,8 @@ public final class ServiceUtils {
 	/*********
 	 * Executes an HTTP GET Request to the given URL, using a one second connect timeout and read timeout.
 	 * 
-	 * @param url the HTTP URL.
+	 * @param url
+	 *            the HTTP URL.
 	 * @return the HTTP return code. If an error occured while sending the request, for instance if a connection could
 	 *         not be made, returns 500
 	 */
@@ -164,7 +168,8 @@ public final class ServiceUtils {
 	/*********
 	 * Executes an HTTP GET Request to the given URL, using a one second connect timeout and read timeout.
 	 * 
-	 * @param url the HTTP URL.
+	 * @param url
+	 *            the HTTP URL.
 	 * @return the HTTP return code. If an error occured while sending the request, for instance if a connection could
 	 *         not be made, returns 500
 	 */
@@ -175,9 +180,12 @@ public final class ServiceUtils {
 	/*********
 	 * Executes an HTTP GET Request to the given URL.
 	 * 
-	 * @param url the HTTP URL.
-	 * @param connectTimeout the connection timeout.
-	 * @param readTimeout the read timeout.
+	 * @param url
+	 *            the HTTP URL.
+	 * @param connectTimeout
+	 *            the connection timeout.
+	 * @param readTimeout
+	 *            the read timeout.
 	 * @return the HTTP return code. If an error occured while sending the request, for instance if a connection could
 	 *         not be made, returns 500
 	 */
@@ -210,13 +218,12 @@ public final class ServiceUtils {
 			}
 		}
 	}
-	
+
 	/**
-	 * returns an implementation of a {@link org.cloudifysource.dsl.internal.tools.download.ResourceDownloadFacade}
-	 * this utility exposed different get implementation and verification options.
-	 *  
-	 * @return
-	 * 		a new ResourceDownloaderFacade implementation.
+	 * returns an implementation of a {@link org.cloudifysource.dsl.internal.tools.download.ResourceDownloadFacade} this
+	 * utility exposed different get implementation and verification options.
+	 * 
+	 * @return a new ResourceDownloaderFacade implementation.
 	 */
 	public static ResourceDownloadFacade getDownloadUtil() {
 		return new ResourceDownloadFacadeImpl(new ResourceDownloader());
@@ -228,8 +235,10 @@ public final class ServiceUtils {
 	 * Important: when changing this method you must also change the getApplicationServiceName method that extracts the
 	 * service name from the absolute processing unit's name.
 	 * 
-	 * @param applicationName the service's application name.
-	 * @param serviceName the service name.
+	 * @param applicationName
+	 *            the service's application name.
+	 * @param serviceName
+	 *            the service name.
 	 * @return the PU name.
 	 */
 	// .
@@ -251,8 +260,10 @@ public final class ServiceUtils {
 		/************
 		 * Constructor.
 		 * 
-		 * @param applicationName .
-		 * @param serviceName .
+		 * @param applicationName
+		 *            .
+		 * @param serviceName
+		 *            .
 		 */
 		public FullServiceName(final String applicationName, final String serviceName) {
 			super();
@@ -278,8 +289,10 @@ public final class ServiceUtils {
 	/***************
 	 * Return the service name of a PU.
 	 * 
-	 * @param absolutePuName the PU name.
-	 * @param applicationName the application name.
+	 * @param absolutePuName
+	 *            the PU name.
+	 * @param applicationName
+	 *            the application name.
 	 * @return the service name.
 	 */
 	public static String getApplicationServiceName(final String absolutePuName, final String applicationName) {
@@ -301,7 +314,8 @@ public final class ServiceUtils {
 	/***********
 	 * Returns the application name and service name of a PU.
 	 * 
-	 * @param puName the pu name.
+	 * @param puName
+	 *            the pu name.
 	 * @return the application and service names.
 	 */
 	public static FullServiceName getFullServiceName(final String puName) {
@@ -316,9 +330,10 @@ public final class ServiceUtils {
 		return new FullServiceName(applicationName, serviceName);
 	}
 
-    public static String getFullServiceInstanceName(final String applicationName, final String serviceName, final int serviceId) {
-        return getApplicationServiceName(applicationName, serviceName) + "_" + serviceId;
-    }
+	public static String getFullServiceInstanceName(final String applicationName, final String serviceName,
+			final int serviceId) {
+		return getApplicationServiceName(applicationName, serviceName) + "_" + serviceId;
+	}
 
 	/***********
 	 * Returns true if the current operating system is some variant of Windows.
@@ -341,8 +356,8 @@ public final class ServiceUtils {
 	}
 
 	/******
-	 * Returns the primary local-host address. If the local-host interface could not be resolved,
-	 * "localhost" is returned.
+	 * Returns the primary local-host address. If the local-host interface could not be resolved, "localhost" is
+	 * returned.
 	 * 
 	 * @return the primary local-host address.
 	 */
@@ -359,9 +374,11 @@ public final class ServiceUtils {
 	 * 
 	 * Tests if a port of some host is in use.
 	 * 
-	 * @param host the host to check.
+	 * @param host
+	 *            the host to check.
 	 * 
-	 * @param port the port number.
+	 * @param port
+	 *            the port number.
 	 * 
 	 * @return true if the port is not in use, false otherwise.
 	 */
@@ -385,28 +402,15 @@ public final class ServiceUtils {
 			//
 		}
 
-		/***********
-		 * Retrieves an instance of SIGAR, which offers access to Operating System level information not typically
-		 * available in the JDK.
-		 * 
-		 * Important note: Not all SIGAR functions are implemented on all operating systems and architecture platforms.
-		 * If you use SIGAR directly, make sure to test first on your target platform.
-		 * 
-		 * For more information on SIGAR, please see: http://support.hyperic.com/display/SIGAR/Home
-		 * 
-		 * @return the sigar instance.
-		 */
-//		public static Sigar getSigar() {
-//			return SigarHolder.getSigar();
-//		}
-
 		/*************
 		 * Executes a SIGAR PTQL query, returning the PIDs of the processes that match the query. For more info on
 		 * SIGAR's PTQL - Process Table Query Language, see: http://support.hyperic.com/display/SIGAR/PTQL
 		 * 
-		 * @param query the PTQL query.
+		 * @param query
+		 *            the PTQL query.
 		 * @return the pids.
-		 * @throws SigarException in case of an error.
+		 * @throws SigarException
+		 *             in case of an error.
 		 */
 		public static List<Long> getPidsWithQuery(final String query)
 				throws SigarException {
@@ -429,9 +433,11 @@ public final class ServiceUtils {
 		 * 
 		 * PTQL Query: "State.Name.eq=java,Args.*.eq=" + name
 		 * 
-		 * @param name the java main class or jar file name.
+		 * @param name
+		 *            the java main class or jar file name.
 		 * @return the pids that match the query, may be zero, one or more.
-		 * @throws SigarException in case of an error.
+		 * @throws SigarException
+		 *             in case of an error.
 		 */
 		public static List<Long> getPidsWithMainClass(final String name)
 				throws SigarException {
@@ -442,9 +448,11 @@ public final class ServiceUtils {
 		 * Returns the pids of processes where the base name of the process executable is as specified. PTQL Query:
 		 * "State.Name.eq=" + name
 		 * 
-		 * @param name the process name.
+		 * @param name
+		 *            the process name.
 		 * @return the matching PIDs.
-		 * @throws SigarException in case of an error.
+		 * @throws SigarException
+		 *             in case of an error.
 		 */
 		public static List<Long> getPidsWithName(final String name)
 				throws SigarException {
@@ -455,9 +463,11 @@ public final class ServiceUtils {
 		 * Returns the pids of processes where the full name of the process executable is as specified. PTQL Query:
 		 * "Exe.Name.eq=" + name.
 		 * 
-		 * @param name the process name.
+		 * @param name
+		 *            the process name.
 		 * @return the matching PIDs.
-		 * @throws SigarException in case of an error.
+		 * @throws SigarException
+		 *             in case of an error.
 		 */
 		public static List<Long> getPidsWithFullName(final String name)
 				throws SigarException {
@@ -467,9 +477,11 @@ public final class ServiceUtils {
 		/*************
 		 * Returns PID of process that has the specified port open.
 		 * 
-		 * @param port the port number.
+		 * @param port
+		 *            the port number.
 		 * @return pid of the process.
-		 * @throws SigarException in case of an error.
+		 * @throws SigarException
+		 *             in case of an error.
 		 */
 		// TODO - this does not work - SIGAR has not implemented getProPort on Win 7, Win 2008 and Solaris, no we can't
 		// really use this.
@@ -496,24 +508,24 @@ public final class ServiceUtils {
 		// // }
 		// // }
 		// }
+		/***********
+		 * Retrieves an instance of SIGAR, which offers access to Operating System level information not typically
+		 * available in the JDK.
+		 * 
+		 * Important note: Not all SIGAR functions are implemented on all operating systems and architecture platforms.
+		 * If you use SIGAR directly, make sure to test first on your target platform.
+		 * 
+		 * For more information on SIGAR, please see: http://support.hyperic.com/display/SIGAR/Home
+		 * 
+		 * @return the sigar instance.
+		 */
+		public static synchronized Sigar getSigar() {
+			if (sigar == null) {
+				sigar = new Sigar();
+			}
+			return sigar;
+		}
+
 	}
-	
-	/***********
-	 * Retrieves an instance of SIGAR, which offers access to Operating System level information not typically
-	 * available in the JDK.
-	 * 
-	 * Important note: Not all SIGAR functions are implemented on all operating systems and architecture platforms.
-	 * If you use SIGAR directly, make sure to test first on your target platform.
-	 * 
-	 * For more information on SIGAR, please see: http://support.hyperic.com/display/SIGAR/Home
-	 * 
-	 * @return the sigar instance.
-	 */
-    public static synchronized Sigar getSigar() {
-        if (sigar == null) {
-            sigar = new Sigar();
-        }
-        return sigar;
-    }
 
 }
