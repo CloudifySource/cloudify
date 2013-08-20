@@ -42,4 +42,7 @@
 	<properties>
 		<docletVersion>0.4.0</docletVersion>
 	</properties>
+	<build>
+		<finalName>security-ldap</finalName>
+	</build>
 </project>

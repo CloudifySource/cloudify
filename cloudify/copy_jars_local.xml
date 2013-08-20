@@ -9,7 +9,7 @@
 	<property environment="env" />
 
 	<property name="cloudify.home.dir" value="${env.CLOUDIFY_HOME}/" />
-	<property name="cloudify.version" value="2.6.0" />
+	<property name="cloudify.version" value="2.7.0" />
 	<property name="cloudify.jars.suffix" value="SNAPSHOT" />
 
 	<!--  ** Useful if you are working on openspaces and need to test the effects on cloudify -->
@@ -38,21 +38,9 @@
 			<copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" />
 			<copy overwrite="yes" todir="@{target.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
 			<copy overwrite="yes" todir="@{target.dir}/tools/management-space" file="../management-space/target/management-space.jar" />
-			<copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify">
-			    <fileset dir="../security/target">
-			        <include name="security-${cloudify.version}-${cloudify.jars.suffix}*.jar" />
-			    </fileset>
-			</copy>
-			<copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify">
-			    <fileset dir="../security-ldap/target">
-			    	<include name="security-ldap-${cloudify.version}-${cloudify.jars.suffix}*.jar" />
-			    </fileset>
-			</copy>
-			<copy overwrite="yes" todir="@{target.dir}/lib/platform/esm">
-			    <fileset dir="../esc/target/esc/lib">
-			        <include name="esc-${cloudify.version}-${cloudify.jars.suffix}*.jar" />
-			    </fileset>
-			</copy>
+			<copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../security/target/security.jar" />
+			<copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../security-ldap/target/security-ldap.jar" />
+			<copy overwrite="yes" todir="@{target.dir}/lib/platform/esm" file="../esc/target/esc.jar" />
 			<copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../domain/target/domain.jar" />
 			<copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../utility-domain/target/utility-domain.jar" />
 		</sequential>
