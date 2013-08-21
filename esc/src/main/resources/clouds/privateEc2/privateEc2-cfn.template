@@ -1,0 +1,59 @@
+{
+  "Resources":{
+    "someService":{
+      "Type":"AWS::EC2::Instance",
+      "Properties":{
+        "ImageId":imageId,
+        "InstanceType":"m1.medium",
+        "SecurityGroups":["default"], 
+        "KeyName":keyName,
+        "Tags":[
+          {"Key":"Instance","Value": "someInstanceTag"}
+        ], 
+        "UserData": { "Fn::Join" : [" >> /home/ubuntu/output.txt\n", [
+          "export MACHINE_IP_ADDRESS=`curl http://instance-data/latest/meta-data/local-ipv4`",
+          "export GIGASPACES_CLOUD_MACHINE_ID=`curl http://169.254.169.254/latest/meta-data/instance-id`",
+          "export GIGASPACES_AGENT_ENV_PRIVATE_IP=`curl http://instance-data/latest/meta-data/local-ipv4`",
+          "export GIGASPACES_AGENT_ENV_PUBLIC_IP=`curl http://instance-data/latest/meta-data/public-ipv4`",
+          "export CLOUDIFY_CLOUD_MACHINE_ID=`curl http://169.254.169.254/latest/meta-data/instance-id`",
+          "export CLOUDIFY_AGENT_ENV_PRIVATE_IP=`curl http://instance-data/latest/meta-data/local-ipv4`",
+          "export CLOUDIFY_AGENT_ENV_PUBLIC_IP=`curl http://instance-data/latest/meta-data/public-ipv4`",
+          "export NIC_ADDR=`hostname`",
+          "export LOOKUPLOCATORS=$LUS_IP_ADDRESS",
+          "export EXT_JAVA_OPTIONS=-Dcom.gs.multicast.enabled=false",
+          "export PATH=$JAVA_HOME/bin:$PATH",
+          "export INSTALL_DIR=$WORKING_HOME_DIRECTORY/..",
+          "export JAVA_HOME=$INSTALL_DIR/java",
+          "echo *** installing jdk",
+          "echo INSTALL_DIR=$INSTALL_DIR",
+          "wget -q -O $INSTALL_DIR/java.bin https://s3-eu-west-1.amazonaws.com/cloudify-eu/jdk-6u32-linux-x64.bin",
+          "chmod +x $INSTALL_DIR/java.bin",
+          "echo -e \"\n\" > $INSTALL_DIR/input.txt",
+          "rm -rf $INSTALL_DIR/java",
+          "mkdir $INSTALL_DIR/java",
+          "cd $INSTALL_DIR/java",
+          "$INSTALL_DIR/java.bin < $INSTALL_DIR/input.txt > /dev/null",
+          "mv $INSTALL_DIR/java/*/* $INSTALL_DIR/java",
+          "export JAVA_HOME=$INSTALL_DIR/java",
+          "echo apt-get unzip",
+          "apt-get update",
+          "apt-get install unzip",
+          "echo *** installing gigaspaces",
+          "wget -q -O $INSTALL_DIR/gigaspaces.zip https://s3-eu-west-1.amazonaws.com/cloudify-eu/gigaspaces-cloudify-2.6.1-ga-b5199-139.zip",
+          "unzip $INSTALL_DIR/gigaspaces.zip -d $INSTALL_DIR",
+          "mv $INSTALL_DIR/gigaspaces-cloudify-2.6.1-ga-b5199-139 $INSTALL_DIR/gigaspaces",
+          "rm -f $INSTALL_DIR/input.txt",
+          "rm -f $INSTALL_DIR/gigaspaces.zip",
+          "rm -f $INSTALL_DIR/java.bin",
+          "cp -rf $WORKING_HOME_DIRECTORY/cloudify-overrides/* $INSTALL_DIR/gigaspaces",
+          "chmod -R 755 $INSTALL_DIR/java",
+          "chmod -R 755 $INSTALL_DIR/gigaspaces",
+          "chown -hR ubuntu $INSTALL_DIR/java",
+          "chown -hR ubuntu $INSTALL_DIR/gigaspaces",
+          "echo CLOUD_FILE=$CLOUD_FILE",
+          "nohup $INSTALL_DIR/gigaspaces/bin/cloudify.sh start-management -timeout 30 --verbose -cloud-file $CLOUD_FILE"
+        ]]} 
+      }
+    }
+  }   
+}
