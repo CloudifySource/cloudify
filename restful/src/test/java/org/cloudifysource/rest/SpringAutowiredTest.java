@@ -1,7 +1,6 @@
 package org.cloudifysource.rest;
 
 import org.cloudifysource.rest.controllers.AttributesController;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +15,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 //Setup the configuration of the application context and the web mvc layer
 @ContextConfiguration({"classpath:META-INF/spring/applicationContext.xml",
 		"classpath:META-INF/spring/webmvc-config-test.xml" })
-@Ignore public class SpringAutowiredTest {
+public class SpringAutowiredTest {
 	@Autowired
 	protected ApplicationContext applicationContext;
 	

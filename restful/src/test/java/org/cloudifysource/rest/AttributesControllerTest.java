@@ -20,7 +20,6 @@ import java.util.Map;
 import org.cloudifysource.rest.controllers.AttributesController;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
@@ -40,7 +39,7 @@ import org.springframework.web.method.HandlerMethod;
 // Setup the configuration of the application context and the web mvc layer
 @ContextConfiguration({ "classpath:META-INF/spring/applicationContext.xml",
         "classpath:META-INF/spring/webmvc-config-test.xml" })
-@Ignore public class AttributesControllerTest extends ControllerTest {
+public class AttributesControllerTest extends ControllerTest {
     private static final String APPLICATION_NAME = "petclinic-simple";
     private static final String SERVICE_NAME = "tomcat";
     private static final String INSTANCE_ID = "1";
