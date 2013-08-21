@@ -28,6 +28,7 @@ import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.SystemDefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
@@ -419,7 +420,7 @@ public class RestClient {
 		if (HTTPS.equals(url.getProtocol())) {
 			httpClient = getSSLHttpClient(url);
 		} else {
-			httpClient = new DefaultHttpClient();
+			httpClient = new SystemDefaultHttpClient();
 		}
 		final HttpParams httpParams = httpClient.getParams();
 		HttpConnectionParams.setConnectionTimeout(httpParams, CloudifyConstants.DEFAULT_HTTP_CONNECTION_TIMEOUT);
