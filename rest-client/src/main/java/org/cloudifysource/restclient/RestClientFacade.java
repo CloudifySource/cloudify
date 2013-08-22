@@ -23,6 +23,7 @@ import java.util.Stack;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import org.cloudifysource.dsl.rest.AddTemplatesException;
 import org.cloudifysource.dsl.rest.request.AddTemplatesRequest;
 import org.cloudifysource.dsl.rest.response.AddTemplatesResponse;
 import org.cloudifysource.dsl.rest.response.UploadResponse;
@@ -68,8 +69,9 @@ public class RestClientFacade {
 	 *             If a REST API call failed.
 	 * @throws IOException
 	 *             if There was a problem while creating a ZIP file of the templates directory.
+	 * @throws AddTemplatesException  .
 	 */
-	public AddTemplatesResponse addTemplates(final File directory) throws RestClientException, IOException {
+	public AddTemplatesResponse addTemplates(final File directory) throws RestClientException, IOException, AddTemplatesException  {
 
 		if (directory == null) {
 			throw new IllegalArgumentException("directory can't be null");

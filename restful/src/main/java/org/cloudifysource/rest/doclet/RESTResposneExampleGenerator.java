@@ -173,11 +173,11 @@ public class RESTResposneExampleGenerator implements IDocExampleGenerator {
 			example = RESTExamples.getServicesDescription();
 		} else if (AddTemplatesResponse.class.equals(clazz)) {
 			example = new AddTemplatesResponse();
-			((AddTemplatesResponse) example).setFailedToAddTempaltes(new HashMap<String, Map<String, String>>());
+//			((AddTemplatesResponse) example).setFailedToAddTempaltes(new HashMap<String, Map<String, String>>());
 			List<String> successfullyAddedTempaltes = new LinkedList<String>();
 			successfullyAddedTempaltes.add("SMALL_UBUNTU");
 			successfullyAddedTempaltes.add("SMALL_SUSE");
-			((AddTemplatesResponse) example).setSuccessfullyAddedTempaltes(successfullyAddedTempaltes);
+//			((AddTemplatesResponse) example).setSuccessfullyAddedTempaltes(successfullyAddedTempaltes);
 		} else if (ListTemplatesResponse.class.equals(clazz)) {
 			example = new ListTemplatesResponse();
 			Map<String, ComputeTemplate> templates = new HashMap<String, ComputeTemplate>();
