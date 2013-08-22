@@ -83,7 +83,7 @@ public class PrivateEC2CloudifyDriverTest {
 
 	@Test
 	public void testManagerCFN() throws Exception {
-		String managerCfnTemplateFile = "./cloudify/clouds/privateEc2/privateEc2-cfn.template";
+		String managerCfnTemplateFile = "src/main/resources/clouds/privateEc2/privateEc2-cfn.template";
 		PrivateEc2Template template = driver.getManagerPrivateEc2Template(managerCfnTemplateFile);
 		Assert.assertNotNull(template);
 		logger.info(template.toString());
