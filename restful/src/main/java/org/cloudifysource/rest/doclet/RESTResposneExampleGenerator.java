@@ -43,7 +43,6 @@ import org.cloudifysource.dsl.rest.response.GetTemplateResponse;
 import org.cloudifysource.dsl.rest.response.InstallApplicationResponse;
 import org.cloudifysource.dsl.rest.response.InstallServiceResponse;
 import org.cloudifysource.dsl.rest.response.ListTemplatesResponse;
-import org.cloudifysource.dsl.rest.response.Response;
 import org.cloudifysource.dsl.rest.response.ServiceDescription;
 import org.cloudifysource.dsl.rest.response.ServiceDetails;
 import org.cloudifysource.dsl.rest.response.ServiceInstanceDetails;
@@ -77,7 +76,7 @@ public class RESTResposneExampleGenerator implements IDocExampleGenerator {
 	@Override
 	public String generateExample(final Type type) throws Exception {	
 
-		Response<Object> responseWrapper = new Response<Object>();
+		RESTExampleRespone<Object> responseWrapper = new RESTExampleRespone<Object>();
 		responseWrapper.setResponse(getExample(type));
 		responseWrapper.setStatus("Success");
 		responseWrapper.setMessage("Operation completed successfully");
@@ -87,10 +86,13 @@ public class RESTResposneExampleGenerator implements IDocExampleGenerator {
 		return new ObjectMapper().writeValueAsString(responseWrapper);
 	}
 
-	private String getVerbose(final Type type) throws ClassNotFoundException, IOException {
+	private Object getVerbose(final Type type) throws ClassNotFoundException, IOException {
 		Class<?> clazz = ClassUtils.getClass(type.qualifiedTypeName());		
 		if (AddTemplatesResponse.class.equals(clazz)) {
-			return getIndentJson(new ObjectMapper().writeValueAsString(RESTExamples.getAddTemplatesResponseExample()));
+			AddTemplatesResponse example = RESTExamples.getAddTemplatesResponseExample();
+			String writeValueAsString = new ObjectMapper().writeValueAsString(example);
+			String indentJson = getIndentJson(writeValueAsString);
+			return example;
 		}
 		return null;
 	}
