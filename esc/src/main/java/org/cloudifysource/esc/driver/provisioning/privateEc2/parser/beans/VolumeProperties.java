@@ -16,7 +16,6 @@ import java.util.List;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
-import org.cloudifysource.esc.driver.provisioning.privateEc2.parser.beans.types.StringValue;
 import org.cloudifysource.esc.driver.provisioning.privateEc2.parser.beans.types.ValueType;
 import org.codehaus.jackson.annotate.JsonProperty;
 
@@ -58,10 +57,6 @@ public class VolumeProperties {
 
 	public void setSize(final Integer size) {
 		this.size = size;
-	}
-
-	public void setAvailabilityZone(final String availabilityZone) {
-		this.availabilityZone = new StringValue(availabilityZone);
 	}
 
 	public Integer getIops() {
