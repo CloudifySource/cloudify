@@ -12,6 +12,7 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.rest.response;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -22,23 +23,41 @@ import java.util.Map;
  * @since 2.7.0
  */
 public class AddTemplatesResponse {
-	private Map<String, Map<String, String>> failedToAddTempaltes;
-	private List<String> successfullyAddedTempaltes;
 
-	public Map<String, Map<String, String>> getFailedToAddTempaltes() {
-		return failedToAddTempaltes;
+	/*
+	 * A map that holds responses for each template. Each response describes which instances failed to add the template
+	 * and which succeeded.
+	 */
+	private Map<String, AddTemplateResponse> templates;
+	private List<String> instances;
+	private AddTemplatesStatus status; 
+
+	public AddTemplatesResponse() {
+		templates = new HashMap<String, AddTemplateResponse>();
+	}
+	
+	public Map<String, AddTemplateResponse> getTemplates() {
+		return templates;
 	}
 
-	public void setFailedToAddTempaltes(final Map<String, Map<String, String>> failedToAddTempaltes) {
-		this.failedToAddTempaltes = failedToAddTempaltes;
+	public void setTemplates(final Map<String, AddTemplateResponse> templates) {
+		this.templates = templates;
 	}
 
-	public List<String> getSuccessfullyAddedTempaltes() {
-		return successfullyAddedTempaltes;
+	public List<String> getInstances() {
+		return instances;
 	}
 
-	public void setSuccessfullyAddedTempaltes(final List<String> successfullyAddedTempaltes) {
-		this.successfullyAddedTempaltes = successfullyAddedTempaltes;
+	public void setInstances(final List<String> instances) {
+		this.instances = instances;
+	}
+
+	public AddTemplatesStatus getStatus() {
+		return status;
+	}
+
+	public void setStatus(final AddTemplatesStatus status) {
+		this.status = status;
 	}
 
 }

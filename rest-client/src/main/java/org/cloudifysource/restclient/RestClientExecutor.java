@@ -256,7 +256,9 @@ public class RestClientExecutor {
     			try {
 					instream.close();
 				} catch (IOException e) {
-					logger.warning(e.getMessage());
+    				if (logger.isLoggable(Level.WARNING)) {
+    					logger.warning(e.getMessage());
+    				}
 				}
     		}
     	}
@@ -314,10 +316,14 @@ public class RestClientExecutor {
 		String responseBody;
 		if (statusCode != HttpStatus.SC_OK) {
 			responseBody = getResponseBody(response);
-            try {
-                // this means we managed to read the response
-            	final Response<Void> entity =
-            			new ObjectMapper().readValue(responseBody, new TypeReference<Response<Void>>() { });
+			if (logger.isLoggable(Level.FINE)) {
+				logger.log(Level.FINE, "[checkForError] - REST request to " + requestUri 
+						+ "  failed. status code is: " + statusCode + ", response body is: " + responseBody);
+			}
+			try {
+				// this means we managed to read the response
+				final Response<Void> entity =
+						new ObjectMapper().readValue(responseBody, new TypeReference<Response<Void>>() { });
                 // we also have the response in the proper format.
                 // remember, we only got here because some sort of error happened on the server.
                 throw new RestClientResponseException(entity.getMessageId(),
@@ -327,8 +333,10 @@ public class RestClientExecutor {
                                                       entity.getVerbose());
 
             } catch (final IOException e) {
-            	logger.log(Level.INFO, "[checkForError] - REST request to " + requestUri 
-            			+ "  failed and the response is not in the correct format: " + responseBody);
+            	if (logger.isLoggable(Level.WARNING)) {
+            		logger.log(Level.WARNING, "[checkForError] - failed to read response. responseBody: " 
+            				+ responseBody + ", reasonPhrase:" + reasonPhrase);
+            	}
                 // this means we got the response, but it is not in the correct format.
                 // so some kind of error happened on the spring side.
                 throw MessagesUtils.createRestClientHttpException(
@@ -351,6 +359,10 @@ public class RestClientExecutor {
 			response = new ObjectMapper().readValue(responseBody, typeReference);
 			return response.getResponse();
 		} catch (IOException e) {
+			if (logger.isLoggable(Level.WARNING)) {
+				logger.finer("failed to read the responseBody (of request to " + url + ")."
+						+ ", error was " + e.getMessage());
+			}
             // this means we got the response, but it is not in the correct format.
             // so some kind of error happened on the spring side.
 			StatusLine statusLine = httpResponse.getStatusLine();
@@ -379,6 +391,11 @@ public class RestClientExecutor {
 		return urlStr + safeRelativeURL;
 	}
 
+	/**
+	 * 
+	 * @param username .
+	 * @param password .
+	 */
     public void setCredentials(final String username, final String password) {
         if (StringUtils.notEmpty(username) && StringUtils.notEmpty(password)) {
             httpClient.getCredentialsProvider().setCredentials(new AuthScope(AuthScope.ANY),

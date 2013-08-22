@@ -14,13 +14,16 @@ package org.cloudifysource.shell.commands;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.cloudifysource.domain.ComputeTemplateHolder;
@@ -29,15 +32,21 @@ import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.packaging.Packager;
+import org.cloudifysource.dsl.rest.AddTemplatesException;
 import org.cloudifysource.dsl.rest.request.AddTemplatesRequest;
+import org.cloudifysource.dsl.rest.response.AddTemplateResponse;
 import org.cloudifysource.dsl.rest.response.AddTemplatesResponse;
+import org.cloudifysource.dsl.rest.response.AddTemplatesStatus;
 import org.cloudifysource.restclient.RestClient;
-import org.cloudifysource.restclient.exceptions.RestClientException;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.exceptions.CLIStatusException;
 import org.cloudifysource.shell.installer.CLIEventsDisplayer;
 import org.cloudifysource.shell.rest.RestAdminFacade;
 import org.cloudifysource.utilitydomain.data.reader.ComputeTemplatesReader;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.fusesource.jansi.Ansi.Color;
 
@@ -188,18 +197,6 @@ public class AddTemplates extends AdminAwareCommand implements NewRestClientComm
 		return successfullyAddedTemplatesStr.toString();
 	}
 
-	private static Object getFormatedAddedTemplateNamesList(final List<String> templates) {
-		final StringBuilder sb = new StringBuilder(CloudifyConstants.NEW_LINE)
-				.append("Added ").append(templates.size()).append(" templates:");
-
-		for (final String templateName : templates) {
-			sb.append(CloudifyConstants.NEW_LINE)
-					.append(CloudifyConstants.TAB_CHAR)
-					.append(templateName);
-		}
-		return sb;
-	}
-
 	@Override
 	public Object doExecuteNewRestClient() throws Exception {
 		final RestClient newRestClient = ((RestAdminFacade) getRestAdminFacade()).getNewRestClient();
@@ -221,29 +218,104 @@ public class AddTemplates extends AdminAwareCommand implements NewRestClientComm
 		request.setUploadKey(uploadKey);
 		try {
 			final AddTemplatesResponse response = newRestClient.addTemplates(request);
-			String result;
-			final Map<String, Map<String, String>> failedToAddTempaltes = response.getFailedToAddTempaltes();
-			final List<String> successfullyAddedTempaltes = response.getSuccessfullyAddedTempaltes();
-			if (failedToAddTempaltes.isEmpty()) {
-				result = getFormattedMessage("templates_added_successfully", Color.GREEN)
-						+ getFormatedAddedTemplateNamesList(successfullyAddedTempaltes);
-			} else {
-				// partial failure
-				result = getPartialFailureMessage(successfullyAddedTempaltes, failedToAddTempaltes);
-			}
-			return result;
-		} catch (RestClientException e) {
-			// failure
-			return getFailureMessage(expectedTemplates);
+			return getFormattedMessage("templates_added_successfully", Color.GREEN)
+					+ getSuccessfulMessage(response);
+
+		} catch (AddTemplatesException e) {
+			// failure or partial failure
+			return getFailureMessage(e.getAddTemplatesResponse());
 		}
 	}
 
-	private String getFailureMessage(final List<ComputeTemplateHolder> expectedTemplates) {
-		List<String> expectedTempalteNames = new LinkedList<String>();
-		for (ComputeTemplateHolder templateHolder : expectedTemplates) {
-			expectedTempalteNames.add(templateHolder.getName());
+	private static String getIndentJson(final String body) throws IOException {
+		if (StringUtils.isBlank(body)) {
+			return null;
 		}
-		return getFormattedMessage("failed_to_add_templates", Color.RED, expectedTempalteNames);
+
+		StringWriter out = new StringWriter();
+		JsonParser parser = null;
+		JsonGenerator gen = null;
+		try {
+			JsonFactory fac = new JsonFactory();
+
+			parser = fac.createJsonParser(new StringReader(body));
+			ObjectMapper mapper = new ObjectMapper();
+			JsonNode node = mapper.readTree(parser);
+			// Create pretty printer:
+			gen = fac.createJsonGenerator(out);
+			gen.useDefaultPrettyPrinter();
+			// Write:
+			mapper.writeTree(gen, node);
+
+			gen.close();
+			parser.close();
+
+			return out.toString();
+
+		} finally {
+			out.close();
+			if (gen != null) {
+				gen.close();
+			}
+			if (parser != null) {
+				parser.close();
+			}
+		}
+	}
+
+	private static Object getFormatedAddedTemplateNamesList(final List<String> templates) {
+		int size = templates.size();
+		final StringBuilder sb = new StringBuilder(CloudifyConstants.NEW_LINE)
+				.append("The ").append(size).append(" template" + (size == 1 ? "" : "s") + " added:");
+
+		for (final String templateName : templates) {
+			sb.append(CloudifyConstants.NEW_LINE)
+					.append(CloudifyConstants.TAB_CHAR)
+					.append(templateName);
+		}
+		return sb;
+	}
+
+	private String getFailureMessage(final AddTemplatesResponse addTemplatesResponse) 
+			throws IOException {
+		List<String> instances = addTemplatesResponse.getInstances();
+		int size = instances.size();
+		StringBuilder sb = new StringBuilder("Add templates to " 
+				+ size + " REST instance" + (size == 1 ? " " : "s ") + instances + " resulted with ");
+		if (AddTemplatesStatus.PARTIAL_FAILURE.equals(addTemplatesResponse.getStatus())) {
+			sb.append("partial failure (at least one template failed to be added to at least one REST instance):");
+		} else {
+			sb.append("failure (all templates failed to be added to all REST instances):");
+		}
+		sb.append(CloudifyConstants.NEW_LINE);
+		
+		Map<String, AddTemplateResponse> templates = addTemplatesResponse.getTemplates();
+		Map<String, Map<String, String>> resultMap = new HashMap<String, Map<String, String>>(); 
+		ObjectMapper objectMapper = new ObjectMapper();
+		for (Entry<String, AddTemplateResponse> entry : templates.entrySet()) {
+			AddTemplateResponse addTemplateResponse = entry.getValue();
+			Map<String, String> templateResultMap = new HashMap<String, String>();
+			templateResultMap.put("failed to add to", 
+					objectMapper.writeValueAsString(addTemplateResponse.getFailedToAddHosts()));
+			templateResultMap.put("successfully added to", 
+					objectMapper.writeValueAsString(addTemplateResponse.getSuccessfullyAddedHosts()));
+			resultMap.put(entry.getKey(), templateResultMap);
+		}
+		sb.append(getIndentJson(objectMapper.writeValueAsString(resultMap)));
+		return sb.toString().replaceAll("\"", "").replaceAll("\\\\", "");
+	}
+
+	private String getSuccessfulMessage(final AddTemplatesResponse response) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Templates were added to all REST instances: ");
+		sb.append(response.getInstances());
+		Map<String, AddTemplateResponse> templates = response.getTemplates();
+		List<String> templateNames = new LinkedList<String>();
+		for (String templateName : templates.keySet()) {
+			templateNames.add(templateName);
+		}
+		sb.append(getFormatedAddedTemplateNamesList(templateNames));
+		return sb.toString();
 	}
 
 	private String printExpectedTemplates(final List<ComputeTemplateHolder> expectedTemplates) {
@@ -251,26 +323,6 @@ public class AddTemplates extends AdminAwareCommand implements NewRestClientComm
 		for (final ComputeTemplateHolder computeTemplateHolder : expectedTemplates) {
 			sb.append(CloudifyConstants.NEW_LINE);
 			sb.append(computeTemplateHolder.getName());
-		}
-		return sb.toString();
-	}
-
-	private String getPartialFailureMessage(final List<String> successfullyAddedTempaltes,
-			final Map<String, Map<String, String>> failedToAddTempaltes) {
-		final StringBuilder sb = new StringBuilder("Partial Failure:" + CloudifyConstants.NEW_LINE);
-		if (!successfullyAddedTempaltes.isEmpty()) {
-			sb.append("The following templates were successfully added to all REST instances: " 
-					+ successfullyAddedTempaltes);
-			sb.append(CloudifyConstants.NEW_LINE);
-		}
-		sb.append("The following templates failed to be added to one or more REST instances:");
-		sb.append(CloudifyConstants.NEW_LINE);
-		try {
-			sb.append(new ObjectMapper().writeValueAsString(failedToAddTempaltes));
-		} catch (final Exception e) {
-			logger.log(Level.WARNING, "failed to write failure map as String, use toString instead.");
-			e.printStackTrace();
-			sb.append(failedToAddTempaltes.toString());
 		}
 		return sb.toString();
 	}

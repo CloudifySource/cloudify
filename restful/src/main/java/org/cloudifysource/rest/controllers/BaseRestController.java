@@ -15,12 +15,17 @@ package org.cloudifysource.rest.controllers;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
+import org.cloudifysource.dsl.rest.AddTemplatesException;
+import org.cloudifysource.dsl.rest.response.AddTemplatesStatus;
+import org.cloudifysource.dsl.rest.response.AddTemplatesResponse;
 import org.cloudifysource.dsl.rest.response.Response;
 import org.cloudifysource.rest.exceptions.ResourceNotFoundException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -66,6 +71,52 @@ public abstract class BaseRestController {
     @Autowired(required = true)
     protected MessageSource messageSource;
 
+    
+    /**
+     * Handles expected exception from the controller, and wrappes it nicely
+     * with a {@link Response} object.
+     *
+     * @param response
+     *            - the servlet response.
+     * @param e
+     *            - the thrown exception.
+     * @throws IOException .
+     */
+    @ExceptionHandler(AddTemplatesException.class)
+    @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+    public void handleAddTemplatesException(final HttpServletResponse response,
+                                     final AddTemplatesException e) throws IOException {
+
+    	AddTemplatesResponse addTemplatesResponse = e.getAddTemplatesResponse();
+		AddTemplatesStatus status = addTemplatesResponse.getStatus();
+    	String messageId = CloudifyErrorMessages.FAILED_TO_ADD_TEMPLATES.getName();
+    	if (status == AddTemplatesStatus.PARTIAL_FAILURE) {
+    		messageId = CloudifyErrorMessages.PARTLY_FAILED_TO_ADD_TEMPLATES.getName();
+    	}
+        Object[] messageArgs = {addTemplatesResponse.getTemplates()};
+        String formattedMessage;
+        try {
+        	formattedMessage = messageSource.getMessage(messageId, messageArgs, Locale.US);
+        } catch (NoSuchMessageException ne) {
+        	formattedMessage = messageId + " [" + Arrays.toString(messageArgs) + "]";
+        }
+
+        Response<Void> finalResponse = new Response<Void>();
+        finalResponse.setStatus(status.getName());
+        finalResponse.setMessage(formattedMessage);
+        finalResponse.setMessageId(messageId);
+        finalResponse.setResponse(null);
+		String addTemplatesResponseAsString = OBJECT_MAPPER.writeValueAsString(e.getAddTemplatesResponse());
+        Logger.getLogger(BaseRestController.class.getName())
+        .log(Level.INFO, 
+        		"[handleAddTemplatesException] - create failed status response with verbose: " 
+        				+ addTemplatesResponseAsString);
+        finalResponse.setVerbose(addTemplatesResponseAsString);
+
+        String responseString = OBJECT_MAPPER.writeValueAsString(finalResponse);
+        response.getOutputStream().write(responseString.getBytes());
+    }
+    
     /**
      * Handles expected exception from the controller, and wrappes it nicely
      * with a {@link Response} object.

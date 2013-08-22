@@ -13,6 +13,7 @@
 package org.cloudifysource.restclient;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.security.KeyStore;
 import java.util.HashMap;
@@ -36,6 +37,7 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.rest.AddTemplatesException;
 import org.cloudifysource.dsl.rest.request.AddTemplatesRequest;
 import org.cloudifysource.dsl.rest.request.InstallApplicationRequest;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
@@ -55,6 +57,8 @@ import org.cloudifysource.dsl.rest.response.UploadResponse;
 import org.cloudifysource.restclient.exceptions.RestClientException;
 import org.cloudifysource.restclient.messages.MessagesUtils;
 import org.cloudifysource.restclient.messages.RestClientMessageKeys;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
 /**
@@ -509,17 +513,35 @@ public class RestClient {
 	 *  
 	 * @param request contains the templates folder.
 	 * @return AddTemplatesResponse.
+	 * @throws AddTemplatesException 
+	 * 			If failed to add all templates (includes partial failure).
 	 * @throws RestClientException .
 	 */
 	public AddTemplatesResponse addTemplates(final AddTemplatesRequest request) 
-			throws RestClientException {
-		final String addTempaltesInternalUrl = getFormattedUrl(
+			throws RestClientException, AddTemplatesException {
+		final String addTempaltesUrl = getFormattedUrl(
 				versionedTemplatesControllerUrl, 
 				ADD_TEMPALTES_URL_FORMAT);
-		return executor.postObject(
-				addTempaltesInternalUrl, 
-				request, 
-				new TypeReference<Response<AddTemplatesResponse>>() { });
+		AddTemplatesResponse response = null;
+		try {
+			response = executor.postObject(
+					addTempaltesUrl, 
+					request, 
+					new TypeReference<Response<AddTemplatesResponse>>() { });
+		} catch (RestClientException e) {
+			String verbose = e.getVerbose();
+				try {
+					response = new ObjectMapper().readValue(verbose, AddTemplatesResponse.class);
+					throw new AddTemplatesException(response);
+				} catch (JsonProcessingException e1) {
+					logger.warning("Failed to process exception, got JsonProcessingException: " + e1.getMessage());
+					throw e;
+				} catch (IOException e1) {
+					logger.warning("Failed to process exception, got IOException: " + e1.getMessage());
+					throw e;
+				}
+		}
+		return response;
 	}
 	
 	/**

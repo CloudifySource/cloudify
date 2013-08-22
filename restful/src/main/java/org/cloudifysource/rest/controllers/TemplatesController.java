@@ -43,8 +43,11 @@ import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
+import org.cloudifysource.dsl.rest.AddTemplatesException;
 import org.cloudifysource.dsl.rest.request.AddTemplatesInternalRequest;
 import org.cloudifysource.dsl.rest.request.AddTemplatesRequest;
+import org.cloudifysource.dsl.rest.response.AddTemplateResponse;
+import org.cloudifysource.dsl.rest.response.AddTemplatesStatus;
 import org.cloudifysource.dsl.rest.response.AddTemplatesInternalResponse;
 import org.cloudifysource.dsl.rest.response.AddTemplatesResponse;
 import org.cloudifysource.dsl.rest.response.GetTemplateResponse;
@@ -86,7 +89,7 @@ import com.j_spaces.kernel.PlatformVersion;
 @RequestMapping(value = "/{version}/templates")
 public class TemplatesController extends BaseRestController {
 	private static final Logger logger = Logger.getLogger(TemplatesController.class.getName());
-	
+
 	@Autowired
 	private RestConfiguration restConfig;
 	@Autowired
@@ -119,16 +122,18 @@ public class TemplatesController extends BaseRestController {
 	 *            {@link AddTemplatesRequest}
 	 * @return {@link AddTemplatesResponse}
 	 * @throws RestErrorException
-	 *             if failed to add all templates to all REST instances.
+	 *             if failed to validate the addTemplates request.
 	 * @throws IOException
 	 *             If failed to unzip templates folder.
 	 * @throws DSLException
 	 *             If failed to read the templates from templates folder.
+	 * @throws AddTemplatesException 
+	 * 			   If failed to add templates (failure or partial failure).
 	 */
 	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
 	@RequestMapping(method = RequestMethod.POST)
 	public AddTemplatesResponse addTemplates(@RequestBody final AddTemplatesRequest request)
-			throws RestErrorException, IOException, DSLException {
+			throws RestErrorException, IOException, DSLException, AddTemplatesException {
 		log(Level.INFO, "[addTemplates] - starting add templates.");
 		// validate
 		validateAddTemplates(request);
@@ -141,15 +146,62 @@ public class TemplatesController extends BaseRestController {
 				throw new RestErrorException(CloudifyMessageKeys.WRONG_TEMPLATES_UPLOAD_KEY.getName(), uploadKey);
 			}
 			final AddTemplatesInternalRequest internalRequest = createInternalRequest(request, templatesZippedFolder);
-			List<String> expectedTemplates = internalRequest.getExpectedTemplates();
+			final List<String> expectedTemplates = internalRequest.getExpectedTemplates();
 			log(Level.INFO, "expecting to add " + expectedTemplates.size() + " templates: " + expectedTemplates);
 			// add the templates to all REST instances
-			return addTemplatesToRestInstances(internalRequest);
+			final AddTemplatesResponse addTemplatesToRestInstances = addTemplatesToRestInstances(internalRequest);
+			handleAddTemplatesResponse(addTemplatesToRestInstances);
+			return addTemplatesToRestInstances;
 		} finally {
 			if (templatesZippedFolder != null) {
 				FileUtils.deleteQuietly(templatesZippedFolder);
 			}
 		}
+
+	}
+
+	private void handleAddTemplatesResponse(final AddTemplatesResponse addTemplatesResponse) 
+			throws AddTemplatesException {
+		final Map<String, AddTemplateResponse> templatesResponse = addTemplatesResponse.getTemplates();
+		
+		boolean atLeastOneFailed = false;
+		boolean atLeastOneSucceeded = false;
+		for (final AddTemplateResponse templateResponse : templatesResponse.values()) {
+			final Map<String, String> failedToAddHosts = templateResponse.getFailedToAddHosts();
+			if (failedToAddHosts != null && !failedToAddHosts.isEmpty()) {
+				atLeastOneFailed = true;
+				if (atLeastOneSucceeded) {
+					break;
+				}
+			}
+			final List<String> successfullyAddedHosts = templateResponse.getSuccessfullyAddedHosts();
+			if (successfullyAddedHosts != null && !successfullyAddedHosts.isEmpty()) {
+				atLeastOneSucceeded = true;
+				if (atLeastOneFailed) {
+					break;
+				}
+			}
+		}
+		/*
+		 * partial failure or failure
+		 */
+		if (atLeastOneFailed) {
+			if (atLeastOneSucceeded) {				
+				// partial
+				log(Level.WARNING,
+						"[addTemplates] - Partial failure: " + templatesResponse);
+				addTemplatesResponse.setStatus(AddTemplatesStatus.PARTIAL_FAILURE);
+				throw new AddTemplatesException(addTemplatesResponse);
+			}
+			// failure
+			log(Level.WARNING,
+					"[addTemplates] - Failed to add all templates: " + templatesResponse);
+			addTemplatesResponse.setStatus(AddTemplatesStatus.FAILURE);
+			throw new AddTemplatesException(addTemplatesResponse);
+		}
+		addTemplatesResponse.setStatus(AddTemplatesStatus.SUCCESS);
+		log(Level.INFO, "[addTemplatesToRestInstances] - successfully added all templates to all (" 
+				+ addTemplatesResponse.getInstances().size() + ") REST instances.");
 
 	}
 
@@ -244,84 +296,78 @@ public class TemplatesController extends BaseRestController {
 	 *            a map updates by this method to specify the failed to add templates for each instance.
 	 * @param failedToAddTemplatesByHost
 	 *            a map updates by this method to specify the failed to add templates for each instance.
-	 * @throws RestErrorException
-	 *             If failed to add all templates (no template was added).
 	 */
-	private AddTemplatesResponse addTemplatesToRestInstances(final AddTemplatesInternalRequest request)
-			throws RestErrorException {
+	private AddTemplatesResponse addTemplatesToRestInstances(final AddTemplatesInternalRequest request) {
 
-		final Map<String, Map<String, String>> failedToAddTempaltes =
-				new HashMap<String, Map<String, String>>();
-		final List<String> successfullyAddedTemplates = new LinkedList<String>();
-		successfullyAddedTemplates.addAll(request.getExpectedTemplates());
-
-		int failedHostCount = 0;
-
+		final Map<String, AddTemplateResponse> templatesResponse = new HashMap<String, AddTemplateResponse>();
+		
 		// get the instances
 		final ProcessingUnitInstance[] instances = admin.getProcessingUnits().
 				waitFor("rest", RestUtils.TIMEOUT_IN_SECOND, TimeUnit.SECONDS).getInstances();
+		final List<String> instancesList = new ArrayList<String>(instances.length);
 		// execute add-template on each rest instance
 		log(Level.INFO, "[addTemplatesToRestInstances] - sending add-templates request to "
 				+ instances.length + " instances.");
 		for (final ProcessingUnitInstance puInstance : instances) {
-			final String port = Integer.toString(puInstance.getJeeDetails().getPort());
-			String hostAddress = puInstance.getMachine().getHostAddress();
+			final String hostAddress = puInstance.getMachine().getHostAddress();
+			instancesList.add(hostAddress);
 			log(Level.INFO, "[addTemplatesToRestInstances] - sending request to " + hostAddress);
-			final AddTemplatesInternalResponse instanceResponse = 
-					executeAddTemplateOnInstance(hostAddress, port, request);
+			/*
+			 * get instance response
+			 */
+			final AddTemplatesInternalResponse instanceResponse =
+					executeAddTemplateOnInstance(
+							hostAddress, Integer.toString(puInstance.getJeeDetails().getPort()), request);
 			final Map<String, String> failedToAddTempaltesToHost = instanceResponse.getFailedToAddTempaltesAndReasons();
-			if (failedToAddTempaltesToHost != null && !failedToAddTempaltesToHost.isEmpty()) {
+			final List<String> addedTempaltes = instanceResponse.getAddedTempaltes();
+			/*
+			 * failed to add templates
+			 */
+			if (failedToAddTempaltesToHost != null) {
 				for (final Entry<String, String> entry : failedToAddTempaltesToHost.entrySet()) {
-					final String templateName = entry.getKey();
-					final String reason = entry.getValue();
-					// remove each failed template from the successfully added list.
-					successfullyAddedTemplates.remove(templateName);
-					// add this PU and reason to the template's map in failure templates map.
-					Map<String, String> templateFailedPUs = failedToAddTempaltes.get(templateName);
-					if (templateFailedPUs == null) {
-						templateFailedPUs = new HashMap<String, String>();
+					log(Level.WARNING, "[addTemplatesToRestInstances] - failed to add templates to host ["
+							+ hostAddress + "]: " + failedToAddTempaltesToHost);
+					// update template's entry in the response
+					AddTemplateResponse addTemplateResponse = templatesResponse.get(entry.getKey());
+					if (addTemplateResponse == null) {
+						addTemplateResponse = new AddTemplateResponse();
 					}
-					templateFailedPUs.put(hostAddress, reason);
-					failedToAddTempaltes.put(templateName, templateFailedPUs);
+					Map<String, String> failedHostsReasons = addTemplateResponse.getFailedToAddHosts();
+					if (failedHostsReasons == null) {
+						failedHostsReasons = new HashMap<String, String>();
+					}
+					failedHostsReasons.put(hostAddress, entry.getValue());
+					addTemplateResponse.setFailedToAddHosts(failedHostsReasons);
+					templatesResponse.put(entry.getKey(), addTemplateResponse);
 				}
-				final List<String> addedTempaltes = instanceResponse.getAddedTempaltes();
-				log(Level.WARNING, "[addTemplatesToRestInstances] - failed to add templates to host ["
-						+ hostAddress + "]: " + failedToAddTempaltesToHost);
-				if (addedTempaltes == null || addedTempaltes.isEmpty()) {
-					// all expected templates failed to be added
-					failedHostCount++;
-				} else {
+			}
+			/*
+			 * successfully added templates
+			 */
+			if (addedTempaltes != null) {
+				for (final String templateName : addedTempaltes) {
 					// partial success
-					log(Level.WARNING, "[addTemplatesToRestInstances] - successfully added templates to host ["
+					log(Level.INFO, "[addTemplatesToRestInstances] - successfully added templates to host ["
 							+ hostAddress + "]: " + addedTempaltes);
+					AddTemplateResponse addTemplateResponse = templatesResponse.get(templateName);
+					if (addTemplateResponse == null) {
+						addTemplateResponse = new AddTemplateResponse();
+					}
+					List<String> successfullyAddedHosts = addTemplateResponse.getSuccessfullyAddedHosts();
+					if (successfullyAddedHosts == null) {
+						successfullyAddedHosts = new LinkedList<String>();
+					}
+					successfullyAddedHosts.add(hostAddress);
+					addTemplateResponse.setSuccessfullyAddedHosts(successfullyAddedHosts);
+					templatesResponse.put(templateName, addTemplateResponse);
 				}
-			} else {
-				// all expected templates were added
-				log(Level.INFO,
-						"[addTemplatesToRestInstances] - successfully added templates to host [" + hostAddress + "].");
 			}
 		}
 
-		// check if all PUs failed.
-		if (instances.length == failedHostCount) {
-			log(Level.WARNING,
-					"[sendAddTemplatesToRestInstances] - Failed to add templates: " + failedToAddTempaltes);
-			throw new RestErrorException(CloudifyErrorMessages.FAILED_TO_ADD_TEMPLATES.getName(),
-					failedToAddTempaltes.toString());
-		}
-		
-		if (failedToAddTempaltes.isEmpty()) {
-			log(Level.INFO, "successfully added all templates to all " + instances.length + " REST instances.");
-		} else {
-			log(Level.INFO, "successfully added tempaltes: " + successfullyAddedTemplates 
-					+ ", failed to be added templates: " + failedToAddTempaltes);
-		}
-		
-		// no failure => there is at least one PU that successfully added at least one template.
 		// create and return the response.
 		final AddTemplatesResponse response = new AddTemplatesResponse();
-		response.setFailedToAddTempaltes(failedToAddTempaltes);
-		response.setSuccessfullyAddedTempaltes(successfullyAddedTemplates);
+		response.setInstances(instancesList);
+		response.setTemplates(templatesResponse);
 		return response;
 
 	}
@@ -331,7 +377,7 @@ public class TemplatesController extends BaseRestController {
 	 * 
 	 * @param puInstance
 	 * @param request
-	 * @param host 
+	 * @param host
 	 * @return AddTemplatesInternalResponse
 	 */
 	private AddTemplatesInternalResponse executeAddTemplateOnInstance(
@@ -341,13 +387,13 @@ public class TemplatesController extends BaseRestController {
 		AddTemplatesInternalResponse instanceResponse;
 		try {
 			// invoke add-templates command on each REST instance.
-			RestClientInternal client = createRestClientInternal(host, port);
+			final RestClientInternal client = createRestClientInternal(host, port);
 			instanceResponse = client.addTemplatesInternal(request);
 		} catch (final RestClientException e) {
 			// the request failed => all expected templates failed to be added
 			// create a response that contains all expected templates in a failure map.
 			log(Level.WARNING, "[executeAddTemplateOnInstance] - Failed to execute http request to "
-					+ host  + ". Error message: " + e.getMessageFormattedText());
+					+ host + ". Error message: " + e.getMessageFormattedText());
 			final Map<String, String> failedMap = new HashMap<String, String>();
 			for (final String expectedTemplate : request.getExpectedTemplates()) {
 				failedMap.put(expectedTemplate, "http request failed [" + e.getMessageFormattedText() + "]");
@@ -416,7 +462,7 @@ public class TemplatesController extends BaseRestController {
 	 */
 	private AddTemplatesInternalResponse addTemplatesToCloud(final File templatesFolder,
 			final List<ComputeTemplateHolder> templatesHolders) {
-		log(Level.FINE, 
+		log(Level.FINE,
 				"[addTemplatesToCloud] - Adding " + templatesHolders.size() + " templates to cloud.");
 		// adds the templates to the cloud's templates list, deletes the failed to added templates from the folder.
 		final AddTemplatesInternalResponse addTemplatesToCloudListresponse =
@@ -426,16 +472,16 @@ public class TemplatesController extends BaseRestController {
 				addTemplatesToCloudListresponse.getFailedToAddTempaltesAndReasons();
 		// if no templates were added, throw an exception
 		if (addedTemplates.isEmpty()) {
-			log(Level.WARNING, 
+			log(Level.WARNING,
 					"[addTemplatesToCloud] - Failed to add templates from " + templatesFolder.getAbsolutePath());
 		} else {
 			// at least one template was added, copy files from template folder to a new folder.
 			log(Level.FINE,
 					"[addTemplatesToCloud] - Coping templates files from " + templatesFolder.getAbsolutePath()
-					+ " to a new folder under " + cloudConfigurationDir.getAbsolutePath());
+							+ " to a new folder under " + cloudConfigurationDir.getAbsolutePath());
 			try {
 				final File localTemplatesDir = copyTemplateFilesToCloudConfigDir(templatesFolder);
-				log(Level.FINE, "[addTemplatesToCloud] - The templates files were copied to " 
+				log(Level.FINE, "[addTemplatesToCloud] - The templates files were copied to "
 						+ localTemplatesDir.getAbsolutePath());
 				updateCloudTemplatesUploadPath(addedTemplates, localTemplatesDir);
 			} catch (final IOException e) {
@@ -495,7 +541,7 @@ public class TemplatesController extends BaseRestController {
 			final File templatesFolder, final List<ComputeTemplateHolder> cloudTemplates) {
 		final List<String> addedTemplates = new LinkedList<String>();
 		final Map<String, String> failedToAddTemplates = new HashMap<String, String>();
-		log(Level.FINE, 
+		log(Level.FINE,
 				"[addTemplatesToCloudList] - adding " + cloudTemplates.size() + " templates to cloud's list.");
 		for (final ComputeTemplateHolder holder : cloudTemplates) {
 			final String templateName = holder.getName();
@@ -585,7 +631,7 @@ public class TemplatesController extends BaseRestController {
 						DSLUtils.TEMPLATES_PROPERTIES_FILE_NAME_SUFFIX);
 				if (newName != null) {
 					log(Level.INFO, "[renameTemplateFileIfNeeded] - Renamed template's properties file name from"
-									+ " " + propertiesFileName + " to " + newName + ".");
+							+ " " + propertiesFileName + " to " + newName + ".");
 				}
 			}
 			if (overridesFileName != null) {
@@ -594,7 +640,7 @@ public class TemplatesController extends BaseRestController {
 						DSLUtils.TEMPLATES_OVERRIDES_FILE_NAME_SUFFIX);
 				if (newName != null) {
 					log(Level.INFO, "[renameTemplateFileIfNeeded] - Renamed template's overrides file name from "
-									+ overridesFileName + " to " + newName + ".");
+							+ overridesFileName + " to " + newName + ".");
 				}
 			}
 		} catch (final IOException e) {
@@ -716,17 +762,17 @@ public class TemplatesController extends BaseRestController {
 		final Map<String, String> failedToRemoveFromHosts = new HashMap<String, String>();
 		final List<String> successfullyRemovedFromHosts = new LinkedList<String>();
 		for (final ProcessingUnitInstance puInstance : instances) {
-			String hostAddress = puInstance.getMachine().getHostAddress();
+			final String hostAddress = puInstance.getMachine().getHostAddress();
 			final String port = Integer.toString(puInstance.getJeeDetails().getPort());
 			try {
-				RestClientInternal client = createRestClientInternal(hostAddress, port);
+				final RestClientInternal client = createRestClientInternal(hostAddress, port);
 				log(Level.INFO, "sending request to " + hostAddress);
 				client.removeTemplateInternal(templateName);
 			} catch (final RestClientException e) {
 				failedToRemoveFromHosts.put(hostAddress, e.getMessageFormattedText());
 				log(Level.WARNING, "[removeTemplateFromRestInstances] - remove template ["
-					+ templateName + "] from instance [" + hostAddress + "] failed. Error: " 
-					+ e.getMessageFormattedText(), e);
+						+ templateName + "] from instance [" + hostAddress + "] failed. Error: "
+						+ e.getMessageFormattedText(), e);
 				continue;
 			}
 			successfullyRemovedFromHosts.add(hostAddress);
@@ -776,17 +822,17 @@ public class TemplatesController extends BaseRestController {
 	private void removeTemplateFromCloud(final String templateName)
 			throws RestErrorException {
 		log(Level.FINE, "[removeTemplateFromCloud] - removing template [" + templateName + "] from cloud.");
-		try { 
+		try {
 			// delete template's file from the cloud configuration directory.
 			deleteTemplateFile(templateName);
-		} catch (RestErrorException e) {
+		} catch (final RestErrorException e) {
 			try {
-				log(Level.FINE, "[removeTemplateFromCloud] - failed to remove template's files: " 
+				log(Level.FINE, "[removeTemplateFromCloud] - failed to remove template's files: "
 						+ e.getLocalizedMessage() + ", trying to remove the template from cloud's list.");
 				removeTemplateFromCloudList(templateName);
 				throw e;
-			} catch (RestErrorException e1) {
-				log(Level.FINE, "[removeTemplateFromCloud] - failed to remove template from cloud list: " 
+			} catch (final RestErrorException e1) {
+				log(Level.FINE, "[removeTemplateFromCloud] - failed to remove template from cloud list: "
 						+ e1.getLocalizedMessage());
 				throw e;
 			}
@@ -795,21 +841,20 @@ public class TemplatesController extends BaseRestController {
 		removeTemplateFromCloudList(templateName);
 	}
 
-	
-	private void removeTemplateFromCloudList(final String templateName) 
+	private void removeTemplateFromCloudList(final String templateName)
 			throws RestErrorException {
 		log(Level.FINE, "[removeTemplateFromCloudList] - removing template [" + templateName + "] from cloud's list.");
 		final Map<String, ComputeTemplate> cloudTemplates = cloud.getCloudCompute().getTemplates();
 		if (!cloudTemplates.containsKey(templateName)) {
-			log(Level.WARNING, 
+			log(Level.WARNING,
 					"[removeTemplateFromCloudList] - tempalte [" + templateName + "] doesn't exist in cloud's list.");
 			throw new RestErrorException(CloudifyErrorMessages.TEMPLATE_NOT_EXIST.getName(), templateName);
 		}
 		cloudTemplates.remove(templateName);
-		log(Level.FINE, "[removeTemplateFromCloudList] - template [" + templateName 
+		log(Level.FINE, "[removeTemplateFromCloudList] - template [" + templateName
 				+ "] was removed from cloud's list.");
 	}
-	
+
 	/**
 	 * Deletes the template's file. Deletes the templates folder if no other templates files exist in the folder.
 	 * Deletes the {@link CloudifyConstants#ADDITIONAL_TEMPLATES_FOLDER_NAME} folder if empty.
@@ -911,12 +956,11 @@ public class TemplatesController extends BaseRestController {
 		}
 		return listFiles[0];
 	}
-	
-	
+
 	/**
 	 * Returns the name of the protocol used for communication with the rest server. If the security is secure (SSL)
 	 * returns "https", otherwise returns "http".
-	 *
+	 * 
 	 * @param isSecureConnection
 	 *            Indicates whether SSL is used or not.
 	 * @return "https" if this is a secure connection, "http" otherwise.
@@ -928,25 +972,25 @@ public class TemplatesController extends BaseRestController {
 		return "http";
 	}
 
-	private RestClientInternal createRestClientInternal(final String host, final String port) 
+	private RestClientInternal createRestClientInternal(final String host, final String port)
 			throws RestClientException {
 		final String protocol = getRestProtocol(permissionEvaluator != null);
 		final String baseUrl = protocol + "://" + IPUtils.getSafeIpAddress(host) + ":" + port;
 		final String apiVersion = PlatformVersion.getVersion();
 		try {
 			return new RestClientInternal(new URL(baseUrl), "", "", apiVersion);
-		} catch (MalformedURLException e) {
-			throw new RestClientException(CloudifyErrorMessages.FAILED_CREATE_REST_CLIENT.getName(), 
+		} catch (final MalformedURLException e) {
+			throw new RestClientException(CloudifyErrorMessages.FAILED_CREATE_REST_CLIENT.getName(),
 					"failed to create REST client", ExceptionUtils.getFullStackTrace(e));
 		}
 	}
-	
+
 	private void log(final Level level, final String content) {
 		if (logger.isLoggable(level)) {
 			logger.log(level, content);
 		}
 	}
-	
+
 	private void log(final Level level, final String content, final Throwable thrown) {
 		if (logger.isLoggable(level)) {
 			logger.log(level, content, thrown);
