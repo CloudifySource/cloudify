@@ -23,6 +23,7 @@ import java.io.InputStream;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 import org.cloudifysource.esc.driver.provisioning.privateEc2.parser.beans.PrivateEc2Template;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class PrivateEc2TemplateParserTest {
@@ -45,6 +46,7 @@ public class PrivateEc2TemplateParserTest {
 	 * 
 	 */
 	@Test
+	@Ignore
 	public void testTemplateWithEBS() throws IOException, PrivateEc2ParserException {
 		InputStream templateStream = ClassLoader.getSystemResourceAsStream("./cfn_templates/EC2WithEBSSample.template");
 		PrivateEc2Template template = ParserUtils.mapJson(PrivateEc2Template.class, templateStream);
