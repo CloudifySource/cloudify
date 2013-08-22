@@ -35,7 +35,7 @@ public final class NewRestClientUtils {
 	public static boolean isNewRestClientEnabled() {
 		String propertyValue = System.getProperty(CloudifyConstants.NEW_REST_CLIENT_ENABLE_PROPERTY);
 		if (StringUtils.isBlank(propertyValue)) {
-			return false;
+			return true;
 		}
 		return Boolean.parseBoolean(propertyValue);
 	}
