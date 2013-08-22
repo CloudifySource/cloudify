@@ -16,6 +16,9 @@
  *******************************************************************************/
 package org.cloudifysource.rest.doclet;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -23,6 +26,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.ComputeTemplateHolder;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
@@ -51,6 +55,10 @@ import org.cloudifysource.dsl.rest.response.UpdateApplicationAttributeResponse;
 import org.cloudifysource.dsl.rest.response.UploadResponse;
 import org.cloudifysource.restDoclet.exampleGenerators.IDocExampleGenerator;
 import org.cloudifysource.restDoclet.exampleGenerators.PrimitiveExampleValues;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.sun.javadoc.ParameterizedType;
@@ -74,8 +82,54 @@ public class RESTResposneExampleGenerator implements IDocExampleGenerator {
 		responseWrapper.setStatus("Success");
 		responseWrapper.setMessage("Operation completed successfully");
 		responseWrapper.setMessageId(CloudifyMessageKeys.OPERATION_SUCCESSFULL.getName());
+		responseWrapper.setVerbose(getVerbose(type));
 		
 		return new ObjectMapper().writeValueAsString(responseWrapper);
+	}
+
+	private String getVerbose(final Type type) throws ClassNotFoundException, IOException {
+		Class<?> clazz = ClassUtils.getClass(type.qualifiedTypeName());		
+		if (AddTemplatesResponse.class.equals(clazz)) {
+			return getIndentJson(new ObjectMapper().writeValueAsString(RESTExamples.getAddTemplatesResponseExample()));
+		}
+		return null;
+	}
+	
+	private static String getIndentJson(final String body) throws IOException {
+		if (StringUtils.isBlank(body)) {
+			return null;
+		}
+
+		StringWriter out = new StringWriter();
+		JsonParser parser = null;
+		JsonGenerator gen = null;
+		try {
+			JsonFactory fac = new JsonFactory();
+
+			parser = fac.createJsonParser(new StringReader(body));
+			ObjectMapper mapper = new ObjectMapper();
+			JsonNode node = mapper.readTree(parser);
+			// Create pretty printer:
+			gen = fac.createJsonGenerator(out);
+			gen.useDefaultPrettyPrinter();
+			// Write:
+			mapper.writeTree(gen, node);
+
+			gen.close();
+			parser.close();
+
+			return out.toString();
+
+		} finally {
+			out.close();
+			if (gen != null) {
+				gen.close();
+			}
+			if (parser != null) {
+				parser.close();
+			}
+		}
+
 	}
 
 	private Object getExample(final Type type) 
@@ -172,12 +226,7 @@ public class RESTResposneExampleGenerator implements IDocExampleGenerator {
 		} else if (ServiceDescription.class.equals(clazz)) {
 			example = RESTExamples.getServicesDescription();
 		} else if (AddTemplatesResponse.class.equals(clazz)) {
-			example = new AddTemplatesResponse();
-//			((AddTemplatesResponse) example).setFailedToAddTempaltes(new HashMap<String, Map<String, String>>());
-			List<String> successfullyAddedTempaltes = new LinkedList<String>();
-			successfullyAddedTempaltes.add("SMALL_UBUNTU");
-			successfullyAddedTempaltes.add("SMALL_SUSE");
-//			((AddTemplatesResponse) example).setSuccessfullyAddedTempaltes(successfullyAddedTempaltes);
+			example = null;
 		} else if (ListTemplatesResponse.class.equals(clazz)) {
 			example = new ListTemplatesResponse();
 			Map<String, ComputeTemplate> templates = new HashMap<String, ComputeTemplate>();

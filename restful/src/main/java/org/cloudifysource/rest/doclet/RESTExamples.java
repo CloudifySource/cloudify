@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 import org.apache.commons.lang.math.RandomUtils;
@@ -31,6 +32,9 @@ import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants.DeploymentState;
 import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.debug.DebugModes;
+import org.cloudifysource.dsl.rest.response.AddTemplateResponse;
+import org.cloudifysource.dsl.rest.response.AddTemplatesResponse;
+import org.cloudifysource.dsl.rest.response.AddTemplatesStatus;
 import org.cloudifysource.dsl.rest.response.DeploymentEvent;
 import org.cloudifysource.dsl.rest.response.InstanceDescription;
 import org.cloudifysource.dsl.rest.response.ServiceDescription;
@@ -175,6 +179,7 @@ public final class RESTExamples {
 		return effAppName + "." + effServiceName;
 	}
 
+	
 	static int getInstanceId() {
 		return getRandomInt(MAX_INSTANCE_ID);
 	}
@@ -215,7 +220,11 @@ public final class RESTExamples {
 	}
 
 	static String getPublicIp() {
-		return getLocalHost().getHostAddress();
+		String localhostaddress = getLocalHost().getHostAddress();
+		localhostaddress = localhostaddress.substring(0, localhostaddress.length() - 1);
+		Random random = new Random();
+		localhostaddress = localhostaddress.concat(String.valueOf(random.nextInt(10)));
+		return localhostaddress;
 	}
 
 	static String getTemplateName() {
@@ -249,6 +258,57 @@ public final class RESTExamples {
 		cloudTemplate.setOptions(options);
 		holder.setCloudTemplate(cloudTemplate);
 		return holder;
+	}
+	
+	static AddTemplatesResponse getAddTemplatesResponseExample() {
+		// creating partial failure example
+		Map<String, AddTemplateResponse> templates = new HashMap<String, AddTemplateResponse>();
+		String instance1 = RESTExamples.getPublicIp();
+		String instance2 = RESTExamples.getPublicIp();
+		String instance3 = RESTExamples.getPublicIp();
+		List<String> instances = new LinkedList<String>();
+		instances.add(instance1);
+		instances.add(instance2);
+		instances.add(instance3);
+		/*
+		 * template1 (failure)
+		 */
+		AddTemplateResponse template1Response = new AddTemplateResponse();
+		Map<String, String> template1FailureMap = new HashMap<String, String>();
+		template1FailureMap.put(instance1, "template already exists");
+		template1FailureMap.put(instance2, "template already exists");
+		template1FailureMap.put(instance3, "template already exists");
+		template1Response.setFailedToAddHosts(template1FailureMap);
+		List<String> template1SuccessList = new LinkedList<String>();
+		template1Response.setSuccessfullyAddedHosts(template1SuccessList);
+		templates.put("SMALL_LINUX", template1Response);
+		/*
+		 * template2 (partial failure)
+		 */
+		AddTemplateResponse template2Response = new AddTemplateResponse();
+		Map<String, String> template2FailureMap = new HashMap<String, String>();
+		template2FailureMap.put(instance1, "template already exists");
+		template2FailureMap.put(instance2, "template already exists");
+		List<String> template2SuccessList = new LinkedList<String>();
+		template2Response.setFailedToAddHosts(template2FailureMap);
+		template2SuccessList.add(instance3);
+		template2Response.setSuccessfullyAddedHosts(template2SuccessList);
+		templates.put("SMALL_UBUNTU", template2Response);
+		/*
+		 * template3 (success)
+		 */
+		AddTemplateResponse template3Response = new AddTemplateResponse();
+		Map<String, String> template3FailureMap = new HashMap<String, String>();
+		template3Response.setFailedToAddHosts(template3FailureMap);
+		List<String> template3SuccessList = instances;
+		template3Response.setSuccessfullyAddedHosts(template3SuccessList);
+		templates.put("SMALL_SUSE", template3Response);
+		
+		AddTemplatesResponse response = new AddTemplatesResponse();
+		response.setTemplates(templates);
+		response.setInstances(instances);
+		response.setStatus(AddTemplatesStatus.PARTIAL_FAILURE);
+		return response;
 	}
 	
 	private static int getRandomInt(final int max) {
@@ -303,5 +363,4 @@ public final class RESTExamples {
 			return null;
 		}
 	}
-
 }
