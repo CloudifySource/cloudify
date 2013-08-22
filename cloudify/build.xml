@@ -385,7 +385,7 @@
     		                        includes="**/*" excludes="dynamic_props.js" filemode="775"/>
             <zipfileset dir="${gs-webui.related.folder}/war" />
     		<manifest>
-    			<attribute name="Class-Path" value="lib/platform/cloudify/security-${s3.cloudify.publish.folder}.jar lib/platform/cloudify/security-ldap-${s3.cloudify.publish.folder}.jar"/>
+    			<attribute name="Class-Path" value="lib/platform/cloudify/security.jar lib/platform/cloudify/security-ldap.jar"/>
     		</manifest>
         </war>
 		
