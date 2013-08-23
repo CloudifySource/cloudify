@@ -97,7 +97,7 @@ cloud {
 				custom ([
 					"cfnManagerTemplate":"C:/cloudify-deployment/gigaspaces-cloudify-2.6.1-ga-b5199-139/clouds/privateEc2/privateEc2-cfn.template",
 					"cloudDirectory":"C:/cloudify-deployment/gigaspaces-cloudify-2.6.1-ga-b5199-139/clouds/privateEc2",
-					"s3BucketName":"cloudify-eu/test",
+					"s3BucketName":"private-ec2-upload",
 					"s3LocationId":"eu-west-1",
 				])
 				

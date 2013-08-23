@@ -76,8 +76,11 @@ public class AmazonS3Uploader {
 	 *                When the zipping fails.
 	 */
 	public String zipAndUploadToS3(final String existingBucketName, final String pathFolderToZip) throws IOException {
+		logger.info("Creating configuration zip file");
 		File zipFile = this.zipFolder(pathFolderToZip);
+		logger.info("Uploading configuration");
 		String s3Url = this.uploadFile(existingBucketName, zipFile);
+		logger.info("Finished uploading configuration");
 		return s3Url;
 	}
 
