@@ -304,6 +304,7 @@ public class CloudGridAgentBootstrapper {
 
 		final ProvisioningContextImpl ctx = new ProvisioningContextImpl();
 		ctx.setLocationId(null);
+		ctx.setCloudFile(this.cloudFile);
 		InstallationDetailsBuilder builder = ctx.getInstallationDetailsBuilder();
 		builder.setReservationId(null);
 		builder.setAdmin(null);

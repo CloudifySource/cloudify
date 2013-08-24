@@ -12,6 +12,7 @@
  ******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 
 import org.cloudifysource.dsl.cloud.compute.ComputeTemplate;
@@ -38,5 +39,11 @@ public interface ProvisioningContext {
 	 */
 	String createEnvironmentScript(final MachineDetails md, final ComputeTemplate template)
 			throws FileNotFoundException;
+
+	/***************
+	 * Returns the directory where the cloud configuration was read. 
+	 * @return the cloud configuration directory.
+	 */
+	File getCloudFile();
 
 }

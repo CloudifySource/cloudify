@@ -95,8 +95,7 @@ cloud {
 				remoteDirectory "/home/ubuntu/gs-files"     // do not change, it is used to define $CLOUD_FILE
 				
 				custom ([
-					"cfnManagerTemplate":"C:/cloudify-deployment/gigaspaces-cloudify-2.6.1-ga-b5199-139/clouds/privateEc2/privateEc2-cfn.template",
-					"cloudDirectory":"C:/cloudify-deployment/gigaspaces-cloudify-2.6.1-ga-b5199-139/clouds/privateEc2",
+					"cfnManagerTemplate":"privateEc2-cfn.template",
 					"s3BucketName":"private-ec2-upload",
 					"s3LocationId":"eu-west-1",
 				])
