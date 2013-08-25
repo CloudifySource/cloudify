@@ -203,7 +203,7 @@ fi
 if [ ! -z "$GIGASPACES_AGENT_ENV_INIT_COMMAND" ]; then
 	echo Executing initialization command
 	cd $WORKING_HOME_DIRECTORY
-	$GIGASPACES_AGENT_ENV_INIT_COMMAND
+	eval "$GIGASPACES_AGENT_ENV_INIT_COMMAND"
 fi
 
 cd ~/gigaspaces/tools/cli || error_exit $? 118 "Failed changing directory to cli directory"
