@@ -766,4 +766,30 @@ public final class IPUtils {
 		String highestPortStr = StringUtils.substringAfter(portRange, PORT_RANGE_SEPARATOR);
 		return Integer.parseInt(highestPortStr);
 	}
+	
+	/************
+	 * Creates a compatible LOOKUPLOCATORS string from one or more locators.
+	 * @param locators the locators.
+	 * @param port the LUS port.
+	 * @return the LOOKUPLOCATORS string.
+	 */
+	public static String createLocatorsString(final String[] locators, final int port) {
+		if(locators == null) {
+			throw new IllegalArgumentException("locators can't be null");
+		}
+		
+		final StringBuilder lookupSb = new StringBuilder();
+		for (final String locator: locators) {
+			final String ip = IPUtils.getSafeIpAddress(locator);
+
+			lookupSb.append(ip).append(":").append(port).append(',');
+		}
+
+		if (!(lookupSb.length() == 0)) {
+			lookupSb.setLength(lookupSb.length() - 1);
+		}
+
+		return lookupSb.toString();
+
+	}
 }

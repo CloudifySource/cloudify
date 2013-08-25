@@ -118,22 +118,20 @@ public class ProvisioningContextImpl implements ProvisioningContext, ManagementP
 		return result;
 	}
 
-	// TODO - this is copy/paste from CloudGridAgentBootstrapper
 	private String createLocatorsString(
 			final MachineDetails[] mds, final Cloud cloud) {
 
 		final Integer port = cloud.getConfiguration().getComponents().getDiscovery().getDiscoveryPort();
-		final StringBuilder lookupSb = new StringBuilder();
-		for (final MachineDetails detail : mds) {
-			final String ip = cloud.getConfiguration().isConnectToPrivateIp() ? IPUtils.getSafeIpAddress(detail
-					.getPrivateAddress()) : IPUtils.getSafeIpAddress(detail.getPublicAddress());
 
-			lookupSb.append(ip).append(":").append(port).append(',');
+		final String[] locators = new String[mds.length];
+
+		for (int i = 0; i < mds.length; i++) {
+			locators[i] = cloud.getConfiguration().isConnectToPrivateIp() ? mds[i]
+					.getPrivateAddress() : mds[i].getPublicAddress();
 		}
 
-		lookupSb.setLength(lookupSb.length() - 1);
-
-		return lookupSb.toString();
+		final String locatorsString = IPUtils.createLocatorsString(locators, port);
+		return locatorsString;
 	}
 
 }
