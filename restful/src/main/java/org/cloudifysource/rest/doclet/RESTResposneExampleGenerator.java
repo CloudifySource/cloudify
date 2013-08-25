@@ -16,9 +16,6 @@
  *******************************************************************************/
 package org.cloudifysource.rest.doclet;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,11 +23,12 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang.ClassUtils;
-import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.ComputeTemplateHolder;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.rest.response.AddTemplatesResponse;
+import org.cloudifysource.dsl.rest.response.AddTemplatesStatus;
 import org.cloudifysource.dsl.rest.response.ApplicationDescription;
 import org.cloudifysource.dsl.rest.response.DeleteApplicationAttributeResponse;
 import org.cloudifysource.dsl.rest.response.DeleteServiceAttributeResponse;
@@ -43,6 +41,7 @@ import org.cloudifysource.dsl.rest.response.GetTemplateResponse;
 import org.cloudifysource.dsl.rest.response.InstallApplicationResponse;
 import org.cloudifysource.dsl.rest.response.InstallServiceResponse;
 import org.cloudifysource.dsl.rest.response.ListTemplatesResponse;
+import org.cloudifysource.dsl.rest.response.Response;
 import org.cloudifysource.dsl.rest.response.ServiceDescription;
 import org.cloudifysource.dsl.rest.response.ServiceDetails;
 import org.cloudifysource.dsl.rest.response.ServiceInstanceDetails;
@@ -54,10 +53,6 @@ import org.cloudifysource.dsl.rest.response.UpdateApplicationAttributeResponse;
 import org.cloudifysource.dsl.rest.response.UploadResponse;
 import org.cloudifysource.restDoclet.exampleGenerators.IDocExampleGenerator;
 import org.cloudifysource.restDoclet.exampleGenerators.PrimitiveExampleValues;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.sun.javadoc.ParameterizedType;
@@ -75,65 +70,33 @@ public class RESTResposneExampleGenerator implements IDocExampleGenerator {
 
 	@Override
 	public String generateExample(final Type type) throws Exception {	
-
-		RESTExampleRespone<Object> responseWrapper = new RESTExampleRespone<Object>();
-		responseWrapper.setResponse(getExample(type));
-		responseWrapper.setStatus("Success");
-		responseWrapper.setMessage("Operation completed successfully");
-		responseWrapper.setMessageId(CloudifyMessageKeys.OPERATION_SUCCESSFULL.getName());
-		responseWrapper.setVerbose(getVerbose(type));
-		
+		Object responseWrapper = getGeneratedExample(type);
 		return new ObjectMapper().writeValueAsString(responseWrapper);
 	}
 
-	private Object getVerbose(final Type type) throws ClassNotFoundException, IOException {
+	private Object getGeneratedExample(final Type type) 
+			throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 		Class<?> clazz = ClassUtils.getClass(type.qualifiedTypeName());		
 		if (AddTemplatesResponse.class.equals(clazz)) {
-			AddTemplatesResponse example = RESTExamples.getAddTemplatesResponseExample();
-			String writeValueAsString = new ObjectMapper().writeValueAsString(example);
-			String indentJson = getIndentJson(writeValueAsString);
-			return example;
+			RESTExampleRespone<Object> response = new RESTExampleRespone<Object>();
+			response.setResponse(null);
+			response.setStatus(AddTemplatesStatus.PARTIAL_FAILURE.getName());
+			response.setMessageId(CloudifyErrorMessages.PARTLY_FAILED_TO_ADD_TEMPLATES.getName());
+			response.setMessage("partial failure - not all the expected templates were added to all REST instances.");
+			response.setVerbose(RESTExamples.getAddTemplatesResponseExample());
+			return response;
 		}
-		return null;
+		
+		Response<Object> response = new Response<Object>();
+		response.setResponse(getExample(type));
+		response.setStatus("Success");
+		response.setMessage("Operation completed successfully");
+		response.setMessageId(CloudifyMessageKeys.OPERATION_SUCCESSFULL.getName());
+		response.setVerbose(null);
+		
+		return response;
 	}
 	
-	private static String getIndentJson(final String body) throws IOException {
-		if (StringUtils.isBlank(body)) {
-			return null;
-		}
-
-		StringWriter out = new StringWriter();
-		JsonParser parser = null;
-		JsonGenerator gen = null;
-		try {
-			JsonFactory fac = new JsonFactory();
-
-			parser = fac.createJsonParser(new StringReader(body));
-			ObjectMapper mapper = new ObjectMapper();
-			JsonNode node = mapper.readTree(parser);
-			// Create pretty printer:
-			gen = fac.createJsonGenerator(out);
-			gen.useDefaultPrettyPrinter();
-			// Write:
-			mapper.writeTree(gen, node);
-
-			gen.close();
-			parser.close();
-
-			return out.toString();
-
-		} finally {
-			out.close();
-			if (gen != null) {
-				gen.close();
-			}
-			if (parser != null) {
-				parser.close();
-			}
-		}
-
-	}
-
 	private Object getExample(final Type type) 
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		Object example;

@@ -25,7 +25,6 @@ import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.rest.AddTemplatesException;
 import org.cloudifysource.dsl.rest.response.AddTemplatesStatus;
-import org.cloudifysource.dsl.rest.response.AddTemplatesResponse;
 import org.cloudifysource.dsl.rest.response.Response;
 import org.cloudifysource.rest.exceptions.ResourceNotFoundException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -87,18 +86,16 @@ public abstract class BaseRestController {
     public void handleAddTemplatesException(final HttpServletResponse response,
                                      final AddTemplatesException e) throws IOException {
 
-    	AddTemplatesResponse addTemplatesResponse = e.getAddTemplatesResponse();
-		AddTemplatesStatus status = addTemplatesResponse.getStatus();
+		AddTemplatesStatus status = e.getAddTemplatesResponse().getStatus();
     	String messageId = CloudifyErrorMessages.FAILED_TO_ADD_TEMPLATES.getName();
     	if (status == AddTemplatesStatus.PARTIAL_FAILURE) {
     		messageId = CloudifyErrorMessages.PARTLY_FAILED_TO_ADD_TEMPLATES.getName();
     	}
-        Object[] messageArgs = {addTemplatesResponse.getTemplates()};
         String formattedMessage;
         try {
-        	formattedMessage = messageSource.getMessage(messageId, messageArgs, Locale.US);
+        	formattedMessage = messageSource.getMessage(messageId, null, Locale.US);
         } catch (NoSuchMessageException ne) {
-        	formattedMessage = messageId + " [" + Arrays.toString(messageArgs) + "]";
+        	formattedMessage = messageId;
         }
 
         Response<Void> finalResponse = new Response<Void>();
