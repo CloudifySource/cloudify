@@ -48,15 +48,16 @@ public abstract class UninstallationProcessInspector extends InstallationProcess
     }
 
     @Override
-    public void waitForLifeCycleToEnd(long timeout) throws InterruptedException, CLIException, TimeoutException {
+    public void waitForLifeCycleToEnd(final long timeout) 
+    		throws InterruptedException, CLIException, TimeoutException {
 
 
         ConditionLatch conditionLatch = createConditionLatch(timeout);
 
         conditionLatch.waitFor(new ConditionLatch.Predicate() {
 
-            boolean lifeCycleEnded = false;
-            boolean undeployEnded = false;
+            private boolean lifeCycleEnded = false;
+            private boolean undeployEnded = false;
 
             @Override
             public boolean isDone() throws CLIException, InterruptedException {

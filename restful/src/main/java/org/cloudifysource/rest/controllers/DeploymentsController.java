@@ -383,9 +383,6 @@ public class DeploymentsController extends BaseRestController {
 		synchronized (value.getMutex()) {
 			eventsCache.refresh(key);
 			int lastEventId = value.getLastEventIndex();
-			if (lastEventId > 0) {
-				lastEventId = lastEventId - 1;
-			}
 			// return the events. this MAY or MAY NOT be the complete set of events requested.
 			// request for specific events is treated as best effort. no guarantees all events are returned.
 			return EventsUtils.extractDesiredEvents(value.getEvents(), lastEventId, lastEventId);
@@ -1298,7 +1295,6 @@ public class DeploymentsController extends BaseRestController {
 						// write to events cache
 						DeploymentEvent undeployFinishedEvent = new DeploymentEvent();
 						undeployFinishedEvent.setDescription(CloudifyConstants.UNDEPLOYED_SUCCESSFULLY_EVENT);
-
 						eventsCache.add(new EventsCacheKey(deploymentId), undeployFinishedEvent);
 						return result;
 					}

@@ -153,7 +153,11 @@ public class ApplicationDescriptionFactory {
 
         serviceDescription.setInstancesDescription(serviceInstancesDescription);
         serviceDescription.setServiceState(serviceState);
-
+        
+        final String deploymentId = processingUnit.getBeanLevelProperties()
+        		.getContextProperties().getProperty(CloudifyConstants.CONTEXT_PROPERTY_DEPLOYMENT_ID);
+        serviceDescription.setDeploymentId(deploymentId);
+        
         return serviceDescription;
 
 

@@ -389,11 +389,11 @@ public class RestClient {
 	 */
 	public DeploymentEvents getLastEvent(final String deploymentId) throws RestClientException {
 
-		final String setInstancesUrl = getFormattedUrl(
+		final String url = getFormattedUrl(
 				versionedDeploymentControllerUrl, 
 				GET_LAST_EVENT_URL_FORMAT, 
 				deploymentId);
-		return executor.get(setInstancesUrl, new TypeReference<Response<DeploymentEvents>>() {
+		return executor.get(url, new TypeReference<Response<DeploymentEvents>>() {
 		});
 
 	}
