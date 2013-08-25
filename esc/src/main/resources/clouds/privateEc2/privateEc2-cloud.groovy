@@ -96,8 +96,8 @@ cloud {
 				
 				custom ([
 					"cfnManagerTemplate":"privateEc2-cfn.template",
-					"s3BucketName":"private-ec2-upload",
-					"s3LocationId":"eu-west-1",
+					"s3BucketName":bucketName,
+					"s3LocationId":bucketLocationId
 				])
 				
             },
