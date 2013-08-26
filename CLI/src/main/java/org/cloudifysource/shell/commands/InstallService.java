@@ -95,6 +95,7 @@ public class InstallService extends AdminAwareCommand implements NewRestClientCo
 			+ "done. Defaults to 5 minutes.")
 	private int timeoutInMinutes = DEFAULT_TIMEOUT_MINUTES;
 
+	@Deprecated
 	@Option(required = false, name = "-service-file-name", description = "Name of the service file in the "
 			+ "recipe folder. If not specified, uses the default file name")
 	private String serviceFileName = null;
@@ -137,7 +138,7 @@ public class InstallService extends AdminAwareCommand implements NewRestClientCo
 	@Override
 	protected Object doExecute()
 			throws Exception {
-
+		logger.info("install-service using the old rest client");
 		try {
 			DebugUtils.validateDebugSettings(debugAll, debugEvents, debugModeString);
 		} catch (final DSLErrorMessageException e) {
@@ -458,6 +459,7 @@ public class InstallService extends AdminAwareCommand implements NewRestClientCo
 
 	@Override
 	public Object doExecuteNewRestClient() throws Exception {
+		logger.info("install-service using the old rest client");
 		RestClient newRestClient = ((RestAdminFacade) getRestAdminFacade()).getNewRestClient();
         NameAndPackedFileResolver nameAndPackedFileResolver = getResolver(recipe);
         serviceName = nameAndPackedFileResolver.getName();

@@ -95,10 +95,9 @@ public class RecipePathResolver {
 			if (recipeFileOrFolder.exists()) {
 				resolved = recipeFileOrFolder;
 				return true;
-			} else {
-				pathsLooked.add(recipeFileOrFolder.getAbsolutePath());
-				return false;
 			}
+			pathsLooked.add(recipeFileOrFolder.getAbsolutePath());
+			return false;
 		}
 		
 		// if not, first check in the current directory
@@ -120,10 +119,9 @@ public class RecipePathResolver {
 		File fileUnderCurrentDir = new File(currentDir + File.separator + file.getPath());
 		if (fileUnderCurrentDir.exists()) {
 			return fileUnderCurrentDir;
-		} else {
-			pathsLooked.add(fileUnderCurrentDir.getAbsolutePath());
-			return null;
 		}
+		pathsLooked.add(fileUnderCurrentDir.getAbsolutePath());
+		return null;
 	}
 	
 	private File lookInDefaultLocation(final File file, final String defaultLocation) {
@@ -131,10 +129,9 @@ public class RecipePathResolver {
 		File fileUnderDefaultLocation = new File(homeDir + defaultLocation + File.separator + file.getPath());
 		if (fileUnderDefaultLocation.exists()) {
 			return fileUnderDefaultLocation;
-		} else {
-			pathsLooked.add(fileUnderDefaultLocation.getAbsolutePath());
-			return null;
 		}
+		pathsLooked.add(fileUnderDefaultLocation.getAbsolutePath());
+		return null;
 	}
 	
 	private String getHomeDir() {
