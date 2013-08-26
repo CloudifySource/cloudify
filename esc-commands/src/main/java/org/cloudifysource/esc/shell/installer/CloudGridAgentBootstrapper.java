@@ -226,12 +226,12 @@ public class CloudGridAgentBootstrapper {
 			validateServers(servers);
 
 			// Start the management agents and other processes
-//			if (servers[0].isAgentRunning()) {
-//				// must be using existing machines.
-//				throw new IllegalStateException(
-//						"Cloud bootstrapper found existing management machines with the same name. "
-//								+ "Please shut them down before continuing");
-//			}
+			// if (servers[0].isAgentRunning()) {
+			// // must be using existing machines.
+			// throw new IllegalStateException(
+			// "Cloud bootstrapper found existing management machines with the same name. "
+			// + "Please shut them down before continuing");
+			// }
 
 			if (servers[0].isAgentRunning()) {
 				logger.fine("Management servers are already running Cloudify agent - skipping default bootstrapping");
@@ -848,18 +848,18 @@ public class CloudGridAgentBootstrapper {
 	private String createLocatorsString(
 			final InstallationDetails[] installations) {
 
+		final String[] locators = new String[installations.length];
 		final Integer port = cloud.getConfiguration().getComponents().getDiscovery().getDiscoveryPort();
-		final StringBuilder lookupSb = new StringBuilder();
-		for (final InstallationDetails detail : installations) {
-			String ipAddress = cloud.getConfiguration().isConnectToPrivateIp() 
-					? detail.getPrivateIp() : detail.getPublicIp();
 
-			lookupSb.append(IPUtils.getSafeIpAddress(ipAddress)).append(":").append(port).append(',');
+		for (int i = 0; i < installations.length; i++) {
+			InstallationDetails detail = installations[i];
+			locators[i] = cloud.getConfiguration().isConnectToPrivateIp()
+					? detail.getPrivateIp() : detail.getPublicIp();
 		}
 
-		lookupSb.setLength(lookupSb.length() - 1);
+		final String locatorsString = IPUtils.createLocatorsString(locators, port);
 
-		return lookupSb.toString();
+		return locatorsString;
 	}
 
 	private InstallationDetails[] createInstallationDetails(final int numOfManagementMachines,

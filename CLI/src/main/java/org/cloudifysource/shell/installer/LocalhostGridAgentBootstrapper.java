@@ -34,6 +34,8 @@ import java.util.logging.Logger;
 import net.jini.core.discovery.LookupLocator;
 import net.jini.discovery.Constants;
 import org.cloudifysource.domain.cloud.Cloud;
+
+import org.apache.commons.io.FileUtils;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.DSLException;
@@ -132,7 +134,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	// script must spawn a daemon process (that is not a child process)
 	private static final String[] WINDOWS_LOCALCLOUD_COMMAND = new String[] { "cmd.exe", "/c", "@call", "\"gs.bat\"" };
-	private static final String[] LINUX_LOCALCLOUD_COMMAND = new String[] { "gs.sh" };
+	private static final String[] LINUX_LOCALCLOUD_COMMAND = new String[] { "nohup", "gs.sh" };
 
 	// script must spawn a daemon process (that is not a child process)
 	private static final String[] WINDOWS_CLOUD_COMMAND = new String[] { "cmd.exe", "/c", "gs-agent.bat" };
@@ -882,9 +884,41 @@ public class LocalhostGridAgentBootstrapper {
 			logger.fine(message);
 		}
 
+		cleanPUWorkDirectory();
 		publishEvent(ShellUtils.getMessageBundle().getString("starting_cloudify_management"));
 		runCommand(command, args.toArray(new String[args.size()]), securityProfile, securityFilePath, keystoreFilePath,
 				keystorePassword);
+
+	}
+
+	private void cleanPUWorkDirectory() throws CLIStatusException {
+				
+		final String puWorkDirectoryName = Environment.getHomeDirectory() + "/work/processing-units";
+		final File workDirectory = new File(puWorkDirectoryName);
+		
+		if (!workDirectory.exists()) {
+			// probably first time local cloud is bootstrapped.
+			return;
+		}
+		
+		if (!workDirectory.isDirectory()) {
+			throw new CLIStatusException(CloudifyErrorMessages.MISSING_WORK_DIRECTORY_BEFORE_BOOTSTRAP_LOCALCLOUD,
+					puWorkDirectoryName);
+		}
+
+		logger.fine("Deleting directories in: " + workDirectory);
+		final File[] filesToDelete = workDirectory.listFiles();
+		for (File file : filesToDelete) {
+			if (file.isDirectory()) {
+				try {
+					FileUtils.deleteDirectory(file);
+				} catch (IOException e) {
+					throw new CLIStatusException(e,
+							CloudifyErrorMessages.FAILED_CLEANING_WORK_DIRECTORY_BEFORE_BOOTSTRAP_LOCALCLOUD,
+							file.getAbsolutePath(), e.getMessage());
+				}
+			}
+		}
 
 	}
 

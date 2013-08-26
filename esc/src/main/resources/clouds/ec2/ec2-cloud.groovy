@@ -110,7 +110,7 @@ cloud {
 						// Mandatory. Amount of RAM available to machine.
 						machineMemoryMB 1600
 						// Mandatory. Hardware ID.
-						hardwareId hardwareId
+						hardwareId smallHardwareId
 						// Optional. Location ID.
 						locationId locationId
 						// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
@@ -148,7 +148,7 @@ cloud {
 						// Mandatory. Amount of RAM available to machine.
 						machineMemoryMB 1600
 						// Mandatory. Hardware ID.
-						hardwareId hardwareId
+						hardwareId smallHardwareId
 						// Optional. Location ID.
 						locationId locationId
 						// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
@@ -187,7 +187,7 @@ cloud {
 						// Mandatory. Amount of RAM available to machine.
 						machineMemoryMB 3500
 						// Mandatory. Hardware ID.
-						hardwareId hardwareId
+						hardwareId mediumHardwareId
 						// Optional. Location ID.
 						locationId locationId
 						// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.

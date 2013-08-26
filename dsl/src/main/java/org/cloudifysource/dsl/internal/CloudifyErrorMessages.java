@@ -332,6 +332,9 @@ public enum CloudifyErrorMessages {
 	 */
 	FAILED_CREATE_REST_CLIENT("failed_to_create_REST_client", 1),
 	
+	MISSING_WORK_DIRECTORY_BEFORE_BOOTSTRAP_LOCALCLOUD("missing_work_directory_before_bootstrap", 1),
+	FAILED_CLEANING_WORK_DIRECTORY_BEFORE_BOOTSTRAP_LOCALCLOUD("failed_cleaning_work_directory_before_bootstrap", 2)
+
 	// CHECKSTYLE:OFF
 	;
 	// CHECKSTYLE:ON
