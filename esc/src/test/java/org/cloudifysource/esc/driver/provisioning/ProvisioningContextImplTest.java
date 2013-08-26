@@ -33,6 +33,7 @@ public class ProvisioningContextImplTest {
 		cloud.getCloudCompute().getTemplates().put(TEMPLATE_NAME, template);
 		cloud.getConfiguration().getComponents().getRest().setPort(8100);
 		cloud.getConfiguration().getComponents().getWebui().setPort(8099);
+		cloud.getConfiguration().getComponents().getDiscovery().setDiscoveryPort(4172);
 
 		final ProvisioningContextImpl ctx = new ProvisioningContextImpl();
 		ctx.setLocationId(null);
