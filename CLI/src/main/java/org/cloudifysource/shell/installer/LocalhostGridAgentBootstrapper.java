@@ -132,7 +132,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	// script must spawn a daemon process (that is not a child process)
 	private static final String[] WINDOWS_LOCALCLOUD_COMMAND = new String[] { "cmd.exe", "/c", "@call", "\"gs.bat\"" };
-	private static final String[] LINUX_LOCALCLOUD_COMMAND = new String[] { "gs.sh" };
+	private static final String[] LINUX_LOCALCLOUD_COMMAND = new String[] { "nohup", "gs.sh" };
 
 	// script must spawn a daemon process (that is not a child process)
 	private static final String[] WINDOWS_CLOUD_COMMAND = new String[] { "cmd.exe", "/c", "gs-agent.bat" };
