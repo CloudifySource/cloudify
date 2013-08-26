@@ -46,4 +46,10 @@ public interface ProvisioningContext {
 	 */
 	File getCloudFile();
 
+	/*********
+	 * The location ID of the current provisioning request.
+	 * @return the location ID.
+	 */
+	String getLocationId();
+
 }

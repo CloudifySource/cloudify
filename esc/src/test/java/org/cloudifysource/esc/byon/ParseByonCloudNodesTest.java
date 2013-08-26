@@ -28,6 +28,7 @@ import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
+import org.cloudifysource.esc.driver.provisioning.ComputeDriverConfiguration;
 import org.cloudifysource.esc.driver.provisioning.CustomNode;
 import org.cloudifysource.esc.driver.provisioning.byon.ByonProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.byon.CustomNodeImpl;
@@ -58,7 +59,13 @@ public class ParseByonCloudNodesTest {
 
 		ByonProvisioningDriver driver = new ByonProvisioningDriver();
 		driver.setProvisioningDriverClassContext(new DefaultProvisioningDriverClassContext());
-		driver.setConfig(cloud, cloud.getCloudCompute().getTemplates().keySet().iterator().next(), true, "test");
+		final ComputeDriverConfiguration config = new ComputeDriverConfiguration();
+		config.setAdmin(null);
+		config.setCloud(cloud);
+		config.setCloudTemplate(cloud.getCloudCompute().getTemplates().keySet().iterator().next());
+		config.setManagement(true);
+		config.setServiceName("test");
+		driver.setConfig(config);
 
 		Cloud modifiedCloud = driver.getCloud();
 

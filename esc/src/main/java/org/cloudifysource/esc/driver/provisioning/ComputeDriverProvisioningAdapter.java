@@ -1,3 +1,15 @@
+/*******************************************************************************
+ * Copyright (c) 2013 GigaSpaces Technologies Ltd. All rights reserved
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning;
 
 import java.io.File;
@@ -9,10 +21,27 @@ import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClas
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
 import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
 
+/*******************
+ * Adapter class from the deprecated cloud driver interface to the new compute driver base class.
+ * 
+ * @author barakme
+ * @since 2.7.0
+ */
 @SuppressWarnings("deprecation")
-public class ComputeDriverProvisioningAdapter extends BaseComputeDriver {
+public final class ComputeDriverProvisioningAdapter extends BaseComputeDriver {
 
-	public static BaseComputeDriver create(final Object driverInstance) {
+	/********************
+	 * Factory method for a compute driver. If the object extends the new Base Compute Drive class, returns the object.
+	 * If the object implements the older, deprecated, Provisioning Driver interface, returns an adapter around it.
+	 * Otherwise, throws an exception
+	 * 
+	 * @param driverInstance
+	 *            an instance of the actual driver class.
+	 * @return a Compute Driver that extends the base compute driver.
+	 * @throws IllegalArgumentException
+	 *             if the input does not extend BaseComputeDriver or implements ProvisioningDriver.
+	 */
+	public static BaseComputeDriver create(final Object driverInstance) throws IllegalArgumentException {
 		if (driverInstance instanceof BaseComputeDriver) {
 			return (BaseComputeDriver) driverInstance;
 		}
@@ -137,7 +166,7 @@ public class ComputeDriverProvisioningAdapter extends BaseComputeDriver {
 	}
 
 	@Override
-	public void validateCloudConfiguration(final ValidationContext validationContext) 
+	public void validateCloudConfiguration(final ValidationContext validationContext)
 			throws CloudProvisioningException {
 		if (this.provisioningDriver instanceof ProvisioningDriverBootstrapValidation) {
 			((ProvisioningDriverBootstrapValidation) this.provisioningDriver)

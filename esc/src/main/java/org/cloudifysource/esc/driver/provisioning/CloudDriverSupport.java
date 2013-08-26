@@ -37,6 +37,7 @@ import org.openspaces.admin.AdminFactory;
  * @since 2.1
  *
  */
+@Deprecated
 public abstract class CloudDriverSupport implements ProvisioningDriver {
 
 	protected final List<ProvisioningDriverListener> listeners = new LinkedList<ProvisioningDriverListener>();
