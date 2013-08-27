@@ -424,6 +424,11 @@ public final class CloudifyConstants {
      */
 	public static final String SERVICE_CONTROLLER_URL = "service";
 
+	/**
+	 * new rest client
+	 */
+	public static final boolean IS_NEW_REST_CLIENT_DEFAULT = false;
+	
     // CHECKSTYLE:ON
 }
 
