@@ -267,7 +267,7 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 		addSharedDeploymentParameters(deployment);
 		deployment.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_ASYNC_INSTALL, "true");
 		if (!deploymentConfig.getInstallRequest().getSelfHealing()) {
-			deployment.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_DISABLE_SELF_HEALING, "false");
+			deployment.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_DISABLE_SELF_HEALING, "true");
 		}
 
 		final Service service = deploymentConfig.getService();
