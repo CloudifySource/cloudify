@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.felix.service.command.CommandSession;
+import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.rest.response.ApplicationDescription;
 import org.cloudifysource.dsl.rest.response.DeploymentEvents;
 import org.cloudifysource.dsl.rest.response.ServiceDescription;
@@ -76,8 +77,16 @@ public class CLIApplicationUninstaller {
      */
     public void uninstall() throws RestClientException, CLIException, InterruptedException, IOException {
 
-        ApplicationDescription applicationDescription = 
-        		restClient.getApplicationDescription(applicationName);
+    	ApplicationDescription applicationDescription;
+    	try {
+    		applicationDescription = restClient.getApplicationDescription(applicationName);
+    	} catch (RestClientException e) {
+    		if (CloudifyMessageKeys.MISSING_RESOURCE.getName().equals(e.getMessageCode())) {
+    			throw new RestClientException("failed_to_locate_app", 
+    					"Application " + applicationName + " could not be found", e.getVerbose());
+    		}
+    		throw e;
+    	}
         Map<String, Integer> currentNumberOfRunningInstancesPerService = new HashMap<String, Integer>();
         for (ServiceDescription serviceDescription : applicationDescription.getServicesDescription()) {
             currentNumberOfRunningInstancesPerService.put(
