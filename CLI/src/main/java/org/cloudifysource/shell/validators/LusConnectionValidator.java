@@ -31,7 +31,7 @@ import org.cloudifysource.shell.exceptions.CLIValidationException;
  */
 public class LusConnectionValidator implements CloudifyAgentValidator {
 	
-	private static final long TWO_SECONDS_MILLI = 2000;
+	private static final long TEN_SECONDS_MILLI = 10000;
 	private final Logger logger = Logger.getLogger(this.getClass().getName());
 	private static final int MAX_NUM_RETRIES = 3;
 	private String lusIpAddresses;
@@ -96,7 +96,7 @@ public class LusConnectionValidator implements CloudifyAgentValidator {
 						+ "Error was: " + e.getMessage()
 							+ "Attempting to reconnect.", e);
 			}
-			IOUtils.threadSleep(TWO_SECONDS_MILLI);
+			IOUtils.threadSleep(TEN_SECONDS_MILLI);
 		}
 	}
 
