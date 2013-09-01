@@ -673,19 +673,19 @@
 		</exec>
 		
 		<exec executable="${mvn.executable}" dir="${domain.local.copy}">
-			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/domain-${s3.cloudify.snapshot.publish.folder}.jar"/>
+			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/domain.jar"/>
 		</exec>
 
 		<exec executable="${mvn.executable}" dir="${utility.domain.local.copy}">
-			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/utility-domain-${s3.cloudify.snapshot.publish.folder}.jar"/>
+			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/utility-domain.jar"/>
 		</exec>
 
 		<exec executable="${mvn.executable}" dir="${security.local.copy}">
-			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/security-${s3.cloudify.snapshot.publish.folder}.jar"/>
+			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/security.jar"/>
 		</exec>
 
 		<exec executable="${mvn.executable}" dir="${security-ldap.local.copy}">
-			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/security-ldap-${s3.cloudify.snapshot.publish.folder}.jar"/>
+			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/security-ldap.jar"/>
 		</exec>
 		
 		<exec executable="${mvn.executable}" dir="${usm.local.copy}">
