@@ -320,7 +320,7 @@ env JAVA_OPTS=\"\${JAVA_DEBUG_OPTS}\" \$DEBUG_TARGET
 	 def prepareGroovyDebugCommands() {
 		 def debugSessionFile = new File(this.groovyDebugCommandsFile)
 		 debugSessionFile.parentFile.mkdirs()
-		 debugSessionFile.withWriter() {it.write(this.groovyDebugCommandsWrapper)}
+		 debugSessionFile.text = this.groovyDebugCommandsWrapper
 	 }
  
 	 def prepareDebugRc(debugTarget) {
@@ -334,6 +334,6 @@ env JAVA_OPTS=\"\${JAVA_DEBUG_OPTS}\" \$DEBUG_TARGET
 			  groovyDebugCommandsFile: this.groovyDebugCommandsFile,
 		 ])
 		 def targetDebugrc = new File(this.serviceDir, ".debugrc")
-		 targetDebugrc.withWriter() {it.write(preparedTemplate)}
+		 targetDebugrc = preparedTemplate
 	 }
  }
