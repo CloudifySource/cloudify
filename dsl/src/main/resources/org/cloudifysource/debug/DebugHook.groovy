@@ -334,6 +334,6 @@ env JAVA_OPTS=\"\${JAVA_DEBUG_OPTS}\" \$DEBUG_TARGET
 			  groovyDebugCommandsFile: this.groovyDebugCommandsFile,
 		 ])
 		 def targetDebugrc = new File(this.serviceDir, ".debugrc")
-		 targetDebugrc = preparedTemplate
+		 targetDebugrc.text = preparedTemplate
 	 }
  }
