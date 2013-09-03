@@ -304,7 +304,7 @@ env JAVA_OPTS=\"\${JAVA_DEBUG_OPTS}\" \$DEBUG_TARGET
  
 		 def debughookScriptName = [System.properties["user.home"], ".gigaspaces", "debug-hook.sh"].join(File.separator)
 		 def debugScriptFile = new File(debughookScriptName)
-		 debugScriptFile.withWriter() {it.print(debugScriptContents)}
+		 debugScriptFile.text = debugScriptContents
 		 debugScriptFile.setExecutable(true)
 		 this.eventLogger.info "IMPORTANT: A debug environment will be waiting for you on ${context.getPublicAddress()} after the instance has launched"
 		 return [debughookScriptName] + args
@@ -313,7 +313,7 @@ env JAVA_OPTS=\"\${JAVA_DEBUG_OPTS}\" \$DEBUG_TARGET
 	 def registerDebugSession() {
 		 File debugSessionsDir = new File([System.properties["user.home"], ".gigaspaces", "debug_sessions"].join(File.separator))
 		 if (! debugSessionsDir.exists() || ! debugSessionsDir.directory) { debugSessionsDir.mkdir() }
-		 new File(debugSessionsDir, this.serviceName).withWriter { it.println(this.serviceDir) }
+		 new File(debugSessionsDir, this.serviceName).text = this.serviceDir
 	 }
 
 	 //create a wrapper for the groovy DebugCommands class
