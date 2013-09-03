@@ -1,0 +1,1 @@
+println "Echo event: " + args[0]

@@ -1,10 +1,13 @@
 package org.cloudifysource.usm;
 
 import java.io.IOException;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyConstants.USMState;
+import org.cloudifysource.dsl.internal.debug.DebugModes;
+import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.utilitydomain.data.ServiceInstanceAttemptData;
 import org.cloudifysource.utilitydomain.openspaces.OpenspacesConstants;
 import org.hyperic.sigar.Sigar;
@@ -12,6 +15,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
@@ -19,6 +23,7 @@ import org.openspaces.admin.space.Space;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.GigaSpaceConfigurer;
 import org.openspaces.core.cluster.ClusterInfo;
+import org.openspaces.core.properties.BeanLevelProperties;
 import org.openspaces.core.space.UrlSpaceConfigurer;
 import org.openspaces.pu.container.ProcessingUnitContainer;
 import org.openspaces.pu.container.integrated.IntegratedProcessingUnitContainer;
@@ -45,7 +50,7 @@ public class FeaturesTest {
 
 		// System.setProperty("org.hyperic.sigar.path", Environment.getHomeDirectory() + "/lib/platform/sigar");
 
-		ClusterInfo clusterInfo = new ClusterInfo(null, 1, null, 1, null);
+		final ClusterInfo clusterInfo = new ClusterInfo(null, 1, null, 1, null);
 		urlSpaceConfigurer =
 				new UrlSpaceConfigurer("/./" + CloudifyConstants.MANAGEMENT_SPACE_NAME + "?locators=127.0.0.1:"
 						+ OpenspacesConstants.DEFAULT_LOCALCLOUD_LUS_PORT);
@@ -64,7 +69,7 @@ public class FeaturesTest {
 		if (!found) {
 			throw new IllegalStateException("Could not find a lookup service");
 		}
-		Space testSpace = admin.getSpaces().waitFor(CloudifyConstants.MANAGEMENT_SPACE_NAME, 5, TimeUnit.SECONDS);
+		final Space testSpace = admin.getSpaces().waitFor(CloudifyConstants.MANAGEMENT_SPACE_NAME, 5, TimeUnit.SECONDS);
 		if (testSpace == null) {
 			throw new IllegalStateException("Could not locate management space in admin");
 		}
@@ -79,15 +84,14 @@ public class FeaturesTest {
 
 	@Test
 	public void testRetriesWithRetryLeft() throws IOException, InterruptedException {
-		IntegratedProcessingUnitContainer ipuc = createContainer("classpath:/retries/META-INF/spring/pu.xml");
+		final IntegratedProcessingUnitContainer ipuc = createContainer("classpath:/retries/META-INF/spring/pu.xml");
 
 		try {
-			ApplicationContext ctx = ipuc.getApplicationContext();
+			final ApplicationContext ctx = ipuc.getApplicationContext();
 			final UniversalServiceManagerBean usm = ctx.getBean(UniversalServiceManagerBean.class);
 			Assert.assertNotNull(usm);
 
-
-			ServiceInstanceAttemptData attempt = gigaspace.read(new ServiceInstanceAttemptData(), 20000);
+			final ServiceInstanceAttemptData attempt = gigaspace.read(new ServiceInstanceAttemptData(), 20000);
 			Assert.assertNotNull("Expected to find attempt data in space", attempt);
 			Assert.assertEquals((Integer) 2, attempt.getCurrentAttemptNumber());
 			Assert.assertEquals((Integer) 1, attempt.getInstanceId());
@@ -102,18 +106,47 @@ public class FeaturesTest {
 
 	@Test
 	public void testRetriesWithNoRetryLeft() throws IOException, InterruptedException {
-		ServiceInstanceAttemptData data = createServiceInstanceAttempDataTemplate();
+		final ServiceInstanceAttemptData data = createServiceInstanceAttempDataTemplate();
 		data.setCurrentAttemptNumber(2);
 		gigaspace.write(data);
 
-		IntegratedProcessingUnitContainer ipuc = createContainer("classpath:/retries/META-INF/spring/pu.xml");
+		final IntegratedProcessingUnitContainer ipuc = createContainer("classpath:/retries/META-INF/spring/pu.xml");
 
 		try {
-			ApplicationContext ctx = ipuc.getApplicationContext();
+			final ApplicationContext ctx = ipuc.getApplicationContext();
 			final UniversalServiceManagerBean usm = ctx.getBean(UniversalServiceManagerBean.class);
 			Assert.assertNotNull(usm);
 
 			waitForInstanceToReachStatus(usm, USMState.ERROR);
+
+		} finally {
+			ipuc.close();
+		}
+
+	}
+
+	@Ignore
+	@Test
+	public void testDebug() throws IOException, InterruptedException {
+		if(ServiceUtils.isWindows()) {
+			// The debug feature only works for linux
+			return;
+		}
+		final BeanLevelProperties blp = new BeanLevelProperties();
+		final Properties contextProperties = new Properties();
+		contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_ALL, Boolean.TRUE.toString());
+		contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_MODE, DebugModes.INSTEAD.toString());
+
+		blp.setContextProperties(contextProperties);
+
+		final IntegratedProcessingUnitContainer ipuc = createContainer("classpath:/nothing/META-INF/spring/pu.xml", blp);
+
+		try {
+			final ApplicationContext ctx = ipuc.getApplicationContext();
+			final UniversalServiceManagerBean usm = ctx.getBean(UniversalServiceManagerBean.class);
+			Assert.assertNotNull(usm);
+			
+			waitForInstanceToReachStatus(usm, USMState.RUNNING);
 
 		} finally {
 			ipuc.close();
@@ -128,8 +161,8 @@ public class FeaturesTest {
 
 		USMState currentState = null;
 		while (System.currentTimeMillis() < end) {
-			ServiceMonitors[] monitors = usm.getServicesMonitors();
-			Object state = monitors[0].getMonitors().get("USM_State");
+			final ServiceMonitors[] monitors = usm.getServicesMonitors();
+			final Object state = monitors[0].getMonitors().get("USM_State");
 			if (state != null) {
 				currentState = USMState.values()[(Integer) state];
 				// System.out.println("State is: " + currentState);
@@ -145,7 +178,7 @@ public class FeaturesTest {
 	}
 
 	private ServiceInstanceAttemptData createServiceInstanceAttempDataTemplate() {
-		ServiceInstanceAttemptData data = new ServiceInstanceAttemptData();
+		final ServiceInstanceAttemptData data = new ServiceInstanceAttemptData();
 		data.setApplicationName("default");
 		data.setServiceName("groovyError");
 		data.setGscPid(new Sigar().getPid());
@@ -155,14 +188,15 @@ public class FeaturesTest {
 
 	@Test
 	public void testRecoveryAfterRetry() throws IOException, InterruptedException {
-		ServiceInstanceAttemptData data = createServiceInstanceAttempDataTemplate();
+		final ServiceInstanceAttemptData data = createServiceInstanceAttempDataTemplate();
 		data.setCurrentAttemptNumber(2);
 		gigaspace.write(data);
 
-		IntegratedProcessingUnitContainer ipuc = createContainer("classpath:/retries-recovery/META-INF/spring/pu.xml");
+		final IntegratedProcessingUnitContainer ipuc =
+				createContainer("classpath:/retries-recovery/META-INF/spring/pu.xml");
 
 		try {
-			ApplicationContext ctx = ipuc.getApplicationContext();
+			final ApplicationContext ctx = ipuc.getApplicationContext();
 			final UniversalServiceManagerBean usm = ctx.getBean(UniversalServiceManagerBean.class);
 			Assert.assertNotNull(usm);
 
@@ -172,14 +206,17 @@ public class FeaturesTest {
 			ipuc.close();
 		}
 
-
-
 	}
 
 	private IntegratedProcessingUnitContainer createContainer(final String classpath) throws IOException {
-		IntegratedProcessingUnitContainerProvider provider = new IntegratedProcessingUnitContainerProvider();
+		return createContainer(classpath, null);
+	}
+
+	private IntegratedProcessingUnitContainer createContainer(final String classpath,
+			final BeanLevelProperties beanLevelProperties) throws IOException {
+		final IntegratedProcessingUnitContainerProvider provider = new IntegratedProcessingUnitContainerProvider();
 		// provide cluster information for the specific PU instance
-		ClusterInfo clusterInfo = new ClusterInfo();
+		final ClusterInfo clusterInfo = new ClusterInfo();
 		// clusterInfo.setSchema("partitioned-sync2backup");
 		clusterInfo.setNumberOfInstances(1);
 		clusterInfo.setInstanceId(1);
@@ -188,13 +225,15 @@ public class FeaturesTest {
 
 		// set the config location (override the default one - classpath:/META-INF/spring/pu.xml)
 		provider.addConfigLocation(classpath);
+		if (beanLevelProperties != null) {
+			provider.setBeanLevelProperties(beanLevelProperties);
+		}
 
 		// Build the Spring application context and "start" it
-		ProcessingUnitContainer container = provider.createContainer();
+		final ProcessingUnitContainer container = provider.createContainer();
 		return (IntegratedProcessingUnitContainer) container;
 
 	}
-
 
 	@AfterClass
 	public static void afterClass() throws Exception {
