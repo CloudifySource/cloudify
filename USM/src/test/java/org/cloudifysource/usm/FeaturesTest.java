@@ -146,18 +146,22 @@ public class FeaturesTest {
 			final UniversalServiceManagerBean usm = ctx.getBean(UniversalServiceManagerBean.class);
 			Assert.assertNotNull(usm);
 			
-			waitForInstanceToReachStatus(usm, USMState.RUNNING);
+			waitForInstanceToReachStatus(usm, USMState.RUNNING, 5 * 60 * 1000);
 
 		} finally {
 			ipuc.close();
 		}
 
 	}
-
 	private void waitForInstanceToReachStatus(final UniversalServiceManagerBean usm, final USMState targetState)
 			throws InterruptedException {
+		waitForInstanceToReachStatus(usm, targetState, 20000);
+	}
+	
+	private void waitForInstanceToReachStatus(final UniversalServiceManagerBean usm, final USMState targetState, long timeoutMillis)
+			throws InterruptedException {
 		final long start = System.currentTimeMillis();
-		final long end = start + 20000;
+		final long end = start + timeoutMillis;
 
 		USMState currentState = null;
 		while (System.currentTimeMillis() < end) {
