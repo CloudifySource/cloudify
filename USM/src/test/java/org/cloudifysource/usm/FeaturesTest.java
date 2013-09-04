@@ -1,16 +1,26 @@
 package org.cloudifysource.usm;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.io.FileUtils;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyConstants.USMState;
 import org.cloudifysource.dsl.internal.debug.DebugModes;
 import org.cloudifysource.dsl.utils.ServiceUtils;
+import org.cloudifysource.usm.shutdown.DefaultProcessKiller;
 import org.cloudifysource.utilitydomain.data.ServiceInstanceAttemptData;
 import org.cloudifysource.utilitydomain.openspaces.OpenspacesConstants;
+import org.hyperic.sigar.ProcExe;
+import org.hyperic.sigar.ProcState;
 import org.hyperic.sigar.Sigar;
+import org.hyperic.sigar.SigarException;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
@@ -128,7 +138,7 @@ public class FeaturesTest {
 	@Ignore
 	@Test
 	public void testDebug() throws IOException, InterruptedException {
-		if(ServiceUtils.isWindows()) {
+		if (ServiceUtils.isWindows()) {
 			// The debug feature only works for linux
 			return;
 		}
@@ -139,36 +149,59 @@ public class FeaturesTest {
 
 		blp.setContextProperties(contextProperties);
 
-		final IntegratedProcessingUnitContainer ipuc = createContainer("classpath:/nothing/META-INF/spring/pu.xml", blp);
+		final IntegratedProcessingUnitContainer ipuc =
+				createContainer("classpath:/debug/META-INF/spring/pu.xml", blp);
 
 		try {
 			final ApplicationContext ctx = ipuc.getApplicationContext();
 			final UniversalServiceManagerBean usm = ctx.getBean(UniversalServiceManagerBean.class);
 			Assert.assertNotNull(usm);
-			
-			waitForInstanceToReachStatus(usm, USMState.RUNNING, 5 * 60 * 1000);
+
+			final File lockFile = waitForDebugLockFile();
+
+			final USMState stateAtBreakpoint = getUsmState(usm);
+			Assert.assertNotNull(stateAtBreakpoint);
+			Assert.assertEquals(USMState.INITIALIZING, stateAtBreakpoint);
+
+			FileUtils.deleteQuietly(lockFile);
+
+			waitForInstanceToReachStatus(usm, USMState.RUNNING);
 
 		} finally {
 			ipuc.close();
 		}
 
 	}
+
+	private File waitForDebugLockFile() {
+		final String debugLockFile = "target/test-classes/nothing/ext/.cloudify_debugging.lock";
+		final long endTime = System.currentTimeMillis() + 20000;
+		while (System.currentTimeMillis() < endTime) {
+			final File lockFile = new File(debugLockFile);
+			if (lockFile.exists()) {
+				return lockFile;
+			}
+		}
+		Assert.fail("Expected debug lock file: " + debugLockFile + " was not created");
+		return null;
+
+	}
+
 	private void waitForInstanceToReachStatus(final UniversalServiceManagerBean usm, final USMState targetState)
 			throws InterruptedException {
 		waitForInstanceToReachStatus(usm, targetState, 20000);
 	}
-	
-	private void waitForInstanceToReachStatus(final UniversalServiceManagerBean usm, final USMState targetState, long timeoutMillis)
+
+	private void waitForInstanceToReachStatus(final UniversalServiceManagerBean usm, final USMState targetState,
+			final long timeoutMillis)
 			throws InterruptedException {
 		final long start = System.currentTimeMillis();
 		final long end = start + timeoutMillis;
 
 		USMState currentState = null;
 		while (System.currentTimeMillis() < end) {
-			final ServiceMonitors[] monitors = usm.getServicesMonitors();
-			final Object state = monitors[0].getMonitors().get("USM_State");
-			if (state != null) {
-				currentState = USMState.values()[(Integer) state];
+			currentState = getUsmState(usm);
+			if (currentState != null) {
 				// System.out.println("State is: " + currentState);
 				if (currentState.equals(targetState)) {
 					break;
@@ -179,6 +212,18 @@ public class FeaturesTest {
 		}
 
 		Assert.assertEquals(targetState, currentState);
+	}
+
+	private USMState getUsmState(final UniversalServiceManagerBean usm) {
+		final ServiceMonitors[] monitors = usm.getServicesMonitors();
+		final Object state = monitors[0].getMonitors().get("USM_State");
+		if (state != null) {
+			final USMState stateEnum = USMState.values()[(Integer) state];
+			return stateEnum;
+		} else {
+			return null;
+		}
+
 	}
 
 	private ServiceInstanceAttemptData createServiceInstanceAttempDataTemplate() {
@@ -246,5 +291,48 @@ public class FeaturesTest {
 		urlSpaceConfigurer.destroy();
 
 		System.out.println("Closed down embedded space");
+	}
+
+	@After
+	public void after() throws SigarException {
+		final Sigar sigar = new Sigar();
+		final long[] allPids = sigar.getProcList();
+		final long myPid = sigar.getPid();
+
+		final Set<Long> childPids = new HashSet<Long>();
+		for (final long pid : allPids) {
+			try {
+				final ProcState state = sigar.getProcState(pid);
+				final long ppid = state.getPpid();
+
+				if (ppid == myPid) {
+					System.out.println("Found a leaking process: " + pid);
+					childPids.add(pid);
+				}
+			} catch (final SigarException e) {
+				// probably means that the process belongs to another user to may not have permissions
+				// to read its data. Should be safe to ignore
+			}
+		}
+
+		if (!childPids.isEmpty()) {
+			System.out.println("Warning: found leaked processes after test finished: " + childPids);
+			final DefaultProcessKiller killer = new DefaultProcessKiller();
+			for (final Long pid : childPids) {
+				final ProcExe procExe = sigar.getProcExe(pid);
+				final String[] procArgs = sigar.getProcArgs(pid);
+				System.out.println("Killing process: " + pid + ". Name: " + procExe.getName() + ", Args: "
+						+ Arrays.toString(procArgs) + "Directory: " + procExe.getCwd());
+				try {
+					killer.killProcess(pid);
+				} catch (final USMException e) {
+					System.out.println("Failed to kill process: " + pid);
+				}
+
+			}
+
+			Assert.fail("Leaked processes found after test.");
+		}
+
 	}
 }
