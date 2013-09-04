@@ -4,13 +4,13 @@ import java.util.concurrent.TimeUnit
 
 
 service {
-	name "groovy"
+	name "nothing"
 	type "WEB_SERVER"
 	elastic true
 	numInstances 1
 	lifecycle {
 
-		preStart "echo.groovy preStart"
+		preInstall "echo.groovy preInstall"
 		locator {
 			NO_PROCESS_LOCATORS
 		}
