@@ -313,13 +313,20 @@ env JAVA_OPTS=\"\${JAVA_DEBUG_OPTS}\" \$DEBUG_TARGET
 	 def registerDebugSession() {
 		 File debugSessionsDir = new File([System.properties["user.home"], ".gigaspaces", "debug_sessions"].join(File.separator))
 		 if (! debugSessionsDir.exists() || ! debugSessionsDir.directory) { debugSessionsDir.mkdir() }
-		 new File(debugSessionsDir, this.serviceName).text = this.serviceDir
+		 def debugSessionFile = new File(debugSessionsDir, this.serviceName)
+		 if(!debugSessionFile.exists()) {
+			 debugSessionFile.createNewFile()
+		 }
+		 debugSessionFile.text = this.serviceDir
 	 }
 
 	 //create a wrapper for the groovy DebugCommands class
 	 def prepareGroovyDebugCommands() {
 		 def debugSessionFile = new File(this.groovyDebugCommandsFile)
 		 debugSessionFile.parentFile.mkdirs()
+		 if(!debugSessionFile.exists()) {
+			 debugSessionFile.createNewFile()
+		 }
 		 debugSessionFile.text = this.groovyDebugCommandsWrapper
 	 }
  
@@ -334,6 +341,9 @@ env JAVA_OPTS=\"\${JAVA_DEBUG_OPTS}\" \$DEBUG_TARGET
 			  groovyDebugCommandsFile: this.groovyDebugCommandsFile,
 		 ])
 		 def targetDebugrc = new File(this.serviceDir, ".debugrc")
+		 if(!targetDebugRc.exists()) {
+			 targetDebugrc.createNewFile()
+		 }
 		 targetDebugrc.text = preparedTemplate
 	 }
  }
