@@ -49,6 +49,7 @@ public class FeaturesTest {
 	private static GigaSpaceConfigurer gigaSpaceConfigurer;
 	private static UrlSpaceConfigurer urlSpaceConfigurer;
 	private static Admin admin;
+	private static final String DEBUG_LOCK_FILE_PATH = "target/test-classes/debug/ext/.cloudify_debugging.lock";;
 
 	@BeforeClass
 	public static void beforeClass() {
@@ -135,7 +136,6 @@ public class FeaturesTest {
 
 	}
 
-	@Ignore
 	@Test
 	public void testDebug() throws IOException, InterruptedException {
 		if (ServiceUtils.isWindows()) {
@@ -149,6 +149,7 @@ public class FeaturesTest {
 
 		blp.setContextProperties(contextProperties);
 
+		deleteLockFile();
 		final IntegratedProcessingUnitContainer ipuc =
 				createContainer("classpath:/debug/META-INF/spring/pu.xml", blp);
 
@@ -157,12 +158,12 @@ public class FeaturesTest {
 			final UniversalServiceManagerBean usm = ctx.getBean(UniversalServiceManagerBean.class);
 			Assert.assertNotNull(usm);
 
-			final File lockFile = waitForDebugLockFile();
 
 			final USMState stateAtBreakpoint = getUsmState(usm);
 			Assert.assertNotNull(stateAtBreakpoint);
 			Assert.assertEquals(USMState.INITIALIZING, stateAtBreakpoint);
 
+			final File lockFile = waitForDebugLockFile();
 			FileUtils.deleteQuietly(lockFile);
 
 			waitForInstanceToReachStatus(usm, USMState.RUNNING);
@@ -173,16 +174,22 @@ public class FeaturesTest {
 
 	}
 
+	private void deleteLockFile() {
+		final File lockFile = new File(DEBUG_LOCK_FILE_PATH);
+		if (lockFile.exists()) {
+			FileUtils.deleteQuietly(lockFile);
+		}
+	}
 	private File waitForDebugLockFile() {
-		final String debugLockFile = "target/test-classes/nothing/ext/.cloudify_debugging.lock";
+		
 		final long endTime = System.currentTimeMillis() + 20000;
 		while (System.currentTimeMillis() < endTime) {
-			final File lockFile = new File(debugLockFile);
+			final File lockFile = new File(DEBUG_LOCK_FILE_PATH);
 			if (lockFile.exists()) {
 				return lockFile;
 			}
 		}
-		Assert.fail("Expected debug lock file: " + debugLockFile + " was not created");
+		Assert.fail("Expected debug lock file: " + DEBUG_LOCK_FILE_PATH + " was not created");
 		return null;
 
 	}
