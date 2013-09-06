@@ -10,7 +10,7 @@ service {
 	numInstances 1
 	lifecycle {
 
-		preInstall "echo.groovy preInstall"
+		preInstall "echo.sh preInstall"
 		locator {
 			NO_PROCESS_LOCATORS
 		}
