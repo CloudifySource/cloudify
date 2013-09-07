@@ -362,7 +362,12 @@ public class ResourceDownloader {
 				throw new ResourceDownloadException("Invalid resource URL: " + url.toString());
 			}
 			final URLConnection connection = url.openConnection();
-			if (this.userName != null || this.password != null) {
+			if(url.getUserInfo() != null) {
+                
+                String basicAuth = "Basic " + new String(new Base64().encode(url.getUserInfo().getBytes()));
+                connection.setRequestProperty("Authorization", basicAuth);
+                
+            }else if (this.userName != null || this.password != null) {
 				logger.fine("Setting connection credentials");
 				String up = this.userName + ":" + this.password;
 				String encoding = new String(
