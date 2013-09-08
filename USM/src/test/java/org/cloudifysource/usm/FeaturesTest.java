@@ -25,7 +25,6 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
@@ -164,6 +163,7 @@ public class FeaturesTest {
 			Assert.assertEquals(USMState.INITIALIZING, stateAtBreakpoint);
 
 			final File lockFile = waitForDebugLockFile();
+			System.out.println("Deleting lock file: " + lockFile.getAbsolutePath());
 			FileUtils.deleteQuietly(lockFile);
 
 			waitForInstanceToReachStatus(usm, USMState.RUNNING);
