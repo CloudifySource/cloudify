@@ -12,6 +12,7 @@
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,13 +38,13 @@ public class ProvisioningContextImpl implements ProvisioningContext, ManagementP
 	private String locationId;
 	private final InstallationDetailsBuilder installationDetailsBuilder = new InstallationDetailsBuilder();
 	private final List<InstallationDetails> createdDetails = new LinkedList<InstallationDetails>();
-
+	private File cloudFile;
+	
 	public ProvisioningContextImpl() {
 	}
 
 	public void setLocationId(final String locationId) {
 		this.locationId = locationId;
-
 	}
 
 	public String getLocationId() {
@@ -132,6 +133,14 @@ public class ProvisioningContextImpl implements ProvisioningContext, ManagementP
 
 		final String locatorsString = IPUtils.createLocatorsString(locators, port);
 		return locatorsString;
+	}
+
+	public File getCloudFile() {
+		return cloudFile;
+	}
+
+	public void setCloudFile(final File cloudFile) {
+		this.cloudFile = cloudFile;
 	}
 
 }

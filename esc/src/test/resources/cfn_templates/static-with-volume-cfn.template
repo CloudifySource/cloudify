@@ -1,0 +1,25 @@
+{
+   "Resources":{
+      "someService":{
+         "Type":"AWS::EC2::Instance",
+         "Properties":{
+            "ImageId":"ami-d30a15a7",
+            "InstanceType":"m1.medium",
+            "AvailabilityZone":"eu-west-1c",
+            "SecurityGroups":["cloudify","default"], 
+            "KeyName":"cloudify",
+            "Volumes" : [{ 
+               "VolumeId" : {"Ref" : "smallVolume"},
+               "Device" : "/dev/sdk"
+            }]
+         }
+      },
+	  "smallVolume" : {
+	     "Type" : "AWS::EC2::Volume",
+	     "Properties" : {
+	        "Size" : "1",
+	        "AvailabilityZone" : "eu-west-1c"
+	     }
+	  }
+   }   
+}

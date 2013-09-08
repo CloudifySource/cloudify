@@ -1,0 +1,13 @@
+{
+   "Resources":{
+      "static":{
+         "Type":"AWS::EC2::Instance",
+         "Properties":{
+            "ImageId":"ami-89b1a3fd",
+            "InstanceType":"t1.micro",
+            "SecurityGroups":["cloudify","default"], 
+            "KeyName":"cloudify"
+         }
+      }
+   }
+}

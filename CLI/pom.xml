@@ -11,7 +11,6 @@
         <version>2.7.0-SNAPSHOT</version>
         <relativePath>../cloudify</relativePath>
     </parent>
-
 	<properties>
 		<mainClass>org.cloudifysource.shell.GigaShellMain</mainClass>
 	</properties>
@@ -207,4 +206,5 @@
 		</plugins>
 		<finalName>cli</finalName>
 	</build>
+
 </project>

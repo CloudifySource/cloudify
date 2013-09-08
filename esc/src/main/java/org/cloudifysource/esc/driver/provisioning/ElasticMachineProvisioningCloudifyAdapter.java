@@ -636,6 +636,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			final GSAReservationId reservationId) {
 		final ProvisioningContextImpl ctx = new ProvisioningContextImpl();
 		ctx.setLocationId(locationId);
+		ctx.setCloudFile(cloudDslFile);
+		
 		final InstallationDetailsBuilder builder = ctx.getInstallationDetailsBuilder();
 		builder.setReservationId(reservationId);
 		builder.setAdmin(globalAdminInstance);

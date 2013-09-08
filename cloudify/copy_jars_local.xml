@@ -9,7 +9,9 @@
 	<property environment="env" />
 
 	<property name="cloudify.home.dir" value="${env.CLOUDIFY_HOME}/" />
+
 	<property name="cloudify.version" value="2.7.0" />
+
 	<property name="cloudify.jars.suffix" value="SNAPSHOT" />
 
 	<!--  ** Useful if you are working on openspaces and need to test the effects on cloudify -->
