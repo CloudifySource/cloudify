@@ -257,23 +257,12 @@ public final class USMUtils {
 		// useful for unit tests
 		factory.discoverUnmanagedSpaces();
 		admin = factory.createAdmin();
+		admin.setStatisticsHistorySize(0);
 
 		logger.info("Created new Admin Object with groups: " + Arrays.toString(admin.getGroups()) + " and Locators: "
 				+ Arrays.toString(admin.getLocators()));
 
 		return admin;
-	}
-
-	/*****************
-	 * Clears the currently running admin instance, if one exists.
-	 */
-	public static synchronized void clearAdmin() {
-		if (admin == null) {
-			return;
-		}
-
-		admin.close();
-		admin = null;
 	}
 
 	/*********
@@ -409,6 +398,8 @@ public final class USMUtils {
 		}
 
 		admin.close();
+		admin = null;
+		logger.info("USM Admin API instance was shut down");
 
 	}
 

@@ -89,7 +89,7 @@ public class FeaturesTest {
 	public void beforeTest() {
 		// delete all objects currently in space
 		gigaspace.clear(new Object());
-		USMUtils.clearAdmin();
+		USMUtils.shutdownAdmin();
 	}
 
 	@Test

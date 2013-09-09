@@ -66,6 +66,7 @@ public class AdminFactoryBean implements FactoryBean, InitializingBean, Disposab
             adminFactory.userDetails(userDetails.getUsername(), userDetails.getPassword());
         }
         admin = adminFactory.createAdmin();
+        admin.setStatisticsHistorySize(0);
         if (logger.isLoggable(Level.INFO)) {
 	        LookupLocator[] locators = admin.getLocators();
 	        String[] locatorStrings = new String[locators.length];
