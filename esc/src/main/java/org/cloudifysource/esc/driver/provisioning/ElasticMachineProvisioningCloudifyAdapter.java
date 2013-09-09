@@ -540,10 +540,14 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				}
 			}
 
-			logger.info("Stopping machine " + machineDetails.getPrivateAddress()
+			logger.info("Stopping machine " + machineIp
 					+ ", DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE");
-			this.cloudifyProvisioning.stopMachine(machineDetails.getPrivateAddress(),
+			boolean stoppedMachine = this.cloudifyProvisioning.stopMachine(machineDetails.getPrivateAddress(),
 					DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE, TimeUnit.MINUTES);
+			if (!stoppedMachine) {
+				throw new ElasticMachineProvisioningException("Attempt to stop machine " + machineIp
+						+ " has failed. Cloud driver claims machine was already stopped, however it was just recently started.");
+			}
 
 		} catch (final Exception e) {
 			logger.log(
@@ -720,7 +724,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	}
 
 	@Override
-	public boolean stopMachine(final GridServiceAgent agent, final long duration, final TimeUnit unit)
+	public void stopMachine(final GridServiceAgent agent, final long duration, final TimeUnit unit)
 			throws ElasticMachineProvisioningException, ElasticGridServiceAgentProvisioningException,
 			InterruptedException, TimeoutException {
 
@@ -755,10 +759,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			machineEventListener.elasticMachineProvisioningProgressChanged(machineStopEvent);
 
 			logger.fine("Cloudify Adapter is shutting down machine with ip: " + machineIp);
-			final boolean shutdownSuccessful = this.cloudifyProvisioning.stopMachine(machineIp, duration, unit);
-			logger.fine("Shutdown result of machine: " + machineIp + " was: " + shutdownSuccessful);
-
-			if (shutdownSuccessful) {
+			final boolean machineStopped = this.cloudifyProvisioning.stopMachine(machineIp, duration, unit);
+			logger.fine("Shutdown result of machine: " + machineIp + " was: " + machineStopped);
+			
+			if (machineStopped) {
 				final MachineStoppedEvent machineStoppedEvent = new MachineStoppedEvent();
 				machineStoppedEvent.setHostAddress(machineIp);
 				machineEventListener.elasticMachineProvisioningProgressChanged(machineStoppedEvent);
@@ -782,8 +786,12 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					}
 				}
 			}
-
-			return shutdownSuccessful;
+			else if (failedToShutdownAgentException == null) {
+				//machineStopped == false means machine was already stopped
+				//failedToShutdownAgentException == null means we just recently stopped the agent.
+				throw new ElasticMachineProvisioningException("Attempt to shutdown machine with IP: " + machineIp
+						+ " for agent with UID: " + agent.getUid() + " has failed. Cloud driver claims machine was already stopped, however we just recently stopped the agent process on that machine.");
+			}
 
 		} catch (final CloudProvisioningException e) {
 			throw new ElasticMachineProvisioningException("Attempt to shutdown machine with IP: " + machineIp

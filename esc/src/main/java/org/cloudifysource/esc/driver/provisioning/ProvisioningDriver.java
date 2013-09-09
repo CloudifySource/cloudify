@@ -114,14 +114,14 @@ public interface ProvisioningDriver {
 	 *            time to wait for the shutdown operation.
 	 * @param unit
 	 *            time unit for the shutdown operations
-	 * @return true if the operation succeeded, false otherwise.
+	 * @return true if the operation stopped the machine, false if the machine was already stopped.
 	 *
 	 * @throws InterruptedException
 	 *             If the operation was interrupted.
 	 * @throws TimeoutException
 	 *             If the operation exceeded the given timeout.
 	 * @throws CloudProvisioningException
-	 *             If the operation encountered an error.
+	 *             If the stop operation encountered an error.
 	 */
 	boolean stopMachine(final String machineIp, final long duration, final TimeUnit unit)
 			throws InterruptedException,
