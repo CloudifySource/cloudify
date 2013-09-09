@@ -338,7 +338,6 @@ env JAVA_OPTS=\"\${JAVA_DEBUG_OPTS}\" \$DEBUG_TARGET
 	}
 
 	def writeTextFile(File file, String fileContents) {
-		this.eventLogger.info("Writing text file: " + file.getAbsolutePath())
 		if(!file.exists()) {
 			File directory = file.getParentFile();
 			if(!directory.exists()) {
