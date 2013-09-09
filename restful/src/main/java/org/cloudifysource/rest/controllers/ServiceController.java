@@ -2935,24 +2935,8 @@ public class ServiceController implements ServiceDetailsProvider {
 					cloudOverrides);
 			destFile.deleteOnExit();
 		} else {
-			logger.warning("Deployment file could not be renamed to the absolute pu name."
-					+ " Deploaying using the name " + dest.getName());
-			lifecycleEventsContainerID = deployElasticProcessingUnit(
-					absolutePuName,
-					applicationName,
-					effectiveAuthGroups,
-					zone,
-					dest,
-					props,
-					actualTemplateName,
-					false,
-					timeout,
-					TimeUnit.MINUTES,
-					null,
-					selfHealing.booleanValue(),
-					localServiceOverridesFile,
-					cloudOverrides);
-			dest.deleteOnExit();
+			throw new IllegalStateException("Failed renaming deployment file " + dest.getName()
+					+ ". aborting deployment.");
 		}
 
 		// TODO: move this Key String to the DSL project as a constant.
