@@ -36,8 +36,6 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-orm</artifactId>
-			<version>${springVersion}</version>
-			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
