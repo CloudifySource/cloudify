@@ -695,10 +695,6 @@
 		<exec executable="${mvn.executable}" dir="${dsl.local.copy}">
 			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/dsl.jar -Dsources=target/dsl-sources.jar"/>
 		</exec>
-		
-		<exec executable="${mvn.executable}" dir="${dsl.local.copy}">
-			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/dsl.jar -Dsources=target/dsl-sources.jar"/>
-		</exec>
 			
 		<exec executable="${mvn.executable}" dir="${cli.local.copy}">
 			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/cli.jar"/>
@@ -717,57 +713,7 @@
 		</exec>
 	</target>
 	
-	<target name="publish.cloudify.jars.to.maven.snapshot.repository" unless="release.build">
-		
-		<property name="repository.id" value="org.openspaces" />
-		<property name="s3.url" value="s3://gigaspaces-maven-repository-eu" />
-		
-		<echo message="uploading cloudify snapshot jar artifacts to S3" />
-		
-		<exec executable="${mvn.executable}" dir="${basedir}">
-			<arg line="versions:set -DnewVersion=${s3.cloudify.snapshot.publish.folder} -DgenerateBackupPoms=false"/>
-		</exec>
-		
-		<exec executable="${mvn.executable}" dir="${esc.local.copy}">
-			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/esc.jar -Dsources=target/esc-sources.jar"/>
-		</exec>
-		
-		<exec executable="${mvn.executable}" dir="${security.local.copy}">
-			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/security-${s3.cloudify.snapshot.publish.folder}.jar"/>
-		</exec>
-			
-		<exec executable="${mvn.executable}" dir="${security-ldap.local.copy}">
-			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/security-ldap-${s3.cloudify.snapshot.publish.folder}.jar"/>
-		</exec>
-		
-		<exec executable="${mvn.executable}" dir="${usm.local.copy}">
-			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/usm.jar -Dsources=target/usm-sources.jar -Djavadoc=target/usm-javadoc.jar"/>
-		</exec>
-			
-		<exec executable="${mvn.executable}" dir="${dsl.local.copy}">
-			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/dsl.jar -Dsources=target/dsl-sources.jar"/>
-		</exec>
-		
-		<exec executable="${mvn.executable}" dir="${dsl.local.copy}">
-			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/dsl.jar -Dsources=target/dsl-sources.jar"/>
-		</exec>
-			
-		<exec executable="${mvn.executable}" dir="${cli.local.copy}">
-			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/cli.jar"/>
-		</exec>
-		
-		<exec executable="${mvn.executable}" dir="${rest-client.local.copy}">
-			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/rest-client-${s3.cloudify.snapshot.publish.folder}.jar"/>
-		</exec>
-			
-		<exec executable="${mvn.executable}" dir="${basedir}">
-			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -Dfile=pom.xml -DpomFile=pom.xml -Dpackaging=pom"/>
-		</exec>
-			
-		<exec executable="${mvn.executable}" dir="${management-space.local.copy}">
-			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/management-space.jar -Dsources=target/management-space-sources.jar"/>
-		</exec>
-	</target>
+
 	
 	<target name="prepare.bigdata.package">
 		<unzip.xap new.installation.dir.name="${xap.installation.dir}"/>
