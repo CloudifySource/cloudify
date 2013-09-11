@@ -21,6 +21,19 @@
 		</repository>
 	</repositories>
 	<dependencies>
+     <dependency>
+        <groupId>com.gigaspaces</groupId>
+        <artifactId>gs-runtime</artifactId>
+     </dependency>
+     <dependency>
+       <groupId>commons-lang</groupId>
+       <artifactId>commons-lang</artifactId>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.httpcomponents</groupId>
+       <artifactId>httpcore</artifactId>
+       <version>4.2.1</version>
+    </dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
