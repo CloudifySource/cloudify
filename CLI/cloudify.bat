@@ -28,7 +28,6 @@ goto :END
 	@call "%JSHOMEDIR%\bin\setenv.bat"
 goto :END
 
-
 :SET_CLOUDIFY_JAVA_OPTIONS
 	set CLOUDIFY_DEBUG_OPTIONS=-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9000 -Xnoagent -Djava.compiler=NONE
 	if "%~1" == "-use-proxy" (
@@ -44,6 +43,7 @@ goto :END
 	set SIGAR_JARS="%JSHOMEDIR%\lib\platform\sigar\sigar.jar"
 	set GROOVY_JARS="%JSHOMEDIR%\tools\groovy\lib\*"
 	set DSL_JARS="%JSHOMEDIR%\lib\platform\cloudify\*"
+	set COMMONS_JARS="%JSHOMEDIR%\lib\platform\commons\*"
 	
 	@rem Test whether this is jdk or jre
 	if EXIST "%JAVA_HOME%\jre\lib\deploy.jar" set DEPLOY_JARS="%JAVA_HOME%\jre\lib\deploy.jar"
@@ -59,8 +59,9 @@ goto :END
 	pushd "%SCRIPT_PATH%\plugins"
 		for /D %%G in (*) do call:ITERATE_JARS "%SCRIPT_PATH%plugins\%%G"
 	popd
+
+	set CLOUDIFY_CLASSPATH=%CLI_JARS%;%DSL_JARS%;%DEPLOY_JARS%;%GS_JARS%;%SIGAR_JARS%;%GROOVY_JARS%;%ESC_JARS%;%PLUGIN_JARS%;%COMMONS_JARS%
 	
-	set CLOUDIFY_CLASSPATH=%CLI_JARS%;%DSL_JARS%;%DEPLOY_JARS%;%GS_JARS%;%SIGAR_JARS%;%GROOVY_JARS%;%ESC_JARS%;%PLUGIN_JARS%
 goto :END
 
 :ITERATE_JARS
