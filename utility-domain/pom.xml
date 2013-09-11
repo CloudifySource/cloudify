@@ -8,6 +8,19 @@
 		<relativePath>../cloudify</relativePath>
 	</parent>
 	<dependencies>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+    </dependency>    
+    <dependency>
+      <groupId>com.gigaspaces</groupId>
+      <artifactId>gs-runtime</artifactId>
+    </dependency>    
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-exec</artifactId>
+      <version>1.1</version>
+    </dependency>
 		<dependency>
 			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy</artifactId>

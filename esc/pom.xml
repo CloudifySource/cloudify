@@ -26,6 +26,10 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.cloudifysource</groupId>
 			<artifactId>utility-domain</artifactId>
 			<version>${cloudifyVersion}</version>
