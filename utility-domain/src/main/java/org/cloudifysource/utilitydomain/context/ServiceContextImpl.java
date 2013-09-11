@@ -401,4 +401,19 @@ public class ServiceContextImpl implements ServiceContext {
 	public String getBindAddress() {
 		return System.getenv(CloudifyConstants.CLOUDIFY_CLOUD_MACHINE_IP_ADDRESS_ENV);
 	}
+
+	@Override
+	public void stopMaintenanceMode(String processingUnitName) {
+    	InternalElasticServiceManager esm = (InternalElasticServiceManager) admin.getElasticServiceManagers()
+    			.waitForAtLeastOne();
+    	esm.enableAgentFailureDetection(processingUnitName);
+	}
+
+	@Override
+	public void startMaintenanceMode(String processingUnitName, long timeout,
+			TimeUnit unit) {
+    	InternalElasticServiceManager esm = (InternalElasticServiceManager) admin.getElasticServiceManagers()
+    			.waitForAtLeastOne();
+    	esm.disableAgentFailureDetection(processingUnitName, timeout, unit);
+	}
 }

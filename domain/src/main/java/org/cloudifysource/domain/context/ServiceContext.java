@@ -157,4 +157,24 @@ public interface ServiceContext {
 	 * @return - the address cloudify bind on.
 	 */
 	String getBindAddress();
+	
+	/**
+	 * Enables the GSA failure detection of the PU instance.
+	 * @param processingUnitName
+	 * 			The processing-unit name.
+	 */
+	void stopMaintenanceMode(final String processingUnitName);
+	
+	/**
+	 * Disables the GSA failure detection of the calling PU instance.
+	 * @param processingUnitName
+	 * 			The processing-unit name.
+	 * @param timeout
+	 * 			timeout before GSA failure detection is enabled.
+	 * @param unit
+	 * 			timeout unit.
+	 */
+	void startMaintenanceMode(final String processingUnitName, final long timeout, final TimeUnit unit);
+	
+	
 }
