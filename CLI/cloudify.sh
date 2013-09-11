@@ -23,6 +23,7 @@ function setCloudifyClassPath() {
 	SIGAR_JARS=${JSHOMEDIR}/lib/platform/sigar/sigar.jar
 	GROOVY_JARS=${JSHOMEDIR}/tools/groovy/lib/*
 	DSL_JARS=${JSHOMEDIR}/lib/platform/cloudify/*
+	COMMONS_JARS=${JSHOMEDIR}/lib/platform/commons/*
 	
 	# Test whether this is jdk or jre
 	if [ -f "${JAVA_HOME}/jre/lib/deploy.jar" ]; then
@@ -53,13 +54,14 @@ function setCloudifyClassPath() {
 			PLUGIN_JARS=${PLUGIN_JARS}${CPS}${jar}
 		fi
 	done
-	
-	CLOUDIFY_CLASSPATH=${CLI_JARS}:${DSL_JARS}${CPS}${DEPLOY_JARS}${CPS}${GS_JARS}${CPS}${SIGAR_JARS}${CPS}${GROOVY_JARS}${CPS}${ESC_JARS}${CPS}${PLUGIN_JARS}
+
+	CLOUDIFY_CLASSPATH=${CLI_JARS}${CPS}${DSL_JARS}${CPS}${DEPLOY_JARS}${CPS}${GS_JARS}${CPS}${SIGAR_JARS}${CPS}${GROOVY_JARS}${CPS}${ESC_JARS}${CPS}${PLUGIN_JARS}${CPS}${COMMONS_JARS}
 }
 
 function setCommandLine() {
 	CLI_ENTRY_POINT=org.cloudifysource.shell.GigaShellMain
 	COMMAND_LINE="${JAVACMD} ${GS_LOGGING_CONFIG_FILE_PROP} ${RMI_OPTIONS} ${LOOKUP_LOCATORS_PROP} ${LOOKUP_GROUPS_PROP} ${CLOUDIFY_JAVA_OPTIONS} -classpath ${PRE_CLASSPATH}${CPS}${CLOUDIFY_CLASSPATH}${CPS}${POST_CLASSPATH} ${CLI_ENTRY_POINT} $*"
+
 }
 
 function init() {
