@@ -111,7 +111,7 @@
 			<arg line="pull" />
 		</exec>	
 		<exec executable="git" dir="${basedir}">
-			<arg line="add **/${platform.verion.file.name} ${build.properties.file}  " />
+			<arg line="add **/${platform.verion.file.name} ${build.properties.file} ${all-poms-list} " />
 		</exec>
 		<exec executable="git" dir="${basedir}">
 			<arg value="commit" />
