@@ -22,7 +22,7 @@
           "export LOOKUPLOCATORS=$LUS_IP_ADDRESS",
           "export EXT_JAVA_OPTIONS=-Dcom.gs.multicast.enabled=false",
           "export BASEDIR=/home/ubuntu",
-          "export GIGASPACES_LINK=https://s3-eu-west-1.amazonaws.com/cloudify-eu/gigaspaces-cloudify-2.7.0-m4-b5985-57",
+          "export GIGASPACES_LINK=http://repository.cloudifysource.org/org/cloudifysource/2.7.0-SNAPSHOT/gigaspaces-cloudify-2.7.0-m4-b5985-57.tar.gz",
           "export GIGASPACES_AGENT_ENV_JAVA_URL=https://s3-eu-west-1.amazonaws.com/cloudify-eu/jdk-6u32-linux-x64.bin",
           "env",
           "chmod +x $WORKING_HOME_DIRECTORY/bootstrap-management.sh",
