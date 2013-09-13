@@ -37,6 +37,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.CharEncoding;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.CloudUser;
 import org.cloudifysource.domain.cloud.ScriptLanguages;
@@ -59,6 +60,7 @@ import org.cloudifysource.esc.driver.provisioning.privateEc2.parser.beans.Privat
 import org.cloudifysource.esc.driver.provisioning.privateEc2.parser.beans.VolumeMapping;
 import org.cloudifysource.esc.driver.provisioning.privateEc2.parser.beans.VolumeProperties;
 import org.cloudifysource.esc.driver.provisioning.privateEc2.parser.beans.types.ValueType;
+import org.cloudifysource.esc.util.TarGzUtils;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentials;
@@ -99,7 +101,9 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 
 	private static final int AMAZON_EXCEPTION_CODE_400 = 400;
 	private static final int MAX_SERVERS_LIMIT = 200;
-	private static final long WAIT_STATUS_SLEEP_TIME = 2000L;
+	private static final long WAIT_STATUS_SLEEP_TIME = 5000L;
+
+	private static final String CLOUDIFY_ENV_SCRIPT = "cloudify_env.sh";
 	private static final String PATTERN_PROPS_JSON = "\\s*\\\"[\\w-]*\\\"\\s*:\\s*([^{(\\[\"][\\w-]+)\\s*,?";
 	private static final String VOLUME_PREFIX = "cloudify-storage-";
 
@@ -477,15 +481,7 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 					case RUNNING:
 					case STOPPING:
 					case SHUTTING_DOWN:
-						try {
-
-							if (logger.isLoggable(Level.FINEST)) {
-								logger.finest("sleeping...");
-							}
-							Thread.sleep(WAIT_STATUS_SLEEP_TIME);
-						} catch (final InterruptedException e) {
-							Thread.currentThread().interrupt();
-						}
+						this.sleep();
 						break;
 					case STOPPED:
 					case TERMINATED:
@@ -504,6 +500,18 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 		}
 
 		throw new TimeoutException("Stopping instace timed out (id=" + instanceId + ")");
+	}
+
+	private void sleep() {
+		try {
+
+			if (logger.isLoggable(Level.FINEST)) {
+				logger.finest("sleeping...");
+			}
+			Thread.sleep(WAIT_STATUS_SLEEP_TIME);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
 	}
 
 	private MachineDetails createServer(final PrivateEc2Template cfnTemplate, final String machineName,
@@ -626,12 +634,15 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 	}
 
 	private Instance waitRunningInstance(final Instance ec2instance, final long duration, final TimeUnit unit)
-			throws CloudProvisioningException,
-			TimeoutException {
+			throws CloudProvisioningException, TimeoutException {
 
 		final long endTime = System.currentTimeMillis() + unit.toMillis(duration);
 
 		while (System.currentTimeMillis() < endTime) {
+			// Sleep before requesting the instance description
+			// because we can get a AWS Error Code: InvalidInstanceID.NotFound if the request is too early.
+			this.sleep();
+
 			final DescribeInstancesRequest describeRequest = new DescribeInstancesRequest();
 			describeRequest.setInstanceIds(Arrays.asList(ec2instance.getInstanceId()));
 			final DescribeInstancesResult describeInstances = this.ec2.describeInstances(describeRequest);
@@ -644,14 +655,6 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 					}
 					switch (state) {
 					case PENDING:
-						try {
-							if (logger.isLoggable(Level.FINEST)) {
-								logger.finest("sleeping...");
-							}
-							Thread.sleep(WAIT_STATUS_SLEEP_TIME);
-						} catch (final InterruptedException e) {
-							Thread.currentThread().interrupt();
-						}
 						break;
 					case RUNNING:
 						logger.fine("running okay...");
@@ -666,7 +669,6 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 								+ ec2instance);
 
 					}
-
 				}
 			}
 		}
@@ -739,23 +741,6 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 	private Instance createEC2Instance(final PrivateEc2Template cfnTemplate, final ProvisioningContextImpl ctx,
 			final boolean management, final long duration, final TimeUnit unit) throws CloudProvisioningException,
 			TimeoutException {
-		String cloudFileS3 = null;
-		if (management) {
-			try {
-				final CloudUser user = this.cloud.getUser();
-				final ComputeTemplate template = this.getManagerComputeTemplate();
-				final String s3BucketName = (String) template.getCustom().get("s3BucketName");
-				final String locationId = (String) template.getCustom().get("s3LocationId");
-
-				final AmazonS3Uploader amazonS3Uploader =
-						new AmazonS3Uploader(user.getUser(), user.getApiKey(), locationId);
-				cloudFileS3 =
-						amazonS3Uploader.zipAndUploadToS3(s3BucketName, ctx.getCloudFile().getParentFile()
-								.getAbsolutePath());
-			} catch (final IOException e) {
-				throw new CloudProvisioningException(e);
-			}
-		}
 
 		final InstanceProperties properties = cfnTemplate.getEC2Instance().getProperties();
 
@@ -774,43 +759,30 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 
 		String userData = null;
 		if (properties.getUserData() != null) {
-			final StringBuilder sb = new StringBuilder();
-
 			// Generate ENV script for the provisioned machine
-			String script = null;
+			String cloudFileS3 = null;
+			final StringBuilder sb = new StringBuilder();
+			final String script = management ? this.generateManagementCloudifyEnv(ctx) : this.generateCloudifyEnv(ctx);
+			cloudFileS3 = this.uploadCloudDir(ctx, script, management);
 
-			if (management) {
-				script = this.generateManagementCloudifyEnv(ctx);
-			} else {
-				script = this.generateCloudifyEnv(ctx);
+			final ComputeTemplate template = this.getManagerComputeTemplate();
+			String cloudFileDir = (String) template.getRemoteDirectory();
+			// Remove '/' from the path if it's the last char.
+			if (cloudFileDir.length() > 1 && cloudFileDir.endsWith("/")) {
+				cloudFileDir = cloudFileDir.substring(0, cloudFileDir.length() - 1);
 			}
-
-			if (logger.isLoggable(Level.FINEST)) {
-				logger.finest("Generated Management Script:\n" + script);
-			}
-
+			final String endOfLine = " >> /tmp/cloud.txt\n";
 			sb.append("#!/bin/bash\n");
-			sb.append(script).append("\n");
-			if (management) {
-				final ComputeTemplate template = this.getManagerComputeTemplate();
-				String cloudFileDir = template.getRemoteDirectory();
-				if (cloudFileDir.length() > 1 && cloudFileDir.endsWith("/")) {
-					cloudFileDir = cloudFileDir.substring(0, cloudFileDir.length() - 1);
-				}
-				final String endOfLine = " >> /tmp/cloud.txt\n";
-				sb.append("export TMP_DIRECTORY=/tmp").append(endOfLine);
-				sb.append("export S3_ZIP_FILE='" + cloudFileS3 + "'").append(endOfLine);
-				sb.append("wget -q -O $TMP_DIRECTORY/cloudArchive.zip $S3_ZIP_FILE").append(endOfLine);
-				sb.append("mkdir -p " + cloudFileDir).append(endOfLine);
-				sb.append("apt-get update").append(endOfLine);
-				sb.append("apt-get install unzip").append(endOfLine);
-				sb.append("unzip $TMP_DIRECTORY/cloudArchive.zip -d " + cloudFileDir).append(endOfLine);
-				sb.append("rm -f $TMP_DIRECTORY/cloudArchive.zip").append(endOfLine);
-				// TODO retrieve port dynamically for LUS_IP_ADDRESS
-				sb.append("export LUS_IP_ADDRESS=`curl http://instance-data/latest/meta-data/local-ipv4`:4174").append(
-						endOfLine);
+			sb.append("export TMP_DIRECTORY=/tmp").append(endOfLine);
+			sb.append("export S3_ARCHIVE_FILE='" + cloudFileS3 + "'").append(endOfLine);
+			sb.append("wget -q -O $TMP_DIRECTORY/cloudArchive.tar.gz $S3_ARCHIVE_FILE").append(endOfLine);
+			sb.append("mkdir -p " + cloudFileDir).append(endOfLine);
+			sb.append("tar zxvf $TMP_DIRECTORY/cloudArchive.tar.gz -C " + cloudFileDir).append(endOfLine);
+			sb.append("rm -f $TMP_DIRECTORY/cloudArchive.tar.gz").append(endOfLine);
+			sb.append("echo ").append(cloudFileDir).append("/").append(CLOUDIFY_ENV_SCRIPT).append(endOfLine);
+			sb.append("chmod 755 ").append(cloudFileDir).append("/").append(CLOUDIFY_ENV_SCRIPT).append(endOfLine);
+			sb.append("source ").append(cloudFileDir).append("/").append(CLOUDIFY_ENV_SCRIPT).append(endOfLine);
 
-			}
 			sb.append(properties.getUserData().getValue());
 			userData = sb.toString();
 			logger.fine("Instanciate ec2 with user data:\n" + userData);
@@ -854,6 +826,50 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 		ec2Instance = this.waitRunningInstance(ec2Instance, duration, unit);
 
 		return ec2Instance;
+	}
+
+	private String uploadCloudDir(final ProvisioningContextImpl ctx, final String script, final boolean isManagement)
+			throws CloudProvisioningException {
+		try {
+			final CloudUser user = this.cloud.getUser();
+			final ComputeTemplate template = this.getManagerComputeTemplate();
+			final String cloudDirectory =
+					isManagement ? ((File) this.cloud.getCustom().get("###CLOUD_DIRECTORY###")).getAbsolutePath()
+							: template.getAbsoluteUploadDir();
+			final String s3BucketName = (String) template.getCustom().get("s3BucketName");
+			final String locationId = (String) template.getCustom().get("s3LocationId");
+
+			// Generate env script
+			final StringBuilder sb = new StringBuilder();
+			sb.append("#!/bin/bash\n");
+			sb.append(script);
+			if (isManagement) {
+				// TODO retrieve port dynamically for LUS_IP_ADDRESS
+				sb.append("export LUS_IP_ADDRESS=`curl http://instance-data/latest/meta-data/local-ipv4`:4174");
+			}
+
+			// Create tmp dir
+			final File createTempFile = File.createTempFile("cloudify_env", "");
+			createTempFile.delete();
+			// Create tmp file
+			final File tmpEnvFile = new File(createTempFile, CLOUDIFY_ENV_SCRIPT);
+			tmpEnvFile.deleteOnExit();
+			// Write the script into the temp filedir
+			FileUtils.writeStringToFile(tmpEnvFile, sb.toString(), CharEncoding.UTF_8);
+
+			// Compress file
+			logger.fine("Archive folders to upload: " + cloudDirectory + " and " + tmpEnvFile.getAbsolutePath());
+			final String[] sourcePaths = new String[] { cloudDirectory, tmpEnvFile.getAbsolutePath() };
+			final File tarGzFile = TarGzUtils.createTarGz(sourcePaths, false);
+
+			// Upload to S3
+			final AmazonS3Uploader amazonS3Uploader = new AmazonS3Uploader(
+					user.getUser(), user.getApiKey(), locationId);
+			final String cloudFileS3 = amazonS3Uploader.uploadFile(s3BucketName, tarGzFile);
+			return cloudFileS3;
+		} catch (IOException e) {
+			throw new CloudProvisioningException(e);
+		}
 	}
 
 	private BlockDeviceMapping createBlockDeviceMapping(final String device, final AWSEC2Volume volumeConfig)
@@ -935,6 +951,7 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 		try {
 			final File cloudDirectory =
 					new ProvisioningContextAccess().getManagementProvisioiningContext().getCloudFile().getParentFile();
+			this.cloud.getCustom().put("###CLOUD_DIRECTORY###", cloudDirectory);
 			this.privateEc2Template =
 					this.getManagerPrivateEc2Template(cloudDirectory, this.managerCfnTemplateFileName);
 		} catch (PrivateEc2ParserException e) {

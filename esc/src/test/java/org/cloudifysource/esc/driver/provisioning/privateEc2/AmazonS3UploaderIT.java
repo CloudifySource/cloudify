@@ -40,15 +40,8 @@ public class AmazonS3UploaderIT {
 	}
 
 	@Test
-	public void testZipFolder() throws Exception {
-		File zipFile = this.s3Uploader
-				.zipFolder("C:/cloudify-deployment/gigaspaces-cloudify-2.6.1-ga-b5199-139/clouds/privateEc2");
-		System.out.println(zipFile);
-	}
-
-	@Test
-	public void testZipAndUploadToS3() throws Exception {
-		String s3File = this.s3Uploader.zipAndUploadToS3(
+	public void testCompressAndUploadToS3() throws Exception {
+		String s3File = this.s3Uploader.compressAndUploadToS3(
 				"cloudify-eu/test",
 				"C:/cloudify-deployment/gigaspaces-cloudify-2.6.1-ga-b5199-139/clouds/privateEc2");
 		System.out.println(s3File);
