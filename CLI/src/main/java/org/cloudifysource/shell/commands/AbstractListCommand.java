@@ -30,15 +30,16 @@ public abstract class AbstractListCommand extends AdminAwareCommand {
 
 
 	/**
-	 * returns a string representation of the ApplicationDescription object
-	 * @param applicationDescription
-	 * @return
+	 * returns a string representation of the ApplicationDescription object.
+	 * @param applicationDescription .
+	 * @return application description string
 	 */
 	public String getApplicationDescriptionAsString(
 			final ApplicationDescription applicationDescription) {
 		StringBuilder sb = new StringBuilder(ShellUtils.getBoldMessage(applicationDescription.getApplicationName()))
                 .append("  ").append(applicationDescription.getApplicationState())
-                .append(CloudifyConstants.TAB_CHAR).append("Authorization Groups: ").append(applicationDescription.getAuthGroups());
+                .append(CloudifyConstants.TAB_CHAR).append("Authorization Groups: ")
+                .append(applicationDescription.getAuthGroups());
 		String serviceDescriptionAsString;
 		for (ServiceDescription serviceDescription : applicationDescription.getServicesDescription()) {
 			serviceDescriptionAsString = getServiceDescriptionAsString(serviceDescription);
