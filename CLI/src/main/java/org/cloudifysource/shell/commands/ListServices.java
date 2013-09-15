@@ -18,7 +18,10 @@ package org.cloudifysource.shell.commands;
 import org.apache.felix.gogo.commands.Command;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.rest.response.ApplicationDescription;
+import org.cloudifysource.restclient.RestClient;
+import org.cloudifysource.restclient.exceptions.RestClientException;
 import org.cloudifysource.shell.exceptions.CLIStatusException;
+import org.cloudifysource.shell.rest.RestAdminFacade;
 
 /**
  * @author noak, adaml
@@ -31,7 +34,7 @@ import org.cloudifysource.shell.exceptions.CLIStatusException;
  */
 @Command(scope = "cloudify", name = "list-services", description = "Lists all deployed services on the current"
 		+ " application")
-public class ListServices extends AbstractListCommand {
+public class ListServices extends AbstractListCommand implements NewRestClientCommand {
 
 	/**
 	 * Gets a list of service names, deployed on the current application.
@@ -62,4 +65,33 @@ public class ListServices extends AbstractListCommand {
 		
 		return getApplicationDescriptionAsString(applicationDescription);
 	}
+	
+	@Override
+	public Object doExecuteNewRestClient() throws Exception {
+		logger.fine("list-services using the new rest client");
+		RestClient newRestClient = ((RestAdminFacade) getRestAdminFacade()).getNewRestClient();
+		
+		ApplicationDescription applicationDescription = null;
+		String applicationName = getCurrentApplicationName();
+		try {
+			applicationDescription = newRestClient.getApplicationDescription(applicationName);
+		} catch (RestClientException e) {
+			// if this message indicates the *default* app is not found - don't throw exception, return an
+			// empty list
+			if (applicationName.equalsIgnoreCase(CloudifyConstants.DEFAULT_APPLICATION_NAME)
+					&& CloudifyConstants.ERR_MESSAGE_CODE_MISSING_RESOURCE.equalsIgnoreCase(e.getMessageCode())) {
+				return "";
+			} else {
+				throw e;
+			}
+		}
+		
+		if (applicationDescription == null) {
+			return "";
+		}
+		
+		return getApplicationDescriptionAsString(applicationDescription);
+	}
+	
+	
 }

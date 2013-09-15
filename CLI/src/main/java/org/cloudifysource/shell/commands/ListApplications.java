@@ -20,6 +20,8 @@ import java.util.List;
 import org.apache.felix.gogo.commands.Command;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.rest.response.ApplicationDescription;
+import org.cloudifysource.restclient.RestClient;
+import org.cloudifysource.shell.rest.RestAdminFacade;
 
 /**
  * @author noak, adaml
@@ -31,7 +33,7 @@ import org.cloudifysource.dsl.rest.response.ApplicationDescription;
  * 
  */
 @Command(scope = "cloudify", name = "list-applications", description = "Lists all deployed applications")
-public class ListApplications extends AbstractListCommand {
+public class ListApplications extends AbstractListCommand implements NewRestClientCommand {
 
 	/**
 	 * Gets a list of all deployed applications' names.
@@ -44,6 +46,15 @@ public class ListApplications extends AbstractListCommand {
 		List<ApplicationDescription> applicationsList = adminFacade.getApplicationDescriptionsList();
 		String appsDescription = getApplicationDescriptionFromListAsString(applicationsList);
 		return appsDescription;
+	}
+	
+	@Override
+	public Object doExecuteNewRestClient() throws Exception {
+		logger.fine("list-applications using the new rest client");
+		RestClient newRestClient = ((RestAdminFacade) getRestAdminFacade()).getNewRestClient();
+		List<ApplicationDescription> applicationsList = newRestClient.getApplicationDescriptionsList();
+		
+		return getApplicationDescriptionFromListAsString(applicationsList);
 	}
 
 	private String getApplicationDescriptionFromListAsString(

@@ -48,7 +48,6 @@ import org.cloudifysource.dsl.rest.response.DeploymentEvents;
 import org.cloudifysource.dsl.rest.response.GetTemplateResponse;
 import org.cloudifysource.dsl.rest.response.InstallApplicationResponse;
 import org.cloudifysource.dsl.rest.response.InstallServiceResponse;
-import org.cloudifysource.dsl.rest.response.ListServicesResponse;
 import org.cloudifysource.dsl.rest.response.ListTemplatesResponse;
 import org.cloudifysource.dsl.rest.response.Response;
 import org.cloudifysource.dsl.rest.response.ServiceDescription;
@@ -168,22 +167,7 @@ public class RestClient {
 		return executor.postObject(installServiceUrl, request, new TypeReference<Response<InstallServiceResponse>>() {
 		});
 	}
-	
-	
-	/**
-	 * Executes a rest api call to list the services of the given application.
-	 * 
-	 * @param applicationName
-	 *            The name of the application.
-	 * @return ListServicesResponse.
-	 * @throws RestClientException .
-	 */
-	public ListServicesResponse listServices(final String applicationName) throws RestClientException {
-		final String listServicesUrl = getFormattedUrl(
-				versionedDeploymentControllerUrl, 
-				LIST_SERVICES_URL_FORMAT);
-		return executor.get(listServicesUrl, new TypeReference<Response<ListServicesResponse>>() { });
-	}
+
 
 	/**
 	 * Executes a rest api call to install an application.

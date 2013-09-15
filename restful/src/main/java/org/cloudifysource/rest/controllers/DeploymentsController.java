@@ -656,7 +656,9 @@ public class DeploymentsController extends BaseRestController {
 			throw new RestErrorException("Failed reading application file."
 					+ " Reason: " + e.getMessage(), e);
 		}
-		validateInstallApplication(result.getApplication());
+		Application application = result.getApplication();
+		application.setName(appName);
+		validateInstallApplication(application);
 		// update effective authGroups
 		String effectiveAuthGroups = getEffectiveAuthGroups(request.getAuthGroups());
 		request.setAuthGroups(effectiveAuthGroups);
@@ -718,6 +720,18 @@ public class DeploymentsController extends BaseRestController {
 		final ApplicationDescriptionFactory appDescriptionFactory =
 				new ApplicationDescriptionFactory(restConfig.getAdmin());
 		return appDescriptionFactory.getApplicationDescription(appName);
+	}
+	
+	/**
+	 * @return List of {@link org.cloudifysource.dsl.rest.response.ApplicationDescription} objects.
+	 */
+	@RequestMapping(value = "/applications/description", method = RequestMethod.GET)
+	public List<ApplicationDescription> getApplicationDescriptions() {
+
+		final ApplicationDescriptionFactory appDescriptionFactory =
+				new ApplicationDescriptionFactory(restConfig.getAdmin());
+		
+		return appDescriptionFactory.getApplicationDescriptions();
 	}
 
 	private List<ProcessingUnit> createUninstallOrder(
@@ -1111,7 +1125,8 @@ public class DeploymentsController extends BaseRestController {
 		}
 		return descriptions;
 	}
-
+	
+	
 	/**
 	 * 
 	 * @param appName

@@ -196,6 +196,7 @@ public final class CloudifyConstants {
      * Reason codes for rest exceptions
      */
     public static final String ERR_REASON_CODE_FAILED_TO_LOCATE_APP = "failed_to_locate_app";
+    public static final String ERR_MESSAGE_CODE_MISSING_RESOURCE = "missing_resource";
 
     /********************
      * Custom properties for known cloudify settings.
