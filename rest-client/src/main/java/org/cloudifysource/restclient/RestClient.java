@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang.CharEncoding;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.http.HttpVersion;
 import org.apache.http.conn.ClientConnectionManager;
@@ -30,12 +31,11 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.SystemDefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.protocol.HTTP;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.rest.AddTemplatesException;
 import org.cloudifysource.dsl.rest.request.AddTemplatesRequest;
@@ -444,20 +444,19 @@ public class RestClient {
 	private DefaultHttpClient getSSLHttpClient(final URL url) throws RestClientException {
 		try {
 			final KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-			// TODO : support self-signed certs if configured by user upon "connect"
 			trustStore.load(null, null);
-
-			final SSLSocketFactory sf = new RestSSLSocketFactory(trustStore);
-			sf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+			
+			final SSLSocketFactory sf = new SSLSocketFactory(
+					null, null, null, trustStore, null, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
 			final HttpParams params = new BasicHttpParams();
 			HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-			HttpProtocolParams.setContentCharset(params, HTTP.UTF_8);
+			HttpProtocolParams.setContentCharset(params, CharEncoding.UTF_8);
 
 			final SchemeRegistry registry = new SchemeRegistry();
-			registry.register(new Scheme(HTTPS, sf, url.getPort()));
+			registry.register(new Scheme(HTTPS, url.getPort(), sf));
 
-			final ClientConnectionManager ccm = new ThreadSafeClientConnManager(params, registry);
+			final ClientConnectionManager ccm = new PoolingClientConnectionManager(registry);
 
 			return new DefaultHttpClient(ccm, params);
 		} catch (final Exception e) {
