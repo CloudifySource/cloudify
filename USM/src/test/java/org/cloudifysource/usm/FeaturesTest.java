@@ -25,6 +25,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
@@ -135,6 +136,7 @@ public class FeaturesTest {
 
 	}
 
+	@Ignore
 	@Test
 	public void testDebug() throws IOException, InterruptedException {
 		if (ServiceUtils.isWindows()) {
