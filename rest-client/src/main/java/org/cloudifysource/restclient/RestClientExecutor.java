@@ -41,6 +41,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.rest.response.Response;
 import org.cloudifysource.restclient.exceptions.RestClientException;
 import org.cloudifysource.restclient.exceptions.RestClientHttpException;
@@ -333,18 +335,43 @@ public class RestClientExecutor {
                                                       entity.getVerbose());
 
             } catch (final IOException e) {
+            	
+                // this means we got the response, but it is not in the correct format.
+                // so some kind of error happened on the spring side.
             	if (logger.isLoggable(Level.WARNING)) {
             		logger.log(Level.WARNING, "[checkForError] - failed to read response. responseBody: " 
             				+ responseBody + ", reasonPhrase:" + reasonPhrase);
             	}
-                // this means we got the response, but it is not in the correct format.
-                // so some kind of error happened on the spring side.
-                throw MessagesUtils.createRestClientHttpException(
-                		e,
-                		statusCode,
-                		reasonPhrase,
-                		responseBody,
-                		RestClientMessageKeys.HTTP_FAILURE.getName(), reasonPhrase, requestUri);
+
+            	if (statusCode == CloudifyConstants.HTTP_STATUS_NOT_FOUND) {
+            		 throw MessagesUtils.createRestClientHttpException(
+                     		e,
+                     		statusCode,
+                     		reasonPhrase,
+                     		responseBody,
+                     		RestClientMessageKeys.URL_NOT_FOUND.getName(), requestUri);
+				} else if (statusCode == CloudifyConstants.HTTP_STATUS_ACCESS_DENIED) {
+					throw MessagesUtils.createRestClientHttpException(
+                     		e,
+                     		statusCode,
+                     		reasonPhrase,
+                     		responseBody,
+                     		RestClientMessageKeys.NO_PERMISSION_ACCESS_DENIED.getName());
+				} else if (statusCode == CloudifyConstants.HTTP_STATUS_UNAUTHORIZED) {
+					throw MessagesUtils.createRestClientHttpException(
+                     		e,
+                     		statusCode,
+                     		reasonPhrase,
+                     		responseBody,
+                     		CloudifyErrorMessages.UNAUTHORIZED.getName());
+				} else {
+	                throw MessagesUtils.createRestClientHttpException(
+	                		e,
+	                		statusCode,
+	                		reasonPhrase,
+	                		responseBody,
+	                		RestClientMessageKeys.HTTP_FAILURE.getName(), reasonPhrase, requestUri);
+				}
             }
         }
 	}

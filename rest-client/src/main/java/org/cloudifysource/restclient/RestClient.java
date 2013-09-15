@@ -48,6 +48,7 @@ import org.cloudifysource.dsl.rest.response.DeploymentEvents;
 import org.cloudifysource.dsl.rest.response.GetTemplateResponse;
 import org.cloudifysource.dsl.rest.response.InstallApplicationResponse;
 import org.cloudifysource.dsl.rest.response.InstallServiceResponse;
+import org.cloudifysource.dsl.rest.response.ListServicesResponse;
 import org.cloudifysource.dsl.rest.response.ListTemplatesResponse;
 import org.cloudifysource.dsl.rest.response.Response;
 import org.cloudifysource.dsl.rest.response.ServiceDescription;
@@ -80,12 +81,14 @@ public class RestClient {
 	private static final String TEMPLATES_CONTROLLER_URL = "/templates/";
 
 	private static final String INSTALL_SERVICE_URL_FORMAT = "%s/services/%s";
+	private static final String LIST_SERVICES_URL_FORMAT = "";
 	private static final String INSTALL_APPLICATION_URL_FORMAT = "%s";
 	private static final String UPLOAD_URL_FORMAT = "%s";
 	private static final String GET_DEPLOYMENT_EVENTS_URL_FORMAT = "%s/events/?from=%s&to=%s";
 	private static final String GET_SERVICE_DESCRIPTION_URL_FORMAT = "%s/service/%s/description";
 	private static final String GET_SERVICES_DESCRIPTION_URL_FORMAT = "%s/description";
 	private static final String GET_APPLICATION_DESCRIPTION_URL_FORMAT = "applications/%s/description";
+	private static final String GET_APPLICATION_DESCRIPTIONS_URL_FORMAT = "applications/description";
 	private static final String ADD_TEMPALTES_URL_FORMAT = "";
 	private static final String GET_TEMPALTE_URL_FORMAT = "%s";
 	private static final String LIST_TEMPALTES_URL_FORMAT = "";
@@ -164,6 +167,22 @@ public class RestClient {
 				serviceName);
 		return executor.postObject(installServiceUrl, request, new TypeReference<Response<InstallServiceResponse>>() {
 		});
+	}
+	
+	
+	/**
+	 * Executes a rest api call to list the services of the given application.
+	 * 
+	 * @param applicationName
+	 *            The name of the application.
+	 * @return ListServicesResponse.
+	 * @throws RestClientException .
+	 */
+	public ListServicesResponse listServices(final String applicationName) throws RestClientException {
+		final String listServicesUrl = getFormattedUrl(
+				versionedDeploymentControllerUrl, 
+				LIST_SERVICES_URL_FORMAT);
+		return executor.get(listServicesUrl, new TypeReference<Response<ListServicesResponse>>() { });
 	}
 
 	/**
@@ -345,7 +364,30 @@ public class RestClient {
 		return executor.get(url, new TypeReference<Response<ApplicationDescription>>() {
 		});
 	}
-
+	
+	/**
+	 * 
+	 * @return List of ApplicationDescription objects.
+	 * @throws RestClientException .
+	 */
+	public List<ApplicationDescription> getApplicationDescriptionsList() throws RestClientException {
+		String url = getFormattedUrl(
+				versionedDeploymentControllerUrl, 
+				GET_APPLICATION_DESCRIPTIONS_URL_FORMAT);
+		return executor.get(url, new TypeReference<Response<List<ApplicationDescription>>>() {
+		});
+	}
+	
+	/**
+	 * @param appName The application the services to be listed are part of.
+	 * @return List of service descriptions
+	 * @throws RestClientException .
+	 */
+	public List<ServiceDescription> getServicesDescriptionList(final String appName) throws RestClientException {
+		return getApplicationDescription(appName).getServicesDescription();
+		
+	}
+	
 	/********
 	 * Manually Scales a specific service in/out.
 	 * 

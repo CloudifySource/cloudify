@@ -30,17 +30,28 @@ public class RestClientException extends Exception {
 	private static final long serialVersionUID = 1L;
 
 	private final String messageCode;
+	private final Object[] messageArgs;
 	private final String messageFormattedText;
 	private final String verbose;
 
 	public RestClientException(final String messageCode, final String messageFormattedText, final String verbose) {
+		this(messageCode, messageFormattedText, verbose, (Object[]) null /*messageArgs*/);
+	}
+	
+	public RestClientException(final String messageCode, final String messageFormattedText, final String verbose, 
+			final Object[] messageArgs) {
 		this.messageCode = messageCode;
 		this.messageFormattedText = messageFormattedText;
 		this.verbose = verbose;
+		this.messageArgs = messageArgs;
 	}
 
 	public String getMessageCode() {
 		return messageCode;
+	}
+	
+	public Object[] getMessageArgs() {
+		return messageArgs;
 	}
 
 	public String getMessageFormattedText() {
