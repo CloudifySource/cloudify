@@ -95,50 +95,6 @@
 	-->
 	
 	<target name="update_platform_version" depends="replace.build.related.settings,replace.cloudify.build.number" unless="gs.internal.systems.not.available">
-		<pathconvert property="all-poms-list" refid="all-poms-fileset" pathsep=" "/>
-		<exec executable="git" dir="${basedir}">
-			<arg value="status" />
-		</exec>
-		
-		<echo message="The target branchname is: ${branchname}"/>
-		
-       	<exec executable="git" dir="${basedir}">
-			<arg value="checkout" />
-			<arg value="${branchname}" />			
-		</exec>
-		<exec executable="git" dir="${basedir}">
-			<arg line="pull" />
-		</exec>	
-		<exec executable="git" dir="${basedir}">
-			<arg line="add **/${platform.verion.file.name} ${build.properties.file} ${all-poms-list} " />
-		</exec>
-		<exec executable="git" dir="${basedir}">
-			<arg value="commit" />
-			<arg value="-m" />
-			<arg value="Build version advanced to ${cloudify.build.number}" />			
-		</exec>
-		<exec executable="git" dir="${basedir}">
-			<arg value="push" />
-		</exec>
-	
-		<exec executable="git" dir="${recipes.local.copy}">
-			<arg value="checkout" />
-			<arg value="${branchname}" />			
-		</exec>
-		<exec executable="git" dir="${recipes.local.copy}">
-			<arg line="pull" />
-		</exec>
-		<exec executable="git" dir="${recipes.local.copy}">
-			<arg line="add ${streaming-bigdata.pom.file}" />
-		</exec>
-		<exec executable="git" dir="${recipes.local.copy}">
-			<arg value="commit" />
-			<arg value="-m" />
-			<arg value="Build version advanced to ${cloudify.build.number}" />			
-		</exec>
-		<exec executable="git" dir="${recipes.local.copy}">
-			<arg value="push" />
-		</exec>
    </target>
 	
 	<target name="usage">
@@ -477,6 +433,53 @@
 		</sequential>
 	</macrodef>
 
+	<target name="commit_updated_dev_poms">
+	
+		<pathconvert property="all-poms-list" refid="all-poms-fileset" pathsep=" "/>
+		<exec executable="git" dir="${basedir}">
+			<arg value="status" />
+		</exec>
+		
+		<echo message="The target branchname is: ${branchname}"/>
+		
+       	<exec executable="git" dir="${basedir}">
+			<arg value="checkout" />
+			<arg value="${branchname}" />			
+		</exec>
+		<exec executable="git" dir="${basedir}">
+			<arg line="pull" />
+		</exec>	
+		<exec executable="git" dir="${basedir}">
+			<arg line="add **/${platform.verion.file.name} ${build.properties.file} ${all-poms-list} " />
+		</exec>
+		<exec executable="git" dir="${basedir}">
+			<arg value="commit" />
+			<arg value="-m" />
+			<arg value="Build version advanced to ${cloudify.build.number}" />			
+		</exec>
+		<exec executable="git" dir="${basedir}">
+			<arg value="push" />
+		</exec>
+	
+		<exec executable="git" dir="${recipes.local.copy}">
+			<arg value="checkout" />
+			<arg value="${branchname}" />			
+		</exec>
+		<exec executable="git" dir="${recipes.local.copy}">
+			<arg line="pull" />
+		</exec>
+		<exec executable="git" dir="${recipes.local.copy}">
+			<arg line="add ${streaming-bigdata.pom.file}" />
+		</exec>
+		<exec executable="git" dir="${recipes.local.copy}">
+			<arg value="commit" />
+			<arg value="-m" />
+			<arg value="Build version advanced to ${cloudify.build.number}" />			
+		</exec>
+		<exec executable="git" dir="${recipes.local.copy}">
+			<arg value="push" />
+		</exec>
+	</target>	
    
     <!-- - - - - - - - - - - - - - - - - -
            target: archive.versions
@@ -489,15 +492,19 @@
         <ant target="prepare.cloudify.package" />
         <ant target="prepare.bigdata.package" />
         <ant target="copy.packages.to.build.repository" />
-
-        <!-- conditional task (with property: publish.cloudify.build) -->
+    	
+    	<!-- Update and commit poms, upload jars to maven repository -->
+    	<ant target="update_maven_version_for_development" />
+    	<ant target="commit_updated_dev_poms" />
+    	<ant target="publish.cloudify.jars.to.maven.repository" />
+    	<ant target="publish.cloudify.jars.to.maven.snapshot.repository" />    	
+        
+    	<!-- conditional task (with property: publish.cloudify.build) -->
         <ant target="publish.bigdata.to.storage" />
 
         <!-- conditional task (with property: publish.cloudify.build) -->
         <ant target="publish.cloudify.to.storage" />
-
-        <ant target="publish.cloudify.jars.to.maven.repository" />
-    	<ant target="publish.cloudify.jars.to.maven.snapshot.repository" /> 
+ 
     </target>
 
     <target name="archive.cloudify.versions">
@@ -661,6 +668,22 @@
 
     </target>
 	
+	<target name="update_maven_version_for_development" if="cloudify.build.number">
+   		<condition property="maven.dev.version" value="${s3.cloudify.publish.folder}">
+   			<isset property="release.build"/>
+  	    </condition>
+   		
+   		<condition property="maven.dev.version" value="${s3.cloudify.snapshot.publish.folder}">
+   			<not>
+   				<isset property="release.build"/>
+   			</not>
+  	    </condition>
+	
+		<exec executable="${mvn.executable}" dir="${basedir}">
+			<arg line="versions:set -DnewVersion=${maven.dev.version} -DgenerateBackupPoms=false"/>
+		</exec>
+	</target>
+		
 	<target name="publish.cloudify.jars.to.maven.snapshot.repository" unless="release.build">
 		
 		<property name="repository.id" value="org.openspaces" />
@@ -668,9 +691,7 @@
 		
 		<echo message="uploading cloudify snapshot jar artifacts to S3" />
 		
-		<exec executable="${mvn.executable}" dir="${basedir}">
-			<arg line="versions:set -DnewVersion=${s3.cloudify.snapshot.publish.folder} -DgenerateBackupPoms=false"/>
-		</exec>
+		
 		
 		<exec executable="${mvn.executable}" dir="${esc.local.copy}">
 			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/esc.jar -Dsources=target/esc-sources.jar"/>
