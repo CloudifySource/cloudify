@@ -991,7 +991,7 @@ public class DeploymentsController extends BaseRestController {
 		File updatedPackedFile = merger.merge();
 
 		// Read the service
-		final Service service = readService(workingProjectDir, request.getServiceFileName(), absolutePuName);
+		final Service service = readService(workingProjectDir, request, absolutePuName);
 
 		// update template name
 		final String templateName = getTempalteNameFromService(service);
@@ -1474,20 +1474,25 @@ public class DeploymentsController extends BaseRestController {
 		return serviceDir;
 	}
 
-	private Service readService(final File workingProjectDir, final String serviceFileName, final String absolutePuName)
+	private Service readService(final File workingProjectDir,
+								final InstallServiceRequest request,
+								final String absolutePuName)
 			throws RestErrorException {
-		DSLServiceCompilationResult result;
+		Service service;
 		try {
-			if (serviceFileName != null) {
+			DSLServiceCompilationResult result;
+			if (request.getServiceFileName() != null) {
 				result = ServiceReader.getServiceFromFile(new File(
-						workingProjectDir, serviceFileName), workingProjectDir);
+						workingProjectDir, request.getServiceFileName()), workingProjectDir);
 			} else {
 				result = ServiceReader.getServiceFromDirectory(workingProjectDir);
 			}
+			service = result.getService();
+			service.setDependsOn(request.getDependsOn());
 		} catch (final Exception e) {
 			throw new RestErrorException(CloudifyMessageKeys.FAILED_TO_READ_SERVICE.getName(), absolutePuName);
 		}
-		return result.getService();
+		return service;
 	}
 
 	private byte[] getCloudConfigurationContent(final File serviceCloudConfigurationFile, final String absolutePuName)

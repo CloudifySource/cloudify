@@ -12,6 +12,8 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.rest.request;
 
+import java.util.List;
+
 import org.cloudifysource.dsl.internal.debug.DebugModes;
 
 /**
@@ -33,6 +35,8 @@ public class InstallServiceRequest {
     private long timeoutInMillis;
     private boolean debugAll;
     private String debugEvents;
+    private List<String> dependsOn;
+    
     private String debugMode = DebugModes.INSTEAD.getName();
 
     public String getServiceFolderUploadKey() {
@@ -122,6 +126,14 @@ public class InstallServiceRequest {
     public void setDebugMode(final String debugMode) {
         this.debugMode = debugMode;
     }
+
+	public List<String> getDependsOn() {
+		return dependsOn;
+	}
+
+	public void setDependsOn(final List<String> dependsOn) {
+		this.dependsOn = dependsOn;
+	}
 
 
 }
