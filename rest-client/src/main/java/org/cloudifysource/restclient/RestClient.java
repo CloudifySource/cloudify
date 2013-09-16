@@ -472,18 +472,18 @@ public class RestClient {
 			final KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
 			trustStore.load(null, null);
 			
-			final SSLSocketFactory sf = new SSLSocketFactory(
-					null, null, null, trustStore, null, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+			final SSLSocketFactory sf = 
+					new RestSSLSocketFactory(trustStore, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
 			final HttpParams params = new BasicHttpParams();
 			HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
 			HttpProtocolParams.setContentCharset(params, CharEncoding.UTF_8);
 
 			final SchemeRegistry registry = new SchemeRegistry();
-			registry.register(new Scheme(HTTPS, url.getPort(), sf));
-
+			Scheme scheme = new Scheme(HTTPS, sf, url.getPort());
+			registry.register(scheme);
+			
 			final ClientConnectionManager ccm = new PoolingClientConnectionManager(registry);
-
 			return new DefaultHttpClient(ccm, params);
 		} catch (final Exception e) {
 			throw new RestClientException(FAILED_CREATING_CLIENT, "Failed creating http client",
