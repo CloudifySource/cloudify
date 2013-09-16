@@ -152,14 +152,13 @@ public class BaseServiceContext implements ServiceContext {
 	}
 
 	@Override
-	public void stopMaintenanceMode(String processingUnitName) {
+	public void stopMaintenanceMode() {
 		throw new UnsupportedOperationException("stopMaintenanceMode context method is not supported for"
 				+ " services running outside a GSC.");
 	}
 
 	@Override
-	public void startMaintenanceMode(String processingUnitName, long timeout,
-			TimeUnit unit) {
+	public void startMaintenanceMode(final long timeout, final TimeUnit unit) {
 		throw new UnsupportedOperationException("startMaintenanceMode context method is not supported for"
 				+ " services running outside a GSC.");
 	}

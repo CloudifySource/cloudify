@@ -403,17 +403,19 @@ public class ServiceContextImpl implements ServiceContext {
 	}
 
 	@Override
-	public void stopMaintenanceMode(String processingUnitName) {
+	public void stopMaintenanceMode() {
     	InternalElasticServiceManager esm = (InternalElasticServiceManager) admin.getElasticServiceManagers()
     			.waitForAtLeastOne();
-    	esm.enableAgentFailureDetection(processingUnitName);
+    	String absolutePUName = ServiceUtils.getAbsolutePUName(getApplicationName(), getServiceName());
+    	esm.enableAgentFailureDetection(absolutePUName);
 	}
 
 	@Override
-	public void startMaintenanceMode(String processingUnitName, long timeout,
-			TimeUnit unit) {
+	public void startMaintenanceMode(final long timeout,
+			final TimeUnit unit) {
     	InternalElasticServiceManager esm = (InternalElasticServiceManager) admin.getElasticServiceManagers()
     			.waitForAtLeastOne();
-    	esm.disableAgentFailureDetection(processingUnitName, timeout, unit);
+    	String absolutePUName = ServiceUtils.getAbsolutePUName(getApplicationName(), getServiceName());
+		esm.disableAgentFailureDetection(absolutePUName, timeout, unit);
 	}
 }

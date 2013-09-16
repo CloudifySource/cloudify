@@ -160,21 +160,17 @@ public interface ServiceContext {
 	
 	/**
 	 * Enables the GSA failure detection of the PU instance.
-	 * @param processingUnitName
-	 * 			The processing-unit name.
 	 */
-	void stopMaintenanceMode(final String processingUnitName);
+	void stopMaintenanceMode();
 	
 	/**
 	 * Disables the GSA failure detection of the calling PU instance.
-	 * @param processingUnitName
-	 * 			The processing-unit name.
 	 * @param timeout
 	 * 			timeout before GSA failure detection is enabled.
 	 * @param unit
 	 * 			timeout unit.
 	 */
-	void startMaintenanceMode(final String processingUnitName, final long timeout, final TimeUnit unit);
+	void startMaintenanceMode(final long timeout, final TimeUnit unit);
 	
 	
 }
