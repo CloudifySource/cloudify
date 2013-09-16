@@ -428,7 +428,7 @@ public final class CloudifyConstants {
 	/**
 	 * new rest client
 	 */
-	public static final boolean IS_NEW_REST_CLIENT_DEFAULT = false;
+	public static final boolean IS_NEW_REST_CLIENT_DEFAULT = true;
 	
     // CHECKSTYLE:ON
 }
