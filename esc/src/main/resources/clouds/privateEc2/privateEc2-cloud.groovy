@@ -85,6 +85,7 @@ cloud {
                 locationId locationId // For template validation
                 machineMemoryMB 2048   // must be bigger than reservedMemoryCapacityPerMachineInMB+100                
                 localDirectory "upload"
+				remoteDirectory "/home/ubuntu/gs-files"
             },
             CFN_MANAGER_TEMPLATE : computeTemplate{
                 imageId ""             // For template validation, defined in CFN templates

@@ -368,7 +368,8 @@ public class InstallApplication extends AdminAwareCommand implements NewRestClie
 		final String packedFileKey = ShellUtils.uploadToRepo(newRestClient, packedFile, displayer);
 		final String overridesFileKey = ShellUtils.uploadToRepo(newRestClient, overrides, displayer);
 		final String cloudOverridesFileKey = ShellUtils.uploadToRepo(newRestClient, cloudOverrides, displayer);
-		final String cloudConfigurationFileKey = ShellUtils.uploadToRepo(newRestClient, cloudConfiguration, displayer);
+		final String cloudConfigurationFileKey = ShellUtils.uploadToRepo(newRestClient, 
+		        createCloudConfigurationZipFile(), displayer);
 		
 		//create the install request
 		InstallApplicationRequest request = new InstallApplicationRequest();

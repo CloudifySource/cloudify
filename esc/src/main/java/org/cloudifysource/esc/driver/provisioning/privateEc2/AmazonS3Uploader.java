@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.cloudifysource.dsl.internal.packaging.ZipUtils;
+import org.cloudifysource.esc.util.TarGzUtils;
 
 import com.amazonaws.HttpMethod;
 import com.amazonaws.auth.AWSCredentials;
@@ -56,7 +56,7 @@ public class AmazonS3Uploader {
 
 	public AmazonS3Uploader(final String accessKey, final String secretKey, final String locationId) {
 		this.accessKey = accessKey;
-		AWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
+		final AWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
 
 		this.s3client = new AmazonS3Client(credentials);
 		if (locationId != null) {
@@ -65,80 +65,117 @@ public class AmazonS3Uploader {
 	}
 
 	/**
-	 * Zip and upload a folder.
+	 * Compress and upload a folder.
 	 * 
 	 * @param existingBucketName
 	 *            The name of the bucket where to download the file.
-	 * @param pathFolderToZip
+	 * @param pathFolderToArchive
 	 *            The folder to upload.
 	 * @return The URL to access the file in s3
 	 * @exception IOException
-	 *                When the zipping fails.
+	 *                When the compression fails.
 	 */
-	public String zipAndUploadToS3(final String existingBucketName, final String pathFolderToZip) throws IOException {
-		logger.info("Creating configuration zip file");
-		File zipFile = this.zipFolder(pathFolderToZip);
-		logger.info("Uploading configuration");
-		String s3Url = this.uploadFile(existingBucketName, zipFile);
-		logger.info("Finished uploading configuration");
+	public String compressAndUploadToS3(final String existingBucketName, final String pathFolderToArchive)
+			throws IOException {
+		final File compressedFile = TarGzUtils.createTarGz(pathFolderToArchive, false);
+		final S3Object s3Object = this.uploadFile(existingBucketName, compressedFile);
+		final String s3Url = this.generatePresignedURL(s3Object);
 		return s3Url;
-	}
-
-	File zipFolder(final String pathFolderToZip) throws IOException {
-		final File zipFile = File.createTempFile(ZIP_PREFIX, ".zip");
-		zipFile.deleteOnExit();
-		if (logger.isLoggable(Level.FINEST)) {
-			logger.finest("Created zip file: " + zipFile);
-		}
-		ZipUtils.zip(new File(pathFolderToZip), zipFile);
-		return zipFile;
 	}
 
 	/**
 	 * Upload file.
 	 * 
-	 * @param existingBucketName
-	 *            The name of the bucket where to download the file.
+	 * @param bucketFullPath
+	 *            The path of the bucket where to download the file.
 	 * @param file
 	 *            The file to upload.
 	 * @return The URL to access the file in s3
 	 */
-	public String uploadFile(final String existingBucketName, final File file) {
-		BucketLifecycleConfiguration.Rule ruleArchiveAndExpire = new BucketLifecycleConfiguration.Rule()
-				.withId("Delete cloudify zip files")
-				.withPrefix(existingBucketName + "/" + ZIP_PREFIX)
+	public S3Object uploadFile(final String bucketFullPath, final File file) {
+		final BucketLifecycleConfiguration.Rule ruleArchiveAndExpire = new BucketLifecycleConfiguration.Rule()
+				.withId("Delete cloudFolder archives")
+				.withPrefix(this.extractPrefix(bucketFullPath) + ZIP_PREFIX)
 				.withExpirationInDays(1)
 				.withStatus(BucketLifecycleConfiguration.ENABLED.toString());
-		List<BucketLifecycleConfiguration.Rule> rules = new ArrayList<BucketLifecycleConfiguration.Rule>();
+		final List<BucketLifecycleConfiguration.Rule> rules = new ArrayList<BucketLifecycleConfiguration.Rule>();
 		rules.add(ruleArchiveAndExpire);
-		BucketLifecycleConfiguration configuration = new BucketLifecycleConfiguration().withRules(rules);
-		this.s3client.setBucketLifecycleConfiguration(existingBucketName, configuration);
+		final BucketLifecycleConfiguration configuration = new BucketLifecycleConfiguration().withRules(rules);
+		this.s3client.setBucketLifecycleConfiguration(bucketFullPath, configuration);
 
-		PutObjectRequest putObjectRequest = new PutObjectRequest(existingBucketName, this.accessKey, file);
+		final PutObjectRequest putObjectRequest = new PutObjectRequest(bucketFullPath, this.accessKey, file);
 		putObjectRequest.setKey(file.getName());
-		ObjectMetadata metadata = new ObjectMetadata();
+		final ObjectMetadata metadata = new ObjectMetadata();
 		putObjectRequest.setMetadata(metadata);
 		this.s3client.putObject(putObjectRequest);
 
-		S3Object object = this.s3client.getObject(existingBucketName, file.getName());
+		final S3Object object = this.s3client.getObject(bucketFullPath, file.getName());
+		return object;
+	}
 
-		URL generatePresignedObjectURL = this.generatePresignedObjectURL(object.getBucketName(), object.getKey());
+	private String extractPrefix(final String bucketFullPath) {
+		String prefix = null;
+		if (bucketFullPath.contains("/")) {
+			prefix = bucketFullPath.
+					substring(bucketFullPath.indexOf("/") + 1, bucketFullPath.length()) + "/";
+		} else {
+			prefix = "/";
+		}
+		return prefix;
+	}
+
+	/**
+	 * Returns a pre-signed URL for accessing an Amazon S3 resource.
+	 * 
+	 * @param bucketName
+	 *            The bucket where the resource lies.
+	 * @param objectKey
+	 *            The key object.
+	 * @return A pre-signed URL for accessing an Amazon S3 resource.
+	 */
+	public String generatePresignedURL(final String bucketName, final String objectKey) {
+		final Date expiration = new Date();
+		expiration.setTime(System.currentTimeMillis() + ONE_DAY_IN_MILLIS);
+
+		final GeneratePresignedUrlRequest generatePresignedUrlRequest =
+				new GeneratePresignedUrlRequest(bucketName, objectKey);
+		generatePresignedUrlRequest.setMethod(HttpMethod.GET); // Default.
+		generatePresignedUrlRequest.setExpiration(expiration);
+
+		URL generatePresignedObjectURL = s3client.generatePresignedUrl(generatePresignedUrlRequest);
+
 		if (logger.isLoggable(Level.FINEST)) {
 			logger.finest("Zip uploaded. Limited signed URL: " + generatePresignedObjectURL);
 		}
 		return generatePresignedObjectURL.toString();
 	}
 
-	private URL generatePresignedObjectURL(final String bucketName, final String objectKey) {
-		Date expiration = new Date();
-		expiration.setTime(System.currentTimeMillis() + ONE_DAY_IN_MILLIS);
+	/**
+	 * Returns a pre-signed URL for accessing an Amazon S3 resource.
+	 * 
+	 * @param s3
+	 *            The S3 object.
+	 * @return A pre-signed URL for accessing an Amazon S3 resource.
+	 */
+	public String generatePresignedURL(final S3Object s3) {
+		return this.generatePresignedURL(s3.getBucketName(), s3.getKey());
+	}
 
-		GeneratePresignedUrlRequest generatePresignedUrlRequest =
-				new GeneratePresignedUrlRequest(bucketName, objectKey);
-		generatePresignedUrlRequest.setMethod(HttpMethod.GET); // Default.
-		generatePresignedUrlRequest.setExpiration(expiration);
-
-		return s3client.generatePresignedUrl(generatePresignedUrlRequest);
+	/**
+	 * Delete uploaded files from S3.
+	 * 
+	 * @param bucketName
+	 *            The name of the bucket.
+	 * @param key
+	 *            The resource's key.
+	 * */
+	public void deleteS3Object(final String bucketName, final String key) {
+		try {
+			logger.fine("Delete S3 resource: bucketName=" + bucketName + ", key=" + key);
+			s3client.deleteObject(bucketName, key);
+		} catch (final Exception e) {
+			logger.log(Level.WARNING, "Couldn't delete files from S3 : bucketName=" + bucketName + ", keys=" + key);
+		}
 	}
 
 }
