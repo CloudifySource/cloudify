@@ -22,7 +22,7 @@
 		<module>../management-space</module>
 	</modules>
 	<properties>
-		<gsVersion>9.7.0-10485-358-SNAPSHOT</gsVersion>
+		<gsVersion>9.7.0-10485-362-SNAPSHOT</gsVersion>
 		<springVersion>3.2.4.RELEASE</springVersion>
 		<junitVersion>4.8.2</junitVersion>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
