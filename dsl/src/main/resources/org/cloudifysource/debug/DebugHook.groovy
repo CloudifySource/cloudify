@@ -316,7 +316,7 @@ env JAVA_OPTS=\"\${JAVA_DEBUG_OPTS}\" \$DEBUG_TARGET
 		def debugScriptFile = new File(debughookScriptName)
 		writeTextFile(debugScriptFile, debugScriptContents)
 		debugScriptFile.setExecutable(true)
-		this.eventLogger.info "IMPORTANT: A debug environment will be waiting for you on ${context.getPublicAddress()} after the instance has launched"
+		this.eventLogger.info "${context.getApplicationName()}.${context.getServiceName()}-${context.getInstanceId()} IMPORTANT: A debug environment will be waiting for you on ${context.getPublicAddress()} after the instance has launched"
 		return [debughookScriptName]+ args
 	}
 
