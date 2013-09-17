@@ -87,6 +87,7 @@ import org.cloudifysource.rest.deploy.DeploymentFileHolder;
 import org.cloudifysource.rest.deploy.ElasticDeploymentCreationException;
 import org.cloudifysource.rest.deploy.ElasticProcessingUnitDeploymentFactory;
 import org.cloudifysource.rest.deploy.ElasticProcessingUnitDeploymentFactoryImpl;
+import org.cloudifysource.rest.deploy.ServiceApplicationDependentProperties;
 import org.cloudifysource.rest.events.EventsUtils;
 import org.cloudifysource.rest.events.cache.EventsCache;
 import org.cloudifysource.rest.events.cache.EventsCacheKey;
@@ -939,7 +940,8 @@ public class DeploymentsController extends BaseRestController {
 				serviceName,
 				request,
 				deploymentID,
-				fileHolder);
+				fileHolder,
+				null);
 	}
 
 	/**
@@ -954,7 +956,9 @@ public class DeploymentsController extends BaseRestController {
 	 * @param deploymentID
 	 *            the application deployment ID.
 	 * @param fileHolder
-	 *            A file holder for necessary deployment files
+	 *            A file holder for necessary deployment files.
+	 * @param serviceProps
+	 *            service properties dependent on the application.
 	 * @return an install service response.
 	 * @throws RestErrorException .
 	 */
@@ -963,7 +967,8 @@ public class DeploymentsController extends BaseRestController {
 			final String serviceName,
 			final InstallServiceRequest request,
 			final String deploymentID,
-			final DeploymentFileHolder fileHolder)
+			final DeploymentFileHolder fileHolder,
+			final ServiceApplicationDependentProperties serviceProps)
 			throws RestErrorException {
 
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(appName, serviceName);
@@ -991,7 +996,10 @@ public class DeploymentsController extends BaseRestController {
 		File updatedPackedFile = merger.merge();
 
 		// Read the service
-		final Service service = readService(workingProjectDir, request, absolutePuName);
+		final Service service = readService(workingProjectDir,
+				request,
+				absolutePuName,
+				serviceProps);
 
 		// update template name
 		final String templateName = getTempalteNameFromService(service);
@@ -1476,7 +1484,8 @@ public class DeploymentsController extends BaseRestController {
 
 	private Service readService(final File workingProjectDir,
 								final InstallServiceRequest request,
-								final String absolutePuName)
+								final String absolutePuName,
+								final ServiceApplicationDependentProperties serviceProps)
 			throws RestErrorException {
 		Service service;
 		try {
@@ -1488,7 +1497,11 @@ public class DeploymentsController extends BaseRestController {
 				result = ServiceReader.getServiceFromDirectory(workingProjectDir);
 			}
 			service = result.getService();
-			service.setDependsOn(request.getDependsOn());
+			//Setting application dependent properties
+			if (serviceProps != null) {
+				service.setDependsOn(serviceProps.getDependsOn());
+				
+			}
 		} catch (final Exception e) {
 			throw new RestErrorException(CloudifyMessageKeys.FAILED_TO_READ_SERVICE.getName(), absolutePuName);
 		}

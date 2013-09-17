@@ -137,7 +137,7 @@ public class ApplicationDeployerRunnable implements Runnable {
 				result.getApplicationFile().delete();
 				packedFile.deleteOnExit();
 				// Deployment will be done using the service's absolute PU name.
-				final InstallServiceRequest installServiceReq = createInstallServiceRequest(service.getDependsOn());
+				final InstallServiceRequest installServiceReq = createInstallServiceRequest();
 				final String appName = this.request.getApplicationName();
 
 				final DeploymentFileHolder fileHolder = new DeploymentFileHolder();
@@ -145,12 +145,16 @@ public class ApplicationDeployerRunnable implements Runnable {
 				fileHolder.setServiceOverridesFile(actualOverridesFile);
 				fileHolder.setApplicationPropertiesFile(applicationPropertiesFile);
 				
+				final ServiceApplicationDependentProperties serviceProps = new ServiceApplicationDependentProperties();
+				serviceProps.setDependsOn(service.getDependsOn());
+				
 				controller.installServiceInternal(
 						appName, 
 						serviceName, 
 						installServiceReq, 
 						deploymentID,
-						fileHolder);
+						fileHolder,
+						serviceProps);
 				try {
 					FileUtils.deleteDirectory(packedFile.getParentFile());
 				} catch (final IOException ioe) {
@@ -208,9 +212,8 @@ public class ApplicationDeployerRunnable implements Runnable {
 		FileUtils.deleteDirectory(appDir);
 	}
 
-	InstallServiceRequest createInstallServiceRequest(final List<String> dependsOn) {
+	InstallServiceRequest createInstallServiceRequest() {
 		final InstallServiceRequest installServiceReq = new InstallServiceRequest();
-		installServiceReq.setDependsOn(dependsOn);
 		installServiceReq.setCloudOverridesUploadKey(request.getCloudOverridesUploadKey());
 		installServiceReq.setCloudConfigurationUploadKey(request.getCloudConfigurationUploadKey());
 		installServiceReq.setAuthGroups(this.request.getAuthGroups());
