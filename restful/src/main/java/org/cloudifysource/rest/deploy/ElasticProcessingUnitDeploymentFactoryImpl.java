@@ -580,7 +580,7 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 		Service service = deploymentConfig.getService();
 
 		List<String> dependsOn = service.getDependsOn();
-		if (dependsOn == null || dependsOn.isEmpty()) {
+		if (dependsOn.isEmpty()) {
 			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON, "[]");
 		} else {
 			final List<String> absoluteServiceNames = new ArrayList<String>();
