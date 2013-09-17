@@ -47,8 +47,9 @@ public class ApplicationResolver implements NameAndPackedFileResolver {
 	
 	protected static final Logger logger = Logger.getLogger(ApplicationResolver.class.getName());
 	
-	public ApplicationResolver(final File appDir) {
+	public ApplicationResolver(final File appDir, final File overridesFile) {
 		this.applicationDir = appDir;
+		this.overridesFile = overridesFile;
 	}
 	
 	@Override

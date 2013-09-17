@@ -357,7 +357,7 @@ public class InstallApplication extends AdminAwareCommand implements NewRestClie
 					StringUtils.join(pathResolver.getPathsLooked().toArray(), ", "));
 		}
 		//resolve packed file and application name
-		final NameAndPackedFileResolver nameAndPackedFileResolver = getResolver(applicationFile);
+		final NameAndPackedFileResolver nameAndPackedFileResolver = getResolver();
 		if (StringUtils.isBlank(applicationName)) {
 			applicationName = nameAndPackedFileResolver.getName();
 		}
@@ -368,7 +368,7 @@ public class InstallApplication extends AdminAwareCommand implements NewRestClie
 		final String packedFileKey = ShellUtils.uploadToRepo(newRestClient, packedFile, displayer);
 		final String overridesFileKey = ShellUtils.uploadToRepo(newRestClient, overrides, displayer);
 		final String cloudOverridesFileKey = ShellUtils.uploadToRepo(newRestClient, cloudOverrides, displayer);
-		final String cloudConfigurationFileKey = ShellUtils.uploadToRepo(newRestClient, 
+		final String cloudConfigurationFileKey = ShellUtils.uploadToRepo(newRestClient,
 		        createCloudConfigurationZipFile(), displayer);
 		
 		//create the install request
@@ -422,7 +422,7 @@ public class InstallApplication extends AdminAwareCommand implements NewRestClie
 		return this.getFormattedMessage("application_installed_successfully", Color.GREEN, applicationName);
 	}
     
-	private NameAndPackedFileResolver getResolver(final File applicationFile) 
+	private NameAndPackedFileResolver getResolver() 
 			throws CLIStatusException {
 		// this is a prepared package we can just use.
 		if (applicationFile.isFile()) {
@@ -432,7 +432,7 @@ public class InstallApplication extends AdminAwareCommand implements NewRestClie
 			throw new CLIStatusException("application_file_format_mismatch", applicationFile.getPath()); 
 		}
 		// this is an actual application directory
-		return new ApplicationResolver(applicationFile);
+		return new ApplicationResolver(applicationFile, overrides);
 	}
 
 }
