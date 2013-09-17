@@ -82,6 +82,7 @@
 	<property name="cloudify.parent.pom.file" value="${basedir}/pom.xml"/>
 	<property name="streaming-bigdata.pom.file" value="${recipes.local.copy}/apps/streaming-bigdata/pom.xml"/>
 	<property name="s3.cloudify.publish.folder" value="${cloudify.version}-SNAPSHOT"/>
+	<property name="gs.version.tag" value="gsVersion" />
 
 	<fileset id="all-poms-fileset" dir="${basedir}/../" includes="**/pom.xml" excludes="**/tmp/**" />
 	
@@ -148,7 +149,6 @@
 	    <property name="gs.build.number.field" value="gs.build.number" />
 		<property name="s3.gs.publish.folder.field" value="s3.gs.publish.folder" />
 		<property name="s3.gs.packages.publish.folder.field" value="s3.gs.packages.publish.folder" />
-		<property name="gs.version.tag" value="gsVersion" />
 			 
 		<replaceregexp file="${build.properties.file}"
             match="${cloudify.version.field}=(.*)"
@@ -669,19 +669,37 @@
     </target>
 	
 	<target name="update_maven_version_for_development" if="cloudify.build.number">
-   		<condition property="maven.dev.version" value="${s3.cloudify.publish.folder}">
+   		<condition property="maven.cloudify.dev.version" value="${s3.cloudify.publish.folder}">
    			<isset property="release.build"/>
   	    </condition>
    		
-   		<condition property="maven.dev.version" value="${s3.cloudify.snapshot.publish.folder}">
+   		<condition property="maven.cloudify.dev.version" value="${s3.cloudify.snapshot.publish.folder}">
+   			<not>
+   				<isset property="release.build"/>
+   			</not>
+  	    </condition>
+		
+		<condition property="maven.gs.dev.version" value="${s3.gs.publish.folder}">
+   			<isset property="release.build"/>
+  	    </condition>
+   		
+   		<condition property="maven.gs.dev.version" value="${s3.gs.packages.publish.folder}">
    			<not>
    				<isset property="release.build"/>
    			</not>
   	    </condition>
 	
 		<exec executable="${mvn.executable}" dir="${basedir}">
-			<arg line="versions:set -DnewVersion=${maven.dev.version} -DgenerateBackupPoms=false"/>
+			<arg line="versions:set -DnewVersion=${maven.cloudify.dev.version} -DgenerateBackupPoms=false"/>
 		</exec>
+		
+		<replaceregexp file="${cloudify.parent.pom.file}"
+			match="&lt;${gs.version.tag}&gt;(.*)&lt;/${gs.version.tag}&gt;"
+			replace="&lt;${gs.version.tag}&gt;${maven.gs.dev.version}&lt;/${gs.version.tag}&gt;"/>
+		
+		<replaceregexp file="${streaming-bigdata.pom.file}"
+			match="&lt;${gs.version.tag}&gt;(.*)&lt;/${gs.version.tag}&gt;"
+			replace="&lt;${gs.version.tag}&gt;${maven.gs.dev.version}&lt;/${gs.version.tag}&gt;"/>
 	</target>
 		
 	<target name="publish.cloudify.jars.to.maven.snapshot.repository" unless="release.build">
