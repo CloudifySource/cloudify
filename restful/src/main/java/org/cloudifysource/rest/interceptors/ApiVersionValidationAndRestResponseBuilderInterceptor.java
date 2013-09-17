@@ -148,10 +148,7 @@ public class ApiVersionValidationAndRestResponseBuilderInterceptor extends Handl
                 	break;
                 }
             }
-    		if (methodReturnObject == null) {
-    			logger.warning("return object not found in model: " + model.toString());
-    			throw new RestErrorException("return object not found in model: " + model.toString());
-    		}
+
     	} else {
     		// the model is empty, this means the return type is String or void
     		if (handler instanceof HandlerMethod) {
