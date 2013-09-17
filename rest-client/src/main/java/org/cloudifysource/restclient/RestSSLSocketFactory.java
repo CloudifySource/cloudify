@@ -28,6 +28,8 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.conn.ssl.X509HostnameVerifier;
+
 import java.security.cert.X509Certificate;
 
 /**
@@ -56,10 +58,15 @@ public class RestSSLSocketFactory extends SSLSocketFactory {
 	 *             Reporting failure to create SSLSocketFactory with the given
 	 *             trust-store and algorithm TLS or initialize the SSLContext.
 	 */
-	public RestSSLSocketFactory(final KeyStore truststore)
+	public RestSSLSocketFactory(final KeyStore trustStore) 
+			throws KeyManagementException, UnrecoverableKeyException, 
+			NoSuchAlgorithmException, KeyStoreException {
+		this(trustStore, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+	}
+	public RestSSLSocketFactory(final KeyStore trustStore, final X509HostnameVerifier hostnameVarifier)
 			throws NoSuchAlgorithmException, KeyManagementException,
 			KeyStoreException, UnrecoverableKeyException {
-		super(truststore);
+		super(null, null, null, trustStore, null, hostnameVarifier);
 
 		TrustManager tm = new X509TrustManager() {
 			@Override

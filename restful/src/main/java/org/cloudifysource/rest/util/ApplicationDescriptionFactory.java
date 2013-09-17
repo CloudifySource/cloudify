@@ -29,6 +29,7 @@ import org.cloudifysource.dsl.utils.ServiceUtils.FullServiceName;
 import org.cloudifysource.rest.exceptions.ResourceNotFoundException;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.application.Application;
+import org.openspaces.admin.application.Applications;
 import org.openspaces.admin.internal.pu.DefaultProcessingUnit;
 import org.openspaces.admin.pu.DeploymentStatus;
 import org.openspaces.admin.pu.ProcessingUnit;
@@ -56,6 +57,25 @@ public class ApplicationDescriptionFactory {
 
     public ApplicationDescriptionFactory(final Admin admin) {
         this.admin = admin;
+    }
+    
+    /**
+     * returns a list of application description POJOs.
+     *
+     * @return a list of the application descriptions.
+     */
+    public List<ApplicationDescription> getApplicationDescriptions() { 
+
+    	final Applications applications = admin.getApplications();
+        List<ApplicationDescription> applicationDescriptions = new ArrayList<ApplicationDescription>();
+
+        for (Application application : applications) {
+        	if (!application.getName().equalsIgnoreCase(CloudifyConstants.MANAGEMENT_APPLICATION_NAME)) {
+        		applicationDescriptions.add(getApplicationDescription(application));        		
+        	}
+        }
+        
+        return applicationDescriptions;
     }
 
     /**
@@ -89,16 +109,18 @@ public class ApplicationDescriptionFactory {
     public ApplicationDescription getApplicationDescription(final Application application) {
 
         String applicationName = application.getName();
-        List<ServiceDescription> serviceDescriptionList = getServicesDescription(
+        final ApplicationDescription applicationDescription = new ApplicationDescription();
+    	List<ServiceDescription> serviceDescriptionList = getServicesDescription(
                 applicationName, application);
         logger.log(Level.FINE, "Creating application description for application " + applicationName);
         final DeploymentState applicationState = getApplicationState(serviceDescriptionList);
 
-        final ApplicationDescription applicationDescription = new ApplicationDescription();
+        
         applicationDescription.setApplicationName(applicationName);
         applicationDescription.setAuthGroups(getApplicationAuthorizationGroups(application));
         applicationDescription.setServicesDescription(serviceDescriptionList);
         applicationDescription.setApplicationState(applicationState);
+        
 
         return applicationDescription;
     }
@@ -131,15 +153,18 @@ public class ApplicationDescriptionFactory {
     public ServiceDescription getServiceDescription(final ProcessingUnit processingUnit) {
         int plannedNumberOfInstances, numberOfServiceInstances;
         DeploymentState serviceState;
-        plannedNumberOfInstances = getPlannedNumberOfInstances(processingUnit);
+        
+        ServiceDescription serviceDescription = new ServiceDescription();
+        
+        // TODO noak is it ok to exclude the management PUs here? the code didn't support it to begin with.
+    	plannedNumberOfInstances = getPlannedNumberOfInstances(processingUnit);
         numberOfServiceInstances = getNumberOfServiceInstances(processingUnit);
         List<InstanceDescription> serviceInstancesDescription = getServiceInstacesDescription(processingUnit);
         serviceState = getServiceState(processingUnit, serviceInstancesDescription, numberOfServiceInstances,
                 plannedNumberOfInstances);
         String absolutePuName = processingUnit.getName();
         logger.log(Level.FINE, "Service \"" + absolutePuName + "\" is in state: " + serviceState);
-
-        ServiceDescription serviceDescription = new ServiceDescription();
+        
         serviceDescription.setPlannedInstances(plannedNumberOfInstances);
         serviceDescription.setInstanceCount(numberOfServiceInstances);
 
@@ -159,8 +184,6 @@ public class ApplicationDescriptionFactory {
         serviceDescription.setDeploymentId(deploymentId);
         
         return serviceDescription;
-
-
     }
 
     /**

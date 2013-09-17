@@ -37,7 +37,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.apache.commons.io.FileUtils;
 import org.cloudifysource.domain.Service;
 import org.cloudifysource.domain.cloud.FileTransferModes;
 import org.cloudifysource.domain.cloud.RemoteExecutionModes;
@@ -676,29 +675,6 @@ public class DSLReader {
 
 		logger.fine("Extra jar files list: " + result);
 		return result;
-	}
-
-	/**
-	 * Checks if the overrides name fits the naming convention of recipe files. If fits, returns the given
-	 * overridesFile, else copies the file and change its name accordingly.
-	 *
-	 * @param overridesFile
-	 *            The file to copy
-	 * @param dslName
-	 *            The DSL name
-	 * @return the overrides file or a copy of it with the write name (*-application.overrides).
-	 * @throws IOException
-	 *             if an IO error occurs during copying.
-	 */
-	public static File copyOverridesFile(final File overridesFile, final String dslName) throws IOException {
-		String overridesFileName = dslName + DSLUtils.OVERRIDES_FILE_SUFFIX;
-		if (overridesFileName.equals(overridesFile.getName())) {
-			return overridesFile;
-		}
-		File copiedOverridesFile = new File(overridesFileName);
-		FileUtils.copyFile(overridesFile, copiedOverridesFile);
-		copiedOverridesFile.deleteOnExit();
-		return copiedOverridesFile;
 	}
 
 	// //////////////

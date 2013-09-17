@@ -55,9 +55,21 @@ public enum RestClientMessageKeys {
 	 */
 	HTTP_FAILURE("http_failure"),
 	/**
+	 * HTTP failure message.
+	 */
+	URL_NOT_FOUND("URL_not_found"),
+	/**
 	 * Invalid URL.
 	 */
-	INVALID_URL("invalid_url");
+	INVALID_URL("invalid_url"),
+	/**
+	 * Permission not granted, access is denied.
+	 */
+	NO_PERMISSION_ACCESS_DENIED("no_permission_access_is_denied"),
+	/**
+	 * Access to the resource is denied, unauthorized.
+	 */
+	UNAUTHORIZED("unauthorized");
 	
 	private final String name;
 	

@@ -71,7 +71,8 @@ public class EventsCacheLoader extends CacheLoader<EventsCacheKey, EventsCacheVa
         Set<GridServiceContainer> containersForDeployment = containerProvider.getContainersForDeployment(
                 key.getDeploymentId());
 
-        if (containersForDeployment == null) {
+        // no deployment with the given id was found
+        if (containersForDeployment == null || containersForDeployment.isEmpty()) {
             throw new ResourceNotFoundException("Deployment with id " + key.getDeploymentId());
         }
 
