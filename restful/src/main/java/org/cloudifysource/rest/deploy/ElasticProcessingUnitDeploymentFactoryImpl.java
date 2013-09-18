@@ -23,6 +23,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.ComputeDetails;
 import org.cloudifysource.domain.DataGrid;
@@ -263,23 +264,8 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 			throws ElasticDeploymentCreationException {
 
 		File packedFile = deploymentConfig.getPackedFile();
-		String packedFileName = packedFile.getName();
-		String fileType = "";
-		String[] split = packedFileName.split("\\.");
-		if(split.length > 1) {
-			fileType = "." + split[split.length-1];
-		}
-		
-		final String expectedName = this.deploymentConfig.getAbsolutePUName() + fileType;
-		
-		if (!packedFile.getName().equals(expectedName)) {
-			final File renamedFile = new File(expectedName);
-			if (!packedFile.renameTo(renamedFile)) {
-				throw new IllegalStateException("Failed to rename " + packedFile.getAbsolutePath() + " to: "
-						+ renamedFile.getAbsolutePath());
-			}
-			packedFile = renamedFile;
-
+		if (packedFile.exists()) {
+			packedFile = createExpectedFile(packedFile);
 		}
 
 		final ElasticStatelessProcessingUnitDeployment deployment =
@@ -353,6 +339,34 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 			}
 		}
 		return deployment;
+	}
+
+	private File createExpectedFile(final File packedFile) {
+		String packedFileName = packedFile.getName();
+		String fileType = "";
+		String[] split = packedFileName.split("\\.");
+		if (split.length > 1) {
+			fileType = "." + split[split.length - 1];
+		}
+
+		final String expectedName = this.deploymentConfig.getAbsolutePUName() + fileType;
+
+		if (!packedFile.getName().equals(expectedName)) {
+			final File renamedFile = new File(packedFile.getParentFile(), expectedName);
+			if (renamedFile.exists()) {
+				final boolean deleteResult = FileUtils.deleteQuietly(renamedFile);
+				if (!deleteResult) {
+					throw new IllegalStateException("Failed to delete file: " + renamedFile);
+				}
+			}
+			if (!packedFile.renameTo(renamedFile)) {
+				throw new IllegalStateException("Failed to rename " + packedFile.getAbsolutePath() + " to: "
+						+ renamedFile.getAbsolutePath());
+			}
+			return renamedFile;
+
+		}
+		return packedFile;
 	}
 
 	private void prepareSla(final Sla sla) {
