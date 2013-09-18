@@ -910,7 +910,7 @@ public class DeploymentsController extends BaseRestController {
 
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(appName, serviceName);
 
-		logger.info("[installService] - isntalling service " + serviceName);
+		logger.info("[installService] - installing service " + serviceName);
 
 		// this validation should only happen on install service.
 		String uploadKey = request.getServiceFolderUploadKey();

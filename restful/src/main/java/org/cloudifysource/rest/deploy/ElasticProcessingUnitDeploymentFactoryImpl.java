@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2013 GigaSpaces Technologies Ltd. All rights reserved
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -53,7 +53,7 @@ import org.openspaces.core.util.MemoryUnit;
 
 /**
  * Elastic deployment factory class.
- *
+ * 
  * @author adaml
  * @since 2.6.0
  */
@@ -132,7 +132,7 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 	private void addProcessingUnitContextProperties(final ElasticDeploymentTopology deployment,
 			final Map<String, String> properties) {
 		if (properties != null) {
-			for (Entry<String, String> entry : properties.entrySet()) {
+			for (final Entry<String, String> entry : properties.entrySet()) {
 				deployment.addContextProperty(entry.getKey(), entry.getValue());
 			}
 		}
@@ -142,7 +142,7 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 	private File getBinaryFromPackedRecipe(final File packedService, final String binaryName) throws
 			IOException {
 
-		File resultFile = ZipUtils.unzipEntry(packedService, "ext/" + binaryName, binaryName);
+		final File resultFile = ZipUtils.unzipEntry(packedService, "ext/" + binaryName, binaryName);
 		if (resultFile == null) {
 			throw new IllegalArgumentException("Missing file in packaged service: " + binaryName);
 		}
@@ -169,7 +169,7 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 		File binaryFile = null;
 		try {
 			binaryFile = getBinaryFromPackedRecipe(packedService, binaryFileName);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			throw new ElasticDeploymentCreationException("Failed to open packaged service file: " + e.getMessage(), e);
 		}
 
@@ -211,7 +211,7 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 
 	private ElasticStatefulProcessingUnitDeployment createElasticStatefulProcessingUnit()
 			throws ElasticDeploymentCreationException {
-		StatefulProcessingUnit puConfig = deploymentConfig.getService().getStatefulProcessingUnit();
+		final StatefulProcessingUnit puConfig = deploymentConfig.getService().getStatefulProcessingUnit();
 		final Sla statefulSla = puConfig.getSla();
 		prepareSla(statefulSla);
 
@@ -220,7 +220,7 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 		File binaryFile = null;
 		try {
 			binaryFile = getBinaryFromPackedRecipe(packedService, binaryFileName);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			throw new ElasticDeploymentCreationException("Failed to open packaged service file: " + e.getMessage(), e);
 		}
 
@@ -261,23 +261,44 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 
 	private ElasticStatelessProcessingUnitDeployment createElasticUSMDeployment()
 			throws ElasticDeploymentCreationException {
+
+		File packedFile = deploymentConfig.getPackedFile();
+		String packedFileName = packedFile.getName();
+		String fileType = "";
+		String[] split = packedFileName.split("\\.");
+		if(split.length > 1) {
+			fileType = "." + split[split.length-1];
+		}
+		
+		final String expectedName = this.deploymentConfig.getAbsolutePUName() + fileType;
+		
+		if (!packedFile.getName().equals(expectedName)) {
+			final File renamedFile = new File(expectedName);
+			if (!packedFile.renameTo(renamedFile)) {
+				throw new IllegalStateException("Failed to rename " + packedFile.getAbsolutePath() + " to: "
+						+ renamedFile.getAbsolutePath());
+			}
+			packedFile = renamedFile;
+
+		}
+
 		final ElasticStatelessProcessingUnitDeployment deployment =
-				new ElasticStatelessProcessingUnitDeployment(deploymentConfig.getPackedFile());
+				new ElasticStatelessProcessingUnitDeployment(packedFile);
 		// Shared properties among all deployment types
 		addSharedDeploymentParameters(deployment);
 		deployment.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_ASYNC_INSTALL, "true");
-		
+
 		final String disableSelHealingValue = Boolean.toString(!deploymentConfig.getInstallRequest().getSelfHealing());
 		logger.info("Setting disable self healing value to: " + disableSelHealingValue);
 		deployment.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_DISABLE_SELF_HEALING, disableSelHealingValue);
-		
+		deployment.name(this.deploymentConfig.getAbsolutePUName());
 
 		final Service service = deploymentConfig.getService();
 		final boolean scalingRulesDefined = service.getScalingRules() == null ? false : true;
 		if (!isLocalcloud()) {
 			// override provisioning config set in shared props since isolation
 			// is not yet supported for every pu type.
-			boolean dedicated = IsolationUtils.isDedicated(service);
+			final boolean dedicated = IsolationUtils.isDedicated(service);
 			final CloudifyMachineProvisioningConfig config = createCloudifyMachineProvisioningConfig();
 			setIsolationConfig(deployment, dedicated, config);
 			long cloudExternalProcessMemoryInMB;
@@ -389,7 +410,7 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 		config.setReservedMemoryCapacityPerManagementMachineInMB(reservedMemoryPerManagementMachineInMB);
 
 		// TODO: This should be checked and removed. we no longer use zones.
-		String[] agentZones = new String[] { LOCALCLOUD_ZONE };
+		final String[] agentZones = new String[] { LOCALCLOUD_ZONE };
 		config.setGridServiceAgentZones(agentZones);
 
 		deployment.publicMachineProvisioning(config);
@@ -418,7 +439,7 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 				storageTemplate);
 		config.setAuthGroups(deploymentConfig.getAuthGroups());
 
-		String cloudOverrides = deploymentConfig.getCloudOverrides();
+		final String cloudOverrides = deploymentConfig.getCloudOverrides();
 		if (cloudOverrides != null) {
 			logger.fine("Recieved request for installation of "
 					+ deploymentConfig.getAbsolutePUName() + " with cloud overrides parameters [ "
@@ -480,7 +501,7 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 				// service instances can be deployed across all agents with the correct isolation id
 				deployment.sharedMachineProvisioning(applicationName, config);
 			} else if (IsolationUtils.isTenantShared(service)) {
-				String authGroups = deploymentConfig.getAuthGroups();
+				final String authGroups = deploymentConfig.getAuthGroups();
 				if (authGroups == null) {
 					throw new IllegalStateException("authGroups cannot be null when using tenant shared isolation");
 				}
@@ -535,8 +556,8 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 	// calculate the external process memory according to the
 	// properties set in the template and the reserved capacity for machine
 	private long calculateExternalProcessMemory() {
-		String templateName = deploymentConfig.getTemplateName();
-		Cloud cloud = deploymentConfig.getCloud();
+		final String templateName = deploymentConfig.getTemplateName();
+		final Cloud cloud = deploymentConfig.getCloud();
 		final ComputeTemplate template = cloud.getCloudCompute().getTemplates().get(templateName);
 		// TODO remove hardcoded number
 		logger.fine("Calculating external proc mem for template: " + template);
@@ -571,17 +592,17 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 	 * Create Properties object with settings from the service object, if found on the given service. The supported
 	 * settings are: com.gs.application.dependsOn com.gs.service.type com.gs.service.icon
 	 * com.gs.service.network.protocolDescription
-	 *
+	 * 
 	 * The service object the read the settings from
-	 *
+	 * 
 	 * @return Properties object populated with the above properties, if found on the given service.
 	 */
 	private Properties createServiceContextProperties() {
 
 		final Properties contextProperties = new Properties();
-		Service service = deploymentConfig.getService();
+		final Service service = deploymentConfig.getService();
 
-		List<String> dependsOn = service.getDependsOn();
+		final List<String> dependsOn = service.getDependsOn();
 		if (dependsOn.isEmpty()) {
 			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEPENDS_ON, "[]");
 		} else {
@@ -643,12 +664,12 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 	// adds all shared properties among all deployment types
 	private void addSharedDeploymentParameters(
 			final ElasticDeploymentTopology deployment) {
-		ElasticDeploymentTopology addContextProperty = 
+		final ElasticDeploymentTopology addContextProperty =
 				deployment
-				.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME, 
-						deploymentConfig.getApplicationName())
-				.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS,
-						deploymentConfig.getAuthGroups());
+						.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME,
+								deploymentConfig.getApplicationName())
+						.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS,
+								deploymentConfig.getAuthGroups());
 		if (deploymentConfig.getTemplateName() != null) {
 			addContextProperty.addContextProperty(
 					CloudifyConstants.CONTEXT_PROPERTY_TEMPLATE, deploymentConfig.getTemplateName());
