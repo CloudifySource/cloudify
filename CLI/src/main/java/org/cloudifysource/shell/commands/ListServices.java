@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  ******************************************************************************/
 package org.cloudifysource.shell.commands;
 
@@ -47,7 +44,7 @@ public class ListServices extends AbstractListCommand implements NewRestClientCo
 	protected Object doExecute() throws Exception {
 		ApplicationDescription applicationDescription = null;
 		try {
-			String applicationName = getCurrentApplicationName();
+			final String applicationName = getCurrentApplicationName();
 			applicationDescription = adminFacade.getServicesDescriptionList(applicationName);
 			if (applicationDescription == null) {
 				return "";
@@ -62,36 +59,39 @@ public class ListServices extends AbstractListCommand implements NewRestClientCo
 				throw e;
 			}
 		}
-		
+
 		return getApplicationDescriptionAsString(applicationDescription);
 	}
-	
+
 	@Override
 	public Object doExecuteNewRestClient() throws Exception {
 		logger.fine("list-services using the new rest client");
-		RestClient newRestClient = ((RestAdminFacade) getRestAdminFacade()).getNewRestClient();
-		
+		final RestClient newRestClient = ((RestAdminFacade) getRestAdminFacade()).getNewRestClient();
+
 		ApplicationDescription applicationDescription = null;
-		String applicationName = getCurrentApplicationName();
+		final String applicationName = getCurrentApplicationName();
 		try {
 			applicationDescription = newRestClient.getApplicationDescription(applicationName);
-		} catch (RestClientException e) {
+		} catch (final RestClientException e) {
 			// if this message indicates the *default* app is not found - don't throw exception, return an
 			// empty list
 			if (applicationName.equalsIgnoreCase(CloudifyConstants.DEFAULT_APPLICATION_NAME)
 					&& CloudifyConstants.ERR_MESSAGE_CODE_MISSING_RESOURCE.equalsIgnoreCase(e.getMessageCode())) {
 				return "";
-			} else {
+			}
+			if (CloudifyConstants.ERR_MESSAGE_CODE_MISSING_RESOURCE.equalsIgnoreCase(e.getMessageCode())) {
+				throw new CLIStatusException(CloudifyConstants.ERR_REASON_CODE_FAILED_TO_LOCATE_APP, applicationName);
+			}
+			else {
 				throw e;
 			}
 		}
-		
+
 		if (applicationDescription == null) {
 			return "";
 		}
-		
+
 		return getApplicationDescriptionAsString(applicationDescription);
 	}
-	
-	
+
 }
