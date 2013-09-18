@@ -266,9 +266,11 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 		// Shared properties among all deployment types
 		addSharedDeploymentParameters(deployment);
 		deployment.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_ASYNC_INSTALL, "true");
-		if (!deploymentConfig.getInstallRequest().getSelfHealing()) {
-			deployment.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_DISABLE_SELF_HEALING, "true");
-		}
+		
+		final String disableSelHealingValue = Boolean.toString(!deploymentConfig.getInstallRequest().getSelfHealing());
+		logger.info("Setting disable self healing value to: " + disableSelHealingValue);
+		deployment.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_DISABLE_SELF_HEALING, disableSelHealingValue);
+		
 
 		final Service service = deploymentConfig.getService();
 		final boolean scalingRulesDefined = service.getScalingRules() == null ? false : true;

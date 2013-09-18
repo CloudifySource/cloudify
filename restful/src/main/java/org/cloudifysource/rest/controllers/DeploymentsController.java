@@ -110,6 +110,7 @@ import org.cloudifysource.rest.validators.UninstallServiceValidationContext;
 import org.cloudifysource.rest.validators.UninstallServiceValidator;
 import org.cloudifysource.security.CloudifyAuthorizationDetails;
 import org.cloudifysource.security.CustomPermissionEvaluator;
+import org.cloudifysource.utilitydomain.data.ServiceInstanceAttemptData;
 import org.cloudifysource.utilitydomain.kvstorage.spaceentries.ApplicationCloudifyAttribute;
 import org.cloudifysource.utilitydomain.kvstorage.spaceentries.InstanceCloudifyAttribute;
 import org.cloudifysource.utilitydomain.kvstorage.spaceentries.ServiceCloudifyAttribute;
@@ -148,14 +149,12 @@ import org.springframework.web.bind.annotation.RequestParam;
  * This controller is responsible for retrieving information about deployments. It is also the entry point for deploying
  * services and application. <br>
  * <br>
- * The response body will always return in a JSON representation of the 
+ * The response body will always return in a JSON representation of the
  * {@link org.cloudifysource.dsl.rest.response.Response} Object. <br>
- * A controller method may return the {@link org.cloudifysource.dsl.rest.response.Response} Object directly. 
- * in this case this return value will be used as the response body. 
- * Otherwise, an implicit wrapping will occur. the return value will be inserted into
- * {@code Response#setResponse(Object)}. 
- * other fields of the {@link org.cloudifysource.dsl.rest.response.Response} 
- * object will be filled with default values. <br>
+ * A controller method may return the {@link org.cloudifysource.dsl.rest.response.Response} Object directly. in this
+ * case this return value will be used as the response body. Otherwise, an implicit wrapping will occur. the return
+ * value will be inserted into {@code Response#setResponse(Object)}. other fields of the
+ * {@link org.cloudifysource.dsl.rest.response.Response} object will be filled with default values. <br>
  * <h1>Important</h1> {@code @ResponseBody} annotations are not permitted. <br>
  * <br>
  * <h1>Possible return values</h1> 200 - OK<br>
@@ -673,7 +672,7 @@ public class DeploymentsController extends BaseRestController {
 
 		// remove any existing attributes for this application.
 		deleteApplicationScopeAttributes(request.getApplicationName());
-		
+
 		final ApplicationDeployerRunnable installer =
 				new ApplicationDeployerRunnable(this,
 						request,
@@ -722,7 +721,7 @@ public class DeploymentsController extends BaseRestController {
 				new ApplicationDescriptionFactory(restConfig.getAdmin());
 		return appDescriptionFactory.getApplicationDescription(appName);
 	}
-	
+
 	/**
 	 * @return List of {@link org.cloudifysource.dsl.rest.response.ApplicationDescription} objects.
 	 */
@@ -731,7 +730,7 @@ public class DeploymentsController extends BaseRestController {
 
 		final ApplicationDescriptionFactory appDescriptionFactory =
 				new ApplicationDescriptionFactory(restConfig.getAdmin());
-		
+
 		return appDescriptionFactory.getApplicationDescriptions();
 	}
 
@@ -910,9 +909,9 @@ public class DeploymentsController extends BaseRestController {
 			throws RestErrorException {
 
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(appName, serviceName);
-		
+
 		logger.info("[installService] - isntalling service " + serviceName);
-		
+
 		// this validation should only happen on install service.
 		String uploadKey = request.getServiceFolderUploadKey();
 		if (StringUtils.isBlank(uploadKey)) {
@@ -1038,10 +1037,10 @@ public class DeploymentsController extends BaseRestController {
 		} catch (IOException e) {
 			throw new RestErrorException("Failed reading cloud overrides file.", e);
 		}
-		
+
 		// remove any leftover service attributes.
 		deleteServiceAttributes(appName, serviceName);
-		
+
 		// deploy
 		final DeploymentConfig deployConfig = new DeploymentConfig();
 		final String locators = extractLocators(restConfig.getAdmin());
@@ -1133,8 +1132,7 @@ public class DeploymentsController extends BaseRestController {
 		}
 		return descriptions;
 	}
-	
-	
+
 	/**
 	 * 
 	 * @param appName
@@ -1336,6 +1334,15 @@ public class DeploymentsController extends BaseRestController {
 		final ServiceCloudifyAttribute serviceAttributeTemplate =
 				new ServiceCloudifyAttribute(applicationName, serviceName, null, null);
 		gigaSpace.takeMultiple(serviceAttributeTemplate);
+
+		// Delete instance attempt data related to this service
+		ServiceInstanceAttemptData template = new ServiceInstanceAttemptData();
+		template.setApplicationName(applicationName);
+		template.setServiceName(serviceName);
+
+		ServiceInstanceAttemptData[] attempts = gigaSpace.takeMultiple(template);
+		logger.info("Removed " + attempts.length + " instance attempts from management space");
+
 	}
 
 	private void deleteServiceInstanceAttributes(
@@ -1483,9 +1490,9 @@ public class DeploymentsController extends BaseRestController {
 	}
 
 	private Service readService(final File workingProjectDir,
-								final InstallServiceRequest request,
-								final String absolutePuName,
-								final ServiceApplicationDependentProperties serviceProps)
+			final InstallServiceRequest request,
+			final String absolutePuName,
+			final ServiceApplicationDependentProperties serviceProps)
 			throws RestErrorException {
 		Service service;
 		try {
@@ -1497,10 +1504,10 @@ public class DeploymentsController extends BaseRestController {
 				result = ServiceReader.getServiceFromDirectory(workingProjectDir);
 			}
 			service = result.getService();
-			//Setting application dependent properties
+			// Setting application dependent properties
 			if (serviceProps != null) {
 				service.setDependsOn(serviceProps.getDependsOn());
-				
+
 			}
 		} catch (final Exception e) {
 			throw new RestErrorException(CloudifyMessageKeys.FAILED_TO_READ_SERVICE.getName(), absolutePuName);

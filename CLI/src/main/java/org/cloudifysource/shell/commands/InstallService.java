@@ -480,7 +480,7 @@ public class InstallService extends AdminAwareCommand implements NewRestClientCo
         request.setDebugEvents(debugEvents);
         request.setServiceOverridesUploadKey(overridesFileKey);
         request.setServiceFolderUploadKey(recipeFileKey);
-        request.setSelfHealing(disableSelfHealing);
+        request.setSelfHealing(!disableSelfHealing);
         request.setTimeoutInMillis(timeoutInMinutes * DateUtils.MILLIS_PER_MINUTE);
 
         // execute the request
