@@ -12,23 +12,23 @@
  *******************************************************************************/
 package org.cloudifysource.rest.events.cache;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
+
+import org.cloudifysource.dsl.rest.response.DeploymentEvent;
+import org.cloudifysource.dsl.rest.response.DeploymentEvents;
+import org.cloudifysource.rest.events.EventsUtils;
+import org.cloudifysource.rest.events.LogEntryMatcherProvider;
+import org.cloudifysource.rest.events.LogEntryMatcherProviderKey;
+import org.openspaces.admin.gsc.GridServiceContainer;
+
 import com.gigaspaces.log.LogEntries;
 import com.gigaspaces.log.LogEntry;
 import com.gigaspaces.log.LogEntryMatcher;
 import com.google.common.cache.CacheLoader;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import org.cloudifysource.dsl.rest.response.DeploymentEvent;
-import org.cloudifysource.dsl.rest.response.DeploymentEvents;
-import org.cloudifysource.rest.events.EventsUtils;
-import org.cloudifysource.rest.events.LogEntryMatcherProvider;
-import org.cloudifysource.rest.events.LogEntryMatcherProviderKey;
-import org.cloudifysource.rest.exceptions.ResourceNotFoundException;
-import org.openspaces.admin.gsc.GridServiceContainer;
-
-import java.util.HashSet;
-import java.util.Set;
-import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -70,11 +70,6 @@ public class EventsCacheLoader extends CacheLoader<EventsCacheKey, EventsCacheVa
         // iterate over all container and retrieve logs from logs cache.
         Set<GridServiceContainer> containersForDeployment = containerProvider.getContainersForDeployment(
                 key.getDeploymentId());
-
-        // no deployment with the given id was found
-        if (containersForDeployment == null || containersForDeployment.isEmpty()) {
-            throw new ResourceNotFoundException("Deployment with id " + key.getDeploymentId());
-        }
 
         int index = -1;
         for (GridServiceContainer container : containersForDeployment) {
