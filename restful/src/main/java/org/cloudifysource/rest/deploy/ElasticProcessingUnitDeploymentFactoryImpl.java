@@ -293,6 +293,14 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 				cloudExternalProcessMemoryInMB = calculateExternalProcessMemory();
 			} else {
 				cloudExternalProcessMemoryInMB = IsolationUtils.getInstanceMemoryMB(service);
+				long usmRequiredMemoryInMB = MemoryUnit.toMegaBytes(
+						deploymentConfig.getCloud().getConfiguration().getComponents().getUsm().getMaxMemory());
+				if (usmRequiredMemoryInMB > cloudExternalProcessMemoryInMB) {
+					throw new IllegalStateException("the usm required memory " 
+							+ usmRequiredMemoryInMB
+							+ " can not be more then the total memory defined for a service instance "
+							+ cloudExternalProcessMemoryInMB);
+				}
 			}
 
 			// this defines the total external memory for gsc and external process
@@ -580,7 +588,7 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 				.getReservedMemoryCapacityPerMachineInMB();
 		final int safteyMargin = 100; // get rid of this constant. see
 		// CLOUDIFY-297
-		final long cloudExternalProcessMemoryInMB = machineMemoryMB
+		long cloudExternalProcessMemoryInMB = machineMemoryMB
 				- reservedMemoryCapacityPerMachineInMB - safteyMargin;
 		if (cloudExternalProcessMemoryInMB <= 0) {
 			throw new IllegalStateException("Cloud template machineMemoryMB ("
@@ -599,6 +607,11 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 				+ "cloudExternalProcessMemoryInMB = cloud.machineMemoryMB - "
 				+ "cloud.reservedMemoryCapacityPerMachineInMB" + " = "
 				+ cloudExternalProcessMemoryInMB);
+		
+		//USM can not require more memory then the maximum total memory available.
+		long usmRequiredMemoryInMB = MemoryUnit.toMegaBytes(
+										cloud.getConfiguration().getComponents().getUsm().getMaxMemory());
+		cloudExternalProcessMemoryInMB = Math.max(cloudExternalProcessMemoryInMB, usmRequiredMemoryInMB);
 		return cloudExternalProcessMemoryInMB;
 	}
 
