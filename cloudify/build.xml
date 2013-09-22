@@ -976,7 +976,23 @@
 		</exec>
 	</target>
 	
-	<target name="cloudify.zip" depends="prepare.env, cloudify.install, prepare.cloudify.package.without.unzip" />
+	<target name="cloudify.zip" depends="prepare.env, cloudify.install, prepare.cloudify.package.without.unzip">
+		<echo>
+******************************************************************
+  
+  Cloudify packages were sucessfully created:
+     zip:    ${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip
+     tar.gz: ${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.tar.gz
+
+  Steps to perform before trying this build out on a public cloud:
+     1. publish the packages online
+     2. put the package link from step 1 into appropriate cloud driver, for example: uncomment cloudifyUrl property  
+	    in ${CLOUDIFY_HOME}/clouds/ec2/ec2-cloud.groovy and update its link
+******************************************************************
+		</echo>
+			
+              			
+	</target>
 	<target name="bigdata.zip" depends="prepare.env, cloudify.install, prepare.bigdata.package" />
 	<target name="clean.all">
 		<delete dir="${tmp.dir}"/>
