@@ -232,7 +232,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
 			node = deployer.createServer(groupName, locationId);
 		} catch (final InstallerException e) {
 			throw new CloudProvisioningException(
-					"Failed to create cloud server", e);
+					"Failed to create cloud server: " + e.getMessage(), e);
 		}
 		logger.fine("New node is allocated, group name: " + groupName);
 
