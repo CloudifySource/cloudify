@@ -620,4 +620,16 @@ public class ServiceParsingTest {
 			Assert.assertTrue("Invalid error message", e.getMessage().contains("Error converting from"));
 		}
 	}
+	@Test
+	public void testInvalidPropertiesFile() {
+
+		final File serviceDir = new File(TEST_PARSING_RESOURCE_BASE + "invalidPropertiesFile");
+
+		try {
+			ServiceReader.getServiceFromDirectory(serviceDir).getService();
+			Assert.fail("Expected parsing to fail");
+		} catch (Exception e) {
+			Assert.assertTrue("Invalid error message: " + e.getMessage(), e.getMessage().contains("unexpected char"));
+		}
+	}
 }

@@ -337,7 +337,7 @@ public class DSLReader {
 			// about anything
 			String msg = null;
 			if (propertiesFile != null) {
-				msg = "Failed to load properties file " + this.propertiesFile.getName() + ": " + e.getMessage();
+				msg = e.getMessage();
 			} else {
 				msg = "Failed to load properties file: " + e.getMessage();
 			}
@@ -550,7 +550,7 @@ public class DSLReader {
 			final ConfigObject config = new ConfigSlurper().parse(propertiesFile.toURI().toURL());
 			return config;
 		} catch (final Exception e) {
-			throw new IOException("Failed to read properties file: " + propertiesFile, e);
+			throw new IOException("Failed to read properties file: " + propertiesFile + ": " + e.getMessage(), e);
 		}
 
 	}
