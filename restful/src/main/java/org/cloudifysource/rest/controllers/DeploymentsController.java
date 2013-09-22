@@ -135,6 +135,7 @@ import org.openspaces.admin.space.ElasticSpaceDeployment;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.util.MemoryUnit;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -727,6 +728,7 @@ public class DeploymentsController extends BaseRestController {
 	 * @return List of {@link org.cloudifysource.dsl.rest.response.ApplicationDescription} objects.
 	 */
 	@RequestMapping(value = "/applications/description", method = RequestMethod.GET)
+	@PostFilter("hasPermission(filterObject, 'view')")
 	public List<ApplicationDescription> getApplicationDescriptions() {
 		//TODO noak: handle auth groups (postFilter)
 		final ApplicationDescriptionFactory appDescriptionFactory =

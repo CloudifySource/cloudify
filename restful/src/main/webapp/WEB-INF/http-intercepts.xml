@@ -36,7 +36,7 @@
 			<sec:intercept-url pattern="/**/deployments/testrest" requires-channel="https" 
 				access="permitAll" />
 			<sec:intercept-url pattern="/**/deployments/**" requires-channel="https"
-				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS')" />	
+				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS', 'ROLE_VIEWERS')" />	
 			<sec:intercept-url pattern="/**" requires-channel="https" access="isFullyAuthenticated()" />
 			<sec:custom-filter ref="basicAuthenticationFilter"
 				after="BASIC_AUTH_FILTER" />

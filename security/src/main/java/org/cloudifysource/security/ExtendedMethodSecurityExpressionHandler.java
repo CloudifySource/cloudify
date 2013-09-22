@@ -16,7 +16,6 @@
 package org.cloudifysource.security;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -123,9 +122,27 @@ public class ExtendedMethodSecurityExpressionHandler extends
 					+ filterExpression.getExpressionString());
 		}
 
-		if (filterTarget instanceof Collection 
+		/*if (filterTarget instanceof Collection 
 				|| filterTarget.getClass().isArray()) {
 			return super.filter(filterTarget, filterExpression, ctx);
+		}*/
+		
+		if (filterTarget instanceof List) {
+			@SuppressWarnings("unchecked")
+			List<Object> objectsList = (List<Object>) filterTarget;
+			List<Object> retainList = new ArrayList<Object>();
+
+			for (Object objectToFilter : objectsList) {
+				if (objectToFilter instanceof ApplicationDescription) {
+					rootObject.setFilterObject(((ApplicationDescription) objectToFilter).getAuthGroups());
+					if (ExpressionUtils.evaluateAsBoolean(filterExpression, ctx)) {
+						retainList.add(objectToFilter);
+					}
+				}
+
+			}
+			
+			return retainList;
 		}
 
 		if (filterTarget instanceof Map) {
