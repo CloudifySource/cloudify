@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.shell.commands;
 
@@ -27,11 +24,11 @@ import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
 /**
  * @author rafi, barakm
  * @since 2.0.0
- *
+ * 
  *        Starts Cloudify Agent with the specified zone.
- *
+ * 
  *        Required arguments: zone - The agent zone that specifies the name of the service that can run on the machine
- *
+ * 
  *        Optional arguments: lookup-groups - A unique name that is used to group together Cloudify components. Override
  *        in order to group together cloudify managements/agents on a network that supports multicast. nic-address - The
  *        ip address of the local host network card. Specify when local machine has more than one network adapter, and a
@@ -40,9 +37,9 @@ import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
  *        management machines. Override when using a network without multicast support (Default: null). auto-shutdown -
  *        etermines if undeploying or scaling-in the last service instance on the machine also triggers agent shutdown
  *        (default: false).
- *
+ * 
  *        Command syntax: start-agent -zone zone [-lookup-groups lookup-groups] [-nicAddress nicAddress] [-timeout
- *        timeout] [-lookup-locators lookup-locators] [-auto-shutdown auto-shutdown]
+ *        timeout] [-lookup-locators lookup-locators] 
  */
 @Command(scope = "cloudify", name = "start-agent", description = "For internal use only! Starts Cloudify Agent with "
 		+ "the specified zone. The agent communicates with other agent and management machines.")
@@ -55,11 +52,11 @@ public class StartAgent extends AbstractGSCommand {
 	@Option(required = false, name = "-lookup-groups", description = "A unique name that is used to group together"
 			+ " different Cloudify machines. Default is based on the product version. Override in order to group"
 			+ " together cloudify managements/agents on a network that supports multicast.")
-	private final String lookupGroups = null;
+	private String lookupGroups = null;
 
 	@Option(required = false, name = "-lookup-locators", description = "A list of ip addresses used to identify all"
 			+ " management machines. Default is null. Override when using a network without multicast.")
-	private final String lookupLocators = null;
+	private String lookupLocators = null;
 
 	@Option(required = false, name = "-nic-address", description = "The ip address of the local host network card."
 			+ " Specify when local machine has more than one network adapter, and a specific network card should be"
@@ -70,11 +67,6 @@ public class StartAgent extends AbstractGSCommand {
 			+ " done. By default waits 5 minutes.")
 	private int timeoutInMinutes = DEFAULT_TIMEOUT_MINUTES;
 
-	// TODO - this value should be set in the GSA Java options, not here.
-	// DO NOT DELETE - the bootstrap script still passes this. Remove only after this feature has been fixed.
-	@Option(required = false, name = "-auto-shutdown", description = "Determines if undeploying or scaling-in the last"
-			+ " service instance on the machine also triggers agent shutdown. By default false.")
-	private final boolean autoShutdown = false;
 
 	/**
 	 * {@inheritDoc}
@@ -89,13 +81,13 @@ public class StartAgent extends AbstractGSCommand {
 
 		final LocalhostGridAgentBootstrapper installer = new LocalhostGridAgentBootstrapper();
 		installer.setVerbose(verbose);
-		installer.setLookupGroups(lookupGroups);
-		installer.setLookupLocators(lookupLocators);
+		installer.setLookupGroups(getLookupGroups());
+		installer.setLookupLocators(getLookupLocators());
 		installer.setNicAddress(nicAddress);
 		installer.setProgressInSeconds(DEFAULT_POLLING_INTERVAL);
 		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
 
-		installer.startAgentOnLocalhostAndWait("" /*securityProfile*/, "" /*keystorePassword*/, getTimeoutInMinutes(),
+		installer.startAgentOnLocalhostAndWait("", "", getTimeoutInMinutes(),
 				TimeUnit.MINUTES);
 		return "Agent started succesfully. Use the shutdown-agent command to shutdown agent running on local machine.";
 	}
@@ -107,4 +99,21 @@ public class StartAgent extends AbstractGSCommand {
 	public void setTimeoutInMinutes(final int timeoutInMinutes) {
 		this.timeoutInMinutes = timeoutInMinutes;
 	}
+
+	public String getLookupGroups() {
+		return lookupGroups;
+	}
+
+	public void setLookupGroups(final String lookupGroups) {
+		this.lookupGroups = lookupGroups;
+	}
+
+	public String getLookupLocators() {
+		return lookupLocators;
+	}
+
+	public void setLookupLocators(final String lookupLocators) {
+		this.lookupLocators = lookupLocators;
+	}
+
 }

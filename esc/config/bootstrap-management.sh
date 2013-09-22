@@ -94,12 +94,12 @@ cd ~/gigaspaces/tools/cli || error_exit $? "Failed changing directory to cli dir
 
 # START AGENT ALONE OR WITH MANAGEMENT
 if [ "$GSA_MODE" = "agent" ]; then
-	./cloudify.sh start-agent -timeout 30 --verbose -zone $MACHINE_ZONES -auto-shutdown || error_exit $? "Failed starting agent"
+	./cloudify.sh start-agent -timeout 30 --verbose -zone $MACHINE_ZONES || error_exit $? "Failed starting agent"
 else
 	if [ "$NO_WEB_SERVICES" = "true" ]; then
-		./cloudify.sh start-management -no-web-services -no-management-space -timeout 30 --verbose -auto-shutdown -cloud-file $CLOUD_FILE || error_exit $? "Failed starting management services"
+		./cloudify.sh start-management -no-web-services -no-management-space -timeout 30 --verbose -cloud-file $CLOUD_FILE || error_exit $? "Failed starting management services"
 	else
-		./cloudify.sh start-management -timeout 30 --verbose -auto-shutdown -cloud-file $CLOUD_FILE || error_exit $? "Failed starting management services"
+		./cloudify.sh start-management -timeout 30 --verbose -cloud-file $CLOUD_FILE || error_exit $? "Failed starting management services"
 	fi
 fi	
 

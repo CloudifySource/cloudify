@@ -57,7 +57,7 @@ import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
  *        cloud-file - if set, designates the location of the cloud configuration file.
  *
  *        Command syntax: start-management [-lookup-groups lookup-groups] [-nicAddress nicAddress] [-user username]
- *        [-password password] [-timeout timeout] [-lookup-locators lookup-locators] [-auto-shutdown auto-shutdown]
+ *        [-password password] [-timeout timeout] [-lookup-locators lookup-locators] 
  *        [-no-web-services no-web-services] [-no-management-space no-management-space] [-cloud-file cloud-file]
  */
 @Command(
@@ -105,11 +105,6 @@ public class StartManagement extends AbstractGSCommand {
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is"
 			+ " done. By default waits 5 minutes.")
 	private int timeoutInMinutes = DEFAULT_TIMEOUNT_MINUTES;
-
-	// TODO - this field is not used. It should be moved to the GSA_JAVA_OPTIONS command builder.
-	@Option(required = false, name = "-auto-shutdown", description = "Determines if undeploying or scaling-in the last"
-			+ " service instance on the machine also triggers agent shutdown. By default false.")
-	private boolean autoShutdown = false;
 
 	@Option(required = false, name = "-no-management-space", description = "if set, no attempt to deploy the"
 			+ " management space will be made")
@@ -193,14 +188,6 @@ public class StartManagement extends AbstractGSCommand {
 
 	public void setTimeoutInMinutes(final int timeoutInMinutes) {
 		this.timeoutInMinutes = timeoutInMinutes;
-	}
-
-	public boolean isAutoShutdown() {
-		return autoShutdown;
-	}
-
-	public void setAutoShutdown(final boolean autoShutdown) {
-		this.autoShutdown = autoShutdown;
 	}
 
 	private void setSecurityMode() throws IOException {
