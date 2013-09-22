@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -150,6 +151,34 @@ public abstract class BaseRestController {
         String responseString = OBJECT_MAPPER.writeValueAsString(finalResponse);
         response.getOutputStream().write(responseString.getBytes());
     }
+    
+    /**
+     * Handles expected access denied exception from the controller, and wrappes it nicely
+     * with a {@link Response} object.
+     *
+     * @param response
+     *            - the servlet response.
+     * @param e
+     *            - the thrown exception.
+     * @throws IOException .
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
+    public void handleAccessDeniedErrors(final HttpServletResponse response,
+                                     final AccessDeniedException e) throws IOException {
+
+		String messageId = CloudifyErrorMessages.NO_PERMISSION_ACCESS_DENIED.getName();
+        Response<Void> finalResponse = new Response<Void>();
+        finalResponse.setStatus("Failed");
+        finalResponse.setMessage(messageId + " [" + e.getMessage() + "]");
+        finalResponse.setMessageId(messageId);
+        finalResponse.setResponse(null);
+        finalResponse.setVerbose(ExceptionUtils.getFullStackTrace(e));
+
+        String responseString = OBJECT_MAPPER.writeValueAsString(finalResponse);
+        response.getOutputStream().write(responseString.getBytes());
+    }
+    
 
     /**
      * 

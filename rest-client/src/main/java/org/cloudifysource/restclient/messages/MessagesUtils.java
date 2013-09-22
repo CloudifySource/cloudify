@@ -19,9 +19,11 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.restclient.exceptions.RestClientException;
 import org.cloudifysource.restclient.exceptions.RestClientHttpException;
 import org.cloudifysource.restclient.exceptions.RestClientIOException;
+import org.cloudifysource.restclient.exceptions.RestClientResponseException;
 
 /**
  * Handles the RestClient's messages.
@@ -65,6 +67,36 @@ public final class MessagesUtils {
 					+ message + " and arguments: " + Arrays.toString(arguments));
 			return messageCode;
 		}
+	}
+	
+	/**
+	 * returns the message as it appears in the {@link #messageBundle}.
+	 * No warning is issued if the message is not found.
+	 * 
+	 * @param messageCode
+	 *            The message key as it is defined in the message bundle.
+	 * @param arguments
+	 *            The message arguments
+	 * @return the formatted message according to the message key.
+	 */
+	public static String getFormattedMessageSilently(final String messageCode, final Object... arguments) {
+
+		// the message defaults to the message code
+		String formattedMessage = messageCode;
+		final ResourceBundle messageBundle = getMessageBundle();
+		if (messageBundle.containsKey(messageCode)) {
+			String bundleMessage = messageBundle.getString(messageCode);
+			if (StringUtils.isNotBlank(bundleMessage)) {
+				try {
+					formattedMessage = MessageFormat.format(bundleMessage, arguments);
+				} catch (final IllegalArgumentException e) {
+					// ignore, we will return the message code instead
+				}
+			}
+		}
+		
+		return formattedMessage;
+		
 	}
 
 	private static ResourceBundle getMessageBundle() {
@@ -116,12 +148,45 @@ public final class MessagesUtils {
 				getFormattedMessage(messageCode, arguments),
 				exception);
 	}
+	
+	/**
+	 * Creates a RestClientResponseException with given messageCode, 
+	 * the formatted message with the given arguments (using
+	 * the {@link #messageBundle}), the status code, reason
+	 * and response body.
+	 * 
+	 * @param statusCode the status code of the response.
+	 * @param reasonPhrase the reasonPhrase of the response.
+	 * @param responseBody the body of the response.
+	 * @param defaultMessage the message to use if a message is not found in the message bundle.
+	 * @param messageCode the message key as it is defined in the message bundle.
+	 * @param arguments the message arguments
+	 * @return a new RestClientResponseException.
+	 */
+	public static RestClientResponseException createRestClientResponseException(
+			final int statusCode, 
+			final String reasonPhrase,
+			final String responseBody,
+			final String defaultMessage,
+			final String messageCode,
+			final Object... arguments) {
+		String  formattedMessage = getFormattedMessageSilently(messageCode, arguments);
+		if (formattedMessage.equalsIgnoreCase(messageCode) && StringUtils.isNotBlank(defaultMessage)) {
+			formattedMessage = defaultMessage;
+		}
+		return new RestClientResponseException(
+				messageCode,
+				formattedMessage,
+				statusCode,
+				reasonPhrase,
+				responseBody);
+	}
 
 	/**
-	 * Creates an RestClientHttpException with given messageCode, 
+	 * Creates a RestClientHttpException with given messageCode, 
 	 * the formatted message with the given arguments (using
 	 * the {@link #messageBundle}), the given exception, 
-	 * response bode and status line details.
+	 * response body and status line details.
 	 * 
 	 * @param messageCode
 	 *            The message key as it is defined in the message bundle.

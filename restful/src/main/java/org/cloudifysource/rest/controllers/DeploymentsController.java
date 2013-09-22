@@ -447,6 +447,7 @@ public class DeploymentsController extends BaseRestController {
 			@RequestBody final SetServiceInstancesRequest request)
 			throws RestErrorException, ResourceNotFoundException {
 
+		//TODO noak: set authGroups in the request and change the annotation to use request.getAuthGroups()
 		if (logger.isLoggable(Level.INFO)) {
 			logger.info("Scaling request for service: " + applicationName + "." + serviceName
 					+ " to " + request.getCount() + " instances");
@@ -629,12 +630,12 @@ public class DeploymentsController extends BaseRestController {
 	 * 
 	 */
 	@RequestMapping(value = "/{appName}", method = RequestMethod.POST)
-	@PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
+	//@PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
+	@PreAuthorize("isFullyAuthenticated() and hasPermission(#request.getAuthGroups(), 'deploy')")
 	public InstallApplicationResponse installApplication(
 			@PathVariable final String appName,
 			@RequestBody final InstallApplicationRequest request)
 			throws RestErrorException {
-
 		// get the application file
 		final String applcationFileUploadKey = request.getApplcationFileUploadKey();
 		final File applicationFile = getFromRepo(applcationFileUploadKey,
@@ -716,7 +717,7 @@ public class DeploymentsController extends BaseRestController {
 	public ApplicationDescription getApplicationDescription(
 			@PathVariable final String appName)
 			throws ResourceNotFoundException {
-
+		//TODO noak: set authGroups in the request and change the annotation to use request.getAuthGroups()
 		final ApplicationDescriptionFactory appDescriptionFactory =
 				new ApplicationDescriptionFactory(restConfig.getAdmin());
 		return appDescriptionFactory.getApplicationDescription(appName);
@@ -727,7 +728,7 @@ public class DeploymentsController extends BaseRestController {
 	 */
 	@RequestMapping(value = "/applications/description", method = RequestMethod.GET)
 	public List<ApplicationDescription> getApplicationDescriptions() {
-
+		//TODO noak: handle auth groups (postFilter)
 		final ApplicationDescriptionFactory appDescriptionFactory =
 				new ApplicationDescriptionFactory(restConfig.getAdmin());
 
@@ -908,6 +909,8 @@ public class DeploymentsController extends BaseRestController {
 			@RequestBody final InstallServiceRequest request)
 			throws RestErrorException {
 
+		//TODO noak: set authGroups in the request and change the annotation to use request.getAuthGroups()		
+		
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(appName, serviceName);
 
 		logger.info("[installService] - installing service " + serviceName);

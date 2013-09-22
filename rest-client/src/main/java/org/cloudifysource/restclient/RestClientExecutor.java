@@ -47,7 +47,6 @@ import org.cloudifysource.dsl.rest.response.Response;
 import org.cloudifysource.restclient.exceptions.RestClientException;
 import org.cloudifysource.restclient.exceptions.RestClientHttpException;
 import org.cloudifysource.restclient.exceptions.RestClientIOException;
-import org.cloudifysource.restclient.exceptions.RestClientResponseException;
 import org.cloudifysource.restclient.messages.MessagesUtils;
 import org.cloudifysource.restclient.messages.RestClientMessageKeys;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -328,12 +327,11 @@ public class RestClientExecutor {
 						new ObjectMapper().readValue(responseBody, new TypeReference<Response<Void>>() { });
                 // we also have the response in the proper format.
                 // remember, we only got here because some sort of error happened on the server.
-                throw new RestClientResponseException(entity.getMessageId(),
-                                                      entity.getMessage(),
-                                                      statusCode,
-                                                      reasonPhrase,
-                                                      entity.getVerbose());
-
+				throw MessagesUtils.createRestClientResponseException(statusCode,
+																	reasonPhrase,
+																	entity.getVerbose(),
+																	entity.getMessage(),
+																	entity.getMessageId());
             } catch (final IOException e) {
             	
                 // this means we got the response, but it is not in the correct format.
