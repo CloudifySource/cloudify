@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -42,7 +42,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.SystemDefaultHttpClient;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -90,7 +90,7 @@ public final class ShellUtils {
 
 	/**
 	 * returns the message as it appears in the default message bundle.
-	 *
+	 * 
 	 * @param msgName
 	 *            the message key as it is defined in the message bundle.
 	 * @param arguments
@@ -100,10 +100,10 @@ public final class ShellUtils {
 	public static String getFormattedMessage(final String msgName, final Object... arguments) {
 		return getFormattedMessage(getMessageBundle(), msgName, arguments);
 	}
-	
+
 	/**
 	 * returns the message as it appears in the given message bundle.
-	 *
+	 * 
 	 * @param messageBundle
 	 *            the message bundle that holds the message.
 	 * @param msgName
@@ -112,7 +112,7 @@ public final class ShellUtils {
 	 *            the message arguments
 	 * @return the formatted message according to the message key.
 	 */
-	public static String getFormattedMessage(final ResourceBundle messageBundle, final String msgName, 
+	public static String getFormattedMessage(final ResourceBundle messageBundle, final String msgName,
 			final Object... arguments) {
 
 		final String message = messageBundle.getString(msgName);
@@ -130,7 +130,7 @@ public final class ShellUtils {
 	}
 
 	/**
-	 *
+	 * 
 	 * @param session
 	 *            the command session.
 	 * @param messageKey
@@ -147,7 +147,7 @@ public final class ShellUtils {
 
 	/**
 	 * prompts the user with the given question.
-	 *
+	 * 
 	 * @param session
 	 *            the command session.
 	 * @param messageKey
@@ -191,10 +191,9 @@ public final class ShellUtils {
 		return true;
 	}
 
-
 	/**
 	 * Gets the given message formatted to be displayed in the specified color.
-	 *
+	 * 
 	 * @param message
 	 *            The text message
 	 * @param color
@@ -208,7 +207,7 @@ public final class ShellUtils {
 
 	/**
 	 * Gets the given message formatted to be displayed in bold characters.
-	 *
+	 * 
 	 * @param message
 	 *            The text message
 	 * @return A formatted message text
@@ -220,7 +219,7 @@ public final class ShellUtils {
 
 	/**
 	 * Converts a comma-delimited string of instance IDs to a set of Integers.
-	 *
+	 * 
 	 * @param componentInstanceIDs
 	 *            a comma-delimited string of instance IDs
 	 * @return instance IDs as a set of Integers
@@ -236,7 +235,7 @@ public final class ShellUtils {
 
 	/**
 	 * Gets the recipes map from the session.
-	 *
+	 * 
 	 * @param session
 	 *            The command session to query
 	 * @return The recipes map
@@ -248,7 +247,7 @@ public final class ShellUtils {
 
 	/**
 	 * Gets the built-in messages bundle, with the default locale.
-	 *
+	 * 
 	 * @return The messages bundle
 	 */
 	public static ResourceBundle getMessageBundle() {
@@ -264,7 +263,7 @@ public final class ShellUtils {
 	/**
 	 * Calculates how many milliseconds ahead is the specified target time. If it has passed already, throws a
 	 * {@link TimeoutException} with the given error message.
-	 *
+	 * 
 	 * @param errorMessage
 	 *            The error message of the {@link TimeoutException}, if thrown
 	 * @param end
@@ -284,7 +283,7 @@ public final class ShellUtils {
 
 	/**
 	 * Gets an "expected execution time" formatted message, with the current time in this format: HH:mm.
-	 *
+	 * 
 	 * @return a formatted "expected execution time" message
 	 */
 	public static String getExpectedExecutionTimeMessage() {
@@ -296,7 +295,7 @@ public final class ShellUtils {
 
 	/**
 	 * Gets the CLI directory.
-	 *
+	 * 
 	 * @return the CLI directory
 	 */
 	public static File getCliDirectory() {
@@ -306,7 +305,7 @@ public final class ShellUtils {
 	/**
 	 * Verifies the given value is not null. If it is - throws an IllegalArgumentException with the message: <name>
 	 * cannot be null.
-	 *
+	 * 
 	 * @param name
 	 *            The name to be used in the exception, if thrown
 	 * @param value
@@ -320,7 +319,7 @@ public final class ShellUtils {
 
 	/**
 	 * Reads the properties from the specified file, and loads them into a {@link Properties} object.
-	 *
+	 * 
 	 * @param propertiesFile
 	 *            The file to read properties from
 	 * @return A populated properties object
@@ -341,7 +340,7 @@ public final class ShellUtils {
 
 	/**
 	 * Checks if the operating system on this machine is Windows.
-	 *
+	 * 
 	 * @return True - if using Windows, False - otherwise.
 	 */
 	public static boolean isWindows() {
@@ -352,7 +351,7 @@ public final class ShellUtils {
 
 	/**
 	 * returns true if the last version check was done more than two weeks ago.
-	 *
+	 * 
 	 * @param session
 	 *            the command session.
 	 * @return true if a version check is required else returns false.
@@ -379,7 +378,7 @@ public final class ShellUtils {
 
 	/**
 	 * Checks if the latest version is used.
-	 *
+	 * 
 	 * @param session
 	 *            the command session.
 	 */
@@ -404,18 +403,18 @@ public final class ShellUtils {
 
 	/**
 	 * returns the latest cloudify version.
-	 *
+	 * 
 	 * @param currentVersion
 	 *            the current version.
 	 * @return the latest cloudify version.
 	 */
 	public static int getLatestBuildNumber(final int currentVersion) {
-		final HttpClient client = new DefaultHttpClient();
-		HttpParams params = client.getParams();
-	    HttpConnectionParams.setConnectionTimeout(params, VERSION_CHECK_READ_TIMEOUT);
-	    HttpConnectionParams.setSoTimeout(params, VERSION_CHECK_READ_TIMEOUT);
+		final HttpClient client = new SystemDefaultHttpClient();
+		final HttpParams params = client.getParams();
+		HttpConnectionParams.setConnectionTimeout(params, VERSION_CHECK_READ_TIMEOUT);
+		HttpConnectionParams.setSoTimeout(params, VERSION_CHECK_READ_TIMEOUT);
 
-	    final String url = "http://www.gigaspaces.com/downloadgen/latest-cloudify-version?build=" + currentVersion;
+		final String url = "http://www.gigaspaces.com/downloadgen/latest-cloudify-version?build=" + currentVersion;
 
 		final HttpGet httpMethod = new HttpGet(url);
 
@@ -451,7 +450,7 @@ public final class ShellUtils {
 
 	/**
 	 * Returns the last time a version check was performed.
-	 *
+	 * 
 	 * @return the last time a version check was performed.
 	 */
 	public static long getLastTimeAskedAboutVersionCheck() {
@@ -499,20 +498,20 @@ public final class ShellUtils {
 
 	/**
 	 * Checks if the passed security profile uses a secure connection (SSL).
-	 *
+	 * 
 	 * @param springSecurityProfile
 	 *            The name of the security profile
 	 * @return true - if the profile indicates SSL is used, false otherwise.
 	 */
 	public static boolean isSecureConnection(final String springSecurityProfile) {
-		List<String> existingProfiles = Arrays.asList(springSecurityProfile.toLowerCase().split(","));
-		return existingProfiles.contains(CloudifyConstants.SPRING_PROFILE_SECURE.toLowerCase());		
+		final List<String> existingProfiles = Arrays.asList(springSecurityProfile.toLowerCase().split(","));
+		return existingProfiles.contains(CloudifyConstants.SPRING_PROFILE_SECURE.toLowerCase());
 	}
 
 	/**
 	 * Returns the name of the protocol used for communication with the rest server. If the security is secure (SSL)
 	 * returns "https", otherwise returns "http".
-	 *
+	 * 
 	 * @param springSecurityProfile
 	 *            The name of the security profile
 	 * @return "https" if this is a secure connection, "http" otherwise.
@@ -524,7 +523,7 @@ public final class ShellUtils {
 	/**
 	 * Returns the name of the protocol used for communication with the rest server. If the security is secure (SSL)
 	 * returns "https", otherwise returns "http".
-	 *
+	 * 
 	 * @param isSecureConnection
 	 *            Indicates whether SSL is used or not.
 	 * @return "https" if this is a secure connection, "http" otherwise.
@@ -539,7 +538,7 @@ public final class ShellUtils {
 
 	/**
 	 * Returns the port used for communication with the rest server.
-	 *
+	 * 
 	 * @param springSecurityProfile
 	 *            The name of the security profile
 	 * @return the correct port used by the rest service.
@@ -550,7 +549,7 @@ public final class ShellUtils {
 
 	/**
 	 * Returns the port used for communication with the rest server.
-	 *
+	 * 
 	 * @param isSecureConnection
 	 *            Indicates whether SSL is used or not.
 	 * @return the correct port used by the rest service.
@@ -565,7 +564,7 @@ public final class ShellUtils {
 
 	/**
 	 * Returns the port used for communication with the rest server.
-	 *
+	 * 
 	 * @param isSecureConnection
 	 *            Indicates whether SSL is used or not.
 	 * @return the correct port used by the rest service.
@@ -574,11 +573,13 @@ public final class ShellUtils {
 		return Integer.toString(getDefaultRestPort(isSecureConnection));
 	}
 
-
 	/********
 	 * .
-	 * @param url .
-	 * @param isSecureConnection .
+	 * 
+	 * @param url
+	 *            .
+	 * @param isSecureConnection
+	 *            .
 	 * @return .
 	 * @throws MalformedURLException .
 	 */
@@ -606,27 +607,30 @@ public final class ShellUtils {
 
 		return formattedURL;
 	}
-	
+
 	/**
 	 * uploads a file to repository using the pre-configured client.
-	 * @param client .
-	 * @param file .
-	 * @param displayer .
+	 * 
+	 * @param client
+	 *            .
+	 * @param file
+	 *            .
+	 * @param displayer
+	 *            .
 	 * @return the returned upload key
 	 * @throws RestClientException .
 	 * @throws CLIException .
 	 */
-    public static String uploadToRepo(final RestClient client, final File file, final CLIEventsDisplayer displayer) 
-    		throws RestClientException, CLIException {
-        if (file != null) {
-            if (!file.isFile()) {
-                throw new CLIException(file.getAbsolutePath() + " is not a file or is missing");
-            }
+	public static String uploadToRepo(final RestClient client, final File file, final CLIEventsDisplayer displayer)
+			throws RestClientException, CLIException {
+		if (file != null) {
+			if (!file.isFile()) {
+				throw new CLIException(file.getAbsolutePath() + " is not a file or is missing");
+			}
 			displayer.printEvent("Uploading " + file.getAbsolutePath());
 			return client.upload(null, file).getUploadKey();
-        }
-        return null;
-    }
-
+		}
+		return null;
+	}
 
 }

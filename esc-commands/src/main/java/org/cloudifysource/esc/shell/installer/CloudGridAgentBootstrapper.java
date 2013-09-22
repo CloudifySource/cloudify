@@ -43,6 +43,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.SystemDefaultHttpClient;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.ScriptLanguages;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
@@ -990,28 +991,29 @@ public class CloudGridAgentBootstrapper {
 	private void validateCloudifyUrls(final ValidationContext validationContext) throws CloudProvisioningException {
 		final String baseCloudifyUrl = cloud.getProvider().getCloudifyUrl();
 
+		final SystemDefaultHttpClient client = new SystemDefaultHttpClient();
+		
 		if (baseCloudifyUrl.endsWith(".tar.gz")
 				|| baseCloudifyUrl.endsWith(".zip")) {
-			validateUrl(baseCloudifyUrl, validationContext);
+			validateUrl(client, baseCloudifyUrl, validationContext);
 		} else {
 			final Set<String> scriptLanguages = getScriptLanguages();
 			if (scriptLanguages.contains(ScriptLanguages.LINUX_SHELL.toString())) {
-				validateUrl(baseCloudifyUrl + ".tar.gz", validationContext);
+				validateUrl(client, baseCloudifyUrl + ".tar.gz", validationContext);
 			}
 
 			if (scriptLanguages.contains(ScriptLanguages.WINDOWS_BATCH.toString())) {
-				validateUrl(baseCloudifyUrl + ".zip", validationContext);
+				validateUrl(client, baseCloudifyUrl + ".zip", validationContext);
 			}
 		}
 
 	}
 
-	private void validateUrl(final String cloudifyUrl, final ValidationContext validationContext)
+	private void validateUrl(final DefaultHttpClient httpClient, final String cloudifyUrl, final ValidationContext validationContext)
 			throws CloudProvisioningException {
 
-		final DefaultHttpClient httpClient = new DefaultHttpClient();
-
 		final HttpHead httpMethod = new HttpHead(cloudifyUrl);
+
 		try {
 			validationContext.validationOngoingEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE,
 					ShellUtils.getFormattedMessage(CloudifyErrorMessages.EVENT_VALIDATING_CLOUDIFY_URL.getName(),
