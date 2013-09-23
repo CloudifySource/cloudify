@@ -57,19 +57,14 @@ public abstract class UninstallationProcessInspector extends InstallationProcess
         conditionLatch.waitFor(new ConditionLatch.Predicate() {
 
             private boolean lifeCycleEnded = false;
-            private boolean undeployEnded = false;
 
             @Override
             public boolean isDone() throws CLIException, InterruptedException {
                 try {
-                    List<String> latestEvents;
                     boolean ended = false;
+                    lifeCycleEnded = lifeCycleEnded();
+                    List<String> latestEvents = getLatestEvents();
                     if (!lifeCycleEnded) {
-                        lifeCycleEnded = lifeCycleEnded();
-                        latestEvents = getLatestEvents();
-                        if (latestEvents.contains(CloudifyConstants.UNDEPLOYED_SUCCESSFULLY_EVENT)) {
-                            undeployEnded = true;
-                        }
                         if (!latestEvents.isEmpty()) {
                             if (latestEvents.contains(CloudifyConstants.UNDEPLOYED_SUCCESSFULLY_EVENT)) {
                                 ended = true;
@@ -89,16 +84,11 @@ public abstract class UninstallationProcessInspector extends InstallationProcess
 
                     if (lifeCycleEnded) {
                     	if (waitForCloudResourcesRelease) {
-	                        // wait for cloud resources
-	                        latestEvents = getLatestEvents();
-
-                            undeployEnded = false;
                             if (latestEvents.contains(CloudifyConstants.UNDEPLOYED_SUCCESSFULLY_EVENT)) {
-                                undeployEnded = true;
+                                ended = true;
                             } else {
                                 displayer.printNoChange();
                             }
-                            ended = lifeCycleEnded && undeployEnded;
                     	} else {
                     		ended = true;
                     	}
@@ -125,7 +115,7 @@ public abstract class UninstallationProcessInspector extends InstallationProcess
 
     }
 
-	public void setWaitForCloudResourcesRelease(boolean waitForCloudResourcesRelease) {
+	public void setWaitForCloudResourcesRelease(final boolean waitForCloudResourcesRelease) {
 		this.waitForCloudResourcesRelease = waitForCloudResourcesRelease;
 	}
 }
