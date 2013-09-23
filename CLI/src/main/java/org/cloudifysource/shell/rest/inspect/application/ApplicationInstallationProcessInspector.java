@@ -42,17 +42,20 @@ public class ApplicationInstallationProcessInspector extends InstallationProcess
             + "Configure the timeout using the -timeout flag.";
 
     private String applicationName;
+	private int numServices;
 
     public ApplicationInstallationProcessInspector(final RestClient restClient,
                                                    final String deploymentId,
                                                    final String applicationName,
                                                    final boolean verbose,
                                                    final Map<String, Integer> plannedNumberOfInstancesPerService) {
-        super(restClient, deploymentId, verbose, plannedNumberOfInstancesPerService, initWithZeros(plannedNumberOfInstancesPerService.keySet()));
+        super(restClient, deploymentId, verbose, plannedNumberOfInstancesPerService, 
+        							initWithZeros(plannedNumberOfInstancesPerService.keySet()));
         this.applicationName = applicationName;
+        this.numServices = plannedNumberOfInstancesPerService.entrySet().size();
     }
 
-    private static Map<String, Integer> initWithZeros(Set<String> serviceNames) {
+    private static Map<String, Integer> initWithZeros(final Set<String> serviceNames) {
         Map<String, Integer> map = new HashMap<String, Integer>();
         for (String serviceName : serviceNames) {
             map.put(serviceName, 0);
@@ -62,21 +65,26 @@ public class ApplicationInstallationProcessInspector extends InstallationProcess
 
     @Override
     public boolean lifeCycleEnded() throws RestClientException {        
-       	boolean spplicationIsInstalled = false;
+       	boolean applicationIsInstalled = false;
     	try {
             ApplicationDescription applicationDescription = restClient
                     .getApplicationDescription(applicationName);
-            spplicationIsInstalled = 
-            		applicationDescription.getApplicationState().equals(CloudifyConstants.DeploymentState.STARTED);
+            
+            boolean allServicesInstalled = (numServices == applicationDescription.getServicesDescription().size());
+            
+			boolean applicationStarted = applicationDescription.getApplicationState()
+					.equals(CloudifyConstants.DeploymentState.STARTED);
+			
+			applicationIsInstalled = applicationStarted && allServicesInstalled; 
     	} catch (final RestClientResponseException e) {
     		if (e.getStatusCode() == RESOURCE_NOT_FOUND_EXCEPTION_CODE) {
         		// the application is not available yet
-    			spplicationIsInstalled = false;
+    			applicationIsInstalled = false;
     		} else {
     			throw e;
     		}
     	}
-    	return spplicationIsInstalled;
+    	return applicationIsInstalled;
     }
 
 
