@@ -311,7 +311,7 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 		return persistentStoragePath;
 	}
 
-	public void setPersistentStoragePath(String persistentStoragePath) {
+	public void setPersistentStoragePath(final String persistentStoragePath) {
 		this.persistentStoragePath = persistentStoragePath;
 	}
 

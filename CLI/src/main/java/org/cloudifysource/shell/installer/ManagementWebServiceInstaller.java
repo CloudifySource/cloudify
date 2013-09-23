@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.shell.installer;
 
@@ -56,9 +53,9 @@ import com.j_spaces.kernel.Environment;
 /**
  * @author rafi, barakm
  * @since 2.0.0
- *
+ * 
  *        Handles the installation of a management web service
- *
+ * 
  */
 public class ManagementWebServiceInstaller extends AbstractManagementServiceInstaller {
 
@@ -75,7 +72,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 
 	/**
 	 * Sets the service's port.
-	 *
+	 * 
 	 * @param port
 	 *            The port to be used by the service
 	 */
@@ -93,7 +90,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 
 	/**
 	 * Sets the service's war file.
-	 *
+	 * 
 	 * @param warFile
 	 *            The service's war file, required for deployment.
 	 */
@@ -103,7 +100,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 
 	/*********
 	 * Installs the web service.
-	 *
+	 * 
 	 * @throws CLIException .
 	 */
 	public void installWebService() throws CLIException {
@@ -117,7 +114,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	/**
 	 * Installs the management web service with the configured settings (e.g. memory, scale). If a dependency on another
 	 * PU is set, the deployment will wait until at least 1 instance of that PU is available.
-	 *
+	 * 
 	 * @throws CLIException
 	 *             Reporting a failure to get the Grid Service Manager (GSM) to install the service
 	 */
@@ -153,8 +150,8 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 		}
 		// The gsc java options define the lrmi port range and memory size if not defined.
 		try {
-		getGridServiceManager().deploy(deployment);
-		} catch(final ProcessingUnitAlreadyDeployedException e) {
+			getGridServiceManager().deploy(deployment);
+		} catch (final ProcessingUnitAlreadyDeployedException e) {
 			// this is possible in a re-bootstrap scenario
 			logger.warning("Deployment of " + serviceName + " failed because a Processing unit with the "
 					+ "same name already exists. If this error occured during recovery of management machines, "
@@ -166,7 +163,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	 * Installs the management web service with the configured settings inside the localcloud dedicated management
 	 * service container. If a dependency on another PU is set, the deployment will wait until at least 1 instance of
 	 * that PU is available.
-	 *
+	 * 
 	 * @throws CLIException
 	 *             Reporting a failure to get the Grid Service Manager (GSM) to install the service
 	 */
@@ -209,16 +206,15 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	}
 
 	/**
-	 * Indicates it is required to wait for a successful connection with the service after the service
-	 * installation completes.
+	 * Indicates it is required to wait for a successful connection with the service after the service installation
+	 * completes.
 	 */
 	public void setWaitForConnection() {
 		waitForConnection = true;
 	}
-	
-	
+
 	@Override
-	public void validateManagementService(final Admin admin, final GridServiceAgent agent, final long timeout, 
+	public void validateManagementService(final Admin admin, final GridServiceAgent agent, final long timeout,
 			final TimeUnit timeunit) throws InterruptedException, TimeoutException, CLIException {
 		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
 			private boolean messagePublished = false;
@@ -259,9 +255,9 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	}
 
 	/**
-	 * Waits for a PU instance to be available, indicating the service is installed and running. If the
-	 * timeout is reached before a connection could be established, a {@link TimeoutException} is thrown.
-	 *
+	 * Waits for a PU instance to be available, indicating the service is installed and running. If the timeout is
+	 * reached before a connection could be established, a {@link TimeoutException} is thrown.
+	 * 
 	 * @param agent
 	 *            The grid service agent to use
 	 * @param timeout
@@ -316,11 +312,12 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 		});
 
 	}
-	
 
 	/**
 	 * Gets the URL of the service.
-	 * @param agent The grid service agent to use
+	 * 
+	 * @param agent
+	 *            The grid service agent to use
 	 * @return the URL of the service
 	 */
 	private URL getProcessingUnitUrl(final GridServiceAgent agent) {
@@ -334,12 +331,11 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 		publishEvent(formattedMessage);
 		return url;
 	}
-	
-	
+
 	/**
 	 * Waits for a connection to be established with the service. If the timeout is reached before a connection could be
 	 * established, a {@link TimeoutException} is thrown.
-	 *
+	 * 
 	 * @param adminFacade
 	 *            The admin facade used to connect and disconnect from the REST server
 	 * @param username
@@ -387,7 +383,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 
 	/**
 	 * Writes the URL of the service to the log.
-	 *
+	 * 
 	 * @throws CLIException
 	 *             Reporting a failure to get the host address
 	 */
@@ -396,7 +392,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 			final String serviceNameCapital = StringUtils.capitalize(serviceName);
 			final String localhost = Constants.getHostAddress();
 			String protocol = isSecureConnection ? "https" : "http";
-			logger.info(serviceNameCapital + " service will be available at: " + protocol + "://" 
+			logger.info(serviceNameCapital + " service will be available at: " + protocol + "://"
 					+ IPUtils.getSafeIpAddress(localhost) + ":" + port);
 		} catch (final UnknownHostException e) {
 			throw new CLIException("Failed getting host address", e);
@@ -417,11 +413,11 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 		return props;
 	}
 
-	//TODO:consider delete.
+	// TODO:consider delete.
 	/**
-	 * Waits for the management processes (GSM and ESM) to be available. If the timeout is reached before a
-	 * connection could be established, a {@link TimeoutException} is thrown.
-	 *
+	 * Waits for the management processes (GSM and ESM) to be available. If the timeout is reached before a connection
+	 * could be established, a {@link TimeoutException} is thrown.
+	 * 
 	 * @param timeout
 	 *            number of {@link TimeUnit}s to wait
 	 * @param timeunit
@@ -478,13 +474,14 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 
 	/**
 	 * Constructs and returns the URL of a processing unit instance deployed with the given agent.
-	 *
+	 * 
 	 * @param agent
 	 *            The agent of the desired processing unit instance
 	 * @param pu
 	 *            The processing unit to find an instance of, for construction of the requested URL
-	 *
-	 * @param isSecureConnection .
+	 * 
+	 * @param isSecureConnection
+	 *            .
 	 * @return URL to a specific processing unit instance
 	 */
 	public static URL getWebProcessingUnitURL(final GridServiceAgent agent, final ProcessingUnit pu,
@@ -520,9 +517,9 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	}
 
 	/**
-	 * Gets the service's war file. If the war file's path is not an absolute path, it is considered relative
-	 * to the home directory.
-	 *
+	 * Gets the service's war file. If the war file's path is not an absolute path, it is considered relative to the
+	 * home directory.
+	 * 
 	 * @param warFile
 	 *            The service's war file object (possibly with a relative path)
 	 * @return The service's war file object
@@ -537,7 +534,9 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 
 	/*******
 	 * Adds an event listener.
-	 * @param listener the listener.
+	 * 
+	 * @param listener
+	 *            the listener.
 	 */
 	public void addListener(final LocalhostBootstrapperListener listener) {
 		this.eventsListenersList.add(listener);
@@ -545,7 +544,9 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 
 	/********
 	 * Adds events listeners.
-	 * @param listeners the listeners.
+	 * 
+	 * @param listeners
+	 *            the listeners.
 	 */
 	public void addListeners(final List<LocalhostBootstrapperListener> listeners) {
 		for (final LocalhostBootstrapperListener listener : listeners) {

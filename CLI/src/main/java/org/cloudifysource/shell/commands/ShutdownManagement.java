@@ -44,6 +44,10 @@ import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
 				+ "on the local machine.")
 public class ShutdownManagement extends AbstractGSCommand {
 
+	private static final int PROGRESS_IN_SECONDS = 10;
+
+	private static final int DEFAULT_TIMEOUT_MINUTES = 5;
+
 	@Option(required = false, name = "-lookup-groups", description = "A unique name that is used to group together "
 			+ "Cloudify components. Default is 'local-cloud'. Override in order to start multiple local clouds on the"
 			+ " local machine.")
@@ -56,7 +60,7 @@ public class ShutdownManagement extends AbstractGSCommand {
 
 	@Option(required = false, name = "-timeout", description = "The number of minutes to wait until the operation is"
 			+ " done. By default waits 5 minutes.")
-	private int timeoutInMinutes = 5;
+	private int timeoutInMinutes = DEFAULT_TIMEOUT_MINUTES;
 
 	@Option(required = false, name = "-lookup-locators", description = "A list of ip addresses used to identify all "
 			+ "management machines. Default is null. Override when using a network without multicast.")
@@ -65,6 +69,9 @@ public class ShutdownManagement extends AbstractGSCommand {
 	/**
 	 * Shuts down the local agent, management processes (GSM, ESM, LUS) and GSC. Waits until shutdown is complete or
 	 * until the timeout is reached. Active services are forced to shut down.
+	 * 
+	 * @return .
+	 * @throws Exception .
 	 */
 	@Override
 	protected Object doExecute()
@@ -75,7 +82,7 @@ public class ShutdownManagement extends AbstractGSCommand {
 		installer.setLookupGroups(lookupGroups);
 		installer.setLookupLocators(lookupLocators);
 		installer.setNicAddress(nicAddress);
-		installer.setProgressInSeconds(10);
+		installer.setProgressInSeconds(PROGRESS_IN_SECONDS);
 		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
 
 		installer.shutdownManagementOnLocalhostAndWait(timeoutInMinutes, TimeUnit.MINUTES);

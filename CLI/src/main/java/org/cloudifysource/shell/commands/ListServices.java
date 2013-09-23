@@ -81,8 +81,7 @@ public class ListServices extends AbstractListCommand implements NewRestClientCo
 			}
 			if (CloudifyConstants.ERR_MESSAGE_CODE_MISSING_RESOURCE.equalsIgnoreCase(e.getMessageCode())) {
 				throw new CLIStatusException(CloudifyConstants.ERR_REASON_CODE_FAILED_TO_LOCATE_APP, applicationName);
-			}
-			else {
+			} else {
 				throw e;
 			}
 		}

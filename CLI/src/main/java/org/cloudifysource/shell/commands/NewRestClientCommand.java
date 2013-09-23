@@ -15,6 +15,11 @@
  *******************************************************************************/
 package org.cloudifysource.shell.commands;
 
+/*********
+ * Interface for commands that use the new REST API.
+ * @author yael
+ *
+ */
 public interface NewRestClientCommand {
 	
 	/**
