@@ -31,6 +31,7 @@ import org.cloudifysource.shell.CloudifyLicenseVerifier;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.exceptions.CLIException;
+import org.cloudifysource.shell.installer.CLILocalhostBootstrapperListener;
 import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
 
 /**
@@ -160,7 +161,8 @@ public class StartManagement extends AbstractGSCommand {
 		installer.setNotHighlyAvailableManagementSpace(isNotHAManagementSpace());
 		installer.setWaitForWebui(true);
 		installer.setCloudFilePath(cloudFileName);
-
+		installer.addListener(new CLILocalhostBootstrapperListener());
+		
 		installer.startManagementOnLocalhostAndWait(securityProfile, SPRING_SECURITY_CONFIG_FILE, username, password,
 				KEYSTORE_FILE, KEYSTORE_PASSWORD, getTimeoutInMinutes(), TimeUnit.MINUTES);
 		return "Management started successfully. Use the shutdown-management command to shutdown"

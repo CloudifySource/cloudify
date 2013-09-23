@@ -16,7 +16,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+/**********
+ * Bootstrap listener, responsible for echoing messages to CLI.
+ * @author barakme
+ *
+ */
 public class CLILocalhostBootstrapperListener implements LocalhostBootstrapperListener {
 
 	private final CLIEventsDisplayer displayer;

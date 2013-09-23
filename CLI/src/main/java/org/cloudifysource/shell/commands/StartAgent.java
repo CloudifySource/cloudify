@@ -19,6 +19,7 @@ import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.exceptions.CLIException;
+import org.cloudifysource.shell.installer.CLILocalhostBootstrapperListener;
 import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
 
 /**
@@ -86,7 +87,8 @@ public class StartAgent extends AbstractGSCommand {
 		installer.setNicAddress(nicAddress);
 		installer.setProgressInSeconds(DEFAULT_POLLING_INTERVAL);
 		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
-
+		installer.addListener(new CLILocalhostBootstrapperListener());
+		
 		installer.startAgentOnLocalhostAndWait("", "", getTimeoutInMinutes(),
 				TimeUnit.MINUTES);
 		return "Agent started succesfully. Use the shutdown-agent command to shutdown agent running on local machine.";

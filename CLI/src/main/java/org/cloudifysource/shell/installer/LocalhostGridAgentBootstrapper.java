@@ -33,15 +33,15 @@ import java.util.logging.Logger;
 
 import net.jini.core.discovery.LookupLocator;
 import net.jini.discovery.Constants;
-import org.cloudifysource.domain.cloud.Cloud;
 
 import org.apache.commons.io.FileUtils;
+import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
-import org.cloudifysource.dsl.utils.NetworkUtils;
 import org.cloudifysource.dsl.utils.IPUtils;
+import org.cloudifysource.dsl.utils.NetworkUtils;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.restclient.utils.NewRestClientUtils;
 import org.cloudifysource.shell.AdminFacade;
@@ -107,8 +107,6 @@ public class LocalhostGridAgentBootstrapper {
 			+ " Configure the timeout using the -timeout flag.";
 	private static final String REST_FILE = "tools" + File.separator + "rest" + File.separator + "rest.war";
 
-	
-
 	private static final String MANAGEMENT_SPACE_NAME = CloudifyConstants.MANAGEMENT_SPACE_NAME;
 
 	private static final String LINUX_SCRIPT_PREFIX = "#!/bin/bash\n";
@@ -138,7 +136,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	// script must spawn a daemon process (that is not a child process)
 	private static final String[] WINDOWS_CLOUD_COMMAND = new String[] { "cmd.exe", "/c", "gs-agent.bat" };
-	private static final String[] LINUX_CLOUD_COMMAND = new String[] { "gs-agent.sh" };
+	private static final String[] LINUX_CLOUD_COMMAND = new String[] { "nohup", "gs-agent.sh" };
 
 	// script must suppress output, since this process is not consuming it and
 	// so any output could block it.
@@ -322,7 +320,8 @@ public class LocalhostGridAgentBootstrapper {
 	 * @throws TimeoutException
 	 *             Reporting the timeout was reached
 	 */
-	public void startLocalCloudOnLocalhostAndWait(final String securityProfile, final String securityFilePath,
+	public void startLocalCloudOnLocalhostAndWait(
+			final String securityProfile, final String securityFilePath,
 			final String username, final String password, final String keystoreFilePath, final String keystorePassword,
 			final int timeout, final TimeUnit timeunit) throws CLIException, InterruptedException, TimeoutException {
 
@@ -419,9 +418,9 @@ public class LocalhostGridAgentBootstrapper {
 		setDefaultNicAddress();
 
 		// pre validations
-		List<CloudifyMachineValidator> preValidatorsList =
+		final List<CloudifyMachineValidator> preValidatorsList =
 				CloudifyMachineValidatorsFactory.getValidators(true/* isManagement */, nicAddress);
-		for (CloudifyMachineValidator cloudifyMachineValidator : preValidatorsList) {
+		for (final CloudifyMachineValidator cloudifyMachineValidator : preValidatorsList) {
 			cloudifyMachineValidator.validate();
 		}
 
@@ -619,7 +618,7 @@ public class LocalhostGridAgentBootstrapper {
 			final boolean applicationsExist) throws CLIException {
 		for (final String application : applicationsList) {
 			if (!application.equals(MANAGEMENT_APPLICATION)) {
-				CLIApplicationUninstaller uninstaller = new CLIApplicationUninstaller();
+				final CLIApplicationUninstaller uninstaller = new CLIApplicationUninstaller();
 				uninstaller.setRestClient(((RestAdminFacade) adminFacade).getNewRestClient());
 				uninstaller.setApplicationName(application);
 				uninstaller.setAskOnTimeout(false);
@@ -892,15 +891,15 @@ public class LocalhostGridAgentBootstrapper {
 	}
 
 	private void cleanPUWorkDirectory() throws CLIStatusException {
-				
+
 		final String puWorkDirectoryName = Environment.getHomeDirectory() + "/work/processing-units";
 		final File workDirectory = new File(puWorkDirectoryName);
-		
+
 		if (!workDirectory.exists()) {
 			// probably first time local cloud is bootstrapped.
 			return;
 		}
-		
+
 		if (!workDirectory.isDirectory()) {
 			throw new CLIStatusException(CloudifyErrorMessages.MISSING_WORK_DIRECTORY_BEFORE_BOOTSTRAP_LOCALCLOUD,
 					puWorkDirectoryName);
@@ -908,11 +907,11 @@ public class LocalhostGridAgentBootstrapper {
 
 		logger.fine("Deleting directories in: " + workDirectory);
 		final File[] filesToDelete = workDirectory.listFiles();
-		for (File file : filesToDelete) {
+		for (final File file : filesToDelete) {
 			if (file.isDirectory()) {
 				try {
 					FileUtils.deleteDirectory(file);
-				} catch (IOException e) {
+				} catch (final IOException e) {
 					throw new CLIStatusException(e,
 							CloudifyErrorMessages.FAILED_CLEANING_WORK_DIRECTORY_BEFORE_BOOTSTRAP_LOCALCLOUD,
 							file.getAbsolutePath(), e.getMessage());
@@ -1041,7 +1040,8 @@ public class LocalhostGridAgentBootstrapper {
 							ShellUtils.isSecureConnection(securityProfile), agent, managementServicesInstallers);
 				}
 
-				for (final AbstractManagementServiceInstaller managementServiceInstaller : managementServicesInstallers) {
+				for (final AbstractManagementServiceInstaller managementServiceInstaller 
+						: managementServicesInstallers) {
 					managementServiceInstaller.waitForInstallation(adminFacade, agent,
 							ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
 					if (managementServiceInstaller instanceof ManagementSpaceServiceInstaller) {
@@ -1129,7 +1129,8 @@ public class LocalhostGridAgentBootstrapper {
 
 			connectionLogs.supressConnectionErrors();
 			try {
-				for (final AbstractManagementServiceInstaller managementServiceInstaller : managementServicesInstallers) {
+				for (final AbstractManagementServiceInstaller managementServiceInstaller 
+						: managementServicesInstallers) {
 					String serviceName = "";
 					try {
 						serviceName = managementServiceInstaller.getServiceName();
@@ -1139,7 +1140,7 @@ public class LocalhostGridAgentBootstrapper {
 						managementServiceInstaller.validateManagementService(admin, agent,
 								ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
 						logger.fine("OK, management service " + serviceName + " is up and running.");
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						// management service not found
 						logger.warning("Error! Management service " + serviceName
 								+ " is not available after bootstrap "
@@ -1177,15 +1178,15 @@ public class LocalhostGridAgentBootstrapper {
 		final String gscLrmiCommandLineArg = getGscLrmiCommandLineArg();
 		final String webuiMemory = getWebServiceMemory(CloudifyConstants.WEBUI_MAX_MEMORY_ENVIRONMENT_VAR);
 		final int webuiPort = getWebservicePort(CloudifyConstants.WEBUI_PORT_ENV_VAR, isSecureConnection);
-		
+
 		final String webUiFileName = EnvironmentUtils.findWebuiWar();
-		
+
 		final ManagementWebServiceInstaller webuiInstaller = new ManagementWebServiceInstaller();
 		webuiInstaller.setAdmin(agent.getAdmin());
 		webuiInstaller.setVerbose(verbose);
 		webuiInstaller.setProgress(progressInSeconds, TimeUnit.SECONDS);
 		webuiInstaller.setMemory(MemoryUnit.toMegaBytes(webuiMemory), MemoryUnit.MEGABYTES);
-		webuiInstaller.setPort(webuiPort);		
+		webuiInstaller.setPort(webuiPort);
 		webuiInstaller.setWarFile(new File(webUiFileName));
 		webuiInstaller.setServiceName(CloudifyConstants.MANAGEMENT_WEBUI_SERVICE_NAME);
 		webuiInstaller.setManagementZone(MANAGEMENT_ZONE);
@@ -1365,9 +1366,9 @@ public class LocalhostGridAgentBootstrapper {
 			setLookupDefaults(admin);
 
 			// pre validations
-			List<CloudifyMachineValidator> preValidatorsList =
+			final List<CloudifyMachineValidator> preValidatorsList =
 					CloudifyMachineValidatorsFactory.getValidators(false/* isManagement */, nicAddress);
-			for (CloudifyMachineValidator cloudifyMachineValidator : preValidatorsList) {
+			for (final CloudifyMachineValidator cloudifyMachineValidator : preValidatorsList) {
 				cloudifyMachineValidator.validate();
 			}
 
@@ -1464,7 +1465,7 @@ public class LocalhostGridAgentBootstrapper {
 							if (agentThatStartedComponent != null) {
 								agentUid = agentThatStartedComponent.getUid();
 							}
-							String message = "Detected " + serviceName + " management process " + " started by agent "
+							String message = "Detected " + serviceName + " management process started by agent "
 									+ agentUid + " ";
 							if (!checkAgent((AgentGridComponent) component)) {
 								message += " expected agent " + agent.getUid();

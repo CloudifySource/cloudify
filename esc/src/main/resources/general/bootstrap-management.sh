@@ -237,14 +237,12 @@ run_script "post-bootstrap"
 # Add agent restart command to scheduled tasks.
 cat <(crontab -l) <(echo "@reboot nohup ~/gigaspaces/tools/cli/cloudify.sh $START_COMMAND $START_COMMAND_ARGS") | crontab -
 
-nohup ./cloudify.sh $START_COMMAND $START_COMMAND_ARGS
+./cloudify.sh $START_COMMAND $START_COMMAND_ARGS
 
 RETVAL=$?
-echo cat nohup.out
-cat nohup.out
 
 if [ $RETVAL -ne 0 ]; then
-	echo in bootstrap-management script, exit code is: $RETVAL
+	echo start command failed, exit code is: $RETVAL
 	# exit codes that are larger than 200 are not specified by Cloudify. We use the 255 code to indicate a custom error.
 	if [ $RETVAL -gt 200 ]; then
 		RETVAL=255
