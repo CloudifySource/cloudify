@@ -40,7 +40,7 @@ import org.cloudifysource.esc.installer.InstallerException;
  */
 public abstract class VfsFileTransfer implements FileTransfer {
 
-	protected static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(SftpFileTransfer.class
+	protected static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(VfsFileTransfer.class
 			.getName());
 
 	protected FileSystemManager fileSystemManager;
