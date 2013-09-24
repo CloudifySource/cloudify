@@ -409,6 +409,8 @@ public final class USMUtils {
 		}
 
 		admin.close();
+		
+		admin = null;
 
 	}
 
