@@ -207,7 +207,7 @@ public class ApplicationDescriptionFactory {
         if (zone != null) {
             // for undeply - zone exists, PU does not.
             ProcessingUnitInstance[] processingUnitInstances = zone.getProcessingUnitInstances();
-            zone.getGridServiceContainers().getContainers()[0].getProcessingUnitInstances();
+//             zone.getGridServiceContainers().getContainers()[0].getProcessingUnitInstances();
             if (processingUnitInstances.length > 0) {
                 processingUnit = processingUnitInstances[0].getProcessingUnit();
             }
