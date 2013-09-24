@@ -1,16 +1,31 @@
 package org.cloudifysource.usm;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.io.FileUtils;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyConstants.USMState;
-import org.cloudifysource.dsl.internal.space.ServiceInstanceAttemptData;
+import org.cloudifysource.dsl.internal.debug.DebugModes;
+import org.cloudifysource.dsl.utils.ServiceUtils;
+import org.cloudifysource.usm.shutdown.DefaultProcessKiller;
+import org.cloudifysource.utilitydomain.data.ServiceInstanceAttemptData;
+import org.cloudifysource.utilitydomain.openspaces.OpenspacesConstants;
+import org.hyperic.sigar.ProcExe;
+import org.hyperic.sigar.ProcState;
 import org.hyperic.sigar.Sigar;
+import org.hyperic.sigar.SigarException;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
@@ -18,6 +33,7 @@ import org.openspaces.admin.space.Space;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.GigaSpaceConfigurer;
 import org.openspaces.core.cluster.ClusterInfo;
+import org.openspaces.core.properties.BeanLevelProperties;
 import org.openspaces.core.space.UrlSpaceConfigurer;
 import org.openspaces.pu.container.ProcessingUnitContainer;
 import org.openspaces.pu.container.integrated.IntegratedProcessingUnitContainer;
@@ -33,6 +49,7 @@ public class FeaturesTest {
 	private static GigaSpaceConfigurer gigaSpaceConfigurer;
 	private static UrlSpaceConfigurer urlSpaceConfigurer;
 	private static Admin admin;
+	private static final String DEBUG_LOCK_FILE_PATH = "target/test-classes/debug/ext/.cloudify_debugging.lock";;
 
 	@BeforeClass
 	public static void beforeClass() {
@@ -44,10 +61,10 @@ public class FeaturesTest {
 
 		// System.setProperty("org.hyperic.sigar.path", Environment.getHomeDirectory() + "/lib/platform/sigar");
 
-		ClusterInfo clusterInfo = new ClusterInfo(null, 1, null, 1, null);
+		final ClusterInfo clusterInfo = new ClusterInfo(null, 1, null, 1, null);
 		urlSpaceConfigurer =
 				new UrlSpaceConfigurer("/./" + CloudifyConstants.MANAGEMENT_SPACE_NAME + "?locators=127.0.0.1:"
-						+ CloudifyConstants.DEFAULT_LOCALCLOUD_LUS_PORT);
+						+ OpenspacesConstants.DEFAULT_LOCALCLOUD_LUS_PORT);
 		final IJSpace space =
 				urlSpaceConfigurer
 						.clusterInfo(clusterInfo)
@@ -63,7 +80,7 @@ public class FeaturesTest {
 		if (!found) {
 			throw new IllegalStateException("Could not find a lookup service");
 		}
-		Space testSpace = admin.getSpaces().waitFor(CloudifyConstants.MANAGEMENT_SPACE_NAME, 5, TimeUnit.SECONDS);
+		final Space testSpace = admin.getSpaces().waitFor(CloudifyConstants.MANAGEMENT_SPACE_NAME, 5, TimeUnit.SECONDS);
 		if (testSpace == null) {
 			throw new IllegalStateException("Could not locate management space in admin");
 		}
@@ -73,20 +90,19 @@ public class FeaturesTest {
 	public void beforeTest() {
 		// delete all objects currently in space
 		gigaspace.clear(new Object());
-		USMUtils.clearAdmin();
+		USMUtils.shutdownAdmin();
 	}
 
 	@Test
 	public void testRetriesWithRetryLeft() throws IOException, InterruptedException {
-		IntegratedProcessingUnitContainer ipuc = createContainer("classpath:/retries/META-INF/spring/pu.xml");
+		final IntegratedProcessingUnitContainer ipuc = createContainer("classpath:/retries/META-INF/spring/pu.xml");
 
 		try {
-			ApplicationContext ctx = ipuc.getApplicationContext();
+			final ApplicationContext ctx = ipuc.getApplicationContext();
 			final UniversalServiceManagerBean usm = ctx.getBean(UniversalServiceManagerBean.class);
 			Assert.assertNotNull(usm);
 
-
-			ServiceInstanceAttemptData attempt = gigaspace.read(new ServiceInstanceAttemptData(), 20000);
+			final ServiceInstanceAttemptData attempt = gigaspace.read(new ServiceInstanceAttemptData(), 20000);
 			Assert.assertNotNull("Expected to find attempt data in space", attempt);
 			Assert.assertEquals((Integer) 2, attempt.getCurrentAttemptNumber());
 			Assert.assertEquals((Integer) 1, attempt.getInstanceId());
@@ -101,14 +117,14 @@ public class FeaturesTest {
 
 	@Test
 	public void testRetriesWithNoRetryLeft() throws IOException, InterruptedException {
-		ServiceInstanceAttemptData data = createServiceInstanceAttempDataTemplate();
+		final ServiceInstanceAttemptData data = createServiceInstanceAttempDataTemplate();
 		data.setCurrentAttemptNumber(2);
 		gigaspace.write(data);
 
-		IntegratedProcessingUnitContainer ipuc = createContainer("classpath:/retries/META-INF/spring/pu.xml");
+		final IntegratedProcessingUnitContainer ipuc = createContainer("classpath:/retries/META-INF/spring/pu.xml");
 
 		try {
-			ApplicationContext ctx = ipuc.getApplicationContext();
+			final ApplicationContext ctx = ipuc.getApplicationContext();
 			final UniversalServiceManagerBean usm = ctx.getBean(UniversalServiceManagerBean.class);
 			Assert.assertNotNull(usm);
 
@@ -120,17 +136,81 @@ public class FeaturesTest {
 
 	}
 
+	@Ignore
+	@Test
+	public void testDebug() throws IOException, InterruptedException {
+		if (ServiceUtils.isWindows()) {
+			// The debug feature only works for linux
+			return;
+		}
+		final BeanLevelProperties blp = new BeanLevelProperties();
+		final Properties contextProperties = new Properties();
+		contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_ALL, Boolean.TRUE.toString());
+		contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEBUG_MODE, DebugModes.INSTEAD.toString());
+
+		blp.setContextProperties(contextProperties);
+
+		deleteLockFile();
+		final IntegratedProcessingUnitContainer ipuc =
+				createContainer("classpath:/debug/META-INF/spring/pu.xml", blp);
+
+		try {
+			final ApplicationContext ctx = ipuc.getApplicationContext();
+			final UniversalServiceManagerBean usm = ctx.getBean(UniversalServiceManagerBean.class);
+			Assert.assertNotNull(usm);
+
+
+			final USMState stateAtBreakpoint = getUsmState(usm);
+			Assert.assertNotNull(stateAtBreakpoint);
+			Assert.assertEquals(USMState.INITIALIZING, stateAtBreakpoint);
+
+			final File lockFile = waitForDebugLockFile();
+			System.out.println("Deleting lock file: " + lockFile.getAbsolutePath());
+			FileUtils.deleteQuietly(lockFile);
+
+			waitForInstanceToReachStatus(usm, USMState.RUNNING);
+
+		} finally {
+			ipuc.close();
+		}
+
+	}
+
+	private void deleteLockFile() {
+		final File lockFile = new File(DEBUG_LOCK_FILE_PATH);
+		if (lockFile.exists()) {
+			FileUtils.deleteQuietly(lockFile);
+		}
+	}
+	private File waitForDebugLockFile() {
+		
+		final long endTime = System.currentTimeMillis() + 20000;
+		while (System.currentTimeMillis() < endTime) {
+			final File lockFile = new File(DEBUG_LOCK_FILE_PATH);
+			if (lockFile.exists()) {
+				return lockFile;
+			}
+		}
+		Assert.fail("Expected debug lock file: " + DEBUG_LOCK_FILE_PATH + " was not created");
+		return null;
+
+	}
+
 	private void waitForInstanceToReachStatus(final UniversalServiceManagerBean usm, final USMState targetState)
 			throws InterruptedException {
+		waitForInstanceToReachStatus(usm, targetState, 20000);
+	}
+
+	private void waitForInstanceToReachStatus(final UniversalServiceManagerBean usm, final USMState targetState,
+			final long timeoutMillis)
+			throws InterruptedException {
 		final long start = System.currentTimeMillis();
-		final long end = start + 20000;
+		final long end = start + timeoutMillis;
 
 		USMState currentState = null;
 		while (System.currentTimeMillis() < end) {
-			ServiceMonitors[] monitors = usm.getServicesMonitors();
-			Object state = monitors[0].getMonitors().get("USM_State");
-			if (state != null) {
-				currentState = USMState.values()[(Integer) state];
+			currentState = getUsmState(usm);
+			if (currentState != null) {
 				// System.out.println("State is: " + currentState);
 				if (currentState.equals(targetState)) {
 					break;
@@ -143,8 +223,20 @@ public class FeaturesTest {
 		Assert.assertEquals(targetState, currentState);
 	}
 
+	private USMState getUsmState(final UniversalServiceManagerBean usm) {
+		final ServiceMonitors[] monitors = usm.getServicesMonitors();
+		final Object state = monitors[0].getMonitors().get("USM_State");
+		if (state != null) {
+			final USMState stateEnum = USMState.values()[(Integer) state];
+			return stateEnum;
+		} else {
+			return null;
+		}
+
+	}
+
 	private ServiceInstanceAttemptData createServiceInstanceAttempDataTemplate() {
-		ServiceInstanceAttemptData data = new ServiceInstanceAttemptData();
+		final ServiceInstanceAttemptData data = new ServiceInstanceAttemptData();
 		data.setApplicationName("default");
 		data.setServiceName("groovyError");
 		data.setGscPid(new Sigar().getPid());
@@ -154,14 +246,15 @@ public class FeaturesTest {
 
 	@Test
 	public void testRecoveryAfterRetry() throws IOException, InterruptedException {
-		ServiceInstanceAttemptData data = createServiceInstanceAttempDataTemplate();
+		final ServiceInstanceAttemptData data = createServiceInstanceAttempDataTemplate();
 		data.setCurrentAttemptNumber(2);
 		gigaspace.write(data);
 
-		IntegratedProcessingUnitContainer ipuc = createContainer("classpath:/retries-recovery/META-INF/spring/pu.xml");
+		final IntegratedProcessingUnitContainer ipuc =
+				createContainer("classpath:/retries-recovery/META-INF/spring/pu.xml");
 
 		try {
-			ApplicationContext ctx = ipuc.getApplicationContext();
+			final ApplicationContext ctx = ipuc.getApplicationContext();
 			final UniversalServiceManagerBean usm = ctx.getBean(UniversalServiceManagerBean.class);
 			Assert.assertNotNull(usm);
 
@@ -171,14 +264,17 @@ public class FeaturesTest {
 			ipuc.close();
 		}
 
-
-
 	}
 
 	private IntegratedProcessingUnitContainer createContainer(final String classpath) throws IOException {
-		IntegratedProcessingUnitContainerProvider provider = new IntegratedProcessingUnitContainerProvider();
+		return createContainer(classpath, null);
+	}
+
+	private IntegratedProcessingUnitContainer createContainer(final String classpath,
+			final BeanLevelProperties beanLevelProperties) throws IOException {
+		final IntegratedProcessingUnitContainerProvider provider = new IntegratedProcessingUnitContainerProvider();
 		// provide cluster information for the specific PU instance
-		ClusterInfo clusterInfo = new ClusterInfo();
+		final ClusterInfo clusterInfo = new ClusterInfo();
 		// clusterInfo.setSchema("partitioned-sync2backup");
 		clusterInfo.setNumberOfInstances(1);
 		clusterInfo.setInstanceId(1);
@@ -187,13 +283,15 @@ public class FeaturesTest {
 
 		// set the config location (override the default one - classpath:/META-INF/spring/pu.xml)
 		provider.addConfigLocation(classpath);
+		if (beanLevelProperties != null) {
+			provider.setBeanLevelProperties(beanLevelProperties);
+		}
 
 		// Build the Spring application context and "start" it
-		ProcessingUnitContainer container = provider.createContainer();
+		final ProcessingUnitContainer container = provider.createContainer();
 		return (IntegratedProcessingUnitContainer) container;
 
 	}
-
 
 	@AfterClass
 	public static void afterClass() throws Exception {
@@ -202,5 +300,48 @@ public class FeaturesTest {
 		urlSpaceConfigurer.destroy();
 
 		System.out.println("Closed down embedded space");
+	}
+
+	@After
+	public void after() throws SigarException {
+		final Sigar sigar = new Sigar();
+		final long[] allPids = sigar.getProcList();
+		final long myPid = sigar.getPid();
+
+		final Set<Long> childPids = new HashSet<Long>();
+		for (final long pid : allPids) {
+			try {
+				final ProcState state = sigar.getProcState(pid);
+				final long ppid = state.getPpid();
+
+				if (ppid == myPid) {
+					System.out.println("Found a leaking process: " + pid);
+					childPids.add(pid);
+				}
+			} catch (final SigarException e) {
+				// probably means that the process belongs to another user to may not have permissions
+				// to read its data. Should be safe to ignore
+			}
+		}
+
+		if (!childPids.isEmpty()) {
+			System.out.println("Warning: found leaked processes after test finished: " + childPids);
+			final DefaultProcessKiller killer = new DefaultProcessKiller();
+			for (final Long pid : childPids) {
+				final ProcExe procExe = sigar.getProcExe(pid);
+				final String[] procArgs = sigar.getProcArgs(pid);
+				System.out.println("Killing process: " + pid + ". Name: " + procExe.getName() + ", Args: "
+						+ Arrays.toString(procArgs) + "Directory: " + procExe.getCwd());
+				try {
+					killer.killProcess(pid);
+				} catch (final USMException e) {
+					System.out.println("Failed to kill process: " + pid);
+				}
+
+			}
+
+			Assert.fail("Leaked processes found after test.");
+		}
+
 	}
 }

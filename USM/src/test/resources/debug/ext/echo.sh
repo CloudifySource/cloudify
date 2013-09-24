@@ -1,0 +1,1 @@
+echo Echo from $1
