@@ -95,7 +95,11 @@ public abstract class UninstallationProcessInspector extends InstallationProcess
                     }
                     return ended;
                 } catch (final RestClientException e) {
-                    throw new CLIException(e.getMessage(), e, e.getVerbose());
+                	String message = e.getMessageFormattedText();
+                	if (message == null) {
+                		message = e.getMessage();
+                	}
+                    throw new CLIException(message, e, e.getVerbose());
                 }
             }
 

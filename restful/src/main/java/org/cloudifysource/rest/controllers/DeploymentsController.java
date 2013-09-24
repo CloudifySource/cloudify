@@ -127,6 +127,7 @@ import org.openspaces.admin.internal.pu.InternalProcessingUnit;
 import org.openspaces.admin.internal.pu.elastic.GridServiceContainerConfig;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
+import org.openspaces.admin.pu.ProcessingUnits;
 import org.openspaces.admin.pu.elastic.ElasticStatefulProcessingUnitDeployment;
 import org.openspaces.admin.pu.elastic.ElasticStatelessProcessingUnitDeployment;
 import org.openspaces.admin.pu.elastic.config.ManualCapacityScaleConfigurer;
@@ -318,6 +319,8 @@ public class DeploymentsController extends BaseRestController {
 			@RequestParam(required = false, defaultValue = "-1") final int to)
 			throws Throwable {
 
+		validateDeploymentIdExists(deploymentId);
+		
 		// limit the default number of events returned to the client.
 		int actualTo = to;
 		if (to == -1) {
@@ -369,6 +372,8 @@ public class DeploymentsController extends BaseRestController {
 			@PathVariable final String deploymentId)
 			throws Throwable {
 
+		validateDeploymentIdExists(deploymentId);
+		
 		EventsCacheKey key = new EventsCacheKey(deploymentId);
 		logger.fine(EventsUtils.getThreadId()
 				+ " Received request for last event of key : " + key);
@@ -388,6 +393,19 @@ public class DeploymentsController extends BaseRestController {
 			// request for specific events is treated as best effort. no guarantees all events are returned.
 			return EventsUtils.extractDesiredEvents(value.getEvents(), lastEventId, lastEventId);
 		}
+	}
+
+	private void validateDeploymentIdExists(final String deploymentId) 
+			throws ResourceNotFoundException {
+		ProcessingUnits processingUnits = admin.getProcessingUnits();
+        for (ProcessingUnit pu : processingUnits) {
+            String puDeploymentId = (String) pu.getBeanLevelProperties().getContextProperties()
+                    .get(CloudifyConstants.CONTEXT_PROPERTY_DEPLOYMENT_ID);
+            if (deploymentId.equals(puDeploymentId)) {
+                return;
+            }
+        }
+        throw new ResourceNotFoundException("Deployment id " + deploymentId);
 	}
 
 	/**
@@ -1118,11 +1136,14 @@ public class DeploymentsController extends BaseRestController {
 	 * @param deploymentId
 	 *            The deployment id.
 	 * @return The services description.
+	 * @throws ResourceNotFoundException . 
 	 */
 	@RequestMapping(value = "/{deploymentId}/description", method = RequestMethod.GET)
 	public List<ServiceDescription> getServiceDescriptionListByDeploymentId(
-			@PathVariable final String deploymentId) {
+			@PathVariable final String deploymentId) throws ResourceNotFoundException {
 
+		validateDeploymentIdExists(deploymentId);
+		
 		final ApplicationDescriptionFactory appDescriptionFactory =
 				new ApplicationDescriptionFactory(restConfig.getAdmin());
 		List<ServiceDescription> descriptions = new ArrayList<ServiceDescription>();
