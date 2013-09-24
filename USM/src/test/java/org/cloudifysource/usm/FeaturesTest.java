@@ -25,7 +25,6 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
@@ -136,7 +135,6 @@ public class FeaturesTest {
 
 	}
 
-	@Ignore
 	@Test
 	public void testDebug() throws IOException, InterruptedException {
 		if (ServiceUtils.isWindows()) {
@@ -158,7 +156,6 @@ public class FeaturesTest {
 			final ApplicationContext ctx = ipuc.getApplicationContext();
 			final UniversalServiceManagerBean usm = ctx.getBean(UniversalServiceManagerBean.class);
 			Assert.assertNotNull(usm);
-
 
 			final USMState stateAtBreakpoint = getUsmState(usm);
 			Assert.assertNotNull(stateAtBreakpoint);
@@ -182,8 +179,9 @@ public class FeaturesTest {
 			FileUtils.deleteQuietly(lockFile);
 		}
 	}
+
 	private File waitForDebugLockFile() {
-		
+
 		final long endTime = System.currentTimeMillis() + 20000;
 		while (System.currentTimeMillis() < endTime) {
 			final File lockFile = new File(DEBUG_LOCK_FILE_PATH);
