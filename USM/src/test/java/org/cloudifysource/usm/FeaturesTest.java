@@ -12,10 +12,9 @@ import org.apache.commons.io.FileUtils;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyConstants.USMState;
 import org.cloudifysource.dsl.internal.debug.DebugModes;
+import org.cloudifysource.dsl.internal.space.ServiceInstanceAttemptData;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.usm.shutdown.DefaultProcessKiller;
-import org.cloudifysource.utilitydomain.data.ServiceInstanceAttemptData;
-import org.cloudifysource.utilitydomain.openspaces.OpenspacesConstants;
 import org.hyperic.sigar.ProcExe;
 import org.hyperic.sigar.ProcState;
 import org.hyperic.sigar.Sigar;
@@ -25,23 +24,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.openspaces.admin.Admin;
-import org.openspaces.admin.AdminFactory;
-import org.openspaces.admin.space.Space;
-import org.openspaces.core.GigaSpace;
-import org.openspaces.core.GigaSpaceConfigurer;
-import org.openspaces.core.cluster.ClusterInfo;
-import org.openspaces.core.properties.BeanLevelProperties;
-import org.openspaces.core.space.UrlSpaceConfigurer;
-import org.openspaces.pu.container.ProcessingUnitContainer;
-import org.openspaces.pu.container.integrated.IntegratedProcessingUnitContainer;
-import org.openspaces.pu.container.integrated.IntegratedProcessingUnitContainerProvider;
-import org.openspaces.pu.service.ServiceMonitors;
-import org.springframework.context.ApplicationContext;
-
-import com.j_spaces.core.IJSpace;
 
 public class FeaturesTest {
 
@@ -136,7 +119,6 @@ public class FeaturesTest {
 
 	}
 
-	@Ignore
 	@Test
 	public void testDebug() throws IOException, InterruptedException {
 		if (ServiceUtils.isWindows()) {
@@ -158,7 +140,6 @@ public class FeaturesTest {
 			final ApplicationContext ctx = ipuc.getApplicationContext();
 			final UniversalServiceManagerBean usm = ctx.getBean(UniversalServiceManagerBean.class);
 			Assert.assertNotNull(usm);
-
 
 			final USMState stateAtBreakpoint = getUsmState(usm);
 			Assert.assertNotNull(stateAtBreakpoint);
@@ -182,8 +163,9 @@ public class FeaturesTest {
 			FileUtils.deleteQuietly(lockFile);
 		}
 	}
+
 	private File waitForDebugLockFile() {
-		
+
 		final long endTime = System.currentTimeMillis() + 20000;
 		while (System.currentTimeMillis() < endTime) {
 			final File lockFile = new File(DEBUG_LOCK_FILE_PATH);
