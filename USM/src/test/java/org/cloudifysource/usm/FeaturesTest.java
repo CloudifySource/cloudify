@@ -25,6 +25,21 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.openspaces.admin.Admin;
+import org.openspaces.admin.AdminFactory;
+import org.openspaces.admin.space.Space;
+import org.openspaces.core.GigaSpace;
+import org.openspaces.core.GigaSpaceConfigurer;
+import org.openspaces.core.cluster.ClusterInfo;
+import org.openspaces.core.properties.BeanLevelProperties;
+import org.openspaces.core.space.UrlSpaceConfigurer;
+import org.openspaces.pu.container.ProcessingUnitContainer;
+import org.openspaces.pu.container.integrated.IntegratedProcessingUnitContainer;
+import org.openspaces.pu.container.integrated.IntegratedProcessingUnitContainerProvider;
+import org.openspaces.pu.service.ServiceMonitors;
+import org.springframework.context.ApplicationContext;
+
+import com.j_spaces.core.IJSpace;
 
 public class FeaturesTest {
 
@@ -47,7 +62,7 @@ public class FeaturesTest {
 		final ClusterInfo clusterInfo = new ClusterInfo(null, 1, null, 1, null);
 		urlSpaceConfigurer =
 				new UrlSpaceConfigurer("/./" + CloudifyConstants.MANAGEMENT_SPACE_NAME + "?locators=127.0.0.1:"
-						+ OpenspacesConstants.DEFAULT_LOCALCLOUD_LUS_PORT);
+						+ CloudifyConstants.DEFAULT_LOCALCLOUD_LUS_PORT);
 		final IJSpace space =
 				urlSpaceConfigurer
 						.clusterInfo(clusterInfo)
