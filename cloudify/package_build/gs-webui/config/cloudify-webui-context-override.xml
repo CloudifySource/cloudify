@@ -10,7 +10,7 @@
 
 
     <bean id="repositoryDefinitionBean" class="org.cloudifysource.repository.definitions.GitRepositoryDefinition">
-        <property name="uri" value="http://github.com/CloudifySource/cloudify-recipes.git"/>
+        <property name="uri" value="https://github.com/CloudifySource/cloudify-recipes.git"/>
 	<property name="rootFolder" value="${JSHOMEDIR}/work/cloudify_recipes_clone"/>
         <property name="existingMethod" value="USE_IF_VALID"/>
         <!-- property name="branch" value="" /-->
