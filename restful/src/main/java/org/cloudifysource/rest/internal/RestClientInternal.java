@@ -13,11 +13,14 @@
  */
 package org.cloudifysource.rest.internal;
 
+import java.io.File;
 import java.net.URL;
 
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.rest.request.AddTemplatesInternalRequest;
 import org.cloudifysource.dsl.rest.response.AddTemplatesInternalResponse;
 import org.cloudifysource.dsl.rest.response.Response;
+import org.cloudifysource.dsl.rest.response.UploadResponse;
 import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.restclient.exceptions.RestClientException;
 import org.codehaus.jackson.type.TypeReference;
@@ -30,12 +33,40 @@ import org.codehaus.jackson.type.TypeReference;
 public class RestClientInternal extends RestClient {
 	private static final String ADD_TEMPALTES_INTERNAL_URL_FORMAT = "internal";
 	private static final String REMOVE_TEMPALTE_INTERNAL_URL_FORMAT = "internal/%s";
+	private static final String UPLAOD_INTERNAL_URL_FORMAT = "internal/%s";
 
 	public RestClientInternal(final URL url, final String username, final String password, final String apiVersion)
 			throws RestClientException {
 		super(url, username, password, apiVersion);
 	}
-
+	
+	/**
+	 * Uploads a file to the repository.
+	 * 
+	 * @param fileName
+	 *            The name of the file to upload.
+	 * @param file
+	 *            The file to upload.
+	 * @return upload response.
+	 * @throws RestClientException .
+	 */
+	public UploadResponse uploadInternal(final String fileName, final File file) throws RestClientException {
+		validateFile(file);
+		final String finalFileName = fileName == null ? file.getName() : fileName;
+		final String uploadUrl = getFormattedUrl(
+				versionedUploadControllerUrl, 
+				UPLAOD_INTERNAL_URL_FORMAT, 
+				finalFileName);	
+		
+		final UploadResponse response = 
+				executor.postFile(
+						uploadUrl, 
+						file, 
+						CloudifyConstants.UPLOAD_FILE_PARAM_NAME, 
+						new TypeReference<Response<UploadResponse>>() { });	
+		return response;
+	}
+	
 	/**
 	 * Executes a rest API call to add templates to this instance only.
 	 * 

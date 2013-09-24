@@ -98,7 +98,7 @@ public class RestClient {
 
 	protected final RestClientExecutor executor;
 	private String versionedDeploymentControllerUrl;
-	private String versionedUploadControllerUrl;
+	protected String versionedUploadControllerUrl;
 	protected String versionedTemplatesControllerUrl;
 
 	public RestClient(final URL url,
@@ -424,7 +424,13 @@ public class RestClient {
 
 	}
 
-	private void validateFile(final File file) throws RestClientException {
+	/**
+	 * Validate file before uploading.
+	 * @param file 
+	 * 			The file to upload.
+	 * @throws RestClientException
+	 */
+	protected void validateFile(final File file) throws RestClientException {
 		if (file == null) {
 			throw MessagesUtils.createRestClientException(RestClientMessageKeys.UPLOAD_FILE_MISSING.getName());
 		}
