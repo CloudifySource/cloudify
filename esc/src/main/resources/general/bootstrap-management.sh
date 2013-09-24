@@ -19,9 +19,10 @@
 #	$PASSWORD - the machine password
 #############################################################################
 
-if [ $(which wget >&/dev/null; echo $?) = 0 ]; then
+# some distro do not have which installed so we're checking if the file exists 
+if [ -f /usr/bin/wget ]; then
 	DOWNLOADER="wget"
-elif [ $(which curl >&/dev/null; echo $?) = 0 ]; then
+elif [ -f /usr/bin/curl ]; then
 	DOWNLOADER="curl"
 fi
 
@@ -136,7 +137,7 @@ if [ ! -z "$GIGASPACES_LINK" ]; then
 	if [ "$DOWNLOADER" = "wget" ];then
 		$DOWNLOADER -q $GIGASPACES_LINK.tar.gz -O $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz || error_exit $? 104 "Failed downloading cloudify installation"
 	elif [ "$DOWNLOADER" = "curl" ];then
-		$DOWNLOADER --silent -O $GIGASPACES_LINK.tar.gz -o $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz || error_exit $? 104 "Failed downloading cloudify installation"
+		$DOWNLOADER --silent -o $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz -O $GIGASPACES_LINK.tar.gz  || error_exit $? 104 "Failed downloading cloudify installation"
 	fi
 fi
 
@@ -145,7 +146,7 @@ if [ ! -z "$GIGASPACES_OVERRIDES_LINK" ]; then
 	if [ "$DOWNLOADER" = "wget" ];then
 		$DOWNLOADER -q $GIGASPACES_OVERRIDES_LINK.tar.gz -O $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz || error_exit $? 105 "Failed downloading cloudify overrides"
 	elif [ "$DOWNLOADER" = "curl" ];then
-		$DOWNLOADER --silent -O $GIGASPACES_OVERRIDES_LINK.tar.gz -o $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz || error_exit $? 105 "Failed downloading cloudify overrides"
+		$DOWNLOADER --silent -o $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz -O $GIGASPACES_OVERRIDES_LINK.tar.gz  || error_exit $? 105 "Failed downloading cloudify overrides"
 	fi
 fi
 
