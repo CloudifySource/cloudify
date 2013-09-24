@@ -22,8 +22,10 @@ import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
+import org.cloudifysource.dsl.rest.response.AddTemplatesInternalResponse;
 import org.cloudifysource.dsl.rest.response.UploadResponse;
 import org.cloudifysource.rest.repo.UploadRepo;
+import org.cloudifysource.restDoclet.annotations.InternalMethod;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -54,8 +56,10 @@ public class UploadController extends BaseRestController {
     /**
      * Uploading a file to be used in future deployments.
      * The file will be kept at least {@link UploadRepo#TIMEOUT_SECOND} seconds.
-     * @param fileName - the name of the file to upload.
-     * @param file - the file to upload.
+     * @param fileName
+	 *            The name of the file to upload.
+     * @param file
+	 *            The file to upload.
      * @return {@link UploadResponse} - contains the uploaded file's name.
      * @throws RestErrorException .
      */
@@ -65,6 +69,26 @@ public class UploadController extends BaseRestController {
             @PathVariable() final String fileName,
             @RequestParam(value = CloudifyConstants.UPLOAD_FILE_PARAM_NAME, required = true) final MultipartFile file)
             throws RestErrorException {
+    	return uploadInternal(fileName, file);
+    }
+    
+	/**
+	 * Add template files to the cloud configuration directory and to the cloud object. This method supposed to be
+	 * invoked by the MNG on all REST instances.
+	 * 
+	 * @param fileName
+	 *            The name of the file to upload.
+	 * @param file
+	 *            The file to upload.
+	 * @return {@link AddTemplatesInternalResponse}
+	 * @throws RestErrorException . 
+	 */
+	@InternalMethod
+    @RequestMapping(value = "internal/{fileName:.+}", method = RequestMethod.POST)
+    public UploadResponse uploadInternal(
+    		@PathVariable() final String fileName,
+            @RequestParam(value = CloudifyConstants.UPLOAD_FILE_PARAM_NAME, required = true) final MultipartFile file) 
+            		throws RestErrorException {
         // determine file's name
         String name = fileName;
         if (StringUtils.isEmpty(fileName)) {

@@ -103,14 +103,19 @@ public class RestClientExecutor {
 			final TypeReference<Response<T>> responseTypeReference)
 					throws RestClientException {
 		final HttpEntity stringEntity;
+		String jsonStr;
 		try {
-			final String jsonStr = new ObjectMapper().writeValueAsString(postBody);
+			jsonStr = new ObjectMapper().writeValueAsString(postBody);
 			stringEntity = new StringEntity(jsonStr, "UTF-8");
 		} catch (final IOException e) {
 			throw  MessagesUtils.createRestClientIOException(
 					RestClientMessageKeys.SERIALIZATION_ERROR.getName(),
 					e,
 					url);
+		}
+		if (logger.isLoggable(Level.FINE)) {
+			logger.log(Level.FINE, "executing post request to " + url 
+					+ ", tring to post object " + jsonStr);
 		}
 		return post(url, responseTypeReference, stringEntity);
 	}
@@ -139,6 +144,10 @@ public class RestClientExecutor {
 		final MultipartEntity multipartEntity = new MultipartEntity();
 		final FileBody fileBody = new FileBody(fileToPost);
 		multipartEntity.addPart(partName, fileBody);
+		if (logger.isLoggable(Level.FINE)) {
+			logger.log(Level.FINE, "executing post request to " + relativeUrl 
+					+ ", tring to post file " + fileToPost.getName());
+		}
 		return post(relativeUrl, responseTypeReference, multipartEntity);
 	}
 
@@ -158,6 +167,9 @@ public class RestClientExecutor {
     				throws RestClientException {
         String fullUrl = getFullUrl(relativeUrl);
 		final HttpGet getRequest = new HttpGet(fullUrl);
+		if (logger.isLoggable(Level.FINE)) {
+			logger.log(Level.FINE, "execute get request to " + relativeUrl);
+		}
 		return executeRequest(getRequest, responseTypeReference);
     }
 
@@ -192,7 +204,9 @@ public class RestClientExecutor {
     	}
 
     	final HttpDelete deleteRequest = new HttpDelete(builder.toString());
-
+		if (logger.isLoggable(Level.FINE)) {
+			logger.log(Level.FINE, "executing delete request to " + relativeUrl);
+		}
     	return executeRequest(deleteRequest, responseTypeReference);
     }
 
@@ -210,6 +224,9 @@ public class RestClientExecutor {
 		   throws RestClientException {
 
    	final HttpDelete deleteRequest = new HttpDelete(getFullUrl(relativeUrl));
+	if (logger.isLoggable(Level.FINE)) {
+		logger.log(Level.FINE, "executing delete request to " + relativeUrl);
+	}
    	return executeRequest(deleteRequest, responseTypeReference);
    }
 

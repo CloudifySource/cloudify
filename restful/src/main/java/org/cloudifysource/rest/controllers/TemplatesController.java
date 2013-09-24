@@ -47,9 +47,9 @@ import org.cloudifysource.dsl.rest.AddTemplatesException;
 import org.cloudifysource.dsl.rest.request.AddTemplatesInternalRequest;
 import org.cloudifysource.dsl.rest.request.AddTemplatesRequest;
 import org.cloudifysource.dsl.rest.response.AddTemplateResponse;
-import org.cloudifysource.dsl.rest.response.AddTemplatesStatus;
 import org.cloudifysource.dsl.rest.response.AddTemplatesInternalResponse;
 import org.cloudifysource.dsl.rest.response.AddTemplatesResponse;
+import org.cloudifysource.dsl.rest.response.AddTemplatesStatus;
 import org.cloudifysource.dsl.rest.response.GetTemplateResponse;
 import org.cloudifysource.dsl.rest.response.ListTemplatesResponse;
 import org.cloudifysource.dsl.rest.response.RemoveTemplatesResponse;
@@ -149,7 +149,8 @@ public class TemplatesController extends BaseRestController {
 			final List<String> expectedTemplates = internalRequest.getExpectedTemplates();
 			log(Level.INFO, "expecting to add " + expectedTemplates.size() + " templates: " + expectedTemplates);
 			// add the templates to all REST instances
-			final AddTemplatesResponse addTemplatesToRestInstances = addTemplatesToRestInstances(internalRequest);
+			final AddTemplatesResponse addTemplatesToRestInstances = 
+					addTemplatesToRestInstances(internalRequest, templatesZippedFolder);
 			handleAddTemplatesResponse(addTemplatesToRestInstances);
 			return addTemplatesToRestInstances;
 		} finally {
@@ -258,8 +259,6 @@ public class TemplatesController extends BaseRestController {
 			throws DSLException, IOException {
 
 		final AddTemplatesInternalRequest internalRequest = new AddTemplatesInternalRequest();
-		// upload key
-		internalRequest.setUploadKey(request.getUploadKey());
 		// cloud templates
 		final File unzippedFolder = new ComputeTemplatesReader().unzipCloudTemplatesFolder(templatesZippedFolder);
 		try {
@@ -297,7 +296,8 @@ public class TemplatesController extends BaseRestController {
 	 * @param failedToAddTemplatesByHost
 	 *            a map updates by this method to specify the failed to add templates for each instance.
 	 */
-	private AddTemplatesResponse addTemplatesToRestInstances(final AddTemplatesInternalRequest request) {
+	private AddTemplatesResponse addTemplatesToRestInstances(final AddTemplatesInternalRequest request, 
+			final File templatesZippedFolder) {
 
 		final Map<String, AddTemplateResponse> templatesResponse = new HashMap<String, AddTemplateResponse>();
 		
@@ -317,7 +317,8 @@ public class TemplatesController extends BaseRestController {
 			 */
 			final AddTemplatesInternalResponse instanceResponse =
 					executeAddTemplateOnInstance(
-							hostAddress, Integer.toString(puInstance.getJeeDetails().getPort()), request);
+							hostAddress, Integer.toString(puInstance.getJeeDetails().getPort()), 
+							request, templatesZippedFolder);
 			final Map<String, String> failedToAddTempaltesToHost = instanceResponse.getFailedToAddTempaltesAndReasons();
 			final List<String> addedTempaltes = instanceResponse.getAddedTempaltes();
 			/*
@@ -383,17 +384,25 @@ public class TemplatesController extends BaseRestController {
 	private AddTemplatesInternalResponse executeAddTemplateOnInstance(
 			final String host,
 			final String port,
-			final AddTemplatesInternalRequest request) {
+			final AddTemplatesInternalRequest request,
+			final File templatesZippedFolder) {
 		AddTemplatesInternalResponse instanceResponse;
+		String requestName = "create rest client";
 		try {
-			// invoke add-templates command on each REST instance.
+			// invoke upload and add-templates commands on each REST instance.
 			final RestClientInternal client = createRestClientInternal(host, port);
+			requestName = "execute upload request";
+			String uploadKey = client.uploadInternal(null, templatesZippedFolder).getUploadKey();
+			log(Level.FINE, "[executeAddTemplateOnInstance] - Uploaded templates zipped folder [" 
+					+ templatesZippedFolder + "] to " + host + ", upload key is " + uploadKey);
+			request.setUploadKey(uploadKey);
+			requestName = "execute add-templates-internal request";
 			instanceResponse = client.addTemplatesInternal(request);
 		} catch (final RestClientException e) {
 			// the request failed => all expected templates failed to be added
 			// create a response that contains all expected templates in a failure map.
-			log(Level.WARNING, "[executeAddTemplateOnInstance] - Failed to execute http request to "
-					+ host + ". Error message: " + e.getMessageFormattedText());
+			log(Level.WARNING, "[executeAddTemplateOnInstance] - Failed to " + requestName + " to "
+					+ host + ". Error message: " + e.getMessageFormattedText() + ", verbose: " + e.getVerbose());
 			final Map<String, String> failedMap = new HashMap<String, String>();
 			for (final String expectedTemplate : request.getExpectedTemplates()) {
 				failedMap.put(expectedTemplate, "http request failed [" + e.getMessageFormattedText() + "]");
@@ -433,16 +442,21 @@ public class TemplatesController extends BaseRestController {
 	 * @return {@link AddTemplatesInternalResponse}
 	 * @throws IOException
 	 *             in case of reading error.
+	 * @throws RestErrorException .
 	 */
 	@InternalMethod
 	@RequestMapping(value = "internal", method = RequestMethod.POST)
 	private AddTemplatesInternalResponse
 			addTemplatesInternal(
 					@RequestBody final AddTemplatesInternalRequest request)
-					throws IOException {
+					throws IOException, RestErrorException {
 
 		final ComputeTemplatesReader reader = new ComputeTemplatesReader();
-		final File templatesFolder = repo.get(request.getUploadKey());
+		String uploadKey = request.getUploadKey();
+		final File templatesFolder = repo.get(uploadKey);
+		if (templatesFolder == null) {
+			throw new RestErrorException(CloudifyMessageKeys.WRONG_TEMPLATES_UPLOAD_KEY.getName(), uploadKey);
+		}
 		final File unzippedTemplatesFolder = reader.unzipCloudTemplatesFolder(templatesFolder);
 
 		try {
@@ -822,20 +836,13 @@ public class TemplatesController extends BaseRestController {
 	private void removeTemplateFromCloud(final String templateName)
 			throws RestErrorException {
 		log(Level.FINE, "[removeTemplateFromCloud] - removing template [" + templateName + "] from cloud.");
+		// delete template's file from the cloud configuration directory.
 		try {
-			// delete template's file from the cloud configuration directory.
 			deleteTemplateFile(templateName);
 		} catch (final RestErrorException e) {
-			try {
-				log(Level.FINE, "[removeTemplateFromCloud] - failed to remove template's files: "
-						+ e.getLocalizedMessage() + ", trying to remove the template from cloud's list.");
-				removeTemplateFromCloudList(templateName);
-				throw e;
-			} catch (final RestErrorException e1) {
-				log(Level.FINE, "[removeTemplateFromCloud] - failed to remove template from cloud list: "
-						+ e1.getLocalizedMessage());
-				throw e;
-			}
+			log(Level.WARNING, "[removeTemplateFromCloud] - failed to remove template's files: "
+					+ e.getLocalizedMessage() + ". The template will not be removed from the cloud's tempaltes list.");
+			throw e;
 		}
 		// remove template from cloud's list
 		removeTemplateFromCloudList(templateName);
