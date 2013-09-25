@@ -115,8 +115,9 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 				.singleMachineDeployment();
 		ManualCapacityScaleConfig scaleConfig;
 		if (isLocalcloud()) {
+			Integer memoryCapacity = puSla.getMemoryCapacity();
 			scaleConfig = new ManualCapacityScaleConfigurer()
-					.memoryCapacity(containerMemoryInMB * deploymentConfig.getService().getNumInstances(),
+					.memoryCapacity(memoryCapacity,
 							MemoryUnit.MEGABYTES).create();
 		} else {
 			final long cloudExternalProcessMemoryInMB = calculateExternalProcessMemory();
@@ -235,9 +236,8 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 		// these properties should be set if defined to overrride the properties set in the cloud groovy.
 		final int containerMemoryInMB = statefulSla.getMemoryCapacityPerContainer();
 		final int maxMemoryCapacityInMB = statefulSla.getMaxMemoryCapacity();
-
 		deployment.memoryCapacityPerContainer(containerMemoryInMB, MemoryUnit.MEGABYTES)
-				.maxMemoryCapacity(maxMemoryCapacityInMB + "m")
+				.maxMemoryCapacity(maxMemoryCapacityInMB, MemoryUnit.MEGABYTES)
 				.highlyAvailable(statefulSla.getHighlyAvailable())
 				.singleMachineDeployment();
 
@@ -247,8 +247,7 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 		if (isLocalcloud()) {
 			// setting localcloud scale config
 			scaleConfig = new ManualCapacityScaleConfigurer()
-					.memoryCapacity(containerMemoryInMB * deploymentConfig.getService().getNumInstances(),
-							MemoryUnit.MEGABYTES).create();
+					.memoryCapacity(memoryCapacity, MemoryUnit.MEGABYTES).create();
 		} else {
 			// create manual standard scale config
 			scaleConfig = ElasticScaleConfigFactory
@@ -691,17 +690,15 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 	// adds all shared properties among all deployment types
 	private void addSharedDeploymentParameters(
 			final ElasticDeploymentTopology deployment) {
-		final ElasticDeploymentTopology addContextProperty =
-				deployment
-						.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME,
-								deploymentConfig.getApplicationName())
-						.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS,
-								deploymentConfig.getAuthGroups());
+		deployment.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME,
+				deploymentConfig.getApplicationName())
+				.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS,
+						deploymentConfig.getAuthGroups());
 		if (deploymentConfig.getTemplateName() != null) {
-			addContextProperty.addContextProperty(
+			deployment.addContextProperty(
 					CloudifyConstants.CONTEXT_PROPERTY_TEMPLATE, deploymentConfig.getTemplateName());
 		}
-		addContextProperty.name(deploymentConfig.getAbsolutePUName());
+		deployment.name(deploymentConfig.getAbsolutePUName());
 		// add context properties
 		final Properties contextProperties = createServiceContextProperties();
 		setContextProperties(deployment, contextProperties);
