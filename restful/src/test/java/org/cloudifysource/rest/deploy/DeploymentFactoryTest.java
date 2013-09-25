@@ -241,8 +241,8 @@ public class DeploymentFactoryTest {
                 contextProperties.get("cluster-config.mirror-service.interval-opers").equals("1000"));
         //assert scale strategy
         final ScaleStrategyConfig scaleStrategy = deploymentHolder.getScaleStrategy();
-        Assert.assertTrue("cpu capacity cores is expected to be equal to 0",
-                scaleStrategy.getProperties().get("memory-capacity-megabytes").equals("128"));
+        Assert.assertTrue("memory capacity is expected to be ",
+                scaleStrategy.getProperties().get("memory-capacity-megabytes").equals("256"));
     }
 
     private void assertSharedCloudDeploymentPropertiesSet(final AbstractElasticProcessingUnitConfig deploymentHolder) {
