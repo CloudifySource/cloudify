@@ -37,10 +37,14 @@
 				access="permitAll" />
 			<sec:intercept-url pattern="/**/deployments/**" requires-channel="https"
 				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS', 'ROLE_VIEWERS')" />	
-			<sec:intercept-url pattern="/**/upload/**" requires-channel="https"
+			<sec:intercept-url pattern="/**/templates/internal" requires-channel="https"
+				access="permitAll" />
+			<sec:intercept-url pattern="/**/templates/**" requires-channel="https"
 				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS')" />
 			<sec:intercept-url pattern="/**/upload/internal/**" requires-channel="https"
-				access="permitAll" />	
+				access="permitAll" />
+			<sec:intercept-url pattern="/**/upload/**" requires-channel="https"
+				access="isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS', 'ROLE_APPMANAGERS')" />
 			<sec:intercept-url pattern="/**" requires-channel="https" access="isFullyAuthenticated()" />
 			<sec:custom-filter ref="basicAuthenticationFilter"
 				after="BASIC_AUTH_FILTER" />
