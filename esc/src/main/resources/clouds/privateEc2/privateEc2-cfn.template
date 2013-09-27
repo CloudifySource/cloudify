@@ -10,7 +10,7 @@
         "Tags":[
           {"Key":"Instance","Value": "someInstanceTag"}
         ], 
-        "UserData": { "Fn::Join" : [" >> /home/ubuntu/output.txt\n", [
+        "UserData": { "Fn::Join" : ["\n", [
           "export MACHINE_IP_ADDRESS=`curl http://instance-data/latest/meta-data/local-ipv4`",
           "export GIGASPACES_CLOUD_MACHINE_ID=`curl http://169.254.169.254/latest/meta-data/instance-id`",
           "export GIGASPACES_AGENT_ENV_PRIVATE_IP=`curl http://instance-data/latest/meta-data/local-ipv4`",
