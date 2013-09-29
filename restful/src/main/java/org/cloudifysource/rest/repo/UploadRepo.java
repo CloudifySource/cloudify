@@ -150,8 +150,8 @@ public class UploadRepo {
 			throws IOException, RestErrorException {
 		final String name = fileName == null ? multipartFile.getOriginalFilename() : fileName;
 		// enforce size limit
-		if (logger.isLoggable(Level.FINE)) {
-			logger.log(Level.FINE, "uploading file " + name);
+		if (logger.isLoggable(Level.FINER)) {
+			logger.log(Level.FINER, "uploading file " + name);
 		}
 		final long fileSize = multipartFile.getSize();
 		if (fileSize > getUploadSizeLimitBytes()) {
@@ -171,8 +171,8 @@ public class UploadRepo {
 			logger.log(Level.FINER, "Uploading file to " + storedFile.getAbsolutePath());
 		}
 		copyMultipartFileToLocalFile(multipartFile, storedFile);
-		if (logger.isLoggable(Level.FINE)) {
-			logger.log(Level.FINE, "File [" + storedFile.getAbsolutePath() + "] uploaded successfully.");
+		if (logger.isLoggable(Level.FINER)) {
+			logger.log(Level.FINER, "File [" + storedFile.getAbsolutePath() + "] uploaded successfully.");
 		}
 		return dirName;
 	}

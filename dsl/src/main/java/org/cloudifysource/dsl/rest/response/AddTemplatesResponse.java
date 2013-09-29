@@ -25,7 +25,8 @@ import java.util.Map;
 public class AddTemplatesResponse {
 
 	/*
-	 * A map that holds responses for each template. Each response describes which instances failed to add the template
+	 * A map that holds responses for each template. 
+	 * Each response describes which instances failed to add the template
 	 * and which succeeded.
 	 */
 	private Map<String, AddTemplateResponse> templates;

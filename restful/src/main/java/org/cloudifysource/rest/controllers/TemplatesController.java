@@ -313,7 +313,7 @@ public class TemplatesController extends BaseRestController {
 			instancesList.add(hostAddress);
 			log(Level.INFO, "[addTemplatesToRestInstances] - sending request to " + hostAddress);
 			/*
-			 * get instance response
+			 * add template to instance and get the response
 			 */
 			final AddTemplatesInternalResponse instanceResponse =
 					executeAddTemplateOnInstance(
@@ -328,49 +328,59 @@ public class TemplatesController extends BaseRestController {
 				for (final Entry<String, String> entry : failedToAddTempaltesToHost.entrySet()) {
 					log(Level.WARNING, "[addTemplatesToRestInstances] - failed to add templates to host ["
 							+ hostAddress + "]: " + failedToAddTempaltesToHost);
-					// update template's entry in the response
-					AddTemplateResponse addTemplateResponse = templatesResponse.get(entry.getKey());
+					// update template's entry in the final response
+					// for each template - add the current host to the failure hosts map of the template.
+					String templateName = entry.getKey();
+					AddTemplateResponse addTemplateResponse = templatesResponse.get(templateName);
+					// create new response if the template doesn't have one yet.
 					if (addTemplateResponse == null) {
 						addTemplateResponse = new AddTemplateResponse();
 					}
+					// get the failure map (hosts and reasons).
 					Map<String, String> failedHostsReasons = addTemplateResponse.getFailedToAddHosts();
 					if (failedHostsReasons == null) {
 						failedHostsReasons = new HashMap<String, String>();
 					}
+					// add the failed host (and failure reason) to the failure map.
 					failedHostsReasons.put(hostAddress, entry.getValue());
+					// set the updated failure map at template's response.
 					addTemplateResponse.setFailedToAddHosts(failedHostsReasons);
-					templatesResponse.put(entry.getKey(), addTemplateResponse);
+					// add the template and its response to the final templates response.
+					templatesResponse.put(templateName, addTemplateResponse);
 				}
 			}
 			/*
 			 * successfully added templates
 			 */
 			if (addedTempaltes != null) {
+				log(Level.INFO, "[addTemplatesToRestInstances] - successfully added templates to host ["
+						+ hostAddress + "]: " + addedTempaltes);
 				for (final String templateName : addedTempaltes) {
-					// partial success
-					log(Level.INFO, "[addTemplatesToRestInstances] - successfully added templates to host ["
-							+ hostAddress + "]: " + addedTempaltes);
 					AddTemplateResponse addTemplateResponse = templatesResponse.get(templateName);
+					// create new response if the template doesn't have one yet.
 					if (addTemplateResponse == null) {
 						addTemplateResponse = new AddTemplateResponse();
 					}
+					// get the successfully hosts list.
 					List<String> successfullyAddedHosts = addTemplateResponse.getSuccessfullyAddedHosts();
 					if (successfullyAddedHosts == null) {
 						successfullyAddedHosts = new LinkedList<String>();
 					}
+					// add the host to the successfully added hosts list.
 					successfullyAddedHosts.add(hostAddress);
+					// set the updated list at template's response.
 					addTemplateResponse.setSuccessfullyAddedHosts(successfullyAddedHosts);
+					// add the template and its response to the final templates response.
 					templatesResponse.put(templateName, addTemplateResponse);
 				}
 			}
 		}
 
-		// create and return the response.
+		// create and return the response (the status of the response will be set later).
 		final AddTemplatesResponse response = new AddTemplatesResponse();
 		response.setInstances(instancesList);
 		response.setTemplates(templatesResponse);
 		return response;
-
 	}
 
 	/**
@@ -390,13 +400,22 @@ public class TemplatesController extends BaseRestController {
 		String requestName = "create rest client";
 		try {
 			// invoke upload and add-templates commands on each REST instance.
+			/*
+			 * create rest client
+			 */
 			final RestClientInternal client = createRestClientInternal(host, port);
 			requestName = "execute upload request";
+			/*
+			 * upload
+			 */
 			String uploadKey = client.uploadInternal(null, templatesZippedFolder).getUploadKey();
 			log(Level.FINE, "[executeAddTemplateOnInstance] - Uploaded templates zipped folder [" 
-					+ templatesZippedFolder + "] to " + host + ", upload key is " + uploadKey);
+					+ templatesZippedFolder + "] to host [" + host + "], upload key = " + uploadKey);
 			request.setUploadKey(uploadKey);
 			requestName = "execute add-templates-internal request";
+			/*
+			 * add templates
+			 */
 			instanceResponse = client.addTemplatesInternal(request);
 		} catch (final RestClientException e) {
 			// the request failed => all expected templates failed to be added
