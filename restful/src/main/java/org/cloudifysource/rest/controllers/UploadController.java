@@ -95,12 +95,12 @@ public class UploadController extends BaseRestController {
             name = file.getOriginalFilename();
         }
         if (logger.isLoggable(Level.INFO)) {
-            logger.info("received request to upload file " + name);
+            logger.info("[uploadInternal] - received request to upload file " + name);
         }
         // upload file using uploadRepo
-        String uploadedFileDirName = null;
+        String uploadKey = null;
         try {
-            uploadedFileDirName = uploadRepo.put(name, file);
+            uploadKey = uploadRepo.put(name, file);
         } catch (IOException e) {
         	if (logger.isLoggable(Level.WARNING)) {
         		logger.warning("could not upload file " + name + " error was - " + e.getMessage());
@@ -108,9 +108,12 @@ public class UploadController extends BaseRestController {
             throw new RestErrorException(
                     CloudifyMessageKeys.UPLOAD_FAILED.getName(), name, e.getMessage());
         }
+        if (logger.isLoggable(Level.INFO)) {
+            logger.info("[uploadInternal] - seccussfuly uploaded file " + name + " [upload key = " + uploadKey + "]");
+        }
         // create and return UploadResponse
         UploadResponse response = new UploadResponse();
-        response.setUploadKey(uploadedFileDirName);
+        response.setUploadKey(uploadKey);
         return response;
     }
 }
