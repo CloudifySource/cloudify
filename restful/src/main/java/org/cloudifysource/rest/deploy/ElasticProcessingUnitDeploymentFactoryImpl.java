@@ -13,6 +13,7 @@
 package org.cloudifysource.rest.deploy;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -143,14 +144,21 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 	// TODO - temp files should be created in shared temp location, as read from restConfig
 	private File getBinaryFromPackedRecipe(final File packedService, final String binaryName) throws
 			IOException {
-
-		final File resultFile = ZipUtils.unzipEntry(packedService, "ext/" + binaryName, binaryName);
-		if (resultFile == null) {
-			throw new IllegalArgumentException("Missing file in packaged service: " + binaryName);
+		File tempFile = File.createTempFile(binaryName, "");
+		tempFile.delete();
+		ZipUtils.unzip(packedService, tempFile);
+		File destFile = new File(tempFile, "ext/" + binaryName);
+		if (!destFile.exists()) {
+			throw new FileNotFoundException("deployment file/folder " + binaryName + " could not be found");
 		}
-
-		return resultFile;
-
+		if (destFile.isDirectory()) {
+			final File jarFile = File.createTempFile(
+					destFile.getName(), ".jar");
+			jarFile.delete();
+			ZipUtils.zip(destFile, jarFile);
+			return jarFile;
+		}
+		return destFile;
 	}
 
 	private ElasticStatelessProcessingUnitDeployment createElasticStatelessPUDeployment()
