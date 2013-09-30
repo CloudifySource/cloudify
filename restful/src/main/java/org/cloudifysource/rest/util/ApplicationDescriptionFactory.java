@@ -55,6 +55,8 @@ public class ApplicationDescriptionFactory {
     private static final Logger logger = Logger
             .getLogger(ApplicationDescriptionFactory.class.getName());
 
+    private static final String NOT_AVAILABLE_STATE = "NA";
+    
     public ApplicationDescriptionFactory(final Admin admin) {
         this.admin = admin;
     }
@@ -232,14 +234,14 @@ public class ApplicationDescriptionFactory {
      * @return a populated {@link InstanceDescription} object describing the instance (name, id, state, etc.)
      */
     private InstanceDescription getInstanceDescription(final ProcessingUnitInstance processingUnitInstance) {
-        final String instanceState = getInstanceState(processingUnitInstance);
+        String instanceState = getInstanceState(processingUnitInstance);
         final int instanceId = processingUnitInstance.getInstanceId();
         final String instanceHostName = processingUnitInstance.getVirtualMachine().getMachine().getHostName();
         final String instanceHostAddress = processingUnitInstance.getVirtualMachine().getMachine().getHostAddress();
         final String instanceName = processingUnitInstance.getName();
 
         final InstanceDescription instanceDescription = new InstanceDescription();
-        instanceDescription.setInstanceStatus(instanceState);
+        instanceDescription.setInstanceStatus(instanceState != null ? instanceState : NOT_AVAILABLE_STATE);
         instanceDescription.setInstanceName(instanceName);
         instanceDescription.setInstanceId(instanceId);
         instanceDescription.setHostName(instanceHostName);
@@ -260,7 +262,11 @@ public class ApplicationDescriptionFactory {
         String instanceState;
         final ProcessingUnit processingUnit = processingUnitInstance.getProcessingUnit();
         if (processingUnit.getType() == ProcessingUnitType.UNIVERSAL) {
-            instanceState = getInstanceUsmState(processingUnitInstance).toString();
+            USMState instanceUsmState = getInstanceUsmState(processingUnitInstance);
+            if (instanceUsmState == null) {
+            	return null;
+            }
+			instanceState = instanceUsmState.toString();
         } else {
             instanceState = processingUnit.getStatus().toString();
         }
@@ -280,7 +286,7 @@ public class ApplicationDescriptionFactory {
         List<InstanceDescription> instancesDescriptionList = new ArrayList<InstanceDescription>();
 
         if (processingUnit != null) {
-            for (ProcessingUnitInstance processingUnitInstance : processingUnit) {
+            for (ProcessingUnitInstance processingUnitInstance : processingUnit.getInstances()) {
                 InstanceDescription instanceDescription = getInstanceDescription(processingUnitInstance);
                 instancesDescriptionList.add(instanceDescription);
             }
@@ -446,7 +452,7 @@ public class ApplicationDescriptionFactory {
         int puInstanceCounter = 0;
 
         if (processingUnit != null) {
-            for (ProcessingUnitInstance pui : processingUnit) {
+            for (ProcessingUnitInstance pui : processingUnit.getInstances()) {
                 if (isUsmStateOfPuiRunning(pui)) {
                     puInstanceCounter++;
                 }
