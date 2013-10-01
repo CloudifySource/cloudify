@@ -32,9 +32,9 @@ import java.util.concurrent.TimeoutException;
 import javax.annotation.PreDestroy;
 
 import org.cloudifysource.esc.installer.InstallerException;
+import org.jclouds.ContextBuilder;
 import org.jclouds.aws.ec2.compute.strategy.AWSEC2ReviseParsedImage;
 import org.jclouds.compute.ComputeServiceContext;
-import org.jclouds.compute.ComputeServiceContextFactory;
 import org.jclouds.compute.RunNodesException;
 import org.jclouds.compute.domain.ComputeMetadata;
 import org.jclouds.compute.domain.Image;
@@ -152,10 +152,12 @@ public class JCloudsDeployer {
 
 		// Enable logging using gs_logging
 		wiring.add(new JDKLoggingModule());
-
-		this.context = new ComputeServiceContextFactory().createContext(
-				provider, account, key, wiring, overrides);
-
+		
+		this.context = ContextBuilder.newBuilder(provider)
+		.credentials(account, key)
+		.modules(wiring)
+		.overrides(overrides)
+		.buildView(ComputeServiceContext.class);
 	}
 
 	/**********
@@ -831,9 +833,11 @@ public class JCloudsDeployer {
 		logger.warning("Reseting JClouds Deployer");
 		final Set<Module> wiring = new HashSet<Module>();
 		this.context.close();
-		this.context = new ComputeServiceContextFactory().createContext(
-				this.provider, this.account, this.key, wiring, this.overrides);
-
+		this.context = ContextBuilder.newBuilder(provider)
+		.credentials(account, key)
+		.modules(wiring)
+		.overrides(overrides)
+		.buildView(ComputeServiceContext.class);
 	}
 	
 	private void removeLeakingServersAfterCreationException(final RunNodesException e) {
