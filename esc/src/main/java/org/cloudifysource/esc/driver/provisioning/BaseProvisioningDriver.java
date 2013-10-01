@@ -40,7 +40,6 @@ import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContextAware;
-import org.jclouds.util.CredentialUtils;
 import org.openspaces.admin.Admin;
 
 /**
@@ -50,6 +49,7 @@ import org.openspaces.admin.Admin;
 public abstract class BaseProvisioningDriver implements ProvisioningDriver, ProvisioningDriverClassContextAware, 
 		ProvisioningDriverBootstrapValidation {
 
+	private static final String PRIVATE_KEY_PREFIX = "-----BEGIN RSA PRIVATE KEY-----";
 	protected static final int MULTIPLE_SHUTDOWN_REQUEST_IGNORE_TIMEOUT = 120000;
 	protected static final int WAIT_THREAD_SLEEP_MILLIS = 10000;
 	protected static final int WAIT_TIMEOUT_MILLIS = 360000;
@@ -233,8 +233,8 @@ public abstract class BaseProvisioningDriver implements ProvisioningDriver, Prov
 			// using a password
 			final String remotePassword = machineDetails.getRemotePassword();
 			if (StringUtils.isNotBlank(remotePassword)) {
-				// is this actually a pem file?
-				if (CredentialUtils.isPrivateKeyCredential(remotePassword)) {
+				// is this actually a private key file?
+				if (remotePassword.startsWith(PRIVATE_KEY_PREFIX)) {
 					logger.fine("Cloud has provided a key file for connections to new machines");
 					try {
 						keyFile = File.createTempFile("gs-esm-key", ".pem");

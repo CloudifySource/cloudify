@@ -24,6 +24,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.io.FileUtils;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
+import org.jclouds.ContextBuilder;
 import org.jclouds.cloudstack.domain.EncryptedPasswordAndPrivateKey;
 import org.jclouds.cloudstack.functions.WindowsLoginCredentialsFromEncryptedData;
 import org.jclouds.compute.ComputeServiceContext;
@@ -68,7 +69,7 @@ public class EC2WindowsPasswordHandler {
 	public LoginCredentials getPassword(final NodeMetadata node, final ComputeServiceContext context, final long end,
 			final File pemFile)
 			throws InterruptedException, TimeoutException, CloudProvisioningException {
-		final EC2Client api = (EC2Client) context.getProviderSpecificContext().getApi();
+		final EC2Client api = (EC2Client) ContextBuilder.newBuilder("EC2Client").build();
 		final Location zone = node.getLocation();
 		final Location region = zone.getParent();
 		final String id = node.getId();
