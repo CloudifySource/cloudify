@@ -13,7 +13,6 @@
 package org.cloudifysource.restclient;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.security.KeyStore;
 import java.util.HashMap;
@@ -57,7 +56,6 @@ import org.cloudifysource.dsl.rest.response.UploadResponse;
 import org.cloudifysource.restclient.exceptions.RestClientException;
 import org.cloudifysource.restclient.messages.MessagesUtils;
 import org.cloudifysource.restclient.messages.RestClientMessageKeys;
-import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
@@ -562,13 +560,10 @@ public class RestClient {
 		} catch (RestClientException e) {
 			String verbose = e.getVerbose();
 				try {
+					// may be partial failure - in this case the verbose contains the AddTemplatesResponse object.
 					response = new ObjectMapper().readValue(verbose, AddTemplatesResponse.class);
 					throw new AddTemplatesException(response);
-				} catch (JsonProcessingException e1) {
-					logger.warning("Failed to process exception, got JsonProcessingException: " + e1.getMessage());
-					throw e;
-				} catch (IOException e1) {
-					logger.warning("Failed to process exception, got IOException: " + e1.getMessage());
+				} catch (Exception e1) {
 					throw e;
 				}
 		}
