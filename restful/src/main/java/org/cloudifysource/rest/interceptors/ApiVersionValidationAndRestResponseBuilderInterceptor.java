@@ -27,6 +27,7 @@ import javax.ws.rs.core.MediaType;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
+import org.cloudifysource.dsl.rest.response.ApplicationDescription;
 import org.cloudifysource.dsl.rest.response.Response;
 import org.cloudifysource.rest.controllers.RestErrorException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -158,6 +159,8 @@ public class ApiVersionValidationAndRestResponseBuilderInterceptor extends Handl
         		} else if (returnType == String.class) {
         			String viewName = modelAndView.getViewName();
         			methodReturnObject = viewName;
+        		} else if (returnType == ApplicationDescription.class) {
+        			methodReturnObject = null;
         		} else {
         			logger.warning("return type not supported: " + returnType);
         			throw new RestErrorException("return type not supported: " + returnType);

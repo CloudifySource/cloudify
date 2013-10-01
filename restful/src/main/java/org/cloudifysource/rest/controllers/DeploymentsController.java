@@ -631,7 +631,6 @@ public class DeploymentsController extends BaseRestController {
 	 * 
 	 */
 	@RequestMapping(value = "/{appName}", method = RequestMethod.POST)
-	//@PreAuthorize("isFullyAuthenticated() and hasPermission(#authGroups, 'deploy')")
 	@PreAuthorize("isFullyAuthenticated() and hasPermission(#request.getAuthGroups(), 'deploy')")
 	public InstallApplicationResponse installApplication(
 			@PathVariable final String appName,
@@ -715,10 +714,10 @@ public class DeploymentsController extends BaseRestController {
 	 * @throws ResourceNotFoundException .
 	 */
 	@RequestMapping(value = "/applications/{appName}/description", method = RequestMethod.GET)
+	@PostFilter("hasPermission(filterObject, 'view')")
 	public ApplicationDescription getApplicationDescription(
 			@PathVariable final String appName)
 			throws ResourceNotFoundException {
-		//TODO noak: set authGroups in the request and change the annotation to use request.getAuthGroups()
 		final ApplicationDescriptionFactory appDescriptionFactory =
 				new ApplicationDescriptionFactory(restConfig.getAdmin());
 		return appDescriptionFactory.getApplicationDescription(appName);
@@ -905,14 +904,13 @@ public class DeploymentsController extends BaseRestController {
 	 *             Thrown in case an error happened before installation begins.
 	 */
 	@RequestMapping(value = "/{appName}/services/{serviceName}", method = RequestMethod.POST)
+	@PreAuthorize("isFullyAuthenticated() and hasPermission(#request.getAuthGroups(), 'deploy')")
 	public InstallServiceResponse installService(
 			@PathVariable final String appName,
 			@PathVariable final String serviceName,
 			@RequestBody final InstallServiceRequest request)
 			throws RestErrorException {
 
-		//TODO noak: set authGroups in the request and change the annotation to use request.getAuthGroups()		
-		
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(appName, serviceName);
 
 		logger.info("[installService] - installing service " + serviceName);
@@ -922,6 +920,10 @@ public class DeploymentsController extends BaseRestController {
 		if (StringUtils.isBlank(uploadKey)) {
 			throw new RestErrorException(CloudifyMessageKeys.UPLOAD_KEY_PARAMETER_MISSING.getName());
 		}
+		
+		// set the new auth groups
+		String effectiveAuthGroups = getEffectiveAuthGroups(request.getAuthGroups());
+		request.setAuthGroups(effectiveAuthGroups);
 
 		// get service folder
 		final File packedFile = getFromRepo(uploadKey,

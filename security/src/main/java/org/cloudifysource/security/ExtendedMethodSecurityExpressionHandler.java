@@ -127,7 +127,14 @@ public class ExtendedMethodSecurityExpressionHandler extends
 			return super.filter(filterTarget, filterExpression, ctx);
 		}*/
 		
-		if (filterTarget instanceof List) {
+		if (filterTarget instanceof ApplicationDescription) {
+			rootObject.setFilterObject(((ApplicationDescription) filterTarget).getAuthGroups());
+			if (ExpressionUtils.evaluateAsBoolean(filterExpression, ctx)) {
+				return filterTarget;
+			} else {
+				return null;
+			}
+		} else if (filterTarget instanceof List) {
 			@SuppressWarnings("unchecked")
 			List<Object> objectsList = (List<Object>) filterTarget;
 			List<Object> retainList = new ArrayList<Object>();
@@ -141,11 +148,9 @@ public class ExtendedMethodSecurityExpressionHandler extends
 				}
 
 			}
-			
 			return retainList;
-		}
-
-		if (filterTarget instanceof Map) {
+			
+		} else if (filterTarget instanceof Map) {
 			@SuppressWarnings("unchecked")
 			Map<String, Object> returnValue = (Map<String, Object>) filterTarget;
 
@@ -187,7 +192,7 @@ public class ExtendedMethodSecurityExpressionHandler extends
 		}
 
 		throw new IllegalArgumentException(
-				"Filter target must be a collection or array type, but was "
+				"Filter target must be a collection, an array or an ApplicationDescription, but was "
 						+ filterTarget);
 	}
 }
