@@ -45,7 +45,7 @@ public class Connect extends AbstractGSCommand {
 	private boolean ssl;
 
 	@Argument(required = true, name = "URL", description = "the URL of the REST admin server to connect to")
-	private final String url = "";
+	private String url = "";
 
 	/**
 	 * {@inheritDoc}
@@ -62,6 +62,14 @@ public class Connect extends AbstractGSCommand {
 		}
 
 		return formattedMessage;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
 	}
 
 }
