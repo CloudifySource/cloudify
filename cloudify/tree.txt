@@ -1,0 +1,1601 @@
+[INFO] Scanning for projects...
+Downloading: http://maven-repository.openspaces.org/com/gigaspaces/gs-openspaces/9.7.0-SNAPSHOT/maven-metadata.xml
+1/2 KB   2/2 KB            Downloaded: http://maven-repository.openspaces.org/com/gigaspaces/gs-openspaces/9.7.0-SNAPSHOT/maven-metadata.xml (2 KB at 3.4 KB/sec)
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for org.cloudifysource:USM:jar:2.7.0-SNAPSHOT
+[WARNING] 'build.plugins.plugin.version' for org.apache.maven.plugins:maven-surefire-plugin is missing. @ line 93, column 12
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for org.cloudifysource:restful:war:2.7.0-SNAPSHOT
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.springframework:spring-aop:jar -> duplicate declaration of version (?) @ line 138, column 15
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for org.cloudifysource:management-space:jar:2.7.0-SNAPSHOT
+[WARNING] 'build.plugins.plugin.version' for org.apache.maven.plugins:maven-jar-plugin is missing. @ line 129, column 12
+[WARNING] 
+[WARNING] It is highly recommended to fix these problems because they threaten the stability of your build.
+[WARNING] 
+[WARNING] For this reason, future Maven versions might no longer support building such malformed projects.
+[WARNING] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] cloudify
+[INFO] domain
+[INFO] dsl
+[INFO] utility-domain
+[INFO] rest-client
+[INFO] CLI
+[INFO] esc
+[INFO] esc-commands
+[INFO] USM
+[INFO] security
+[INFO] security-ldap
+[INFO] restful
+[INFO] management-space
+[INFO] version
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building cloudify 2.7.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ cloudify ---
+[INFO] org.cloudifysource:cloudify:pom:2.7.0-SNAPSHOT
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building domain 2.7.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ domain ---
+[INFO] org.cloudifysource:domain:jar:2.7.0-SNAPSHOT
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building dsl 2.7.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+Downloading: http://maven-repository.openspaces.org/org/cloudifysource/domain/2.7.0-SNAPSHOT/maven-metadata.xml
+780/780 B               Downloaded: http://maven-repository.openspaces.org/org/cloudifysource/domain/2.7.0-SNAPSHOT/maven-metadata.xml (780 B at 5.0 KB/sec)
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ dsl ---
+[INFO] org.cloudifysource:dsl:jar:2.7.0-SNAPSHOT
+[INFO] +- org.eclipse.jetty:jetty-webapp:jar:8.1.7.v20120910:test
+[INFO] |  +- org.eclipse.jetty:jetty-xml:jar:8.1.7.v20120910:test
+[INFO] |  |  \- org.eclipse.jetty:jetty-util:jar:8.1.7.v20120910:test
+[INFO] |  \- org.eclipse.jetty:jetty-servlet:jar:8.1.7.v20120910:test
+[INFO] |     \- org.eclipse.jetty:jetty-security:jar:8.1.7.v20120910:test
+[INFO] |        \- org.eclipse.jetty:jetty-server:jar:8.1.7.v20120910:test
+[INFO] |           +- org.eclipse.jetty.orbit:javax.servlet:jar:3.0.0.v201112011016:test
+[INFO] |           +- org.eclipse.jetty:jetty-continuation:jar:8.1.7.v20120910:test
+[INFO] |           \- org.eclipse.jetty:jetty-http:jar:8.1.7.v20120910:test
+[INFO] |              \- org.eclipse.jetty:jetty-io:jar:8.1.7.v20120910:test
+[INFO] +- commons-beanutils:commons-beanutils:jar:1.8.3:compile
+[INFO] +- org.hyperic:sigar:jar:1.6.5:provided
+[INFO] +- commons-lang:commons-lang:jar:2.6:compile
+[INFO] +- junit:junit:jar:4.8.2:test
+[INFO] +- commons-validator:commons-validator:jar:1.4.0:compile
+[INFO] |  +- commons-digester:commons-digester:jar:1.8:compile
+[INFO] |  \- commons-logging:commons-logging:jar:1.1.3:provided
+[INFO] +- org.apache.commons:commons-exec:jar:1.1:compile
+[INFO] +- oro:oro:jar:2.0.8:test
+[INFO] +- org.codehaus.groovy:groovy:jar:1.8.6:provided
+[INFO] |  +- antlr:antlr:jar:2.7.7:provided
+[INFO] |  +- asm:asm:jar:3.2:provided
+[INFO] |  +- asm:asm-commons:jar:3.2:provided
+[INFO] |  +- asm:asm-util:jar:3.2:provided
+[INFO] |  +- asm:asm-analysis:jar:3.2:provided
+[INFO] |  \- asm:asm-tree:jar:3.2:provided
+[INFO] +- commons-io:commons-io:jar:2.0.1:compile
+[INFO] +- org.apache.ivy:ivy:jar:2.2.0:provided
+[INFO] +- com.googlecode.java-ipv6:java-ipv6:jar:0.14:compile
+[INFO] +- org.codehaus.groovy.modules.http-builder:http-builder:jar:0.6:compile
+[INFO] |  +- org.apache.httpcomponents:httpclient:jar:4.2.1:compile
+[INFO] |  |  +- org.apache.httpcomponents:httpcore:jar:4.2.1:compile
+[INFO] |  |  \- commons-codec:commons-codec:jar:1.6:compile
+[INFO] |  +- net.sf.json-lib:json-lib:jar:jdk15:2.3:compile
+[INFO] |  |  +- commons-collections:commons-collections:jar:3.2.1:compile
+[INFO] |  |  \- net.sf.ezmorph:ezmorph:jar:1.0.6:compile
+[INFO] |  +- net.sourceforge.nekohtml:nekohtml:jar:1.9.16:compile
+[INFO] |  \- xml-resolver:xml-resolver:jar:1.2:compile
+[INFO] \- org.cloudifysource:domain:jar:2.7.0-SNAPSHOT:provided
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building utility-domain 2.7.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+Downloading: http://maven-repository.openspaces.org/com/gigaspaces/gs-runtime/9.7.0-SNAPSHOT/maven-metadata.xml
+1000/1000 B                 Downloaded: http://maven-repository.openspaces.org/com/gigaspaces/gs-runtime/9.7.0-SNAPSHOT/maven-metadata.xml (1000 B at 7.0 KB/sec)
+Downloading: http://maven-repository.openspaces.org/org/jboss/ws/jbossws-api/1.0.0-SNAPSHOT/maven-metadata.xml
+              Downloading: http://maven-repository.openspaces.org/org/cloudifysource/dsl/2.7.0-SNAPSHOT/maven-metadata.xml
+993/993 B                 Downloaded: http://maven-repository.openspaces.org/org/cloudifysource/dsl/2.7.0-SNAPSHOT/maven-metadata.xml (993 B at 4.8 KB/sec)
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ utility-domain ---
+[INFO] org.cloudifysource:utility-domain:jar:2.7.0-SNAPSHOT
+[INFO] +- commons-lang:commons-lang:jar:2.6:compile
+[INFO] +- com.gigaspaces:gs-runtime:jar:9.7.0-SNAPSHOT:provided
+[INFO] |  +- xerces:xercesImpl:jar:2.9.0:provided
+[INFO] |  |  \- xml-apis:xml-apis:jar:1.3.04:provided
+[INFO] |  +- javax.jms:jms:jar:1.1:provided
+[INFO] |  +- org.apache.poi:poi:jar:3.6:provided
+[INFO] |  |  \- commons-logging:commons-logging:jar:1.1.3:provided
+[INFO] |  +- net.java.dev.swing-layout:swing-layout:jar:1.0:provided
+[INFO] |  +- org.eclipse.wst:org.eclipse.wst.xml.xpath2.processor:jar:2.1.1.v201204260055:provided
+[INFO] |  +- com.sun:tools:jar:1.6:system
+[INFO] |  +- org.hibernate:hibernate-core:jar:3.6.1.Final:provided
+[INFO] |  |  +- dom4j:dom4j:jar:1.6.1:provided
+[INFO] |  |  +- org.hibernate:hibernate-commons-annotations:jar:3.2.0.Final:provided
+[INFO] |  |  +- org.hibernate.javax.persistence:hibernate-jpa-2.0-api:jar:1.0.0.Final:provided
+[INFO] |  |  +- javax.transaction:jta:jar:1.1:provided
+[INFO] |  |  \- org.slf4j:slf4j-api:jar:1.6.1:provided
+[INFO] |  \- xalan:xalan:jar:2.7.1:provided
+[INFO] |     \- xalan:serializer:jar:2.7.1:provided
+[INFO] +- org.apache.commons:commons-exec:jar:1.1:compile
+[INFO] +- org.codehaus.groovy:groovy:jar:1.8.6:provided
+[INFO] |  +- antlr:antlr:jar:2.7.7:provided
+[INFO] |  +- asm:asm:jar:3.2:provided
+[INFO] |  +- asm:asm-commons:jar:3.2:provided
+[INFO] |  +- asm:asm-util:jar:3.2:provided
+[INFO] |  +- asm:asm-analysis:jar:3.2:provided
+[INFO] |  \- asm:asm-tree:jar:3.2:provided
+[INFO] +- junit:junit:jar:4.8.2:test
+[INFO] +- com.gigaspaces:gs-openspaces:jar:9.7.0-SNAPSHOT:provided
+[INFO] |  +- org.eclipse.jetty.orbit:com.sun.el:jar:2.2.0.v201108011116:provided
+[INFO] |  +- org.eclipse.jetty.orbit:javax.el:jar:2.2.0.v201108011116:provided
+[INFO] |  +- org.eclipse.jetty.orbit:javax.servlet.jsp:jar:2.2.0.v201112011158:provided
+[INFO] |  |  \- org.eclipse.jetty.orbit:javax.servlet:jar:3.0.0.v201112011016:provided
+[INFO] |  +- org.eclipse.jetty.orbit:javax.servlet.jsp.jstl:jar:1.2.0.v201105211821:provided
+[INFO] |  +- org.eclipse.jetty.orbit:org.apache.taglibs.standard.glassfish:jar:1.2.0.v201112081803:provided
+[INFO] |  +- javax.servlet:javax.servlet-api:jar:3.0.1:provided
+[INFO] |  +- org.eclipse.jdt.core.compiler:ecj:jar:3.7.1:provided
+[INFO] |  +- org.eclipse.jetty.orbit:org.apache.jasper.glassfish:jar:2.2.2.v201112011158:provided
+[INFO] |  +- org.eclipse.jetty.aggregate:jetty-all:jar:8.1.8.v20121106:provided
+[INFO] |  +- org.ow2.jotm:jotm-core:jar:2.1.1:provided
+[INFO] |  |  +- org.ow2.carol:carol:jar:3.0-RC7:provided
+[INFO] |  |  |  +- org.ow2.carol.irmi:irmi:jar:1.1.1:provided
+[INFO] |  |  |  +- org.jacorb:jacorb:jar:2.2.3-jonas-patch-20071018:provided
+[INFO] |  |  |  |  \- avalon-framework:avalon-framework:jar:4.1.5:provided
+[INFO] |  |  |  \- org.jacorb:jacorb-idl:jar:2.2.3-jonas-patch-20071018:provided
+[INFO] |  |  |     \- logkit:logkit:jar:1.2:provided
+[INFO] |  |  +- commons-logging:commons-logging-api:jar:1.1:provided
+[INFO] |  |  \- org.objectweb.howl:howl:jar:1.0.1-1:provided
+[INFO] |  +- org.jruby:jruby:jar:1.0.2:provided
+[INFO] |  |  +- backport-util-concurrent:backport-util-concurrent:jar:3.0:provided
+[INFO] |  |  \- jline:jline:jar:0.9.91:provided
+[INFO] |  +- org.aopalliance:com.springsource.org.aopalliance:jar:1.0.0:provided
+[INFO] |  +- org.springframework:spring-jdbc:jar:3.2.4.RELEASE:provided
+[INFO] |  |  +- org.springframework:spring-beans:jar:3.2.4.RELEASE:provided
+[INFO] |  |  +- org.springframework:spring-core:jar:3.2.4.RELEASE:provided
+[INFO] |  |  \- org.springframework:spring-tx:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-jms:jar:3.2.4.RELEASE:provided
+[INFO] |  |  +- aopalliance:aopalliance:jar:1.0:provided
+[INFO] |  |  +- org.springframework:spring-aop:jar:3.2.4.RELEASE:provided
+[INFO] |  |  \- org.springframework:spring-context:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-oxm:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-orm:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-web:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-webmvc:jar:3.2.4.RELEASE:provided
+[INFO] |  |  \- org.springframework:spring-expression:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework.security:spring-security-core:jar:3.1.4.RELEASE:provided
+[INFO] |  +- org.springframework.security:spring-security-web:jar:3.1.4.RELEASE:provided
+[INFO] |  +- commons-pool:commons-pool:jar:1.6:provided
+[INFO] |  +- commons-collections:commons-collections:jar:3.2.1:provided
+[INFO] |  +- org.jboss.jbossts:jbossjta:jar:4.15.0.Final:provided
+[INFO] |  |  +- commons-httpclient:commons-httpclient:jar:3.1-jbossorg-1:provided
+[INFO] |  |  +- org.jboss.spec.javax.transaction:jboss-transaction-api_1.1_spec:jar:1.0.0.Final:provided
+[INFO] |  |  +- org.jboss.ironjacamar:ironjacamar-spec-api:jar:1.0.0.Beta5:provided
+[INFO] |  |  |  \- org.jboss.javaee:jboss-transaction-api:jar:1.0.1.GA:provided
+[INFO] |  |  +- emma:emma:jar:2.0.5312:provided
+[INFO] |  |  +- emma:emma_ant:jar:2.0.5312:provided
+[INFO] |  |  |  \- ant:ant:jar:1.6.3:provided
+[INFO] |  |  +- org.hornetq:hornetq-core:jar:2.1.2.Final:provided
+[INFO] |  |  +- org.jboss.netty:netty:jar:3.2.1.Final:provided
+[INFO] |  |  +- tanukisoft:wrapper:jar:3.2.3:provided
+[INFO] |  |  +- jacorb:jacorb:jar:2.3.1jboss.patch01-brew:provided
+[INFO] |  |  +- jacorb:idl:jar:2.3.1jboss.patch01-brew:provided
+[INFO] |  |  +- org.jboss.logmanager:jboss-logmanager:jar:1.2.0.CR7:provided
+[INFO] |  |  +- org.jboss.integration:jboss-transaction-spi:jar:6.0.0.CR1:provided
+[INFO] |  |  +- org.jboss.integration:jboss-corba-ots-spi:jar:6.0.0.CR1:provided
+[INFO] |  |  +- org.jboss.jbossas:jboss-server-manager:jar:1.0.4.Final:provided
+[INFO] |  |  |  +- org.jboss.naming:jnp-client:jar:5.0.5.Final:provided
+[INFO] |  |  |  |  \- org.jboss:jboss-common-core:jar:2.2.10.GA:provided
+[INFO] |  |  |  +- org.picketbox:jbosssx-client:jar:3.0.0.CR2:provided
+[INFO] |  |  |  \- org.picketbox:jboss-security-spi:jar:3.0.0.CR2:provided
+[INFO] |  |  +- org.jboss.spec.javax.ejb:jboss-ejb-api_3.1_spec:jar:1.0.0.Final:provided
+[INFO] |  |  |  \- javax.xml:jaxrpc-api:jar:1.1:provided
+[INFO] |  |  +- org.jboss.remoting:jboss-remoting:jar:2.5.3:provided
+[INFO] |  |  +- org.jboss.spec.javax.servlet:jboss-servlet-api_3.0_spec:jar:1.0.0.Final:provided
+[INFO] |  |  +- org.jboss.logging:jboss-logging:jar:3.0.0.Beta5:provided
+[INFO] |  |  +- org.jboss.logging:jboss-logging-processor:jar:1.0.0.Beta6:provided
+[INFO] |  |  +- org.jboss.logging:jboss-logging-generator:jar:1.0.0.Beta6:provided
+[INFO] |  |  |  \- system:jdk-tools:jar:jdk:system
+[INFO] |  |  \- org.jboss.ws:jbossws-common:jar:2.0.0.Alpha3:provided
+[INFO] |  |     +- org.jboss.ws:jbossws-spi:jar:2.0.0.Alpha2:provided
+[INFO] |  |     |  \- org.jboss.ws:jbossws-api:jar:1.0.0-SNAPSHOT:provided
+[INFO] |  |     +- org.apache.ant:ant:jar:1.7.1:provided
+[INFO] |  |     |  \- org.apache.ant:ant-launcher:jar:1.7.1:provided
+[INFO] |  |     +- gnu-getopt:getopt:jar:1.0.13:provided
+[INFO] |  |     \- org.jboss.spec.javax.xml.ws:jboss-jaxws-api_2.2_spec:jar:1.0.0.Final:provided
+[INFO] |  +- org.apache.openjpa:openjpa:jar:2.0.1:provided
+[INFO] |  |  +- net.sourceforge.serp:serp:jar:1.13.1:provided
+[INFO] |  |  \- org.apache.geronimo.specs:geronimo-jms_1.1_spec:jar:1.1.1:provided
+[INFO] |  +- org.apache.geronimo.specs:geronimo-jpa_2.0_spec:jar:1.1:provided
+[INFO] |  +- org.apache.geronimo.specs:geronimo-jta_1.1_spec:jar:1.1.1:provided
+[INFO] |  +- hsqldb:hsqldb:jar:1.8.0.10:provided
+[INFO] |  +- org.apache.geronimo.specs:geronimo-j2ee-connector_1.5_spec:jar:1.1:provided
+[INFO] |  +- org.eclipse.jetty:jetty-client:jar:8.1.8.v20121106:provided
+[INFO] |  |  \- org.eclipse.jetty:jetty-http:jar:8.1.8.v20121106:provided
+[INFO] |  |     \- org.eclipse.jetty:jetty-io:jar:8.1.8.v20121106:provided
+[INFO] |  |        \- org.eclipse.jetty:jetty-util:jar:8.1.8.v20121106:provided
+[INFO] |  +- velocity:velocity:jar:1.5:provided
+[INFO] |  |  \- oro:oro:jar:2.0.8:provided
+[INFO] |  \- com.atomikos:transactions-jta:jar:3.8.0:provided
+[INFO] |     +- com.atomikos:transactions:jar:3.8.0:provided
+[INFO] |     |  \- com.atomikos:transactions-api:jar:3.8.0:provided
+[INFO] |     |     \- com.atomikos:atomikos-util:jar:3.8.0:provided
+[INFO] |     \- org.mockito:mockito-all:jar:1.9.0:provided
+[INFO] +- org.cloudifysource:dsl:jar:2.7.0-SNAPSHOT:provided
+[INFO] |  +- commons-beanutils:commons-beanutils:jar:1.8.3:provided
+[INFO] |  +- commons-validator:commons-validator:jar:1.4.0:provided
+[INFO] |  |  \- commons-digester:commons-digester:jar:1.8:provided
+[INFO] |  +- commons-io:commons-io:jar:2.0.1:provided
+[INFO] |  +- com.googlecode.java-ipv6:java-ipv6:jar:0.14:provided
+[INFO] |  \- org.codehaus.groovy.modules.http-builder:http-builder:jar:0.6:provided
+[INFO] |     +- org.apache.httpcomponents:httpclient:jar:4.2.1:provided
+[INFO] |     |  +- org.apache.httpcomponents:httpcore:jar:4.2.1:provided
+[INFO] |     |  \- commons-codec:commons-codec:jar:1.6:provided
+[INFO] |     +- net.sf.json-lib:json-lib:jar:jdk15:2.3:provided
+[INFO] |     |  \- net.sf.ezmorph:ezmorph:jar:1.0.6:provided
+[INFO] |     +- net.sourceforge.nekohtml:nekohtml:jar:1.9.16:provided
+[INFO] |     \- xml-resolver:xml-resolver:jar:1.2:provided
+[INFO] +- org.cloudifysource:domain:jar:2.7.0-SNAPSHOT:provided
+[INFO] \- org.hyperic:sigar:jar:1.6.5:provided
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building rest-client 2.7.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ rest-client ---
+[INFO] org.cloudifysource:rest-client:jar:2.7.0-SNAPSHOT
+[INFO] +- org.apache.httpcomponents:httpclient:jar:4.2.1:compile
+[INFO] |  +- commons-logging:commons-logging:jar:1.1.3:provided
+[INFO] |  \- commons-codec:commons-codec:jar:1.6:compile
+[INFO] +- org.apache.httpcomponents:httpcore:jar:4.2.1:compile
+[INFO] +- commons-lang:commons-lang:jar:2.6:compile
+[INFO] +- org.cloudifysource:dsl:jar:2.7.0-SNAPSHOT:provided
+[INFO] |  +- commons-beanutils:commons-beanutils:jar:1.8.3:provided
+[INFO] |  +- commons-validator:commons-validator:jar:1.4.0:provided
+[INFO] |  |  \- commons-digester:commons-digester:jar:1.8:provided
+[INFO] |  +- org.apache.commons:commons-exec:jar:1.1:provided
+[INFO] |  +- commons-io:commons-io:jar:2.0.1:provided
+[INFO] |  +- com.googlecode.java-ipv6:java-ipv6:jar:0.14:provided
+[INFO] |  \- org.codehaus.groovy.modules.http-builder:http-builder:jar:0.6:provided
+[INFO] |     +- net.sf.json-lib:json-lib:jar:jdk15:2.3:provided
+[INFO] |     |  +- commons-collections:commons-collections:jar:3.2.1:provided
+[INFO] |     |  \- net.sf.ezmorph:ezmorph:jar:1.0.6:provided
+[INFO] |     +- net.sourceforge.nekohtml:nekohtml:jar:1.9.16:provided
+[INFO] |     \- xml-resolver:xml-resolver:jar:1.2:provided
+[INFO] +- org.apache.httpcomponents:httpmime:jar:4.2.1:compile
+[INFO] +- org.codehaus.jackson:jackson-core-asl:jar:1.3.0:compile
+[INFO] \- org.codehaus.jackson:jackson-mapper-asl:jar:1.3.0:compile
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building CLI 2.7.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+Downloading: http://maven-repository.openspaces.org/org/cloudifysource/utility-domain/2.7.0-SNAPSHOT/maven-metadata.xml
+788/788 B               Downloaded: http://maven-repository.openspaces.org/org/cloudifysource/utility-domain/2.7.0-SNAPSHOT/maven-metadata.xml (788 B at 5.2 KB/sec)
+Downloading: http://maven-repository.openspaces.org/org/cloudifysource/rest-client/2.7.0-SNAPSHOT/maven-metadata.xml
+785/785 B               Downloaded: http://maven-repository.openspaces.org/org/cloudifysource/rest-client/2.7.0-SNAPSHOT/maven-metadata.xml (785 B at 4.7 KB/sec)
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ CLI ---
+[INFO] org.cloudifysource:CLI:jar:2.7.0-SNAPSHOT
+[INFO] +- com.gigaspaces:gs-runtime:jar:9.7.0-SNAPSHOT:provided
+[INFO] |  +- xerces:xercesImpl:jar:2.9.0:provided
+[INFO] |  |  \- xml-apis:xml-apis:jar:1.3.04:provided
+[INFO] |  +- javax.jms:jms:jar:1.1:provided
+[INFO] |  +- org.apache.poi:poi:jar:3.6:provided
+[INFO] |  +- net.java.dev.swing-layout:swing-layout:jar:1.0:provided
+[INFO] |  +- org.eclipse.wst:org.eclipse.wst.xml.xpath2.processor:jar:2.1.1.v201204260055:provided
+[INFO] |  +- com.sun:tools:jar:1.6:system
+[INFO] |  +- org.hibernate:hibernate-core:jar:3.6.1.Final:provided
+[INFO] |  |  +- dom4j:dom4j:jar:1.6.1:provided
+[INFO] |  |  +- org.hibernate:hibernate-commons-annotations:jar:3.2.0.Final:provided
+[INFO] |  |  +- org.hibernate.javax.persistence:hibernate-jpa-2.0-api:jar:1.0.0.Final:provided
+[INFO] |  |  \- javax.transaction:jta:jar:1.1:provided
+[INFO] |  \- xalan:xalan:jar:2.7.1:provided
+[INFO] |     \- xalan:serializer:jar:2.7.1:provided
+[INFO] +- commons-lang:commons-lang:jar:2.6:compile
+[INFO] +- org.apache.httpcomponents:httpcore:jar:4.2.1:compile
+[INFO] +- junit:junit:jar:4.8.2:test
+[INFO] +- com.gigaspaces:gs-openspaces:jar:9.7.0-SNAPSHOT:provided
+[INFO] |  +- org.eclipse.jetty.orbit:com.sun.el:jar:2.2.0.v201108011116:provided
+[INFO] |  +- org.eclipse.jetty.orbit:javax.el:jar:2.2.0.v201108011116:provided
+[INFO] |  +- org.eclipse.jetty.orbit:javax.servlet.jsp:jar:2.2.0.v201112011158:provided
+[INFO] |  |  \- org.eclipse.jetty.orbit:javax.servlet:jar:3.0.0.v201112011016:provided
+[INFO] |  +- org.eclipse.jetty.orbit:javax.servlet.jsp.jstl:jar:1.2.0.v201105211821:provided
+[INFO] |  +- org.eclipse.jetty.orbit:org.apache.taglibs.standard.glassfish:jar:1.2.0.v201112081803:provided
+[INFO] |  +- javax.servlet:javax.servlet-api:jar:3.0.1:provided
+[INFO] |  +- org.eclipse.jdt.core.compiler:ecj:jar:3.7.1:provided
+[INFO] |  +- org.eclipse.jetty.orbit:org.apache.jasper.glassfish:jar:2.2.2.v201112011158:provided
+[INFO] |  +- org.eclipse.jetty.aggregate:jetty-all:jar:8.1.8.v20121106:provided
+[INFO] |  +- org.ow2.jotm:jotm-core:jar:2.1.1:provided
+[INFO] |  |  +- org.ow2.carol:carol:jar:3.0-RC7:provided
+[INFO] |  |  |  +- org.ow2.carol.irmi:irmi:jar:1.1.1:provided
+[INFO] |  |  |  +- org.jacorb:jacorb:jar:2.2.3-jonas-patch-20071018:provided
+[INFO] |  |  |  |  \- avalon-framework:avalon-framework:jar:4.1.5:provided
+[INFO] |  |  |  \- org.jacorb:jacorb-idl:jar:2.2.3-jonas-patch-20071018:provided
+[INFO] |  |  |     \- logkit:logkit:jar:1.2:provided
+[INFO] |  |  +- commons-logging:commons-logging-api:jar:1.1:provided
+[INFO] |  |  \- org.objectweb.howl:howl:jar:1.0.1-1:provided
+[INFO] |  +- org.jruby:jruby:jar:1.0.2:provided
+[INFO] |  |  \- backport-util-concurrent:backport-util-concurrent:jar:3.0:provided
+[INFO] |  +- org.aopalliance:com.springsource.org.aopalliance:jar:1.0.0:provided
+[INFO] |  +- org.springframework:spring-jdbc:jar:3.2.4.RELEASE:provided
+[INFO] |  |  +- org.springframework:spring-beans:jar:3.2.4.RELEASE:provided
+[INFO] |  |  +- org.springframework:spring-core:jar:3.2.4.RELEASE:provided
+[INFO] |  |  \- org.springframework:spring-tx:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-jms:jar:3.2.4.RELEASE:provided
+[INFO] |  |  +- aopalliance:aopalliance:jar:1.0:provided
+[INFO] |  |  +- org.springframework:spring-aop:jar:3.2.4.RELEASE:provided
+[INFO] |  |  \- org.springframework:spring-context:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-oxm:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-orm:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-web:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-webmvc:jar:3.2.4.RELEASE:provided
+[INFO] |  |  \- org.springframework:spring-expression:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework.security:spring-security-core:jar:3.1.4.RELEASE:provided
+[INFO] |  +- org.springframework.security:spring-security-web:jar:3.1.4.RELEASE:provided
+[INFO] |  +- commons-pool:commons-pool:jar:1.6:provided
+[INFO] |  +- commons-collections:commons-collections:jar:3.2.1:provided
+[INFO] |  +- org.jboss.jbossts:jbossjta:jar:4.15.0.Final:provided
+[INFO] |  |  +- commons-httpclient:commons-httpclient:jar:3.1-jbossorg-1:provided
+[INFO] |  |  +- org.jboss.spec.javax.transaction:jboss-transaction-api_1.1_spec:jar:1.0.0.Final:provided
+[INFO] |  |  +- org.jboss.ironjacamar:ironjacamar-spec-api:jar:1.0.0.Beta5:provided
+[INFO] |  |  |  \- org.jboss.javaee:jboss-transaction-api:jar:1.0.1.GA:provided
+[INFO] |  |  +- emma:emma:jar:2.0.5312:provided
+[INFO] |  |  +- emma:emma_ant:jar:2.0.5312:provided
+[INFO] |  |  |  \- ant:ant:jar:1.6.3:provided
+[INFO] |  |  +- org.hornetq:hornetq-core:jar:2.1.2.Final:provided
+[INFO] |  |  +- org.jboss.netty:netty:jar:3.2.1.Final:provided
+[INFO] |  |  +- tanukisoft:wrapper:jar:3.2.3:provided
+[INFO] |  |  +- jacorb:jacorb:jar:2.3.1jboss.patch01-brew:provided
+[INFO] |  |  +- jacorb:idl:jar:2.3.1jboss.patch01-brew:provided
+[INFO] |  |  +- org.jboss.logmanager:jboss-logmanager:jar:1.2.0.CR7:provided
+[INFO] |  |  +- org.jboss.integration:jboss-transaction-spi:jar:6.0.0.CR1:provided
+[INFO] |  |  +- org.jboss.integration:jboss-corba-ots-spi:jar:6.0.0.CR1:provided
+[INFO] |  |  +- org.jboss.jbossas:jboss-server-manager:jar:1.0.4.Final:provided
+[INFO] |  |  |  +- org.jboss.naming:jnp-client:jar:5.0.5.Final:provided
+[INFO] |  |  |  |  \- org.jboss:jboss-common-core:jar:2.2.10.GA:provided
+[INFO] |  |  |  +- org.picketbox:jbosssx-client:jar:3.0.0.CR2:provided
+[INFO] |  |  |  \- org.picketbox:jboss-security-spi:jar:3.0.0.CR2:provided
+[INFO] |  |  +- org.jboss.spec.javax.ejb:jboss-ejb-api_3.1_spec:jar:1.0.0.Final:provided
+[INFO] |  |  |  \- javax.xml:jaxrpc-api:jar:1.1:provided
+[INFO] |  |  +- org.jboss.remoting:jboss-remoting:jar:2.5.3:provided
+[INFO] |  |  +- org.jboss.spec.javax.servlet:jboss-servlet-api_3.0_spec:jar:1.0.0.Final:provided
+[INFO] |  |  +- org.jboss.logging:jboss-logging:jar:3.0.0.Beta5:provided
+[INFO] |  |  +- org.jboss.logging:jboss-logging-processor:jar:1.0.0.Beta6:provided
+[INFO] |  |  +- org.jboss.logging:jboss-logging-generator:jar:1.0.0.Beta6:provided
+[INFO] |  |  |  \- system:jdk-tools:jar:jdk:system
+[INFO] |  |  \- org.jboss.ws:jbossws-common:jar:2.0.0.Alpha3:provided
+[INFO] |  |     +- org.jboss.ws:jbossws-spi:jar:2.0.0.Alpha2:provided
+[INFO] |  |     |  \- org.jboss.ws:jbossws-api:jar:1.0.0-SNAPSHOT:provided
+[INFO] |  |     +- org.apache.ant:ant:jar:1.7.1:provided
+[INFO] |  |     |  \- org.apache.ant:ant-launcher:jar:1.7.1:provided
+[INFO] |  |     +- gnu-getopt:getopt:jar:1.0.13:provided
+[INFO] |  |     \- org.jboss.spec.javax.xml.ws:jboss-jaxws-api_2.2_spec:jar:1.0.0.Final:provided
+[INFO] |  +- org.apache.openjpa:openjpa:jar:2.0.1:provided
+[INFO] |  |  +- net.sourceforge.serp:serp:jar:1.13.1:provided
+[INFO] |  |  \- org.apache.geronimo.specs:geronimo-jms_1.1_spec:jar:1.1.1:provided
+[INFO] |  +- org.apache.geronimo.specs:geronimo-jpa_2.0_spec:jar:1.1:provided
+[INFO] |  +- org.apache.geronimo.specs:geronimo-jta_1.1_spec:jar:1.1.1:provided
+[INFO] |  +- hsqldb:hsqldb:jar:1.8.0.10:provided
+[INFO] |  +- org.apache.geronimo.specs:geronimo-j2ee-connector_1.5_spec:jar:1.1:provided
+[INFO] |  +- org.eclipse.jetty:jetty-client:jar:8.1.8.v20121106:provided
+[INFO] |  |  \- org.eclipse.jetty:jetty-http:jar:8.1.8.v20121106:provided
+[INFO] |  |     \- org.eclipse.jetty:jetty-io:jar:8.1.8.v20121106:provided
+[INFO] |  |        \- org.eclipse.jetty:jetty-util:jar:8.1.8.v20121106:provided
+[INFO] |  +- velocity:velocity:jar:1.5:provided
+[INFO] |  |  \- oro:oro:jar:2.0.8:provided
+[INFO] |  \- com.atomikos:transactions-jta:jar:3.8.0:provided
+[INFO] |     +- com.atomikos:transactions:jar:3.8.0:provided
+[INFO] |     |  \- com.atomikos:transactions-api:jar:3.8.0:provided
+[INFO] |     |     \- com.atomikos:atomikos-util:jar:3.8.0:provided
+[INFO] |     \- org.mockito:mockito-all:jar:1.9.0:provided
+[INFO] +- org.apache.karaf.shell:org.apache.karaf.shell.console:jar:2.2.9:compile
+[INFO] |  +- jline:jline:jar:2.7:compile
+[INFO] |  +- org.fusesource.jansi:jansi:jar:1.9:compile
+[INFO] |  +- org.osgi:org.osgi.core:jar:4.2.0:compile
+[INFO] |  +- org.osgi:org.osgi.compendium:jar:4.2.0:compile
+[INFO] |  +- org.apache.karaf.jaas:org.apache.karaf.jaas.modules:jar:2.2.9:compile
+[INFO] |  |  +- org.apache.karaf.jaas:org.apache.karaf.jaas.config:jar:2.2.9:compile
+[INFO] |  |  +- org.apache.karaf.jaas:org.apache.karaf.jaas.boot:jar:2.2.9:compile
+[INFO] |  |  \- org.apache.karaf:org.apache.karaf.util:jar:2.2.9:compile
+[INFO] |  +- org.apache.aries.blueprint:org.apache.aries.blueprint:jar:0.3.2:compile
+[INFO] |  |  +- org.apache.aries:org.apache.aries.util:jar:0.3:compile
+[INFO] |  |  +- org.apache.aries.testsupport:org.apache.aries.testsupport.unit:jar:0.3:compile
+[INFO] |  |  \- org.apache.aries.proxy:org.apache.aries.proxy.api:jar:0.3:compile
+[INFO] |  \- org.apache.felix:org.apache.felix.gogo.runtime:jar:0.10.0:compile
+[INFO] +- org.slf4j:slf4j-api:jar:1.6.1:compile
+[INFO] +- org.slf4j:slf4j-nop:jar:1.6.1:compile
+[INFO] +- commons-io:commons-io:jar:2.0.1:provided
+[INFO] +- org.hyperic:sigar:jar:1.6.5:provided
+[INFO] +- org.codehaus.groovy:groovy:jar:1.8.6:provided
+[INFO] |  +- antlr:antlr:jar:2.7.7:provided
+[INFO] |  +- asm:asm:jar:3.2:provided
+[INFO] |  +- asm:asm-commons:jar:3.2:provided
+[INFO] |  +- asm:asm-util:jar:3.2:provided
+[INFO] |  +- asm:asm-analysis:jar:3.2:provided
+[INFO] |  \- asm:asm-tree:jar:3.2:provided
+[INFO] +- org.apache.httpcomponents:httpclient:jar:4.2.1:compile
+[INFO] |  \- commons-codec:commons-codec:jar:1.6:compile
+[INFO] +- org.apache.httpcomponents:httpmime:jar:4.2.1:compile
+[INFO] +- org.codehaus.jackson:jackson-core-asl:jar:1.9.5:compile
+[INFO] +- org.codehaus.jackson:jackson-mapper-asl:jar:1.9.5:compile
+[INFO] +- org.apache.commons:commons-exec:jar:1.1:compile
+[INFO] +- org.cloudifysource:dsl:jar:2.7.0-SNAPSHOT:provided
+[INFO] |  +- commons-beanutils:commons-beanutils:jar:1.8.3:provided
+[INFO] |  +- commons-validator:commons-validator:jar:1.4.0:provided
+[INFO] |  |  \- commons-digester:commons-digester:jar:1.8:provided
+[INFO] |  +- com.googlecode.java-ipv6:java-ipv6:jar:0.14:provided
+[INFO] |  \- org.codehaus.groovy.modules.http-builder:http-builder:jar:0.6:provided
+[INFO] |     +- net.sf.json-lib:json-lib:jar:jdk15:2.3:provided
+[INFO] |     |  \- net.sf.ezmorph:ezmorph:jar:1.0.6:provided
+[INFO] |     +- net.sourceforge.nekohtml:nekohtml:jar:1.9.16:provided
+[INFO] |     \- xml-resolver:xml-resolver:jar:1.2:provided
+[INFO] +- org.cloudifysource:utility-domain:jar:2.7.0-SNAPSHOT:provided
+[INFO] +- org.cloudifysource:domain:jar:2.7.0-SNAPSHOT:provided
+[INFO] +- org.cloudifysource:rest-client:jar:2.7.0-SNAPSHOT:compile
+[INFO] +- commons-logging:commons-logging:jar:1.1.3:provided
+[INFO] +- com.sun:deploy:jar:1:system
+[INFO] \- org.apache.ivy:ivy:jar:2.2.0:provided
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building esc 2.7.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ esc ---
+[INFO] org.cloudifysource:esc:jar:2.7.0-SNAPSHOT
+[INFO] +- commons-lang:commons-lang:jar:2.6:compile
+[INFO] +- org.cloudifysource:utility-domain:jar:2.7.0-SNAPSHOT:provided
+[INFO] |  \- org.apache.commons:commons-exec:jar:1.1:provided
+[INFO] +- com.gigaspaces:gs-openspaces:jar:9.7.0-SNAPSHOT:provided
+[INFO] |  +- org.eclipse.jetty.orbit:com.sun.el:jar:2.2.0.v201108011116:provided
+[INFO] |  +- org.eclipse.jetty.orbit:javax.el:jar:2.2.0.v201108011116:provided
+[INFO] |  +- org.eclipse.jetty.orbit:javax.servlet.jsp:jar:2.2.0.v201112011158:provided
+[INFO] |  |  \- org.eclipse.jetty.orbit:javax.servlet:jar:3.0.0.v201112011016:provided
+[INFO] |  +- org.eclipse.jetty.orbit:javax.servlet.jsp.jstl:jar:1.2.0.v201105211821:provided
+[INFO] |  +- org.eclipse.jetty.orbit:org.apache.taglibs.standard.glassfish:jar:1.2.0.v201112081803:provided
+[INFO] |  +- javax.servlet:javax.servlet-api:jar:3.0.1:provided
+[INFO] |  +- org.eclipse.jdt.core.compiler:ecj:jar:3.7.1:provided
+[INFO] |  +- org.eclipse.jetty.orbit:org.apache.jasper.glassfish:jar:2.2.2.v201112011158:provided
+[INFO] |  +- org.eclipse.jetty.aggregate:jetty-all:jar:8.1.8.v20121106:provided
+[INFO] |  +- org.ow2.jotm:jotm-core:jar:2.1.1:provided
+[INFO] |  |  +- org.ow2.carol:carol:jar:3.0-RC7:provided
+[INFO] |  |  |  +- org.ow2.carol.irmi:irmi:jar:1.1.1:provided
+[INFO] |  |  |  +- org.jacorb:jacorb:jar:2.2.3-jonas-patch-20071018:provided
+[INFO] |  |  |  |  \- avalon-framework:avalon-framework:jar:4.1.5:provided
+[INFO] |  |  |  \- org.jacorb:jacorb-idl:jar:2.2.3-jonas-patch-20071018:provided
+[INFO] |  |  |     \- logkit:logkit:jar:1.2:provided
+[INFO] |  |  +- commons-logging:commons-logging-api:jar:1.1:provided
+[INFO] |  |  \- org.objectweb.howl:howl:jar:1.0.1-1:provided
+[INFO] |  +- org.jruby:jruby:jar:1.0.2:provided
+[INFO] |  |  +- backport-util-concurrent:backport-util-concurrent:jar:3.0:provided
+[INFO] |  |  \- jline:jline:jar:0.9.91:provided
+[INFO] |  +- org.hibernate:hibernate-core:jar:3.6.1.Final:provided
+[INFO] |  |  +- dom4j:dom4j:jar:1.6.1:provided
+[INFO] |  |  +- org.hibernate:hibernate-commons-annotations:jar:3.2.0.Final:provided
+[INFO] |  |  +- org.hibernate.javax.persistence:hibernate-jpa-2.0-api:jar:1.0.0.Final:provided
+[INFO] |  |  \- javax.transaction:jta:jar:1.1:provided
+[INFO] |  +- org.aopalliance:com.springsource.org.aopalliance:jar:1.0.0:provided
+[INFO] |  +- org.springframework:spring-jdbc:jar:3.2.4.RELEASE:provided
+[INFO] |  |  +- org.springframework:spring-beans:jar:3.2.4.RELEASE:provided
+[INFO] |  |  +- org.springframework:spring-core:jar:3.2.4.RELEASE:provided
+[INFO] |  |  \- org.springframework:spring-tx:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-jms:jar:3.2.4.RELEASE:provided
+[INFO] |  |  +- aopalliance:aopalliance:jar:1.0:compile
+[INFO] |  |  +- org.springframework:spring-aop:jar:3.2.4.RELEASE:provided
+[INFO] |  |  \- org.springframework:spring-context:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-oxm:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-orm:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-web:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-webmvc:jar:3.2.4.RELEASE:provided
+[INFO] |  |  \- org.springframework:spring-expression:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework.security:spring-security-core:jar:3.1.4.RELEASE:provided
+[INFO] |  +- org.springframework.security:spring-security-web:jar:3.1.4.RELEASE:provided
+[INFO] |  +- commons-collections:commons-collections:jar:3.2.1:provided
+[INFO] |  +- org.jboss.jbossts:jbossjta:jar:4.15.0.Final:provided
+[INFO] |  |  +- org.jboss.spec.javax.transaction:jboss-transaction-api_1.1_spec:jar:1.0.0.Final:provided
+[INFO] |  |  +- org.jboss.ironjacamar:ironjacamar-spec-api:jar:1.0.0.Beta5:provided
+[INFO] |  |  |  \- org.jboss.javaee:jboss-transaction-api:jar:1.0.1.GA:provided
+[INFO] |  |  +- emma:emma:jar:2.0.5312:provided
+[INFO] |  |  +- emma:emma_ant:jar:2.0.5312:provided
+[INFO] |  |  +- org.hornetq:hornetq-core:jar:2.1.2.Final:provided
+[INFO] |  |  +- org.jboss.netty:netty:jar:3.2.1.Final:provided
+[INFO] |  |  +- tanukisoft:wrapper:jar:3.2.3:provided
+[INFO] |  |  +- jacorb:jacorb:jar:2.3.1jboss.patch01-brew:provided
+[INFO] |  |  +- jacorb:idl:jar:2.3.1jboss.patch01-brew:provided
+[INFO] |  |  +- org.jboss.logmanager:jboss-logmanager:jar:1.2.0.CR7:provided
+[INFO] |  |  +- org.jboss.integration:jboss-transaction-spi:jar:6.0.0.CR1:provided
+[INFO] |  |  +- org.jboss.integration:jboss-corba-ots-spi:jar:6.0.0.CR1:provided
+[INFO] |  |  +- org.jboss.jbossas:jboss-server-manager:jar:1.0.4.Final:provided
+[INFO] |  |  |  +- org.jboss.naming:jnp-client:jar:5.0.5.Final:provided
+[INFO] |  |  |  |  \- org.jboss:jboss-common-core:jar:2.2.10.GA:provided
+[INFO] |  |  |  +- org.picketbox:jbosssx-client:jar:3.0.0.CR2:provided
+[INFO] |  |  |  \- org.picketbox:jboss-security-spi:jar:3.0.0.CR2:provided
+[INFO] |  |  +- org.jboss.spec.javax.ejb:jboss-ejb-api_3.1_spec:jar:1.0.0.Final:provided
+[INFO] |  |  |  \- javax.xml:jaxrpc-api:jar:1.1:provided
+[INFO] |  |  +- org.jboss.remoting:jboss-remoting:jar:2.5.3:provided
+[INFO] |  |  +- org.jboss.spec.javax.servlet:jboss-servlet-api_3.0_spec:jar:1.0.0.Final:provided
+[INFO] |  |  +- org.jboss.logging:jboss-logging:jar:3.0.0.Beta5:provided
+[INFO] |  |  +- org.jboss.logging:jboss-logging-processor:jar:1.0.0.Beta6:provided
+[INFO] |  |  +- org.jboss.logging:jboss-logging-generator:jar:1.0.0.Beta6:provided
+[INFO] |  |  |  \- system:jdk-tools:jar:jdk:system
+[INFO] |  |  \- org.jboss.ws:jbossws-common:jar:2.0.0.Alpha3:provided
+[INFO] |  |     +- org.jboss.ws:jbossws-spi:jar:2.0.0.Alpha2:provided
+[INFO] |  |     |  \- org.jboss.ws:jbossws-api:jar:1.0.0-SNAPSHOT:provided
+[INFO] |  |     +- gnu-getopt:getopt:jar:1.0.13:provided
+[INFO] |  |     \- org.jboss.spec.javax.xml.ws:jboss-jaxws-api_2.2_spec:jar:1.0.0.Final:provided
+[INFO] |  +- org.apache.openjpa:openjpa:jar:2.0.1:provided
+[INFO] |  |  +- net.sourceforge.serp:serp:jar:1.13.1:provided
+[INFO] |  |  \- org.apache.geronimo.specs:geronimo-jms_1.1_spec:jar:1.1.1:provided
+[INFO] |  +- org.apache.geronimo.specs:geronimo-jpa_2.0_spec:jar:1.1:provided
+[INFO] |  +- org.apache.geronimo.specs:geronimo-jta_1.1_spec:jar:1.1.1:provided
+[INFO] |  +- hsqldb:hsqldb:jar:1.8.0.10:provided
+[INFO] |  +- org.apache.geronimo.specs:geronimo-j2ee-connector_1.5_spec:jar:1.1:provided
+[INFO] |  +- org.eclipse.jetty:jetty-client:jar:8.1.8.v20121106:provided
+[INFO] |  |  \- org.eclipse.jetty:jetty-http:jar:8.1.8.v20121106:provided
+[INFO] |  |     \- org.eclipse.jetty:jetty-io:jar:8.1.8.v20121106:provided
+[INFO] |  |        \- org.eclipse.jetty:jetty-util:jar:8.1.8.v20121106:provided
+[INFO] |  +- velocity:velocity:jar:1.5:provided
+[INFO] |  |  \- oro:oro:jar:2.0.8:provided
+[INFO] |  \- com.atomikos:transactions-jta:jar:3.8.0:provided
+[INFO] |     +- com.atomikos:transactions:jar:3.8.0:provided
+[INFO] |     |  \- com.atomikos:transactions-api:jar:3.8.0:provided
+[INFO] |     |     \- com.atomikos:atomikos-util:jar:3.8.0:provided
+[INFO] |     \- org.mockito:mockito-all:jar:1.9.0:provided
+[INFO] +- org.apache.ant:ant-jsch:jar:1.8.3:compile
+[INFO] |  \- org.apache.ant:ant:jar:1.8.3:compile
+[INFO] |     \- org.apache.ant:ant-launcher:jar:1.8.3:compile
+[INFO] +- com.googlecode.java-ipv6:java-ipv6:jar:0.13:compile
+[INFO] +- com.gigaspaces:gs-runtime:jar:9.7.0-SNAPSHOT:provided
+[INFO] |  +- xerces:xercesImpl:jar:2.9.0:provided
+[INFO] |  |  \- xml-apis:xml-apis:jar:1.3.04:provided
+[INFO] |  +- javax.jms:jms:jar:1.1:provided
+[INFO] |  +- org.apache.poi:poi:jar:3.6:provided
+[INFO] |  +- net.java.dev.swing-layout:swing-layout:jar:1.0:provided
+[INFO] |  +- org.eclipse.wst:org.eclipse.wst.xml.xpath2.processor:jar:2.1.1.v201204260055:provided
+[INFO] |  +- com.sun:tools:jar:1.6:system
+[INFO] |  \- xalan:xalan:jar:2.7.1:provided
+[INFO] |     \- xalan:serializer:jar:2.7.1:provided
+[INFO] +- junit:junit:jar:4.8.2:test
+[INFO] +- org.apache.commons:commons-vfs2:jar:2.0:compile
+[INFO] |  +- commons-logging:commons-logging:jar:1.1.3:provided
+[INFO] |  +- org.apache.maven.scm:maven-scm-api:jar:1.4:compile
+[INFO] |  |  \- org.codehaus.plexus:plexus-utils:jar:1.5.6:compile
+[INFO] |  \- org.apache.maven.scm:maven-scm-provider-svnexe:jar:1.4:compile
+[INFO] |     +- org.apache.maven.scm:maven-scm-provider-svn-commons:jar:1.4:compile
+[INFO] |     \- regexp:regexp:jar:1.3:compile
+[INFO] +- com.jcraft:jsch:jar:0.1.49:compile
+[INFO] +- org.jclouds:jclouds-allcompute:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:greenhousedata-element-vcloud:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:eucalyptus-partnercloud-ec2:jar:1.5.8:compile
+[INFO] |  |  \- org.jclouds.api:eucalyptus:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.api:deltacloud:jar:1.5.8:compile
+[INFO] |  |  \- org.jclouds:jclouds-compute:jar:1.5.8:compile
+[INFO] |  |     \- org.jclouds:jclouds-scriptbuilder:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:aws-ec2:jar:1.5.8:compile
+[INFO] |  |  \- org.jclouds.common:aws-common:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:rimuhosting:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.api:openstack-nova:jar:1.5.8:compile
+[INFO] |  |  \- org.jclouds.api:openstack-keystone:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.api:openstack-nova-ec2:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.api:nova:jar:1.5.8:compile
+[INFO] |  |  \- org.jclouds.common:openstack-common:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.api:byon:jar:1.5.8:compile
+[INFO] |  |  \- org.yaml:snakeyaml:jar:1.10:compile
+[INFO] |  +- org.jclouds.api:ec2:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:cloudservers-us:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:cloudservers-uk:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.api:cloudservers:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.api:vcloud:jar:1.5.8:compile
+[INFO] |  |  \- com.jamesmurty.utils:java-xmlbuilder:jar:0.4:compile
+[INFO] |  +- org.jclouds.api:cloudsigma:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:trmk-vcloudexpress:jar:1.5.8:compile
+[INFO] |  |  \- org.jclouds.common:trmk-common:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:trmk-ecloud:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:bluelock-vcloud-zone01:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:stratogen-vcloud-mycloud:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:gogrid:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:slicehost:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.api:elasticstack:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:elastichosts-lon-p:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:elastichosts-sat-p:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:elastichosts-lon-b:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:openhosting-east1:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:serverlove-z1-man:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:skalicloud-sdg-my:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:cloudsigma-zrh:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:cloudsigma-lvs:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:go2cloud-jhb1:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:softlayer:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.api:cloudstack:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:ninefold-compute:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:hpcloud-compute:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:trystack-nova:jar:1.5.8:compile
+[INFO] |  +- org.jclouds.provider:rackspace-cloudservers-us:jar:1.5.8:compile
+[INFO] |  |  \- org.jclouds.api:rackspace-cloudidentity:jar:1.5.8:compile
+[INFO] |  \- org.jclouds.provider:rackspace-cloudservers-uk:jar:1.5.8:compile
+[INFO] +- org.cloudifysource:dsl:jar:2.7.0-SNAPSHOT:provided
+[INFO] |  +- commons-beanutils:commons-beanutils:jar:1.8.3:provided
+[INFO] |  +- commons-validator:commons-validator:jar:1.4.0:provided
+[INFO] |  |  \- commons-digester:commons-digester:jar:1.8:provided
+[INFO] |  +- commons-io:commons-io:jar:2.0.1:provided
+[INFO] |  \- org.codehaus.groovy.modules.http-builder:http-builder:jar:0.6:provided
+[INFO] |     +- net.sf.json-lib:json-lib:jar:jdk15:2.3:provided
+[INFO] |     |  \- net.sf.ezmorph:ezmorph:jar:1.0.6:provided
+[INFO] |     +- net.sourceforge.nekohtml:nekohtml:jar:1.9.16:provided
+[INFO] |     \- xml-resolver:xml-resolver:jar:1.2:provided
+[INFO] +- org.cloudifysource:domain:jar:2.7.0-SNAPSHOT:provided
+[INFO] +- commons-pool:commons-pool:jar:1.6:compile
+[INFO] +- com.sun.jersey:jersey-core:jar:1.11:compile
+[INFO] +- com.sun.jersey.contribs:jersey-apache-client:jar:1.11:compile
+[INFO] |  +- commons-httpclient:commons-httpclient:jar:3.1:compile
+[INFO] |  \- com.sun.jersey:jersey-client:jar:1.11:compile
+[INFO] +- org.codehaus.jackson:jackson-core-asl:jar:1.9.5:compile
+[INFO] +- org.codehaus.jackson:jackson-mapper-asl:jar:1.9.5:compile
+[INFO] +- org.codehaus.groovy:groovy:jar:1.8.6:compile
+[INFO] |  +- antlr:antlr:jar:2.7.7:compile
+[INFO] |  +- asm:asm:jar:3.2:compile
+[INFO] |  +- asm:asm-commons:jar:3.2:compile
+[INFO] |  +- asm:asm-util:jar:3.2:compile
+[INFO] |  +- asm:asm-analysis:jar:3.2:compile
+[INFO] |  \- asm:asm-tree:jar:3.2:compile
+[INFO] +- org.jclouds.driver:jclouds-bouncycastle:jar:1.5.8:compile
+[INFO] |  +- org.jclouds:jclouds-core:jar:1.5.8:compile
+[INFO] |  |  +- javax.ws.rs:jsr311-api:jar:1.1.1:compile
+[INFO] |  |  +- com.google.inject.extensions:guice-assistedinject:jar:3.0:compile
+[INFO] |  |  +- com.google.inject:guice:jar:3.0:compile
+[INFO] |  |  +- org.99soft.guice:rocoto:jar:6.1:compile
+[INFO] |  |  +- javax.inject:javax.inject:jar:1:compile
+[INFO] |  |  +- javax.annotation:jsr250-api:jar:1.0:compile
+[INFO] |  |  +- com.google.code.gson:gson:jar:2.2:compile
+[INFO] |  |  \- com.google.guava:guava:jar:13.0:compile
+[INFO] |  \- org.bouncycastle:bcprov-jdk16:jar:1.46:compile
+[INFO] +- jcifs:jcifs:jar:1.3.17:compile
+[INFO] +- net.schmizz:sshj:jar:0.8.1:compile
+[INFO] |  \- org.slf4j:slf4j-api:jar:1.6.1:compile
+[INFO] +- commons-net:commons-net:jar:3.2:compile
+[INFO] +- com.amazonaws:aws-java-sdk:jar:1.4.7:compile
+[INFO] |  \- org.apache.httpcomponents:httpclient:jar:4.1:compile
+[INFO] |     \- org.apache.httpcomponents:httpcore:jar:4.1:compile
+[INFO] +- org.apache.commons:commons-compress:jar:1.5:compile
+[INFO] |  \- org.tukaani:xz:jar:1.2:compile
+[INFO] \- commons-codec:commons-codec:jar:1.4:test
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building esc-commands 2.7.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+Downloading: http://maven-repository.openspaces.org/org/cloudifysource/CLI/2.7.0-SNAPSHOT/maven-metadata.xml
+777/777 B               Downloaded: http://maven-repository.openspaces.org/org/cloudifysource/CLI/2.7.0-SNAPSHOT/maven-metadata.xml (777 B at 2.5 KB/sec)
+Downloading: http://maven-repository.openspaces.org/org/cloudifysource/esc/2.7.0-SNAPSHOT/maven-metadata.xml
+897/993 B   993/993 B               Downloaded: http://maven-repository.openspaces.org/org/cloudifysource/esc/2.7.0-SNAPSHOT/maven-metadata.xml (993 B at 6.5 KB/sec)
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ esc-commands ---
+[INFO] org.cloudifysource:esc-commands:jar:2.7.0-SNAPSHOT
+[INFO] +- commons-lang:commons-lang:jar:2.6:compile
+[INFO] +- com.gigaspaces:gs-openspaces:jar:9.7.0-SNAPSHOT:provided
+[INFO] |  +- org.eclipse.jetty.orbit:com.sun.el:jar:2.2.0.v201108011116:provided
+[INFO] |  +- org.eclipse.jetty.orbit:javax.el:jar:2.2.0.v201108011116:provided
+[INFO] |  +- org.eclipse.jetty.orbit:javax.servlet.jsp:jar:2.2.0.v201112011158:provided
+[INFO] |  |  \- org.eclipse.jetty.orbit:javax.servlet:jar:3.0.0.v201112011016:provided
+[INFO] |  +- org.eclipse.jetty.orbit:javax.servlet.jsp.jstl:jar:1.2.0.v201105211821:provided
+[INFO] |  +- org.eclipse.jetty.orbit:org.apache.taglibs.standard.glassfish:jar:1.2.0.v201112081803:provided
+[INFO] |  +- javax.servlet:javax.servlet-api:jar:3.0.1:provided
+[INFO] |  +- org.eclipse.jdt.core.compiler:ecj:jar:3.7.1:provided
+[INFO] |  +- org.eclipse.jetty.orbit:org.apache.jasper.glassfish:jar:2.2.2.v201112011158:provided
+[INFO] |  +- org.eclipse.jetty.aggregate:jetty-all:jar:8.1.8.v20121106:provided
+[INFO] |  +- org.ow2.jotm:jotm-core:jar:2.1.1:provided
+[INFO] |  |  +- org.ow2.carol:carol:jar:3.0-RC7:provided
+[INFO] |  |  |  +- org.ow2.carol.irmi:irmi:jar:1.1.1:provided
+[INFO] |  |  |  +- org.jacorb:jacorb:jar:2.2.3-jonas-patch-20071018:provided
+[INFO] |  |  |  |  \- avalon-framework:avalon-framework:jar:4.1.5:provided
+[INFO] |  |  |  \- org.jacorb:jacorb-idl:jar:2.2.3-jonas-patch-20071018:provided
+[INFO] |  |  |     \- logkit:logkit:jar:1.2:provided
+[INFO] |  |  +- commons-logging:commons-logging-api:jar:1.1:provided
+[INFO] |  |  \- org.objectweb.howl:howl:jar:1.0.1-1:provided
+[INFO] |  +- org.jruby:jruby:jar:1.0.2:provided
+[INFO] |  |  \- backport-util-concurrent:backport-util-concurrent:jar:3.0:provided
+[INFO] |  +- junit:junit:jar:4.8.2:provided
+[INFO] |  +- org.hibernate:hibernate-core:jar:3.6.1.Final:provided
+[INFO] |  |  +- dom4j:dom4j:jar:1.6.1:provided
+[INFO] |  |  +- org.hibernate:hibernate-commons-annotations:jar:3.2.0.Final:provided
+[INFO] |  |  +- org.hibernate.javax.persistence:hibernate-jpa-2.0-api:jar:1.0.0.Final:provided
+[INFO] |  |  \- javax.transaction:jta:jar:1.1:provided
+[INFO] |  +- org.aopalliance:com.springsource.org.aopalliance:jar:1.0.0:provided
+[INFO] |  +- org.springframework:spring-jdbc:jar:3.2.4.RELEASE:provided
+[INFO] |  |  +- org.springframework:spring-beans:jar:3.2.4.RELEASE:provided
+[INFO] |  |  +- org.springframework:spring-core:jar:3.2.4.RELEASE:provided
+[INFO] |  |  \- org.springframework:spring-tx:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-jms:jar:3.2.4.RELEASE:provided
+[INFO] |  |  +- aopalliance:aopalliance:jar:1.0:provided
+[INFO] |  |  +- org.springframework:spring-aop:jar:3.2.4.RELEASE:provided
+[INFO] |  |  \- org.springframework:spring-context:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-oxm:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-orm:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-web:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-webmvc:jar:3.2.4.RELEASE:provided
+[INFO] |  |  \- org.springframework:spring-expression:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework.security:spring-security-core:jar:3.1.4.RELEASE:provided
+[INFO] |  +- org.springframework.security:spring-security-web:jar:3.1.4.RELEASE:provided
+[INFO] |  +- commons-pool:commons-pool:jar:1.6:provided
+[INFO] |  +- commons-collections:commons-collections:jar:3.2.1:provided
+[INFO] |  +- org.jboss.jbossts:jbossjta:jar:4.15.0.Final:provided
+[INFO] |  |  +- commons-httpclient:commons-httpclient:jar:3.1-jbossorg-1:provided
+[INFO] |  |  +- org.jboss.spec.javax.transaction:jboss-transaction-api_1.1_spec:jar:1.0.0.Final:provided
+[INFO] |  |  +- org.jboss.ironjacamar:ironjacamar-spec-api:jar:1.0.0.Beta5:provided
+[INFO] |  |  |  \- org.jboss.javaee:jboss-transaction-api:jar:1.0.1.GA:provided
+[INFO] |  |  +- emma:emma:jar:2.0.5312:provided
+[INFO] |  |  +- emma:emma_ant:jar:2.0.5312:provided
+[INFO] |  |  +- org.hornetq:hornetq-core:jar:2.1.2.Final:provided
+[INFO] |  |  +- org.jboss.netty:netty:jar:3.2.1.Final:provided
+[INFO] |  |  +- tanukisoft:wrapper:jar:3.2.3:provided
+[INFO] |  |  +- jacorb:jacorb:jar:2.3.1jboss.patch01-brew:provided
+[INFO] |  |  +- jacorb:idl:jar:2.3.1jboss.patch01-brew:provided
+[INFO] |  |  +- org.jboss.logmanager:jboss-logmanager:jar:1.2.0.CR7:provided
+[INFO] |  |  +- org.jboss.integration:jboss-transaction-spi:jar:6.0.0.CR1:provided
+[INFO] |  |  +- org.jboss.integration:jboss-corba-ots-spi:jar:6.0.0.CR1:provided
+[INFO] |  |  +- org.jboss.jbossas:jboss-server-manager:jar:1.0.4.Final:provided
+[INFO] |  |  |  +- org.jboss.naming:jnp-client:jar:5.0.5.Final:provided
+[INFO] |  |  |  |  \- org.jboss:jboss-common-core:jar:2.2.10.GA:provided
+[INFO] |  |  |  +- org.picketbox:jbosssx-client:jar:3.0.0.CR2:provided
+[INFO] |  |  |  \- org.picketbox:jboss-security-spi:jar:3.0.0.CR2:provided
+[INFO] |  |  +- org.jboss.spec.javax.ejb:jboss-ejb-api_3.1_spec:jar:1.0.0.Final:provided
+[INFO] |  |  |  \- javax.xml:jaxrpc-api:jar:1.1:provided
+[INFO] |  |  +- org.jboss.remoting:jboss-remoting:jar:2.5.3:provided
+[INFO] |  |  +- org.jboss.spec.javax.servlet:jboss-servlet-api_3.0_spec:jar:1.0.0.Final:provided
+[INFO] |  |  +- org.jboss.logging:jboss-logging:jar:3.0.0.Beta5:provided
+[INFO] |  |  +- org.jboss.logging:jboss-logging-processor:jar:1.0.0.Beta6:provided
+[INFO] |  |  +- org.jboss.logging:jboss-logging-generator:jar:1.0.0.Beta6:provided
+[INFO] |  |  |  \- system:jdk-tools:jar:jdk:system
+[INFO] |  |  \- org.jboss.ws:jbossws-common:jar:2.0.0.Alpha3:provided
+[INFO] |  |     +- org.jboss.ws:jbossws-spi:jar:2.0.0.Alpha2:provided
+[INFO] |  |     |  \- org.jboss.ws:jbossws-api:jar:1.0.0-SNAPSHOT:provided
+[INFO] |  |     +- gnu-getopt:getopt:jar:1.0.13:provided
+[INFO] |  |     \- org.jboss.spec.javax.xml.ws:jboss-jaxws-api_2.2_spec:jar:1.0.0.Final:provided
+[INFO] |  +- org.apache.openjpa:openjpa:jar:2.0.1:provided
+[INFO] |  |  +- net.sourceforge.serp:serp:jar:1.13.1:provided
+[INFO] |  |  \- org.apache.geronimo.specs:geronimo-jms_1.1_spec:jar:1.1.1:provided
+[INFO] |  +- org.apache.geronimo.specs:geronimo-jpa_2.0_spec:jar:1.1:provided
+[INFO] |  +- org.apache.geronimo.specs:geronimo-jta_1.1_spec:jar:1.1.1:provided
+[INFO] |  +- hsqldb:hsqldb:jar:1.8.0.10:provided
+[INFO] |  +- org.apache.geronimo.specs:geronimo-j2ee-connector_1.5_spec:jar:1.1:provided
+[INFO] |  +- org.eclipse.jetty:jetty-client:jar:8.1.8.v20121106:provided
+[INFO] |  |  \- org.eclipse.jetty:jetty-http:jar:8.1.8.v20121106:provided
+[INFO] |  |     \- org.eclipse.jetty:jetty-io:jar:8.1.8.v20121106:provided
+[INFO] |  |        \- org.eclipse.jetty:jetty-util:jar:8.1.8.v20121106:provided
+[INFO] |  +- velocity:velocity:jar:1.5:provided
+[INFO] |  |  \- oro:oro:jar:2.0.8:provided
+[INFO] |  \- com.atomikos:transactions-jta:jar:3.8.0:provided
+[INFO] |     +- com.atomikos:transactions:jar:3.8.0:provided
+[INFO] |     |  \- com.atomikos:transactions-api:jar:3.8.0:provided
+[INFO] |     |     \- com.atomikos:atomikos-util:jar:3.8.0:provided
+[INFO] |     \- org.mockito:mockito-all:jar:1.9.0:provided
+[INFO] +- org.cloudifysource:CLI:jar:2.7.0-SNAPSHOT:compile
+[INFO] |  +- org.apache.httpcomponents:httpcore:jar:4.2.1:compile
+[INFO] |  +- org.apache.karaf.shell:org.apache.karaf.shell.console:jar:2.2.9:compile
+[INFO] |  |  +- jline:jline:jar:2.7:compile
+[INFO] |  |  +- org.fusesource.jansi:jansi:jar:1.9:compile
+[INFO] |  |  +- org.osgi:org.osgi.core:jar:4.2.0:compile
+[INFO] |  |  +- org.osgi:org.osgi.compendium:jar:4.2.0:compile
+[INFO] |  |  +- org.apache.karaf.jaas:org.apache.karaf.jaas.modules:jar:2.2.9:compile
+[INFO] |  |  |  +- org.apache.karaf.jaas:org.apache.karaf.jaas.config:jar:2.2.9:compile
+[INFO] |  |  |  +- org.apache.karaf.jaas:org.apache.karaf.jaas.boot:jar:2.2.9:compile
+[INFO] |  |  |  \- org.apache.karaf:org.apache.karaf.util:jar:2.2.9:compile
+[INFO] |  |  +- org.apache.aries.blueprint:org.apache.aries.blueprint:jar:0.3.2:compile
+[INFO] |  |  |  +- org.apache.aries:org.apache.aries.util:jar:0.3:compile
+[INFO] |  |  |  +- org.apache.aries.testsupport:org.apache.aries.testsupport.unit:jar:0.3:compile
+[INFO] |  |  |  \- org.apache.aries.proxy:org.apache.aries.proxy.api:jar:0.3:compile
+[INFO] |  |  \- org.apache.felix:org.apache.felix.gogo.runtime:jar:0.10.0:compile
+[INFO] |  +- org.slf4j:slf4j-api:jar:1.6.1:compile
+[INFO] |  +- org.slf4j:slf4j-nop:jar:1.6.1:compile
+[INFO] |  +- org.apache.httpcomponents:httpclient:jar:4.2.1:compile
+[INFO] |  |  +- commons-logging:commons-logging:jar:1.1.3:provided
+[INFO] |  |  \- commons-codec:commons-codec:jar:1.6:compile
+[INFO] |  +- org.apache.httpcomponents:httpmime:jar:4.2.1:compile
+[INFO] |  +- org.codehaus.jackson:jackson-core-asl:jar:1.9.5:compile
+[INFO] |  +- org.codehaus.jackson:jackson-mapper-asl:jar:1.9.5:compile
+[INFO] |  +- org.apache.commons:commons-exec:jar:1.1:compile
+[INFO] |  +- org.cloudifysource:rest-client:jar:2.7.0-SNAPSHOT:compile
+[INFO] |  \- com.sun:deploy:jar:1:system
+[INFO] +- org.cloudifysource:esc:jar:2.7.0-SNAPSHOT:provided
+[INFO] |  +- org.apache.ant:ant-jsch:jar:1.8.3:provided
+[INFO] |  |  \- org.apache.ant:ant:jar:1.8.3:provided
+[INFO] |  |     \- org.apache.ant:ant-launcher:jar:1.8.3:provided
+[INFO] |  +- com.googlecode.java-ipv6:java-ipv6:jar:0.13:provided
+[INFO] |  +- org.apache.commons:commons-vfs2:jar:2.0:provided
+[INFO] |  |  +- org.apache.maven.scm:maven-scm-api:jar:1.4:provided
+[INFO] |  |  |  \- org.codehaus.plexus:plexus-utils:jar:1.5.6:provided
+[INFO] |  |  \- org.apache.maven.scm:maven-scm-provider-svnexe:jar:1.4:provided
+[INFO] |  |     +- org.apache.maven.scm:maven-scm-provider-svn-commons:jar:1.4:provided
+[INFO] |  |     \- regexp:regexp:jar:1.3:provided
+[INFO] |  +- com.jcraft:jsch:jar:0.1.49:provided
+[INFO] |  +- org.jclouds:jclouds-allcompute:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:greenhousedata-element-vcloud:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:eucalyptus-partnercloud-ec2:jar:1.5.8:provided
+[INFO] |  |  |  \- org.jclouds.api:eucalyptus:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.api:deltacloud:jar:1.5.8:provided
+[INFO] |  |  |  \- org.jclouds:jclouds-compute:jar:1.5.8:provided
+[INFO] |  |  |     \- org.jclouds:jclouds-scriptbuilder:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:aws-ec2:jar:1.5.8:provided
+[INFO] |  |  |  \- org.jclouds.common:aws-common:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:rimuhosting:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.api:openstack-nova:jar:1.5.8:provided
+[INFO] |  |  |  \- org.jclouds.api:openstack-keystone:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.api:openstack-nova-ec2:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.api:nova:jar:1.5.8:provided
+[INFO] |  |  |  \- org.jclouds.common:openstack-common:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.api:byon:jar:1.5.8:provided
+[INFO] |  |  |  \- org.yaml:snakeyaml:jar:1.10:provided
+[INFO] |  |  +- org.jclouds.api:ec2:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:cloudservers-us:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:cloudservers-uk:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.api:cloudservers:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.api:vcloud:jar:1.5.8:provided
+[INFO] |  |  |  \- com.jamesmurty.utils:java-xmlbuilder:jar:0.4:provided
+[INFO] |  |  +- org.jclouds.api:cloudsigma:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:trmk-vcloudexpress:jar:1.5.8:provided
+[INFO] |  |  |  \- org.jclouds.common:trmk-common:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:trmk-ecloud:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:bluelock-vcloud-zone01:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:stratogen-vcloud-mycloud:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:gogrid:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:slicehost:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.api:elasticstack:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:elastichosts-lon-p:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:elastichosts-sat-p:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:elastichosts-lon-b:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:openhosting-east1:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:serverlove-z1-man:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:skalicloud-sdg-my:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:cloudsigma-zrh:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:cloudsigma-lvs:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:go2cloud-jhb1:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:softlayer:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.api:cloudstack:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:ninefold-compute:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:hpcloud-compute:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:trystack-nova:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds.provider:rackspace-cloudservers-us:jar:1.5.8:provided
+[INFO] |  |  |  \- org.jclouds.api:rackspace-cloudidentity:jar:1.5.8:provided
+[INFO] |  |  \- org.jclouds.provider:rackspace-cloudservers-uk:jar:1.5.8:provided
+[INFO] |  +- com.sun.jersey:jersey-core:jar:1.11:provided
+[INFO] |  +- com.sun.jersey.contribs:jersey-apache-client:jar:1.11:provided
+[INFO] |  |  \- com.sun.jersey:jersey-client:jar:1.11:provided
+[INFO] |  +- org.jclouds.driver:jclouds-bouncycastle:jar:1.5.8:provided
+[INFO] |  |  +- org.jclouds:jclouds-core:jar:1.5.8:provided
+[INFO] |  |  |  +- javax.ws.rs:jsr311-api:jar:1.1.1:provided
+[INFO] |  |  |  +- com.google.inject.extensions:guice-assistedinject:jar:3.0:provided
+[INFO] |  |  |  +- com.google.inject:guice:jar:3.0:provided
+[INFO] |  |  |  +- org.99soft.guice:rocoto:jar:6.1:provided
+[INFO] |  |  |  +- javax.inject:javax.inject:jar:1:provided
+[INFO] |  |  |  +- javax.annotation:jsr250-api:jar:1.0:provided
+[INFO] |  |  |  +- com.google.code.gson:gson:jar:2.2:provided
+[INFO] |  |  |  \- com.google.guava:guava:jar:13.0:provided
+[INFO] |  |  \- org.bouncycastle:bcprov-jdk16:jar:1.46:provided
+[INFO] |  +- jcifs:jcifs:jar:1.3.17:provided
+[INFO] |  +- net.schmizz:sshj:jar:0.8.1:provided
+[INFO] |  +- commons-net:commons-net:jar:3.2:provided
+[INFO] |  +- com.amazonaws:aws-java-sdk:jar:1.4.7:provided
+[INFO] |  \- org.apache.commons:commons-compress:jar:1.5:provided
+[INFO] |     \- org.tukaani:xz:jar:1.2:provided
+[INFO] +- com.gigaspaces:gs-runtime:jar:9.7.0-SNAPSHOT:provided
+[INFO] |  +- xerces:xercesImpl:jar:2.9.0:provided
+[INFO] |  |  \- xml-apis:xml-apis:jar:1.3.04:provided
+[INFO] |  +- javax.jms:jms:jar:1.1:provided
+[INFO] |  +- org.apache.poi:poi:jar:3.6:provided
+[INFO] |  +- net.java.dev.swing-layout:swing-layout:jar:1.0:provided
+[INFO] |  +- org.eclipse.wst:org.eclipse.wst.xml.xpath2.processor:jar:2.1.1.v201204260055:provided
+[INFO] |  +- com.sun:tools:jar:1.6:system
+[INFO] |  \- xalan:xalan:jar:2.7.1:provided
+[INFO] |     \- xalan:serializer:jar:2.7.1:provided
+[INFO] +- org.cloudifysource:dsl:jar:2.7.0-SNAPSHOT:provided
+[INFO] |  +- commons-beanutils:commons-beanutils:jar:1.8.3:provided
+[INFO] |  +- commons-validator:commons-validator:jar:1.4.0:provided
+[INFO] |  |  \- commons-digester:commons-digester:jar:1.8:provided
+[INFO] |  +- commons-io:commons-io:jar:2.0.1:provided
+[INFO] |  \- org.codehaus.groovy.modules.http-builder:http-builder:jar:0.6:provided
+[INFO] |     +- net.sf.json-lib:json-lib:jar:jdk15:2.3:provided
+[INFO] |     |  \- net.sf.ezmorph:ezmorph:jar:1.0.6:provided
+[INFO] |     +- net.sourceforge.nekohtml:nekohtml:jar:1.9.16:provided
+[INFO] |     \- xml-resolver:xml-resolver:jar:1.2:provided
+[INFO] +- org.cloudifysource:domain:jar:2.7.0-SNAPSHOT:provided
+[INFO] +- org.codehaus.groovy:groovy:jar:1.8.6:provided
+[INFO] |  +- antlr:antlr:jar:2.7.7:provided
+[INFO] |  +- asm:asm:jar:3.2:provided
+[INFO] |  +- asm:asm-commons:jar:3.2:provided
+[INFO] |  +- asm:asm-util:jar:3.2:provided
+[INFO] |  +- asm:asm-analysis:jar:3.2:provided
+[INFO] |  \- asm:asm-tree:jar:3.2:provided
+[INFO] +- org.apache.ivy:ivy:jar:2.2.0:provided
+[INFO] \- org.hyperic:sigar:jar:1.6.5:provided
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building USM 2.7.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ USM ---
+[INFO] org.cloudifysource:USM:jar:2.7.0-SNAPSHOT
+[INFO] +- commons-lang:commons-lang:jar:2.6:compile
+[INFO] +- org.cloudifysource:utility-domain:jar:2.7.0-SNAPSHOT:provided
+[INFO] |  \- org.apache.commons:commons-exec:jar:1.1:provided
+[INFO] +- org.cloudifysource:dsl:jar:2.7.0-SNAPSHOT:provided
+[INFO] |  +- commons-beanutils:commons-beanutils:jar:1.8.3:provided
+[INFO] |  +- commons-validator:commons-validator:jar:1.4.0:provided
+[INFO] |  |  +- commons-digester:commons-digester:jar:1.8:provided
+[INFO] |  |  \- commons-logging:commons-logging:jar:1.1.3:provided
+[INFO] |  +- com.googlecode.java-ipv6:java-ipv6:jar:0.14:provided
+[INFO] |  \- org.codehaus.groovy.modules.http-builder:http-builder:jar:0.6:provided
+[INFO] |     +- org.apache.httpcomponents:httpclient:jar:4.2.1:provided
+[INFO] |     |  +- org.apache.httpcomponents:httpcore:jar:4.2.1:provided
+[INFO] |     |  \- commons-codec:commons-codec:jar:1.6:provided
+[INFO] |     +- net.sf.json-lib:json-lib:jar:jdk15:2.3:provided
+[INFO] |     |  \- net.sf.ezmorph:ezmorph:jar:1.0.6:provided
+[INFO] |     +- net.sourceforge.nekohtml:nekohtml:jar:1.9.16:provided
+[INFO] |     \- xml-resolver:xml-resolver:jar:1.2:provided
+[INFO] +- org.cloudifysource:domain:jar:2.7.0-SNAPSHOT:provided
+[INFO] +- org.hyperic:sigar:jar:1.6.5:provided
+[INFO] +- com.gigaspaces:gs-openspaces:jar:9.7.0-SNAPSHOT:provided
+[INFO] |  +- org.eclipse.jetty.orbit:com.sun.el:jar:2.2.0.v201108011116:provided
+[INFO] |  +- org.eclipse.jetty.orbit:javax.el:jar:2.2.0.v201108011116:provided
+[INFO] |  +- org.eclipse.jetty.orbit:javax.servlet.jsp:jar:2.2.0.v201112011158:provided
+[INFO] |  |  \- org.eclipse.jetty.orbit:javax.servlet:jar:3.0.0.v201112011016:provided
+[INFO] |  +- org.eclipse.jetty.orbit:javax.servlet.jsp.jstl:jar:1.2.0.v201105211821:provided
+[INFO] |  +- org.eclipse.jetty.orbit:org.apache.taglibs.standard.glassfish:jar:1.2.0.v201112081803:provided
+[INFO] |  +- javax.servlet:javax.servlet-api:jar:3.0.1:provided
+[INFO] |  +- org.eclipse.jdt.core.compiler:ecj:jar:3.7.1:provided
+[INFO] |  +- org.eclipse.jetty.orbit:org.apache.jasper.glassfish:jar:2.2.2.v201112011158:provided
+[INFO] |  +- org.eclipse.jetty.aggregate:jetty-all:jar:8.1.8.v20121106:provided
+[INFO] |  +- org.ow2.jotm:jotm-core:jar:2.1.1:provided
+[INFO] |  |  +- org.ow2.carol:carol:jar:3.0-RC7:provided
+[INFO] |  |  |  +- org.ow2.carol.irmi:irmi:jar:1.1.1:provided
+[INFO] |  |  |  +- org.jacorb:jacorb:jar:2.2.3-jonas-patch-20071018:provided
+[INFO] |  |  |  |  \- avalon-framework:avalon-framework:jar:4.1.5:provided
+[INFO] |  |  |  \- org.jacorb:jacorb-idl:jar:2.2.3-jonas-patch-20071018:provided
+[INFO] |  |  |     \- logkit:logkit:jar:1.2:provided
+[INFO] |  |  +- commons-logging:commons-logging-api:jar:1.1:provided
+[INFO] |  |  \- org.objectweb.howl:howl:jar:1.0.1-1:provided
+[INFO] |  +- org.jruby:jruby:jar:1.0.2:provided
+[INFO] |  |  +- backport-util-concurrent:backport-util-concurrent:jar:3.0:provided
+[INFO] |  |  \- jline:jline:jar:0.9.91:provided
+[INFO] |  +- org.hibernate:hibernate-core:jar:3.6.1.Final:provided
+[INFO] |  |  +- dom4j:dom4j:jar:1.6.1:provided
+[INFO] |  |  +- org.hibernate:hibernate-commons-annotations:jar:3.2.0.Final:provided
+[INFO] |  |  +- org.hibernate.javax.persistence:hibernate-jpa-2.0-api:jar:1.0.0.Final:provided
+[INFO] |  |  +- javax.transaction:jta:jar:1.1:provided
+[INFO] |  |  \- org.slf4j:slf4j-api:jar:1.6.1:provided
+[INFO] |  +- com.gigaspaces:gs-runtime:jar:9.7.0-SNAPSHOT:provided
+[INFO] |  |  +- xerces:xercesImpl:jar:2.9.0:provided
+[INFO] |  |  |  \- xml-apis:xml-apis:jar:1.3.04:provided
+[INFO] |  |  +- javax.jms:jms:jar:1.1:provided
+[INFO] |  |  +- org.apache.poi:poi:jar:3.6:provided
+[INFO] |  |  +- net.java.dev.swing-layout:swing-layout:jar:1.0:provided
+[INFO] |  |  +- org.eclipse.wst:org.eclipse.wst.xml.xpath2.processor:jar:2.1.1.v201204260055:provided
+[INFO] |  |  +- com.sun:tools:jar:1.6:system
+[INFO] |  |  \- xalan:xalan:jar:2.7.1:provided
+[INFO] |  |     \- xalan:serializer:jar:2.7.1:provided
+[INFO] |  +- org.aopalliance:com.springsource.org.aopalliance:jar:1.0.0:provided
+[INFO] |  +- org.springframework:spring-jdbc:jar:3.2.4.RELEASE:provided
+[INFO] |  |  +- org.springframework:spring-beans:jar:3.2.4.RELEASE:provided
+[INFO] |  |  +- org.springframework:spring-core:jar:3.2.4.RELEASE:provided
+[INFO] |  |  \- org.springframework:spring-tx:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-jms:jar:3.2.4.RELEASE:provided
+[INFO] |  |  +- aopalliance:aopalliance:jar:1.0:provided
+[INFO] |  |  +- org.springframework:spring-aop:jar:3.2.4.RELEASE:provided
+[INFO] |  |  \- org.springframework:spring-context:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-oxm:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-orm:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-web:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-webmvc:jar:3.2.4.RELEASE:provided
+[INFO] |  |  \- org.springframework:spring-expression:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework.security:spring-security-core:jar:3.1.4.RELEASE:provided
+[INFO] |  +- org.springframework.security:spring-security-web:jar:3.1.4.RELEASE:provided
+[INFO] |  +- commons-pool:commons-pool:jar:1.6:provided
+[INFO] |  +- commons-collections:commons-collections:jar:3.2.1:provided
+[INFO] |  +- org.jboss.jbossts:jbossjta:jar:4.15.0.Final:provided
+[INFO] |  |  +- commons-httpclient:commons-httpclient:jar:3.1-jbossorg-1:provided
+[INFO] |  |  +- org.jboss.spec.javax.transaction:jboss-transaction-api_1.1_spec:jar:1.0.0.Final:provided
+[INFO] |  |  +- org.jboss.ironjacamar:ironjacamar-spec-api:jar:1.0.0.Beta5:provided
+[INFO] |  |  |  \- org.jboss.javaee:jboss-transaction-api:jar:1.0.1.GA:provided
+[INFO] |  |  +- emma:emma:jar:2.0.5312:provided
+[INFO] |  |  +- emma:emma_ant:jar:2.0.5312:provided
+[INFO] |  |  |  \- ant:ant:jar:1.6.3:provided
+[INFO] |  |  +- org.hornetq:hornetq-core:jar:2.1.2.Final:provided
+[INFO] |  |  +- org.jboss.netty:netty:jar:3.2.1.Final:provided
+[INFO] |  |  +- tanukisoft:wrapper:jar:3.2.3:provided
+[INFO] |  |  +- jacorb:jacorb:jar:2.3.1jboss.patch01-brew:provided
+[INFO] |  |  +- jacorb:idl:jar:2.3.1jboss.patch01-brew:provided
+[INFO] |  |  +- org.jboss.logmanager:jboss-logmanager:jar:1.2.0.CR7:provided
+[INFO] |  |  +- org.jboss.integration:jboss-transaction-spi:jar:6.0.0.CR1:provided
+[INFO] |  |  +- org.jboss.integration:jboss-corba-ots-spi:jar:6.0.0.CR1:provided
+[INFO] |  |  +- org.jboss.jbossas:jboss-server-manager:jar:1.0.4.Final:provided
+[INFO] |  |  |  +- org.jboss.naming:jnp-client:jar:5.0.5.Final:provided
+[INFO] |  |  |  |  \- org.jboss:jboss-common-core:jar:2.2.10.GA:provided
+[INFO] |  |  |  +- org.picketbox:jbosssx-client:jar:3.0.0.CR2:provided
+[INFO] |  |  |  \- org.picketbox:jboss-security-spi:jar:3.0.0.CR2:provided
+[INFO] |  |  +- org.jboss.spec.javax.ejb:jboss-ejb-api_3.1_spec:jar:1.0.0.Final:provided
+[INFO] |  |  |  \- javax.xml:jaxrpc-api:jar:1.1:provided
+[INFO] |  |  +- org.jboss.remoting:jboss-remoting:jar:2.5.3:provided
+[INFO] |  |  +- org.jboss.spec.javax.servlet:jboss-servlet-api_3.0_spec:jar:1.0.0.Final:provided
+[INFO] |  |  +- org.jboss.logging:jboss-logging:jar:3.0.0.Beta5:provided
+[INFO] |  |  +- org.jboss.logging:jboss-logging-processor:jar:1.0.0.Beta6:provided
+[INFO] |  |  +- org.jboss.logging:jboss-logging-generator:jar:1.0.0.Beta6:provided
+[INFO] |  |  |  \- system:jdk-tools:jar:jdk:system
+[INFO] |  |  \- org.jboss.ws:jbossws-common:jar:2.0.0.Alpha3:provided
+[INFO] |  |     +- org.jboss.ws:jbossws-spi:jar:2.0.0.Alpha2:provided
+[INFO] |  |     |  \- org.jboss.ws:jbossws-api:jar:1.0.0-SNAPSHOT:provided
+[INFO] |  |     +- org.apache.ant:ant:jar:1.7.1:provided
+[INFO] |  |     |  \- org.apache.ant:ant-launcher:jar:1.7.1:provided
+[INFO] |  |     +- gnu-getopt:getopt:jar:1.0.13:provided
+[INFO] |  |     \- org.jboss.spec.javax.xml.ws:jboss-jaxws-api_2.2_spec:jar:1.0.0.Final:provided
+[INFO] |  +- org.apache.openjpa:openjpa:jar:2.0.1:provided
+[INFO] |  |  +- net.sourceforge.serp:serp:jar:1.13.1:provided
+[INFO] |  |  \- org.apache.geronimo.specs:geronimo-jms_1.1_spec:jar:1.1.1:provided
+[INFO] |  +- org.apache.geronimo.specs:geronimo-jpa_2.0_spec:jar:1.1:provided
+[INFO] |  +- org.apache.geronimo.specs:geronimo-jta_1.1_spec:jar:1.1.1:provided
+[INFO] |  +- hsqldb:hsqldb:jar:1.8.0.10:provided
+[INFO] |  +- org.apache.geronimo.specs:geronimo-j2ee-connector_1.5_spec:jar:1.1:provided
+[INFO] |  +- org.eclipse.jetty:jetty-client:jar:8.1.8.v20121106:provided
+[INFO] |  |  \- org.eclipse.jetty:jetty-http:jar:8.1.8.v20121106:provided
+[INFO] |  |     \- org.eclipse.jetty:jetty-io:jar:8.1.8.v20121106:provided
+[INFO] |  |        \- org.eclipse.jetty:jetty-util:jar:8.1.8.v20121106:provided
+[INFO] |  +- velocity:velocity:jar:1.5:provided
+[INFO] |  |  \- oro:oro:jar:2.0.8:provided
+[INFO] |  \- com.atomikos:transactions-jta:jar:3.8.0:provided
+[INFO] |     +- com.atomikos:transactions:jar:3.8.0:provided
+[INFO] |     |  \- com.atomikos:transactions-api:jar:3.8.0:provided
+[INFO] |     |     \- com.atomikos:atomikos-util:jar:3.8.0:provided
+[INFO] |     \- org.mockito:mockito-all:jar:1.9.0:provided
+[INFO] +- commons-io:commons-io:jar:2.0.1:compile
+[INFO] +- junit:junit:jar:4.8.2:test
+[INFO] +- log4j:log4j:jar:1.2.16:test
+[INFO] +- org.codehaus.groovy:groovy:jar:1.8.6:provided
+[INFO] |  +- antlr:antlr:jar:2.7.7:provided
+[INFO] |  +- asm:asm:jar:3.2:provided
+[INFO] |  +- asm:asm-commons:jar:3.2:provided
+[INFO] |  +- asm:asm-util:jar:3.2:provided
+[INFO] |  +- asm:asm-analysis:jar:3.2:provided
+[INFO] |  \- asm:asm-tree:jar:3.2:provided
+[INFO] +- cglib:cglib-nodep:jar:2.2.2:provided
+[INFO] \- org.hyperic:sigar-dist:zip:1.6.5.132:test
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building security 2.7.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ security ---
+[INFO] org.cloudifysource:security:jar:2.7.0-SNAPSHOT
+[INFO] +- org.cloudifysource:dsl:jar:2.7.0-SNAPSHOT:provided
+[INFO] |  +- commons-beanutils:commons-beanutils:jar:1.8.3:provided
+[INFO] |  +- commons-lang:commons-lang:jar:2.6:provided
+[INFO] |  +- commons-validator:commons-validator:jar:1.4.0:provided
+[INFO] |  |  +- commons-digester:commons-digester:jar:1.8:provided
+[INFO] |  |  \- commons-logging:commons-logging:jar:1.1.3:provided
+[INFO] |  +- org.apache.commons:commons-exec:jar:1.1:provided
+[INFO] |  +- commons-io:commons-io:jar:2.0.1:provided
+[INFO] |  +- com.googlecode.java-ipv6:java-ipv6:jar:0.14:provided
+[INFO] |  \- org.codehaus.groovy.modules.http-builder:http-builder:jar:0.6:provided
+[INFO] |     +- org.apache.httpcomponents:httpclient:jar:4.2.1:provided
+[INFO] |     |  +- org.apache.httpcomponents:httpcore:jar:4.2.1:provided
+[INFO] |     |  \- commons-codec:commons-codec:jar:1.6:provided
+[INFO] |     +- net.sf.json-lib:json-lib:jar:jdk15:2.3:provided
+[INFO] |     |  +- commons-collections:commons-collections:jar:3.2.1:provided
+[INFO] |     |  \- net.sf.ezmorph:ezmorph:jar:1.0.6:provided
+[INFO] |     +- net.sourceforge.nekohtml:nekohtml:jar:1.9.16:provided
+[INFO] |     \- xml-resolver:xml-resolver:jar:1.2:provided
+[INFO] +- org.springframework.security:spring-security-core:jar:3.1.4.RELEASE:compile
+[INFO] |  +- org.springframework:spring-aop:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-core:jar:3.2.4.RELEASE:provided
+[INFO] |  +- aopalliance:aopalliance:jar:1.0:compile
+[INFO] |  +- org.springframework:spring-context:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-beans:jar:3.2.4.RELEASE:provided
+[INFO] |  \- org.springframework:spring-expression:jar:3.2.4.RELEASE:provided
+[INFO] +- org.springframework:spring-web:jar:3.2.4.RELEASE:compile
+[INFO] \- javax.servlet:servlet-api:jar:2.5:compile
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building security-ldap 2.7.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+Downloading: http://maven-repository.openspaces.org/org/cloudifysource/security/2.7.0-SNAPSHOT/maven-metadata.xml
+782/782 B               Downloaded: http://maven-repository.openspaces.org/org/cloudifysource/security/2.7.0-SNAPSHOT/maven-metadata.xml (782 B at 5.6 KB/sec)
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ security-ldap ---
+[INFO] org.cloudifysource:security-ldap:jar:2.7.0-SNAPSHOT
+[INFO] +- org.cloudifysource:security:jar:2.7.0-SNAPSHOT:provided
+[INFO] |  +- org.springframework:spring-web:jar:3.2.4.RELEASE:provided
+[INFO] |  \- javax.servlet:servlet-api:jar:2.5:provided
+[INFO] +- org.springframework.ldap:spring-ldap-core:jar:1.3.2.RELEASE:compile
+[INFO] |  +- commons-logging:commons-logging:jar:1.1.3:provided
+[INFO] |  +- org.springframework:spring-beans:jar:3.2.4.RELEASE:provided
+[INFO] |  +- commons-lang:commons-lang:jar:2.6:compile
+[INFO] |  +- org.springframework:spring-core:jar:3.2.4.RELEASE:provided
+[INFO] |  \- org.springframework:spring-tx:jar:3.2.4.RELEASE:provided
+[INFO] +- org.springframework.security:spring-security-core:jar:3.1.4.RELEASE:compile
+[INFO] |  +- org.springframework:spring-aop:jar:3.2.4.RELEASE:provided
+[INFO] |  +- aopalliance:aopalliance:jar:1.0:compile
+[INFO] |  +- org.springframework:spring-context:jar:3.2.4.RELEASE:provided
+[INFO] |  \- org.springframework:spring-expression:jar:3.2.4.RELEASE:provided
+[INFO] \- org.springframework.security:spring-security-ldap:jar:3.1.4.RELEASE:compile
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building restful 2.7.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ restful ---
+[INFO] org.cloudifysource:restful:war:2.7.0-SNAPSHOT
+[INFO] +- com.gigaspaces:gs-runtime:jar:9.7.0-SNAPSHOT:provided
+[INFO] |  +- xerces:xercesImpl:jar:2.9.0:provided
+[INFO] |  |  \- xml-apis:xml-apis:jar:1.3.04:provided
+[INFO] |  +- javax.jms:jms:jar:1.1:provided
+[INFO] |  +- org.apache.poi:poi:jar:3.6:provided
+[INFO] |  +- net.java.dev.swing-layout:swing-layout:jar:1.0:provided
+[INFO] |  +- org.eclipse.wst:org.eclipse.wst.xml.xpath2.processor:jar:2.1.1.v201204260055:provided
+[INFO] |  +- com.sun:tools:jar:1.6:system
+[INFO] |  +- org.hibernate:hibernate-core:jar:3.6.1.Final:provided
+[INFO] |  |  +- dom4j:dom4j:jar:1.6.1:provided
+[INFO] |  |  +- org.hibernate:hibernate-commons-annotations:jar:3.2.0.Final:provided
+[INFO] |  |  +- org.hibernate.javax.persistence:hibernate-jpa-2.0-api:jar:1.0.0.Final:provided
+[INFO] |  |  +- javax.transaction:jta:jar:1.1:provided
+[INFO] |  |  \- org.slf4j:slf4j-api:jar:1.6.1:compile
+[INFO] |  \- xalan:xalan:jar:2.7.1:provided
+[INFO] |     \- xalan:serializer:jar:2.7.1:provided
+[INFO] +- commons-lang:commons-lang:jar:2.6:compile
+[INFO] +- org.apache.httpcomponents:httpcore:jar:4.2.1:compile
+[INFO] +- com.google.guava:guava:jar:14.0:compile
+[INFO] +- org.springframework:spring-aspects:jar:3.2.4.RELEASE:test
+[INFO] |  \- org.aspectj:aspectjweaver:jar:1.7.2:test
+[INFO] +- org.cloudifysource:dsl:jar:2.7.0-SNAPSHOT:provided
+[INFO] |  +- commons-beanutils:commons-beanutils:jar:1.8.3:provided
+[INFO] |  +- commons-validator:commons-validator:jar:1.4.0:provided
+[INFO] |  |  \- commons-digester:commons-digester:jar:1.8:provided
+[INFO] |  +- org.apache.commons:commons-exec:jar:1.1:provided
+[INFO] |  +- commons-io:commons-io:jar:2.0.1:provided
+[INFO] |  +- com.googlecode.java-ipv6:java-ipv6:jar:0.14:compile
+[INFO] |  \- org.codehaus.groovy.modules.http-builder:http-builder:jar:0.6:provided
+[INFO] |     +- net.sf.json-lib:json-lib:jar:jdk15:2.3:provided
+[INFO] |     |  \- net.sf.ezmorph:ezmorph:jar:1.0.6:provided
+[INFO] |     +- net.sourceforge.nekohtml:nekohtml:jar:1.9.16:provided
+[INFO] |     \- xml-resolver:xml-resolver:jar:1.2:provided
+[INFO] +- org.cloudifysource:domain:jar:2.7.0-SNAPSHOT:provided
+[INFO] +- org.cloudifysource:rest-client:jar:2.7.0-SNAPSHOT:compile
+[INFO] +- org.cloudifysource:security:jar:2.7.0-SNAPSHOT:provided
+[INFO] |  \- org.springframework.security:spring-security-core:jar:3.1.4.RELEASE:compile
+[INFO] +- com.gigaspaces:gs-openspaces:jar:9.7.0-SNAPSHOT:provided
+[INFO] |  +- org.eclipse.jetty.orbit:com.sun.el:jar:2.2.0.v201108011116:provided
+[INFO] |  +- org.eclipse.jetty.orbit:javax.el:jar:2.2.0.v201108011116:provided
+[INFO] |  +- org.eclipse.jetty.orbit:javax.servlet.jsp:jar:2.2.0.v201112011158:provided
+[INFO] |  |  \- org.eclipse.jetty.orbit:javax.servlet:jar:3.0.0.v201112011016:provided
+[INFO] |  +- org.eclipse.jetty.orbit:javax.servlet.jsp.jstl:jar:1.2.0.v201105211821:provided
+[INFO] |  +- org.eclipse.jetty.orbit:org.apache.taglibs.standard.glassfish:jar:1.2.0.v201112081803:provided
+[INFO] |  +- javax.servlet:javax.servlet-api:jar:3.0.1:provided
+[INFO] |  +- org.eclipse.jdt.core.compiler:ecj:jar:3.7.1:provided
+[INFO] |  +- org.eclipse.jetty.orbit:org.apache.jasper.glassfish:jar:2.2.2.v201112011158:provided
+[INFO] |  +- org.eclipse.jetty.aggregate:jetty-all:jar:8.1.8.v20121106:provided
+[INFO] |  +- org.ow2.jotm:jotm-core:jar:2.1.1:provided
+[INFO] |  |  +- org.ow2.carol:carol:jar:3.0-RC7:provided
+[INFO] |  |  |  +- org.ow2.carol.irmi:irmi:jar:1.1.1:provided
+[INFO] |  |  |  +- org.jacorb:jacorb:jar:2.2.3-jonas-patch-20071018:provided
+[INFO] |  |  |  |  \- avalon-framework:avalon-framework:jar:4.1.5:provided
+[INFO] |  |  |  \- org.jacorb:jacorb-idl:jar:2.2.3-jonas-patch-20071018:provided
+[INFO] |  |  |     \- logkit:logkit:jar:1.2:provided
+[INFO] |  |  +- commons-logging:commons-logging-api:jar:1.1:provided
+[INFO] |  |  \- org.objectweb.howl:howl:jar:1.0.1-1:provided
+[INFO] |  +- org.jruby:jruby:jar:1.0.2:provided
+[INFO] |  |  +- backport-util-concurrent:backport-util-concurrent:jar:3.0:provided
+[INFO] |  |  \- jline:jline:jar:0.9.91:provided
+[INFO] |  +- org.aopalliance:com.springsource.org.aopalliance:jar:1.0.0:provided
+[INFO] |  +- org.springframework:spring-jdbc:jar:3.2.4.RELEASE:compile
+[INFO] |  +- org.springframework:spring-jms:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-oxm:jar:3.2.4.RELEASE:provided
+[INFO] |  +- org.springframework:spring-orm:jar:3.2.4.RELEASE:provided
+[INFO] |  +- commons-pool:commons-pool:jar:1.6:compile
+[INFO] |  +- commons-collections:commons-collections:jar:3.2.1:compile
+[INFO] |  +- org.jboss.jbossts:jbossjta:jar:4.15.0.Final:provided
+[INFO] |  |  +- commons-httpclient:commons-httpclient:jar:3.1-jbossorg-1:compile
+[INFO] |  |  +- org.jboss.spec.javax.transaction:jboss-transaction-api_1.1_spec:jar:1.0.0.Final:provided
+[INFO] |  |  +- org.jboss.ironjacamar:ironjacamar-spec-api:jar:1.0.0.Beta5:provided
+[INFO] |  |  |  \- org.jboss.javaee:jboss-transaction-api:jar:1.0.1.GA:provided
+[INFO] |  |  +- emma:emma:jar:2.0.5312:provided
+[INFO] |  |  +- emma:emma_ant:jar:2.0.5312:provided
+[INFO] |  |  |  \- ant:ant:jar:1.6.3:provided
+[INFO] |  |  +- org.hornetq:hornetq-core:jar:2.1.2.Final:provided
+[INFO] |  |  +- org.jboss.netty:netty:jar:3.2.1.Final:provided
+[INFO] |  |  +- tanukisoft:wrapper:jar:3.2.3:provided
+[INFO] |  |  +- jacorb:jacorb:jar:2.3.1jboss.patch01-brew:provided
+[INFO] |  |  +- jacorb:idl:jar:2.3.1jboss.patch01-brew:provided
+[INFO] |  |  +- org.jboss.logmanager:jboss-logmanager:jar:1.2.0.CR7:provided
+[INFO] |  |  +- org.jboss.integration:jboss-transaction-spi:jar:6.0.0.CR1:provided
+[INFO] |  |  +- org.jboss.integration:jboss-corba-ots-spi:jar:6.0.0.CR1:provided
+[INFO] |  |  +- org.jboss.jbossas:jboss-server-manager:jar:1.0.4.Final:provided
+[INFO] |  |  |  +- org.jboss.naming:jnp-client:jar:5.0.5.Final:provided
+[INFO] |  |  |  |  \- org.jboss:jboss-common-core:jar:2.2.10.GA:provided
+[INFO] |  |  |  +- org.picketbox:jbosssx-client:jar:3.0.0.CR2:provided
+[INFO] |  |  |  \- org.picketbox:jboss-security-spi:jar:3.0.0.CR2:provided
+[INFO] |  |  +- org.jboss.spec.javax.ejb:jboss-ejb-api_3.1_spec:jar:1.0.0.Final:provided
+[INFO] |  |  |  \- javax.xml:jaxrpc-api:jar:1.1:provided
+[INFO] |  |  +- org.jboss.remoting:jboss-remoting:jar:2.5.3:provided
+[INFO] |  |  +- org.jboss.spec.javax.servlet:jboss-servlet-api_3.0_spec:jar:1.0.0.Final:provided
+[INFO] |  |  +- org.jboss.logging:jboss-logging:jar:3.0.0.Beta5:provided
+[INFO] |  |  +- org.jboss.logging:jboss-logging-processor:jar:1.0.0.Beta6:provided
+[INFO] |  |  +- org.jboss.logging:jboss-logging-generator:jar:1.0.0.Beta6:provided
+[INFO] |  |  |  \- system:jdk-tools:jar:jdk:system
+[INFO] |  |  \- org.jboss.ws:jbossws-common:jar:2.0.0.Alpha3:provided
+[INFO] |  |     +- org.jboss.ws:jbossws-spi:jar:2.0.0.Alpha2:provided
+[INFO] |  |     |  \- org.jboss.ws:jbossws-api:jar:1.0.0-SNAPSHOT:provided
+[INFO] |  |     +- org.apache.ant:ant:jar:1.7.1:provided
+[INFO] |  |     |  \- org.apache.ant:ant-launcher:jar:1.7.1:provided
+[INFO] |  |     +- gnu-getopt:getopt:jar:1.0.13:provided
+[INFO] |  |     \- org.jboss.spec.javax.xml.ws:jboss-jaxws-api_2.2_spec:jar:1.0.0.Final:provided
+[INFO] |  +- org.apache.openjpa:openjpa:jar:2.0.1:provided
+[INFO] |  |  +- net.sourceforge.serp:serp:jar:1.13.1:provided
+[INFO] |  |  \- org.apache.geronimo.specs:geronimo-jms_1.1_spec:jar:1.1.1:provided
+[INFO] |  +- org.apache.geronimo.specs:geronimo-jpa_2.0_spec:jar:1.1:provided
+[INFO] |  +- org.apache.geronimo.specs:geronimo-jta_1.1_spec:jar:1.1.1:provided
+[INFO] |  +- hsqldb:hsqldb:jar:1.8.0.10:provided
+[INFO] |  +- org.apache.geronimo.specs:geronimo-j2ee-connector_1.5_spec:jar:1.1:provided
+[INFO] |  +- org.eclipse.jetty:jetty-client:jar:8.1.8.v20121106:provided
+[INFO] |  |  \- org.eclipse.jetty:jetty-http:jar:8.1.8.v20121106:provided
+[INFO] |  |     \- org.eclipse.jetty:jetty-io:jar:8.1.8.v20121106:provided
+[INFO] |  |        \- org.eclipse.jetty:jetty-util:jar:8.1.8.v20121106:provided
+[INFO] |  +- velocity:velocity:jar:1.5:provided
+[INFO] |  |  \- oro:oro:jar:2.0.8:provided
+[INFO] |  \- com.atomikos:transactions-jta:jar:3.8.0:provided
+[INFO] |     \- com.atomikos:transactions:jar:3.8.0:provided
+[INFO] |        \- com.atomikos:transactions-api:jar:3.8.0:provided
+[INFO] |           \- com.atomikos:atomikos-util:jar:3.8.0:provided
+[INFO] +- org.jgrapht:jgrapht-jdk1.5:jar:0.7.3:compile
+[INFO] +- junit:junit:jar:4.8.2:test
+[INFO] +- org.springframework:spring-web:jar:3.2.4.RELEASE:provided
+[INFO] |  \- aopalliance:aopalliance:jar:1.0:compile
+[INFO] +- org.springframework:spring-webmvc:jar:3.2.4.RELEASE:compile
+[INFO] +- javax.servlet:servlet-api:jar:2.5:provided
+[INFO] +- org.springframework.security:spring-security-web:jar:3.1.4.RELEASE:compile
+[INFO] +- org.springframework.security:spring-security-config:jar:3.1.4.RELEASE:compile
+[INFO] +- org.springframework:spring-tx:jar:3.2.4.RELEASE:provided
+[INFO] +- org.springframework:spring-aop:jar:3.2.4.RELEASE:provided
+[INFO] +- org.codehaus.jackson:jackson-core-asl:jar:1.3.0:compile
+[INFO] +- org.codehaus.jackson:jackson-mapper-asl:jar:1.3.0:compile
+[INFO] +- commons-fileupload:commons-fileupload:jar:1.2.2:compile
+[INFO] +- org.springframework:spring-beans:jar:3.2.4.RELEASE:provided
+[INFO] +- org.springframework:spring-context:jar:3.2.4.RELEASE:provided
+[INFO] +- org.springframework:spring-context-support:jar:3.2.4.RELEASE:provided
+[INFO] +- org.springframework:spring-core:jar:3.2.4.RELEASE:provided
+[INFO] |  \- commons-logging:commons-logging:jar:1.1.3:provided
+[INFO] +- org.springframework:spring-expression:jar:3.2.4.RELEASE:provided
+[INFO] +- org.springframework:spring-test:jar:3.2.4.RELEASE:test
+[INFO] +- org.springframework.security:spring-security-ldap:jar:3.1.4.RELEASE:compile
+[INFO] +- org.springframework.ldap:spring-ldap-core:jar:1.3.2.RELEASE:compile
+[INFO] +- org.springframework.ldap:spring-ldap-core-tiger:jar:1.3.2.RELEASE:compile
+[INFO] +- org.springframework.ldap:spring-ldap-odm:jar:1.3.2.RELEASE:compile
+[INFO] |  +- org.freemarker:freemarker:jar:2.3.9:compile
+[INFO] |  \- commons-cli:commons-cli:jar:1.2:compile
+[INFO] +- org.springframework.ldap:spring-ldap-ldif-core:jar:1.3.2.RELEASE:compile
+[INFO] |  +- org.springframework.batch:spring-batch-infrastructure:jar:2.0.3.RELEASE:compile
+[INFO] |  \- org.springframework.batch:spring-batch-core:jar:2.0.3.RELEASE:compile
+[INFO] |     +- com.thoughtworks.xstream:xstream:jar:1.3:compile
+[INFO] |     |  \- xpp3:xpp3_min:jar:1.1.4c:compile
+[INFO] |     \- org.codehaus.jettison:jettison:jar:1.0:compile
+[INFO] +- org.springframework.ldap:spring-ldap-ldif-batch:jar:1.3.2.RELEASE:compile
+[INFO] +- org.cloudifysource:esc:jar:2.7.0-SNAPSHOT:compile
+[INFO] |  +- com.sun.jersey:jersey-core:jar:1.11:compile
+[INFO] |  +- com.sun.jersey.contribs:jersey-apache-client:jar:1.11:compile
+[INFO] |  |  \- com.sun.jersey:jersey-client:jar:1.11:compile
+[INFO] |  +- org.jclouds.driver:jclouds-bouncycastle:jar:1.5.8:compile
+[INFO] |  |  \- org.bouncycastle:bcprov-jdk16:jar:1.46:compile
+[INFO] |  +- jcifs:jcifs:jar:1.3.17:compile
+[INFO] |  +- net.schmizz:sshj:jar:0.8.1:compile
+[INFO] |  +- commons-net:commons-net:jar:3.2:compile
+[INFO] |  +- com.amazonaws:aws-java-sdk:jar:1.4.7:compile
+[INFO] |  \- org.apache.commons:commons-compress:jar:1.5:compile
+[INFO] |     \- org.tukaani:xz:jar:1.2:compile
+[INFO] +- org.cloudifysource:rest-doclet:jar:0.5.2:compile
+[INFO] |  \- org.apache.velocity:velocity:jar:1.7:compile
+[INFO] +- org.apache.httpcomponents:httpclient:jar:4.2.1:compile
+[INFO] |  \- commons-codec:commons-codec:jar:1.6:compile
+[INFO] +- org.apache.httpcomponents:httpmime:jar:4.2.1:compile
+[INFO] +- org.hyperic:sigar:jar:1.6.5:provided
+[INFO] +- org.codehaus.groovy:groovy:jar:1.8.6:test
+[INFO] |  +- antlr:antlr:jar:2.7.7:provided
+[INFO] |  +- asm:asm:jar:3.2:provided
+[INFO] |  +- asm:asm-commons:jar:3.2:provided
+[INFO] |  +- asm:asm-util:jar:3.2:test
+[INFO] |  +- asm:asm-analysis:jar:3.2:test
+[INFO] |  \- asm:asm-tree:jar:3.2:provided
+[INFO] +- org.mockito:mockito-all:jar:1.9.5:test
+[INFO] \- org.cloudifysource:utility-domain:jar:2.7.0-SNAPSHOT:provided
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building management-space 2.7.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.5:tree (default-cli) @ management-space ---
+[INFO] org.cloudifysource:management-space:jar:2.7.0-SNAPSHOT
+[INFO] +- org.cloudifysource:utility-domain:jar:2.7.0-SNAPSHOT:test
+[INFO] |  +- commons-lang:commons-lang:jar:2.6:provided (version managed from 2.6)
+[INFO] |  \- org.apache.commons:commons-exec:jar:1.1:provided
+[INFO] +- com.gigaspaces:gs-openspaces:jar:9.7.0-SNAPSHOT:provided
+[INFO] |  +- org.eclipse.jetty.orbit:com.sun.el:jar:2.2.0.v201108011116:provided
+[INFO] |  +- org.eclipse.jetty.orbit:javax.el:jar:2.2.0.v201108011116:provided
+[INFO] |  +- org.eclipse.jetty.orbit:javax.servlet.jsp:jar:2.2.0.v201112011158:provided
+[INFO] |  |  \- org.eclipse.jetty.orbit:javax.servlet:jar:3.0.0.v201112011016:provided
+[INFO] |  +- org.eclipse.jetty.orbit:javax.servlet.jsp.jstl:jar:1.2.0.v201105211821:provided
+[INFO] |  +- org.eclipse.jetty.orbit:org.apache.taglibs.standard.glassfish:jar:1.2.0.v201112081803:provided
+[INFO] |  +- javax.servlet:javax.servlet-api:jar:3.0.1:provided
+[INFO] |  +- org.eclipse.jdt.core.compiler:ecj:jar:3.7.1:provided
+[INFO] |  +- org.eclipse.jetty.orbit:org.apache.jasper.glassfish:jar:2.2.2.v201112011158:provided
+[INFO] |  +- org.eclipse.jetty.aggregate:jetty-all:jar:8.1.8.v20121106:provided
+[INFO] |  +- org.ow2.jotm:jotm-core:jar:2.1.1:provided
+[INFO] |  |  +- org.ow2.carol:carol:jar:3.0-RC7:provided
+[INFO] |  |  |  +- org.ow2.carol.irmi:irmi:jar:1.1.1:provided
+[INFO] |  |  |  +- org.jacorb:jacorb:jar:2.2.3-jonas-patch-20071018:provided
+[INFO] |  |  |  |  \- avalon-framework:avalon-framework:jar:4.1.5:provided
+[INFO] |  |  |  \- org.jacorb:jacorb-idl:jar:2.2.3-jonas-patch-20071018:provided
+[INFO] |  |  |     \- logkit:logkit:jar:1.2:provided
+[INFO] |  |  +- commons-logging:commons-logging-api:jar:1.1:provided
+[INFO] |  |  \- org.objectweb.howl:howl:jar:1.0.1-1:provided
+[INFO] |  +- org.jruby:jruby:jar:1.0.2:provided
+[INFO] |  |  +- backport-util-concurrent:backport-util-concurrent:jar:3.0:provided
+[INFO] |  |  +- jline:jline:jar:0.9.91:provided
+[INFO] |  |  +- asm:asm:jar:2.2.3:provided
+[INFO] |  |  \- asm:asm-commons:jar:2.2.3:provided
+[INFO] |  |     \- asm:asm-tree:jar:2.2.3:provided
+[INFO] |  +- com.gigaspaces:gs-runtime:jar:9.7.0-SNAPSHOT:provided (version managed from 9.7.0-SNAPSHOT; scope managed from compile)
+[INFO] |  |  +- xerces:xercesImpl:jar:2.9.0:provided
+[INFO] |  |  |  \- xml-apis:xml-apis:jar:1.3.04:provided
+[INFO] |  |  +- javax.jms:jms:jar:1.1:provided
+[INFO] |  |  +- org.apache.poi:poi:jar:3.6:provided
+[INFO] |  |  +- net.java.dev.swing-layout:swing-layout:jar:1.0:provided
+[INFO] |  |  +- org.eclipse.wst:org.eclipse.wst.xml.xpath2.processor:jar:2.1.1.v201204260055:provided
+[INFO] |  |  +- com.sun:tools:jar:1.6:system
+[INFO] |  |  \- xalan:xalan:jar:2.7.1:provided
+[INFO] |  |     \- xalan:serializer:jar:2.7.1:provided
+[INFO] |  +- org.aopalliance:com.springsource.org.aopalliance:jar:1.0.0:provided
+[INFO] |  +- org.springframework:spring-jdbc:jar:3.2.4.RELEASE:compile (version managed from 3.2.4.RELEASE)
+[INFO] |  +- org.springframework:spring-jms:jar:3.2.4.RELEASE:provided (version managed from 3.2.4.RELEASE)
+[INFO] |  |  +- org.springframework:spring-aop:jar:3.2.4.RELEASE:provided (version managed from 3.2.4.RELEASE; scope managed from compile)
+[INFO] |  |  \- org.springframework:spring-context:jar:3.2.4.RELEASE:provided (version managed from 3.2.4.RELEASE; scope managed from compile)
+[INFO] |  +- org.springframework:spring-oxm:jar:3.2.4.RELEASE:provided (version managed from 3.2.4.RELEASE)
+[INFO] |  +- org.springframework:spring-web:jar:3.2.4.RELEASE:provided (version managed from 3.2.4.RELEASE)
+[INFO] |  +- org.springframework:spring-webmvc:jar:3.2.4.RELEASE:provided (version managed from 3.2.4.RELEASE)
+[INFO] |  |  \- org.springframework:spring-expression:jar:3.2.4.RELEASE:provided (version managed from 3.2.4.RELEASE; scope managed from compile)
+[INFO] |  +- org.springframework.security:spring-security-core:jar:3.1.4.RELEASE:provided (version managed from 3.1.4.RELEASE)
+[INFO] |  +- org.springframework.security:spring-security-web:jar:3.1.4.RELEASE:provided (version managed from 3.1.4.RELEASE)
+[INFO] |  +- commons-pool:commons-pool:jar:1.6:compile (version managed from 1.6)
+[INFO] |  +- commons-collections:commons-collections:jar:3.2.1:compile (version managed from 3.2.1)
+[INFO] |  +- org.jboss.jbossts:jbossjta:jar:4.15.0.Final:provided
+[INFO] |  |  +- commons-httpclient:commons-httpclient:jar:3.1-jbossorg-1:provided
+[INFO] |  |  +- org.jboss.spec.javax.transaction:jboss-transaction-api_1.1_spec:jar:1.0.0.Final:provided
+[INFO] |  |  +- org.jboss.ironjacamar:ironjacamar-spec-api:jar:1.0.0.Beta5:provided
+[INFO] |  |  |  \- org.jboss.javaee:jboss-transaction-api:jar:1.0.1.GA:provided
+[INFO] |  |  +- emma:emma:jar:2.0.5312:provided
+[INFO] |  |  +- emma:emma_ant:jar:2.0.5312:provided
+[INFO] |  |  |  \- ant:ant:jar:1.6.3:provided
+[INFO] |  |  +- org.hornetq:hornetq-core:jar:2.1.2.Final:provided
+[INFO] |  |  +- org.jboss.netty:netty:jar:3.2.1.Final:provided
+[INFO] |  |  +- tanukisoft:wrapper:jar:3.2.3:provided
+[INFO] |  |  +- jacorb:jacorb:jar:2.3.1jboss.patch01-brew:provided
+[INFO] |  |  +- jacorb:idl:jar:2.3.1jboss.patch01-brew:provided
+[INFO] |  |  +- org.jboss.logmanager:jboss-logmanager:jar:1.2.0.CR7:provided
+[INFO] |  |  +- org.jboss.integration:jboss-transaction-spi:jar:6.0.0.CR1:provided
+[INFO] |  |  +- org.jboss.integration:jboss-corba-ots-spi:jar:6.0.0.CR1:provided
+[INFO] |  |  +- org.jboss.jbossas:jboss-server-manager:jar:1.0.4.Final:provided
+[INFO] |  |  |  +- org.jboss.naming:jnp-client:jar:5.0.5.Final:provided
+[INFO] |  |  |  |  \- org.jboss:jboss-common-core:jar:2.2.10.GA:provided
+[INFO] |  |  |  +- org.picketbox:jbosssx-client:jar:3.0.0.CR2:provided
+[INFO] |  |  |  \- org.picketbox:jboss-security-spi:jar:3.0.0.CR2:provided
+[INFO] |  |  +- org.jboss.spec.javax.ejb:jboss-ejb-api_3.1_spec:jar:1.0.0.Final:provided
+[INFO] |  |  |  \- javax.xml:jaxrpc-api:jar:1.1:provided
+[INFO] |  |  +- org.jboss.remoting:jboss-remoting:jar:2.5.3:provided
+[INFO] |  |  +- org.jboss.spec.javax.servlet:jboss-servlet-api_3.0_spec:jar:1.0.0.Final:provided
+[INFO] |  |  +- org.jboss.logging:jboss-logging:jar:3.0.0.Beta5:provided
+[INFO] |  |  +- org.jboss.logging:jboss-logging-processor:jar:1.0.0.Beta6:provided
+[INFO] |  |  +- org.jboss.logging:jboss-logging-generator:jar:1.0.0.Beta6:provided
+[INFO] |  |  |  \- system:jdk-tools:jar:jdk:system
+[INFO] |  |  \- org.jboss.ws:jbossws-common:jar:2.0.0.Alpha3:provided
+[INFO] |  |     +- org.jboss.ws:jbossws-spi:jar:2.0.0.Alpha2:provided
+[INFO] |  |     |  \- org.jboss.ws:jbossws-api:jar:1.0.0-SNAPSHOT:provided
+[INFO] |  |     +- org.apache.ant:ant:jar:1.7.1:provided
+[INFO] |  |     |  \- org.apache.ant:ant-launcher:jar:1.7.1:provided
+[INFO] |  |     +- gnu-getopt:getopt:jar:1.0.13:provided
+[INFO] |  |     \- org.jboss.spec.javax.xml.ws:jboss-jaxws-api_2.2_spec:jar:1.0.0.Final:provided
+[INFO] |  +- org.apache.openjpa:openjpa:jar:2.0.1:provided
+[INFO] |  |  +- net.sourceforge.serp:serp:jar:1.13.1:provided
+[INFO] |  |  \- org.apache.geronimo.specs:geronimo-jms_1.1_spec:jar:1.1.1:provided
+[INFO] |  +- org.apache.geronimo.specs:geronimo-jpa_2.0_spec:jar:1.1:provided
+[INFO] |  +- org.apache.geronimo.specs:geronimo-jta_1.1_spec:jar:1.1.1:provided
+[INFO] |  +- hsqldb:hsqldb:jar:1.8.0.10:provided
+[INFO] |  +- org.apache.geronimo.specs:geronimo-j2ee-connector_1.5_spec:jar:1.1:provided
+[INFO] |  +- org.eclipse.jetty:jetty-client:jar:8.1.8.v20121106:provided
+[INFO] |  |  \- org.eclipse.jetty:jetty-http:jar:8.1.8.v20121106:provided
+[INFO] |  |     \- org.eclipse.jetty:jetty-io:jar:8.1.8.v20121106:provided
+[INFO] |  |        \- org.eclipse.jetty:jetty-util:jar:8.1.8.v20121106:provided
+[INFO] |  +- velocity:velocity:jar:1.5:provided
+[INFO] |  |  \- oro:oro:jar:2.0.8:provided
+[INFO] |  \- com.atomikos:transactions-jta:jar:3.8.0:provided
+[INFO] |     +- com.atomikos:transactions:jar:3.8.0:provided
+[INFO] |     |  \- com.atomikos:transactions-api:jar:3.8.0:provided
+[INFO] |     |     \- com.atomikos:atomikos-util:jar:3.8.0:provided
+[INFO] |     \- org.mockito:mockito-all:jar:1.9.0:provided
+[INFO] +- org.cloudifysource:dsl:jar:2.7.0-SNAPSHOT:provided
+[INFO] |  +- commons-beanutils:commons-beanutils:jar:1.8.3:provided
+[INFO] |  +- commons-validator:commons-validator:jar:1.4.0:provided
+[INFO] |  |  +- commons-digester:commons-digester:jar:1.8:provided
+[INFO] |  |  \- commons-logging:commons-logging:jar:1.1.3:provided (version managed from 1.1.1; scope managed from compile)
+[INFO] |  +- commons-io:commons-io:jar:2.0.1:provided
+[INFO] |  +- com.googlecode.java-ipv6:java-ipv6:jar:0.14:provided
+[INFO] |  \- org.codehaus.groovy.modules.http-builder:http-builder:jar:0.6:provided
+[INFO] |     +- org.apache.httpcomponents:httpclient:jar:4.2.1:provided
+[INFO] |     |  +- org.apache.httpcomponents:httpcore:jar:4.2.1:provided
+[INFO] |     |  \- commons-codec:commons-codec:jar:1.6:provided
+[INFO] |     +- net.sf.json-lib:json-lib:jar:jdk15:2.3:provided
+[INFO] |     |  \- net.sf.ezmorph:ezmorph:jar:1.0.6:provided
+[INFO] |     +- net.sourceforge.nekohtml:nekohtml:jar:1.9.16:provided
+[INFO] |     \- xml-resolver:xml-resolver:jar:1.2:provided
+[INFO] +- org.springframework:spring-orm:jar:3.2.4.RELEASE:compile
+[INFO] |  +- aopalliance:aopalliance:jar:1.0:compile
+[INFO] |  +- org.springframework:spring-beans:jar:3.2.4.RELEASE:provided (version managed from 3.2.4.RELEASE; scope managed from compile)
+[INFO] |  +- org.springframework:spring-core:jar:3.2.4.RELEASE:provided (version managed from 3.2.4.RELEASE; scope managed from compile)
+[INFO] |  \- org.springframework:spring-tx:jar:3.2.4.RELEASE:provided (version managed from 3.2.4.RELEASE; scope managed from compile)
+[INFO] +- com.h2database:h2:jar:1.3.170:compile
+[INFO] +- org.hibernate:hibernate-core:jar:3.6.1.Final:compile
+[INFO] |  +- antlr:antlr:jar:2.7.6:compile
+[INFO] |  +- dom4j:dom4j:jar:1.6.1:compile
+[INFO] |  +- org.hibernate:hibernate-commons-annotations:jar:3.2.0.Final:compile
+[INFO] |  +- org.hibernate.javax.persistence:hibernate-jpa-2.0-api:jar:1.0.0.Final:compile
+[INFO] |  +- javax.transaction:jta:jar:1.1:compile
+[INFO] |  \- org.slf4j:slf4j-api:jar:1.6.1:compile
+[INFO] +- commons-dbcp:commons-dbcp:jar:1.4:compile
+[INFO] +- org.javassist:javassist:jar:3.15.0-GA:compile
+[INFO] \- junit:junit:jar:4.8.2:test
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building version 2.7.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ version ---
+[INFO] org.cloudifysource:version:jar:2.7.0-SNAPSHOT
+[INFO] \- com.gigaspaces:gs-openspaces:jar:9.7.0-SNAPSHOT:provided
+[INFO]    +- org.eclipse.jetty.orbit:com.sun.el:jar:2.2.0.v201108011116:provided
+[INFO]    +- org.eclipse.jetty.orbit:javax.el:jar:2.2.0.v201108011116:provided
+[INFO]    +- org.eclipse.jetty.orbit:javax.servlet.jsp:jar:2.2.0.v201112011158:provided
+[INFO]    |  \- org.eclipse.jetty.orbit:javax.servlet:jar:3.0.0.v201112011016:provided
+[INFO]    +- org.eclipse.jetty.orbit:javax.servlet.jsp.jstl:jar:1.2.0.v201105211821:provided
+[INFO]    +- org.eclipse.jetty.orbit:org.apache.taglibs.standard.glassfish:jar:1.2.0.v201112081803:provided
+[INFO]    +- javax.servlet:javax.servlet-api:jar:3.0.1:provided
+[INFO]    +- org.eclipse.jdt.core.compiler:ecj:jar:3.7.1:provided
+[INFO]    +- org.eclipse.jetty.orbit:org.apache.jasper.glassfish:jar:2.2.2.v201112011158:provided
+[INFO]    +- org.eclipse.jetty.aggregate:jetty-all:jar:8.1.8.v20121106:provided
+[INFO]    +- org.ow2.jotm:jotm-core:jar:2.1.1:provided
+[INFO]    |  +- org.ow2.carol:carol:jar:3.0-RC7:provided
+[INFO]    |  |  +- commons-logging:commons-logging:jar:1.1.3:provided
+[INFO]    |  |  +- org.ow2.carol.irmi:irmi:jar:1.1.1:provided
+[INFO]    |  |  +- org.jacorb:jacorb:jar:2.2.3-jonas-patch-20071018:provided
+[INFO]    |  |  |  \- avalon-framework:avalon-framework:jar:4.1.5:provided
+[INFO]    |  |  \- org.jacorb:jacorb-idl:jar:2.2.3-jonas-patch-20071018:provided
+[INFO]    |  |     \- logkit:logkit:jar:1.2:provided
+[INFO]    |  +- commons-logging:commons-logging-api:jar:1.1:provided
+[INFO]    |  \- org.objectweb.howl:howl:jar:1.0.1-1:provided
+[INFO]    +- org.jruby:jruby:jar:1.0.2:provided
+[INFO]    |  +- backport-util-concurrent:backport-util-concurrent:jar:3.0:provided
+[INFO]    |  +- jline:jline:jar:0.9.91:provided
+[INFO]    |  +- asm:asm:jar:2.2.3:provided
+[INFO]    |  \- asm:asm-commons:jar:2.2.3:provided
+[INFO]    |     \- asm:asm-tree:jar:2.2.3:provided
+[INFO]    +- junit:junit:jar:4.8.2:provided
+[INFO]    +- org.hibernate:hibernate-core:jar:3.6.1.Final:provided
+[INFO]    |  +- antlr:antlr:jar:2.7.6:provided
+[INFO]    |  +- dom4j:dom4j:jar:1.6.1:provided
+[INFO]    |  +- org.hibernate:hibernate-commons-annotations:jar:3.2.0.Final:provided
+[INFO]    |  +- org.hibernate.javax.persistence:hibernate-jpa-2.0-api:jar:1.0.0.Final:provided
+[INFO]    |  +- javax.transaction:jta:jar:1.1:provided
+[INFO]    |  \- org.slf4j:slf4j-api:jar:1.6.1:provided
+[INFO]    +- com.gigaspaces:gs-runtime:jar:9.7.0-SNAPSHOT:provided
+[INFO]    |  +- xerces:xercesImpl:jar:2.9.0:provided
+[INFO]    |  |  \- xml-apis:xml-apis:jar:1.3.04:provided
+[INFO]    |  +- javax.jms:jms:jar:1.1:provided
+[INFO]    |  +- org.apache.poi:poi:jar:3.6:provided
+[INFO]    |  +- net.java.dev.swing-layout:swing-layout:jar:1.0:provided
+[INFO]    |  +- org.eclipse.wst:org.eclipse.wst.xml.xpath2.processor:jar:2.1.1.v201204260055:provided
+[INFO]    |  +- com.sun:tools:jar:1.6:system
+[INFO]    |  \- xalan:xalan:jar:2.7.1:provided
+[INFO]    |     \- xalan:serializer:jar:2.7.1:provided
+[INFO]    +- org.aopalliance:com.springsource.org.aopalliance:jar:1.0.0:provided
+[INFO]    +- org.springframework:spring-jdbc:jar:3.2.4.RELEASE:provided
+[INFO]    |  +- org.springframework:spring-beans:jar:3.2.4.RELEASE:provided
+[INFO]    |  +- org.springframework:spring-core:jar:3.2.4.RELEASE:provided
+[INFO]    |  \- org.springframework:spring-tx:jar:3.2.4.RELEASE:provided
+[INFO]    +- org.springframework:spring-jms:jar:3.2.4.RELEASE:provided
+[INFO]    |  +- aopalliance:aopalliance:jar:1.0:provided
+[INFO]    |  +- org.springframework:spring-aop:jar:3.2.4.RELEASE:provided
+[INFO]    |  \- org.springframework:spring-context:jar:3.2.4.RELEASE:provided
+[INFO]    +- org.springframework:spring-oxm:jar:3.2.4.RELEASE:provided
+[INFO]    +- org.springframework:spring-orm:jar:3.2.4.RELEASE:provided
+[INFO]    +- org.springframework:spring-web:jar:3.2.4.RELEASE:provided
+[INFO]    +- org.springframework:spring-webmvc:jar:3.2.4.RELEASE:provided
+[INFO]    |  \- org.springframework:spring-expression:jar:3.2.4.RELEASE:provided
+[INFO]    +- org.springframework.security:spring-security-core:jar:3.1.4.RELEASE:provided
+[INFO]    +- org.springframework.security:spring-security-web:jar:3.1.4.RELEASE:provided
+[INFO]    +- commons-pool:commons-pool:jar:1.6:provided
+[INFO]    +- commons-collections:commons-collections:jar:3.2.1:provided
+[INFO]    +- commons-lang:commons-lang:jar:2.6:provided
+[INFO]    +- org.jboss.jbossts:jbossjta:jar:4.15.0.Final:provided
+[INFO]    |  +- commons-httpclient:commons-httpclient:jar:3.1-jbossorg-1:provided
+[INFO]    |  +- org.jboss.spec.javax.transaction:jboss-transaction-api_1.1_spec:jar:1.0.0.Final:provided
+[INFO]    |  +- org.jboss.ironjacamar:ironjacamar-spec-api:jar:1.0.0.Beta5:provided
+[INFO]    |  |  \- org.jboss.javaee:jboss-transaction-api:jar:1.0.1.GA:provided
+[INFO]    |  +- emma:emma:jar:2.0.5312:provided
+[INFO]    |  +- emma:emma_ant:jar:2.0.5312:provided
+[INFO]    |  |  \- ant:ant:jar:1.6.3:provided
+[INFO]    |  +- org.hornetq:hornetq-core:jar:2.1.2.Final:provided
+[INFO]    |  +- org.jboss.netty:netty:jar:3.2.1.Final:provided
+[INFO]    |  +- tanukisoft:wrapper:jar:3.2.3:provided
+[INFO]    |  +- jacorb:jacorb:jar:2.3.1jboss.patch01-brew:provided
+[INFO]    |  +- jacorb:idl:jar:2.3.1jboss.patch01-brew:provided
+[INFO]    |  +- org.jboss.logmanager:jboss-logmanager:jar:1.2.0.CR7:provided
+[INFO]    |  +- org.jboss.integration:jboss-transaction-spi:jar:6.0.0.CR1:provided
+[INFO]    |  +- org.jboss.integration:jboss-corba-ots-spi:jar:6.0.0.CR1:provided
+[INFO]    |  +- org.jboss.jbossas:jboss-server-manager:jar:1.0.4.Final:provided
+[INFO]    |  |  +- org.jboss.naming:jnp-client:jar:5.0.5.Final:provided
+[INFO]    |  |  |  \- org.jboss:jboss-common-core:jar:2.2.10.GA:provided
+[INFO]    |  |  +- org.picketbox:jbosssx-client:jar:3.0.0.CR2:provided
+[INFO]    |  |  \- org.picketbox:jboss-security-spi:jar:3.0.0.CR2:provided
+[INFO]    |  +- org.jboss.spec.javax.ejb:jboss-ejb-api_3.1_spec:jar:1.0.0.Final:provided
+[INFO]    |  |  \- javax.xml:jaxrpc-api:jar:1.1:provided
+[INFO]    |  +- org.jboss.remoting:jboss-remoting:jar:2.5.3:provided
+[INFO]    |  +- org.jboss.spec.javax.servlet:jboss-servlet-api_3.0_spec:jar:1.0.0.Final:provided
+[INFO]    |  +- org.jboss.logging:jboss-logging:jar:3.0.0.Beta5:provided
+[INFO]    |  +- org.jboss.logging:jboss-logging-processor:jar:1.0.0.Beta6:provided
+[INFO]    |  +- org.jboss.logging:jboss-logging-generator:jar:1.0.0.Beta6:provided
+[INFO]    |  |  \- system:jdk-tools:jar:jdk:system
+[INFO]    |  \- org.jboss.ws:jbossws-common:jar:2.0.0.Alpha3:provided
+[INFO]    |     +- org.jboss.ws:jbossws-spi:jar:2.0.0.Alpha2:provided
+[INFO]    |     |  \- org.jboss.ws:jbossws-api:jar:1.0.0-SNAPSHOT:provided
+[INFO]    |     +- org.apache.ant:ant:jar:1.7.1:provided
+[INFO]    |     |  \- org.apache.ant:ant-launcher:jar:1.7.1:provided
+[INFO]    |     +- gnu-getopt:getopt:jar:1.0.13:provided
+[INFO]    |     \- org.jboss.spec.javax.xml.ws:jboss-jaxws-api_2.2_spec:jar:1.0.0.Final:provided
+[INFO]    +- org.apache.openjpa:openjpa:jar:2.0.1:provided
+[INFO]    |  +- net.sourceforge.serp:serp:jar:1.13.1:provided
+[INFO]    |  \- org.apache.geronimo.specs:geronimo-jms_1.1_spec:jar:1.1.1:provided
+[INFO]    +- org.apache.geronimo.specs:geronimo-jpa_2.0_spec:jar:1.1:provided
+[INFO]    +- org.apache.geronimo.specs:geronimo-jta_1.1_spec:jar:1.1.1:provided
+[INFO]    +- hsqldb:hsqldb:jar:1.8.0.10:provided
+[INFO]    +- org.apache.geronimo.specs:geronimo-j2ee-connector_1.5_spec:jar:1.1:provided
+[INFO]    +- org.eclipse.jetty:jetty-client:jar:8.1.8.v20121106:provided
+[INFO]    |  \- org.eclipse.jetty:jetty-http:jar:8.1.8.v20121106:provided
+[INFO]    |     \- org.eclipse.jetty:jetty-io:jar:8.1.8.v20121106:provided
+[INFO]    |        \- org.eclipse.jetty:jetty-util:jar:8.1.8.v20121106:provided
+[INFO]    +- velocity:velocity:jar:1.5:provided
+[INFO]    |  \- oro:oro:jar:2.0.8:provided
+[INFO]    \- com.atomikos:transactions-jta:jar:3.8.0:provided
+[INFO]       +- com.atomikos:transactions:jar:3.8.0:provided
+[INFO]       |  \- com.atomikos:transactions-api:jar:3.8.0:provided
+[INFO]       |     \- com.atomikos:atomikos-util:jar:3.8.0:provided
+[INFO]       \- org.mockito:mockito-all:jar:1.9.0:provided
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary:
+[INFO] 
+[INFO] cloudify .......................................... SUCCESS [0.834s]
+[INFO] domain ............................................ SUCCESS [0.004s]
+[INFO] dsl ............................................... SUCCESS [0.404s]
+[INFO] utility-domain .................................... SUCCESS [1.085s]
+[INFO] rest-client ....................................... SUCCESS [0.033s]
+[INFO] CLI ............................................... SUCCESS [1.115s]
+[INFO] esc ............................................... SUCCESS [0.723s]
+[INFO] esc-commands ...................................... SUCCESS [1.004s]
+[INFO] USM ............................................... SUCCESS [0.426s]
+[INFO] security .......................................... SUCCESS [0.026s]
+[INFO] security-ldap ..................................... SUCCESS [0.184s]
+[INFO] restful ........................................... SUCCESS [0.311s]
+[INFO] management-space .................................. SUCCESS [0.873s]
+[INFO] version ........................................... SUCCESS [0.069s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 8.797s
+[INFO] Finished at: Wed Oct 02 17:30:35 IDT 2013
+[INFO] Final Memory: 28M/355M
+[INFO] ------------------------------------------------------------------------
