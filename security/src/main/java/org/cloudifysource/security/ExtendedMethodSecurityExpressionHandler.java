@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.annotation.PostConstruct;
+
 import org.aopalliance.intercept.MethodInvocation;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.rest.response.ApplicationDescription;
@@ -29,13 +31,11 @@ import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.security.access.PermissionEvaluator;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.security.access.expression.ExpressionUtils;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
-import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
 import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
 import org.springframework.security.core.Authentication;
@@ -50,14 +50,23 @@ public class ExtendedMethodSecurityExpressionHandler extends
 		DefaultMethodSecurityExpressionHandler implements
 		MethodSecurityExpressionHandler {
 
+	private final AuthenticationTrustResolver trustResolver = new AuthenticationTrustResolverImpl();
+	
+	// base class does not have a getter so we had to copy the same code here
 	private ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
-	private PermissionEvaluator permissionEvaluator = new CustomDenyAllPermissionEvaluator();
-	private AuthenticationTrustResolver trustResolver = new AuthenticationTrustResolverImpl();
-	private ExpressionParser expressionParser = new SpelExpressionParser();
-	private RoleHierarchy roleHierarchy;
-
+	
+	@Override
+	public void setParameterNameDiscoverer(ParameterNameDiscoverer parameterNameDiscoverer) {
+        this.parameterNameDiscoverer = parameterNameDiscoverer;
+    }
+	
 	private Logger logger = java.util.logging.Logger.getLogger(ExtendedMethodSecurityExpressionHandler.class.getName());
 
+	@PostConstruct
+	public void overrideDefaults() {
+		setPermissionEvaluator(new CustomDenyAllPermissionEvaluator());
+	}
+	
 	/**
 	 * Uses a {@link CustomMethodSecurityEvaluationContext} as the
 	 * <tt>EvaluationContext</tt> implementation and configures it with a
@@ -68,47 +77,25 @@ public class ExtendedMethodSecurityExpressionHandler extends
 	 * @return EvaluationContext, containing the permission evaluator to be used
 	 */
 	@Override
-	public EvaluationContext createEvaluationContext(final Authentication auth, final MethodInvocation mi) {
-		CustomMethodSecurityEvaluationContext ctx = new CustomMethodSecurityEvaluationContext(
-				auth, mi, parameterNameDiscoverer);
-		CustomMethodSecurityExpressionRoot root = new CustomMethodSecurityExpressionRoot(
-				auth);
-		root.setTrustResolver(trustResolver);
-		root.setPermissionEvaluator(permissionEvaluator);
-		root.setRoleHierarchy(roleHierarchy);
-		ctx.setRootObject(root);
-
-		return ctx;
+	public StandardEvaluationContext createEvaluationContextInternal(final Authentication auth, final MethodInvocation mi) {
+		return new CustomMethodSecurityEvaluationContext(auth, mi, parameterNameDiscoverer);
 	}
-
-	@Override
-	public ExpressionParser getExpressionParser() {
-        return expressionParser;
+	
+	  /**
+     * Creates the root object for expression evaluation.
+     */
+    protected MethodSecurityExpressionOperations createSecurityExpressionRoot(Authentication authentication, MethodInvocation invocation) {
+    	CustomMethodSecurityExpressionRoot root = new CustomMethodSecurityExpressionRoot(authentication);
+        root.setThis(invocation.getThis());
+        root.setPermissionEvaluator(getPermissionEvaluator());
+        root.setTrustResolver(trustResolver);
+        root.setRoleHierarchy(getRoleHierarchy());
+        return root;
     }
-
-    @Override
-	public void setParameterNameDiscoverer(final ParameterNameDiscoverer parameterNameDiscoverer) {
-        this.parameterNameDiscoverer = parameterNameDiscoverer;
-    }
-
-    @Override
-	public void setPermissionEvaluator(final PermissionEvaluator permissionEvaluator) {
-        this.permissionEvaluator = permissionEvaluator;
-    }
-
-    @Override
-	public void setTrustResolver(final AuthenticationTrustResolver trustResolver) {
-        this.trustResolver = trustResolver;
-    }
-
+	
     @Override
 	public void setReturnObject(final Object returnObject, final EvaluationContext ctx) {
         ((CustomMethodSecurityExpressionRoot) ctx.getRootObject().getValue()).setReturnObject(returnObject);
-    }
-
-    @Override
-	public void setRoleHierarchy(final RoleHierarchy roleHierarchy) {
-        this.roleHierarchy = roleHierarchy;
     }
 
 	@Override

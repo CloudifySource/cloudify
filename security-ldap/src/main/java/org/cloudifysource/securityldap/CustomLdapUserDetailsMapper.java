@@ -52,7 +52,7 @@ public class CustomLdapUserDetailsMapper {
      * @return UserDetails
      */
     public ExtendedLdapUserDetailsImpl mapUserFromContext(final DirContextOperations ctx, final String username, 
-    		final Collection<GrantedAuthority> authorities, final Collection<String> authGroups) {
+    		final Collection<? extends GrantedAuthority> authorities, final Collection<String> authGroups) {
         String dn = ctx.getNameInNamespace();
 
         logger.finest("CustomLdapUserDetailsMapper: mapUserFromContext");
