@@ -128,13 +128,13 @@ public class EnvironmentFileBuilder {
 
 		String safePublicIpAddress = IPUtils.getSafeIpAddress(details.getPublicIp());
 		String safePrivateIpAddress = IPUtils.getSafeIpAddress(details.getPrivateIp());
-		
+
 		builder.exportVar(LUS_IP_ADDRESS_ENV, details.getLocator())
 				.exportVar(GSA_MODE_ENV, details.isManagement() ? "lus" : "agent")
 				.exportVar(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR, springProfiles)
 				.exportVar(NO_WEB_SERVICES_ENV,
 						details.isNoWebServices() ? "true" : "false")
-						
+
 				.exportVar(
 						CloudifyConstants.CLOUDIFY_CLOUD_MACHINE_IP_ADDRESS_ENV,
 						details.isBindToPrivateIp() ? safePrivateIpAddress : safePublicIpAddress)
@@ -153,7 +153,6 @@ public class EnvironmentFileBuilder {
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP, safePrivateIpAddress)
 				.exportVar(CloudifyConstants.CLOUDIFY_CLOUD_LOCATION_ID, details.getLocationId())
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP, safePublicIpAddress);
-
 
 		if (details.getReservationId() != null) {
 			builder.exportVar(GSA_RESERVATION_ID_ENV, details.getReservationId().toString());
@@ -194,6 +193,10 @@ public class EnvironmentFileBuilder {
 			builder.exportVar(CloudifyConstants.KEYSTORE_FILE_ENV_VAR, details.getRemoteDir()
 					+ "/" + CloudifyConstants.KEYSTORE_FILE_NAME);
 			builder.exportVar(CloudifyConstants.KEYSTORE_PASSWORD_ENV_VAR, details.getKeystorePassword());
+		}
+
+		if (details.getOpenFilesLimit() != null) {
+			builder.exportVar(CloudifyConstants.CLOUDIFY_OPEN_FILES_LIMIT, details.getOpenFilesLimit());
 		}
 	}
 
@@ -258,9 +261,8 @@ public class EnvironmentFileBuilder {
 	 * Normalizes the path and returns a standard windows absolute path.
 	 * 
 	 * @param remoteDirectory
-	 * 			The remote path.
-	 * @return
-	 * 		a normalized absolute windows path.
+	 *            The remote path.
+	 * @return a normalized absolute windows path.
 	 */
 	public static String normalizeLocalAbsolutePath(final String remoteDirectory) {
 		if (remoteDirectory.startsWith("/") && remoteDirectory.indexOf("$") == 2) {

@@ -131,5 +131,24 @@ public class ComputeTemplateValidator implements DSLValidator {
 		}
 		return uploadDir;
 	}
+	
+
+	@DSLValidation
+	public void validateOpenFilesLimitOnProvilegedMode(final DSLValidationContext context)
+			throws DSLValidationException {
+		if(this.entity.getOpenFilesLimit() == null) {
+			return;
+		}
+		
+		if(this.entity.isPrivileged()) {
+			return;
+		}
+		
+		
+
+		
+		throw new DSLValidationException("Setting an open files limit requires that the template run in privileged mode");
+		
+	}
 
 }

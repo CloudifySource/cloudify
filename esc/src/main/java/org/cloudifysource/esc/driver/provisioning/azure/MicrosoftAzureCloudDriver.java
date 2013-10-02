@@ -279,6 +279,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 					.getRemoteDirectory());
 			machineDetails.setRemotePassword(password);
 			machineDetails.setRemoteUsername(userName);
+			machineDetails.setOpenFilesLimit(this.template.getOpenFilesLimit());
 			return machineDetails;
 		} catch (final Exception e) {
 			throw new CloudProvisioningException(e);

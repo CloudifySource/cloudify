@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -28,10 +28,10 @@ import com.gigaspaces.internal.io.IOUtils;
 /*******
  * Described a Machine started by a cloud driver. MachineDetails implements @{link Externalizable} since it is embedded
  * in {@link org.cloudifysource.esc.driver.provisioning.events.MachineStartedCloudifyEvent}
- *
+ * 
  * @author barakme
  * @since 2.0.0
- *
+ * 
  */
 public class MachineDetails implements Externalizable {
 
@@ -65,6 +65,8 @@ public class MachineDetails implements Externalizable {
 	// it's rare, but clouds may return a key file as the password for a create server request.
 	// In addition, a cloud driver may choose to generate a unique key file for each machine.
 	private File keyFile;
+
+	private String openFilesLimit;
 
 	public String getLocationId() {
 		return locationId;
@@ -237,6 +239,14 @@ public class MachineDetails implements Externalizable {
 
 	public void setKeyFile(final File keyFile) {
 		this.keyFile = keyFile;
+	}
+
+	public String getOpenFilesLimit() {
+		return openFilesLimit;
+	}
+
+	public void setOpenFilesLimit(final String openFilesLimit) {
+		this.openFilesLimit = openFilesLimit;
 	}
 
 }

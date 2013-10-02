@@ -642,6 +642,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
 		// starts on this machine.
 		final String locationId = node.getLocation().getId();
 		md.setLocationId(locationId);
+		md.setOpenFilesLimit(template.getOpenFilesLimit());
 
 		return md;
 	}

@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -24,13 +24,13 @@ import org.cloudifysource.domain.internal.CloudifyDSLEntity;
 /**
  * @author barakme
  * @since 2.0.0
- *
+ * 
  *        A cloud template is a group of settings that define a given configuration, available for a specific cloud. It
  *        can include physical machine properties (e.g. memory), operating system type, location, available cloud nodes
  *        and other settings.
  */
-@CloudifyDSLEntity(name = "computeTemplate", clazz = ComputeTemplate.class, 
-	allowInternalNode = true, allowRootNode = true, parent = "cloudCompute")
+@CloudifyDSLEntity(name = "computeTemplate", clazz = ComputeTemplate.class,
+		allowInternalNode = true, allowRootNode = true, parent = "cloudCompute")
 public class ComputeTemplate {
 
 	private String imageId;
@@ -65,9 +65,11 @@ public class ComputeTemplate {
 
 	private CloudTemplateInstallerConfiguration installer = new CloudTemplateInstallerConfiguration();
 
+	private String openFilesLimit = null;
+
 	/**
 	 * Gets the image ID.
-	 *
+	 * 
 	 * @return The image ID
 	 */
 	public String getImageId() {
@@ -76,7 +78,7 @@ public class ComputeTemplate {
 
 	/**
 	 * Sets the image ID.
-	 *
+	 * 
 	 * @param imageId
 	 *            The ID of the image to use
 	 */
@@ -86,7 +88,7 @@ public class ComputeTemplate {
 
 	/**
 	 * Gets the machine memory size in MB.
-	 *
+	 * 
 	 * @return The machine memory size
 	 */
 	public int getMachineMemoryMB() {
@@ -95,7 +97,7 @@ public class ComputeTemplate {
 
 	/**
 	 * Sets the machine memory size in MB.
-	 *
+	 * 
 	 * @param machineMemoryMB
 	 *            The machine memory size
 	 */
@@ -105,7 +107,7 @@ public class ComputeTemplate {
 
 	/**
 	 * Gets the hardware ID.
-	 *
+	 * 
 	 * @return The ID of the hardware profile
 	 */
 	public String getHardwareId() {
@@ -114,7 +116,7 @@ public class ComputeTemplate {
 
 	/**
 	 * Sets the hardware ID.
-	 *
+	 * 
 	 * @param hardwareId
 	 *            the ID of the hardware profile
 	 */
@@ -124,7 +126,7 @@ public class ComputeTemplate {
 
 	/**
 	 * Gets the location ID.
-	 *
+	 * 
 	 * @return The location ID
 	 */
 	public String getLocationId() {
@@ -133,7 +135,7 @@ public class ComputeTemplate {
 
 	/**
 	 * Sets the location ID.
-	 *
+	 * 
 	 * @param locationId
 	 *            The ID of this location
 	 */
@@ -143,7 +145,7 @@ public class ComputeTemplate {
 
 	/**
 	 * Gets the machine's cores' number.
-	 *
+	 * 
 	 * @return The machine's cores' number
 	 */
 	public int getNumberOfCores() {
@@ -152,7 +154,7 @@ public class ComputeTemplate {
 
 	/**
 	 * Sets the number of cores on this machine.
-	 *
+	 * 
 	 * @param numberOfCores
 	 *            The machine's cores' number
 	 */
@@ -162,7 +164,7 @@ public class ComputeTemplate {
 
 	/**
 	 * Gets the configured options.
-	 *
+	 * 
 	 * @return A map of configured options
 	 */
 	public Map<String, Object> getOptions() {
@@ -171,7 +173,7 @@ public class ComputeTemplate {
 
 	/**
 	 * Sets optional settings.
-	 *
+	 * 
 	 * @param options
 	 *            A map of optional settings
 	 */
@@ -181,7 +183,7 @@ public class ComputeTemplate {
 
 	/**
 	 * Gets the configured overrides.
-	 *
+	 * 
 	 * @return A list of configured overrides
 	 */
 	public Map<String, Object> getOverrides() {
@@ -190,7 +192,7 @@ public class ComputeTemplate {
 
 	/**
 	 * Sets overriding settings. This is optional.
-	 *
+	 * 
 	 * @param overrides
 	 *            A map of overriding settings
 	 */
@@ -200,7 +202,7 @@ public class ComputeTemplate {
 
 	/**
 	 * Gets the custom settings.
-	 *
+	 * 
 	 * @return A map of custom settings
 	 */
 	public Map<String, Object> getCustom() {
@@ -209,7 +211,7 @@ public class ComputeTemplate {
 
 	/**
 	 * Sets custom settings.
-	 *
+	 * 
 	 * @param custom
 	 *            A map of custom settings
 	 */
@@ -283,7 +285,7 @@ public class ComputeTemplate {
 	/************
 	 * True if services running in this template should have privileged access. This usually means that the service will
 	 * run with higher Operating System permissions - root/sudoer on Linux, Administrator on Windows. Default is false.
-	 *
+	 * 
 	 * @return true if services on this template will run in privileged mode.
 	 */
 	public boolean isPrivileged() {
@@ -297,7 +299,7 @@ public class ComputeTemplate {
 	/**************
 	 * A command line that will be executed before the bootstrapping process of a machine from this template ends
 	 * (before the Cloudify agent starts, after JDK and Cloudify are installed).
-	 *
+	 * 
 	 * @return the initialization command line.
 	 */
 	public String getInitializationCommand() {
@@ -310,7 +312,7 @@ public class ComputeTemplate {
 
 	/*************
 	 * Environment variables set for a specific template.
-	 *
+	 * 
 	 * @return the environment variables.
 	 */
 	public Map<String, String> getEnv() {
@@ -323,7 +325,7 @@ public class ComputeTemplate {
 
 	/**************
 	 * The url where the JDK used by Cloudify should be downloaded from.
-	 *
+	 * 
 	 * @return the JDK url.
 	 */
 	public String getJavaUrl() {
@@ -342,11 +344,8 @@ public class ComputeTemplate {
 		this.absoluteUploadDir = absoluteUploadDir;
 	}
 
-	private static final java.util.logging.Logger logger =
-			java.util.logging.Logger.getLogger(ComputeTemplate.class.getName());
-
 	/**
-	 *
+	 * 
 	 * @return .
 	 */
 	public String toFormatedString() {
@@ -402,7 +401,7 @@ public class ComputeTemplate {
 
 	/*********
 	 * Configuration settings for the installation process of this template.
-	 *
+	 * 
 	 * @return installer configuration settings.
 	 */
 	public CloudTemplateInstallerConfiguration getInstaller() {
@@ -411,5 +410,20 @@ public class ComputeTemplate {
 
 	public void setInstaller(final CloudTemplateInstallerConfiguration installer) {
 		this.installer = installer;
+	}
+
+	/******
+	 * Indicates the open files limit that a compute node from this template should use. Defaults to null, indicating
+	 * that whatever value the node starts with should be used. Setting a non-null value requires that the compute
+	 * template have the required privileges to set this value, so privileged mode must also be enabled.
+	 * 
+	 * @return the open files limit.
+	 */
+	public String getOpenFilesLimit() {
+		return openFilesLimit;
+	}
+
+	public void setOpenFilesLimit(String openFilesLimit) {
+		this.openFilesLimit = openFilesLimit;
 	}
 }

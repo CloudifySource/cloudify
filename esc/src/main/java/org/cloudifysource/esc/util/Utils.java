@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -51,7 +51,7 @@ import com.gigaspaces.internal.utils.StringUtils;
 
 /**
  * Utilities class.
- *
+ * 
  * @author noak
  * @since 2.0.0
  */
@@ -69,15 +69,16 @@ public final class Utils {
 	/**
 	 * Gets a "full" admin object. The function waits until all GridServiceManagers are found before returning the
 	 * object.
-	 *
+	 * 
 	 * @param managementIP
 	 *            The IP of the management machine to connect to (through the default LUS port)
 	 * @param expectedGsmCount
-	 *            The number of GridServiceManager objects that are expected to be
-	 *            found. Only when this number is reached, the admin object is considered loaded and can be returned
-	 * @param lusPort port the lus is running on.
-	 *
-	 *
+	 *            The number of GridServiceManager objects that are expected to be found. Only when this number is
+	 *            reached, the admin object is considered loaded and can be returned
+	 * @param lusPort
+	 *            port the lus is running on.
+	 * 
+	 * 
 	 * @return An updated admin object
 	 * @throws TimeoutException
 	 *             Indicates the timeout (default is 90 seconds) was reached before the admin object was fully loaded
@@ -106,7 +107,7 @@ public final class Utils {
 
 	/**
 	 * Executes a SSH command. An Ant BuildException is thrown in case of an error.
-	 *
+	 * 
 	 * @param host
 	 *            The host to run the command on
 	 * @param command
@@ -156,7 +157,7 @@ public final class Utils {
 	/*************************
 	 * Creates an Agentless Installer's InstallationDetails input object from a machine details object returned from a
 	 * provisioning implementation.
-	 *
+	 * 
 	 * @param md
 	 *            the machine details.
 	 * @param cloud
@@ -281,7 +282,6 @@ public final class Utils {
 			}
 		}
 
-
 		// Handle key file
 		if (md.getKeyFile() != null) {
 			details.setKeyFile(md.getKeyFile().getAbsolutePath());
@@ -354,24 +354,24 @@ public final class Utils {
 		}
 
 		details.setDeleteRemoteDirectoryContents(md.isCleanRemoteDirectoryOnStart());
-		//add storage props that will be passed down to the bootstrap-management script.
+		// add storage props that will be passed down to the bootstrap-management script.
 
 		details.setPersistent(cloud.getConfiguration().getPersistentStoragePath() != null);
-		
-		
-		if(md.getInstallerConfiguration() != null) {
+
+		if (md.getInstallerConfiguration() != null) {
 			details.setInstallerConfiguration(md.getInstallerConfiguration());
-		}  else {
+		} else {
 			details.setInstallerConfiguration(template.getInstaller());
 		}
-		
+
+		details.setOpenFilesLimit(md.getOpenFilesLimit());
 		logger.fine("Created InstallationDetails: " + details);
 		return details;
 	}
 
 	/***********
 	 * Created a temporary folder.
-	 *
+	 * 
 	 * @return the folder.
 	 */
 	public static File createTempFolder() {
@@ -392,12 +392,12 @@ public final class Utils {
 
 	/**********
 	 * Returns the file transfer port that should be used, based on the configuration details and default port.
-	 *
+	 * 
 	 * @param installerConfiguration
 	 *            the installer configuration.
 	 * @param mode
 	 *            the file transfer mode.
-	 *
+	 * 
 	 * @return the port.
 	 */
 	public static int getFileTransferPort(final CloudTemplateInstallerConfiguration installerConfiguration,
@@ -411,12 +411,12 @@ public final class Utils {
 
 	/**********
 	 * Returns the file transfer port that should be used, based on the configuration details and default port.
-	 *
+	 * 
 	 * @param installerConfiguration
 	 *            the installer configuration.
 	 * @param mode
 	 *            the file transfer mode.
-	 *
+	 * 
 	 * @return the port.
 	 */
 	public static int getRemoteExecutionPort(final CloudTemplateInstallerConfiguration installerConfiguration,
@@ -470,6 +470,7 @@ public final class Utils {
 		try
 		{
 			Thread.sleep(time);
-		} catch (InterruptedException e) {}
+		} catch (InterruptedException e) {
+		}
 	}
 }

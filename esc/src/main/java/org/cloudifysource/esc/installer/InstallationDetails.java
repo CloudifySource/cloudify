@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -29,9 +29,9 @@ import com.gigaspaces.internal.utils.ReflectionUtils;
 
 /************
  * Details for an installation request.
- *
+ * 
  * @author barakme
- *
+ * 
  */
 public class InstallationDetails implements Cloneable {
 
@@ -145,13 +145,15 @@ public class InstallationDetails implements Cloneable {
 	// indicates that this installation is a re-bootstrapping
 	private boolean rebootstrapping = false;
 
+	private String openFilesLimit;
+
 	/*********
 	 * Default constructor.
 	 */
 	public InstallationDetails() {
-		
+
 	}
-	
+
 	public String getLocationId() {
 		return locationId;
 	}
@@ -199,7 +201,7 @@ public class InstallationDetails implements Cloneable {
 	/*****
 	 * An instance of the Admin API, used only by instances of the cloud driver running in the cloudify manager. For
 	 * cloud driver instances running in the Cloudify CLI (for bootstrapping/teardown) this value is null.
-	 *
+	 * 
 	 * @param admin
 	 *            the admin instance.
 	 */
@@ -280,7 +282,7 @@ public class InstallationDetails implements Cloneable {
 	/********
 	 * Set the list of files that should only be copied to management machines, not agent ones. '\' characters are
 	 * replaced with '/' to make string comparisons easier.
-	 *
+	 * 
 	 * @param managementOnlyFiles
 	 *            the list of files.
 	 */
@@ -358,7 +360,7 @@ public class InstallationDetails implements Cloneable {
 	/*****
 	 * Indicates if the cloudify processes running on the new machine should bind to the private ip or to the public
 	 * one. Default to true (bind to private IP).
-	 *
+	 * 
 	 * @param bindToPrivateIp
 	 *            .
 	 */
@@ -552,5 +554,13 @@ public class InstallationDetails implements Cloneable {
 
 	public void setRebootstrapping(final boolean rebootstrapping) {
 		this.rebootstrapping = rebootstrapping;
+	}
+
+	public String getOpenFilesLimit() {
+		return openFilesLimit;
+	}
+
+	public void setOpenFilesLimit(final String openFilesLimit) {
+		this.openFilesLimit = openFilesLimit;
 	}
 }

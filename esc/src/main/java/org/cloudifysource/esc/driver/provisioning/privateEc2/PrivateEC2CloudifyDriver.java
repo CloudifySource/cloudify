@@ -742,6 +742,7 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 		md.setRemotePassword(template.getPassword());
 		final String availabilityZone = instance.getPlacement().getAvailabilityZone();
 		md.setLocationId(RegionUtils.convertAvailabilityZone2LocationId(availabilityZone));
+		md.setOpenFilesLimit(this.template.getOpenFilesLimit());
 
 		return md;
 	}

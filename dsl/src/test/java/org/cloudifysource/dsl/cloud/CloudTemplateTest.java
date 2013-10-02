@@ -119,6 +119,60 @@ public class CloudTemplateTest {
 		// unverified
 	}
 
+	@Test(expected = org.cloudifysource.dsl.internal.DSLValidationException.class)
+	public void testValidateOpenFilesLimitWithoutPrivilegedMode()
+			throws Exception {
+		final ComputeTemplate fixture = new ComputeTemplate();
+		ComputeTemplateValidator fixtureValidator = new ComputeTemplateValidator();
+		fixtureValidator.setDSLEntity(fixture);
+		fixture.setRemoteExecution(RemoteExecutionModes.SSH);
+		fixture.setImageId("");
+		fixture.setOptions(new HashMap());
+		fixture.setHardwareId("");
+		fixture.setRemoteDirectory("");
+		fixture.setNumberOfCores(1);
+		fixture.setFileTransfer(FileTransferModes.CIFS);
+		fixture.setCustom(new HashMap());
+		fixture.setUsername("");
+		fixture.setLocationId("");
+		fixture.setOverrides(new HashMap());
+		fixture.setPassword("");
+		fixture.setMachineMemoryMB(1);
+		fixture.setOpenFilesLimit("1024");
+
+		fixtureValidator.validateOpenFilesLimitOnProvilegedMode(new DSLValidationContext());
+
+		// add additional test code here
+		// unverified
+	}
+
+	@Test()
+	public void testValidateOpenFilesLimitWithPrivilegedMode()
+			throws Exception {
+		final ComputeTemplate fixture = new ComputeTemplate();
+		ComputeTemplateValidator fixtureValidator = new ComputeTemplateValidator();
+		fixtureValidator.setDSLEntity(fixture);
+		fixture.setRemoteExecution(RemoteExecutionModes.SSH);
+		fixture.setImageId("");
+		fixture.setOptions(new HashMap());
+		fixture.setHardwareId("");
+		fixture.setRemoteDirectory("");
+		fixture.setNumberOfCores(1);
+		fixture.setFileTransfer(FileTransferModes.CIFS);
+		fixture.setCustom(new HashMap());
+		fixture.setUsername("");
+		fixture.setLocationId("");
+		fixture.setOverrides(new HashMap());
+		fixture.setPassword("");
+		fixture.setMachineMemoryMB(1);
+		fixture.setOpenFilesLimit("1024");
+		fixture.setPrivileged(true);
+		fixtureValidator.validateOpenFilesLimitOnProvilegedMode(new DSLValidationContext());
+
+		// add additional test code here
+		// unverified
+	}
+
 	/**
 	 * Perform pre-test initialization.
 	 *

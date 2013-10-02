@@ -632,6 +632,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 			throw new CloudProvisioningException("Cloud node loading failed, missing credentials for server: "
 					+ nodeStr);
 		}
+		md.setOpenFilesLimit(template.getOpenFilesLimit());
 
 		return md;
 	}
