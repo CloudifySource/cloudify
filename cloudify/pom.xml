@@ -20,6 +20,7 @@
 		<module>../utility-domain</module>
 		<module>../rest-client</module>
 		<module>../management-space</module>
+		<module>../version</module>
 	</modules>
 	<properties>
 		<gsVersion>9.7.0-SNAPSHOT</gsVersion>
