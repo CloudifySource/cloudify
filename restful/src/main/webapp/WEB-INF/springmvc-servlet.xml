@@ -12,7 +12,7 @@
 				http://www.springframework.org/schema/oxm http://www.springframework.org/schema/oxm/spring-oxm-3.2.xsd
 				http://www.openspaces.org/schema/core http://www.openspaces.org/schema/9.6/core/openspaces-core.xsd
        			http://www.openspaces.org/schema/events http://www.openspaces.org/schema/9.6/events/openspaces-events.xsd
-       			http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd
+       			http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
        			http://www.openspaces.org/schema/remoting http://www.openspaces.org/schema/9.6/remoting/openspaces-remoting.xsd">
 
 	<beans profile="nonsecure,secure,default">

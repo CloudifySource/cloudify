@@ -173,7 +173,7 @@ public class CustomLdapAuthenticationProvider implements AuthenticationProvider 
         try {
             DirContextOperations userData = getAuthenticator().authenticate(authentication);
 
-            Collection<GrantedAuthority> extraAuthorities = loadUserAuthorities(userData, username, password);
+            Collection<? extends GrantedAuthority> extraAuthorities = loadUserAuthorities(userData, username, password);
             
             Collection<String> userAuthGroups = loadUserAuthGroups(userData, username, password);
 
@@ -205,7 +205,7 @@ public class CustomLdapAuthenticationProvider implements AuthenticationProvider 
      * @param password .
      * @return Collections of {@link GrantedAuthority} objects
      */
-    protected Collection<GrantedAuthority> loadUserAuthorities(final DirContextOperations user, final String username, 
+    protected Collection<? extends GrantedAuthority> loadUserAuthorities(final DirContextOperations user, final String username, 
     		final String password) {
         return getAuthoritiesPopulator().getGrantedAuthorities(user, username);
     }

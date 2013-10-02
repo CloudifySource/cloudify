@@ -19,6 +19,7 @@ import java.io.Serializable;
 
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.expression.SecurityExpressionRoot;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -29,12 +30,13 @@ import org.springframework.security.core.GrantedAuthority;
  * @author Noak
  * @since 2.3.1
  */
-class CustomMethodSecurityExpressionRoot extends SecurityExpressionRoot {
+class CustomMethodSecurityExpressionRoot extends SecurityExpressionRoot implements MethodSecurityExpressionOperations {
+	
 	private PermissionEvaluator permissionEvaluator;
 	private Object filterObject;
 	private Object returnObject;
-
-
+	private Object target;
+	
 	CustomMethodSecurityExpressionRoot(final Authentication a) {
 		super(a);
 	}
@@ -87,5 +89,18 @@ class CustomMethodSecurityExpressionRoot extends SecurityExpressionRoot {
 	public void setPermissionEvaluator(final PermissionEvaluator permissionEvaluator) {
 		this.permissionEvaluator = permissionEvaluator;
 	}
+	
+    /**
+     * Sets the "this" property for use in expressions. Typically this will be the "this" property of
+     * the {@code JoinPoint} representing the method invocation which is being protected.
+     *
+     * @param target the target object on which the method in is being invoked.
+     */
+    void setThis(Object target) {
+        this.target = target;
+    }
 
+    public Object getThis() {
+        return target;
+    }
 }
