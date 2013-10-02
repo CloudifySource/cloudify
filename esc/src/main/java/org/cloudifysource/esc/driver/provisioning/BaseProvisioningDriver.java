@@ -94,7 +94,8 @@ public abstract class BaseProvisioningDriver extends BaseComputeDriver {
 		this.cloudTemplateName = configuration.getCloudTemplate();
 		this.management = configuration.isManagement();
 		this.cloudName = cloud.getName();
-
+		this.admin = configuration.getAdmin();
+		
 		Object bol = cloud.getCustom().get(CloudifyConstants.CUSTOM_PROPERTY_VERBOSE_VALIDATION);
 		if (bol == null) {
 			this.isVerboseValidation = true;
