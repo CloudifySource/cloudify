@@ -121,8 +121,8 @@ public class LocalhostGridAgentBootstrapper {
 			"gsa.gsc", "0", "gsa.global.gsm", "0", "gsa.gsm", "1", "gsa.global.esm", "1" };
 
 	// localcloud management agent starts 1 esm, 1 gsm,1 lus
-	private static final String[] LOCALCLOUD_WIN_MANAGEMENT_ARGUMENTS = new String[] { "start", "startLH", "startGSM",
-			"startESM", "startGSA", "gsa.global.lus", "0", "gsa.lus", "0", "gsa.gsc", "0", "gsa.global.gsm", "0",
+	private static final String[] LOCALCLOUD_WIN_MANAGEMENT_ARGUMENTS = new String[] { "start", "\"LH,GSM,GSA,ESM\"",
+		"gsa.global.lus", "0", "gsa.lus", "0", "gsa.gsc", "0", "gsa.global.gsm", "0",
 			"gsa.gsm_lus", "0", "gsa.global.esm", "0", "gsa.esm", "0" };
 	// localcloud management agent starts 1 esm, 1 gsm,1 lus
 	private static final String[] LOCALCLOUD_LINUX_MANAGEMENT_ARGUMENTS = new String[] { "start",
@@ -133,7 +133,7 @@ public class LocalhostGridAgentBootstrapper {
 			"gsa.global.gsm", "0", "gsa.global.esm", "0" };
 
 	// script must spawn a daemon process (that is not a child process)
-	private static final String[] WINDOWS_LOCALCLOUD_COMMAND = new String[] { "cmd.exe", "/c", "@call", "\"gs.bat\"" };
+	private static final String[] WINDOWS_LOCALCLOUD_COMMAND = new String[] { "cmd.exe", "/c", "@call", "gs.bat" };
 	private static final String[] LINUX_LOCALCLOUD_COMMAND = new String[] { "nohup", "gs.sh" };
 
 	// script must spawn a daemon process (that is not a child process)
@@ -1121,8 +1121,8 @@ public class LocalhostGridAgentBootstrapper {
 				logger.fine("OK, LUS, GSM and ESM are up and running.");
 			} catch (final Exception e) {
 				// LUS, GSM or ESM not found
-				logger.warning("Error! Some management components (LUS/ESM/GSM) are not available after bootstrap "
-						+ "completed. Reported error: " + e.getMessage());
+				logger.log(Level.WARNING, "Error! Some management components (LUS/ESM/GSM) are not available after bootstrap "
+						+ "completed. Reported error: " + e.getMessage(), e);
 				throw new CLIValidationException(e, 132,
 						CloudifyErrorMessages.POST_BOOTSTRAP_MISSING_MGMT_COMPONENT.getName());
 			}
@@ -1597,7 +1597,6 @@ public class LocalhostGridAgentBootstrapper {
 		final String commandString = StringUtils.collectionToDelimitedString(commandLine, " ");
 		final File filename = createScript(commandString);
 		final ProcessBuilder pb = new ProcessBuilder().command(filename.getAbsolutePath()).directory(directory);
-
 		String localCloudOptions =
 				"-Xmx" + CloudifyConstants.DEFAULT_LOCALCLOUD_GSA_GSM_ESM_LUS_MEMORY_IN_MB + "m" + " -D"
 						+ CloudifyConstants.LUS_PORT_CONTEXT_PROPERTY + "="
