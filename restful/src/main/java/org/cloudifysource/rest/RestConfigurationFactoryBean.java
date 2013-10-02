@@ -15,6 +15,7 @@ package org.cloudifysource.rest;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
@@ -23,8 +24,10 @@ import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.compute.CloudCompute;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.rest.controllers.RestErrorException;
 import org.cloudifysource.security.CustomPermissionEvaluator;
 import org.cloudifysource.utilitydomain.data.CloudConfigurationHolder;
 import org.cloudifysource.utilitydomain.data.reader.ComputeTemplatesReader;
@@ -71,7 +74,7 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
     /**
      * Initialize all needed fields in RestConfiguration.
      */
-    public void initRestConfiguration() {
+    public void initRestConfiguration() throws RestErrorException {
         logger.info("Initializing cloud configuration");
         config.setGigaSpace(gigaSpace);
         config.setAdmin(admin);
@@ -96,26 +99,93 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
             logger.info("running in local cloud mode");
         }
     }
+    
 	
-    private File createRestTempFolder() {
-		File restTempFolder;
+    private File createRestTempFolder() throws RestErrorException {
+    	String restTempFolderName = "";
     	if (!StringUtils.isEmpty(temporaryFolder)) {
-        	restTempFolder = new File(temporaryFolder);
+    		restTempFolderName = temporaryFolder;
 		} else {
-			restTempFolder = new File(CloudifyConstants.REST_FOLDER);
+			restTempFolderName = CloudifyConstants.REST_FOLDER;
 		}
+    	
+    	File restTempFolder = new File(restTempFolderName);
+    	
         if (restTempFolder.exists()) {
         	try {
 				FileUtils.deleteDirectory(restTempFolder);
 			} catch (IOException e) {
 				logger.warning("failed to delete rest template folder [" + restTempFolder.getAbsolutePath() + "]");
 				e.printStackTrace();
+				restTempFolder = getUniqueFolder(restTempFolder);
 			}
         }
-        restTempFolder.mkdirs();
+        
+        final boolean mkdirs = restTempFolder.mkdirs();
+        final String absolutePath = restTempFolder.getAbsolutePath();
+        
+        if (mkdirs) {
+			if (logger.isLoggable(Level.INFO)) {
+				logger.log(Level.INFO, "created rest temp directory - " + absolutePath);
+			}
+		} else {
+			if (logger.isLoggable(Level.WARNING)) {
+				logger.warning("failed to create rest temp directory at " + absolutePath);
+			}
+			throw new RestErrorException(
+					CloudifyMessageKeys.UPLOAD_DIRECTORY_CREATION_FAILED.getName(), absolutePath);
+		}
+        
         restTempFolder.deleteOnExit();
         return restTempFolder;
 	}
+    
+    private File getUniqueFolder(final File originalRestTempFolder) throws RestErrorException {
+    	
+    	int index = 0;
+    	boolean uniqueNameFound = false;
+    	//String uniqueFolderName = "";
+    	File parent = originalRestTempFolder.getParentFile();
+    	String baseFolderName = originalRestTempFolder.getName();
+    	String folderName = baseFolderName;
+    	
+    	while (!uniqueNameFound && index < 100) {
+			//create a new name (temp1, temp2... temp100)
+    		index = index++;
+    		folderName = baseFolderName + index;
+    		
+        	File restTempFolder = new File(parent, folderName);
+    		if (!restTempFolder.exists()) {
+    			uniqueNameFound = true;
+        	} else {
+            	try {
+    				FileUtils.deleteDirectory(restTempFolder);
+    				uniqueNameFound = true;
+    			} catch (IOException e) {
+    				logger.warning("failed to delete rest template folder [" + restTempFolder.getAbsolutePath() + "]");
+    				e.printStackTrace();
+    			}
+            }
+    	}    	
+    	
+    	if (!uniqueNameFound) {
+    		//create folder with a new unique name
+    		try {
+    			File tempFile = File.createTempFile(folderName, ".tmp");
+    			folderName = StringUtils.substringBeforeLast(tempFile.getName(), ".tmp");
+    			parent = new File(tempFile.getParent());
+    			FileUtils.deleteDirectory(tempFile);
+    		} catch (IOException e) {
+    			//TODO noak: improve this error handling
+    			e.printStackTrace();
+    			throw new RestErrorException(
+    					CloudifyMessageKeys.UPLOAD_DIRECTORY_CREATION_FAILED.getName(), e.getMessage());
+    		}
+    	}
+    	
+    	return new File(parent, folderName);
+    }
+    
 
 	private Cloud readCloud() {
         logger.info("Loading cloud configuration");
