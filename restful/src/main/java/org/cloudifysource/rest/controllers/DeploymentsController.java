@@ -213,6 +213,7 @@ public class DeploymentsController extends BaseRestController {
 	public void init() {
 		gigaSpace = restConfig.getGigaSpace();
 		permissionEvaluator = restConfig.getPermissionEvaluator();
+		repo.init(restConfig.getRestTempFolder());
 		this.admin = restConfig.getAdmin();
 		this.eventsCache = new EventsCache(admin);
 		this.controllerHelper = new ControllerHelper(gigaSpace, admin);
