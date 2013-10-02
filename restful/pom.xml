@@ -188,12 +188,6 @@
 			<groupId>org.springframework.ldap</groupId>
 			<artifactId>spring-ldap-ldif-batch</artifactId>
 		</dependency>
-		<!-- AOP dependency -->
-		<dependency>
-			<groupId>cglib</groupId>
-			<artifactId>cglib</artifactId>
-			<version>2.2</version>
-		</dependency>
 		<dependency>
 			<groupId>org.cloudifysource</groupId>
 			<artifactId>esc</artifactId>
