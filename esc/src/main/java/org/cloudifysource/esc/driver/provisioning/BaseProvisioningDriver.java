@@ -1,6 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  ******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning;
 
@@ -65,6 +73,8 @@ public abstract class BaseProvisioningDriver extends BaseComputeDriver {
 	protected boolean isVerboseValidation = true;
 
 	/**
+	 * Initializing the cloud deployer according to the given cloud configuration.
+	 * 
 	 * @param cloud
 	 *            Cloud object to use
 	 */
@@ -160,11 +170,15 @@ public abstract class BaseProvisioningDriver extends BaseComputeDriver {
 	}
 
 	/**
+	 * Handles credentials for accessing the server - in this order: 1. pem file (set as a key file on the user block in
+	 * the groovy file) 2. machine's remote password (set previously by the cloud driver)
+	 * 
 	 * @param machineDetails
 	 *            The MachineDetails object that represents this server
 	 * @param template
 	 *            the cloud template.
 	 * @throws CloudProvisioningException
+	 *             Indicates missing credentials or IOException (when a key file is used)
 	 */
 	protected void handleServerCredentials(final MachineDetails machineDetails, final ComputeTemplate template)
 			throws CloudProvisioningException {
@@ -224,6 +238,8 @@ public abstract class BaseProvisioningDriver extends BaseComputeDriver {
 	}
 
 	/**
+	 * Publish a provisioning event occurred for the listeners registered on this class.
+	 * 
 	 * @param eventName
 	 *            The name of the event (must be in the message bundle)
 	 * @param args
@@ -236,6 +252,8 @@ public abstract class BaseProvisioningDriver extends BaseComputeDriver {
 	}
 
 	/*********
+	 * Created a machine details with basic settings from the given cloud template.
+	 * 
 	 * @param template
 	 *            the cloud template.
 	 * @return the newly created machine details.
