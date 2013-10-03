@@ -319,7 +319,7 @@ public class DeploymentsController extends BaseRestController {
 			@RequestParam(required = false, defaultValue = "-1") final int to)
 			throws Throwable {
 
-		validateDeploymentIdExists(deploymentId);
+		verifyDeploymentIdExists(deploymentId);
 		
 		// limit the default number of events returned to the client.
 		int actualTo = to;
@@ -372,7 +372,7 @@ public class DeploymentsController extends BaseRestController {
 			@PathVariable final String deploymentId)
 			throws Throwable {
 
-		validateDeploymentIdExists(deploymentId);
+		verifyDeploymentIdExists(deploymentId);
 		
 		EventsCacheKey key = new EventsCacheKey(deploymentId);
 		logger.fine(EventsUtils.getThreadId()
@@ -395,17 +395,39 @@ public class DeploymentsController extends BaseRestController {
 		}
 	}
 
-	private void validateDeploymentIdExists(final String deploymentId) 
+	private void verifyDeploymentIdExists(final String deploymentId) 
 			throws ResourceNotFoundException {
-		ProcessingUnits processingUnits = admin.getProcessingUnits();
-        for (ProcessingUnit pu : processingUnits) {
-            String puDeploymentId = (String) pu.getBeanLevelProperties().getContextProperties()
-                    .get(CloudifyConstants.CONTEXT_PROPERTY_DEPLOYMENT_ID);
-            if (deploymentId.equals(puDeploymentId)) {
-                return;
-            }
-        }
-        throw new ResourceNotFoundException("Deployment id " + deploymentId);
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("[validateDeploymentIdExists] validating deploymentId:" + deploymentId);
+		}
+		/*
+		 * events cache.
+		 */
+		EventsCacheKey key = new EventsCacheKey(deploymentId);
+		EventsCacheValue value = eventsCache.getIfExists(key);
+		if (value == null) {
+			/*
+			 * processing units.
+			 */
+			if (logger.isLoggable(Level.FINE)) {
+				logger.fine("[validateDeploymentIdExists] - " 
+						+ "The deploymentId doesn't exist in the eventsCache,  " 
+						+ "searching for a processing unit with that deployment id [" + deploymentId + "]");
+			}
+			ProcessingUnits processingUnits = admin.getProcessingUnits();
+			for (ProcessingUnit pu : processingUnits) {
+				String puDeploymentId = (String) pu.getBeanLevelProperties().getContextProperties()
+						.get(CloudifyConstants.CONTEXT_PROPERTY_DEPLOYMENT_ID);
+				if (deploymentId.equals(puDeploymentId)) {
+					return;
+				}
+			}
+			if (logger.isLoggable(Level.FINE)) {
+				logger.fine("[validateDeploymentIdExists] - " 
+						+ "There is no processing unit with the given deployment id [" + deploymentId + "]");
+			}
+			throw new ResourceNotFoundException("Deployment id " + deploymentId);
+		}
 	}
 
 	/**
@@ -1142,7 +1164,7 @@ public class DeploymentsController extends BaseRestController {
 	public List<ServiceDescription> getServiceDescriptionListByDeploymentId(
 			@PathVariable final String deploymentId) throws ResourceNotFoundException {
 
-		validateDeploymentIdExists(deploymentId);
+		verifyDeploymentIdExists(deploymentId);
 		
 		final ApplicationDescriptionFactory appDescriptionFactory =
 				new ApplicationDescriptionFactory(restConfig.getAdmin());
