@@ -45,10 +45,12 @@ import org.cloudifysource.domain.cloud.storage.StorageTemplate;
 import org.cloudifysource.domain.context.ServiceContext;
 import org.cloudifysource.domain.context.blockstorage.StorageFacade;
 import org.cloudifysource.domain.entry.ExecutableDSLEntry;
+import org.cloudifysource.dsl.entry.JavaExecutableEntry;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyConstants.USMState;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.dsl.utils.ServiceUtils.FullServiceName;
+import org.cloudifysource.usm.commands.BuiltInCommand;
 import org.cloudifysource.usm.dsl.DSLEntryExecutor;
 import org.cloudifysource.usm.events.EventResult;
 import org.cloudifysource.usm.events.StartReason;
@@ -134,6 +136,9 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 	@Autowired(required = true)
 	private USMLifecycleBean usmLifecycleBean;
+	
+	@Autowired(required = true)
+	private BuiltInCommand[] builtInCommands = null;
 
 	private Process process;
 
@@ -1552,10 +1557,20 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 		final String commandName = (String) namedArgs
 				.get(CloudifyConstants.INVOCATION_PARAMETER_COMMAND_NAME);
-
+		
 		invokeCustomCommand(commandName, namedArgs, result);
 		return result;
-
+	}
+	
+	private JavaExecutableEntry getBuiltInCommand(final String commandName) {
+		for (BuiltInCommand command : getBuiltInCommands()) {
+			if (command.getName().equalsIgnoreCase(commandName)) {
+				JavaExecutableEntry entry = new JavaExecutableEntry();
+				entry.setCommand(command);
+				return entry;
+			}
+		}
+		return null;
 	}
 
 	private void invokeCustomCommand(final String commandName,
@@ -1574,8 +1589,16 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 		final Service service = getUsmLifecycleBean().getConfiguration()
 				.getService();
-		final ExecutableDSLEntry customCommand = service.getCustomCommands()
-				.get(commandName);
+		
+		final ExecutableDSLEntry customCommand;
+		if (commandName.startsWith(CloudifyConstants.BUILT_IN_COMMAND_PREFIX)) {
+			customCommand = getBuiltInCommand(
+					commandName.substring(CloudifyConstants.BUILT_IN_COMMAND_PREFIX.length()));
+		} else {
+			customCommand = service.getCustomCommands()
+					.get(commandName);
+			
+		}
 
 		if (customCommand == null) {
 			logger.warning("Custom Command: " + commandName
@@ -1701,6 +1724,10 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 	public USMLifecycleBean getUsmLifecycleBean() {
 		return usmLifecycleBean;
+	}
+	
+	public BuiltInCommand[] getBuiltInCommands() {
+		return builtInCommands;
 	}
 
 	public Process getStartProcess() {
