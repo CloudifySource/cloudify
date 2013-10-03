@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.apache.commons.io.FileUtils;
@@ -44,13 +43,14 @@ public class UploadRepo {
 
 	private int uploadSizeLimitBytes = CloudifyConstants.DEFAULT_UPLOAD_SIZE_LIMIT_BYTES;
 	private int cleanupTimeoutMillis = CloudifyConstants.DEFAULT_UPLOAD_TIMEOUT_MILLIS;
-	private File baseDir = new File(CloudifyConstants.REST_FOLDER);
+	private File baseDir;
 	private ScheduledExecutorService executor;
 	private File restUploadDir;
 
 	/**
 	 * creating the upload directory and initializing scheduled thread.
 	 * 
+	 * @param restTempFolder - the temp directory to be used
 	 * @throws RestErrorException
 	 *             If failed to create upload directory.
 	 * 
@@ -58,19 +58,19 @@ public class UploadRepo {
 	 *             If failed to delete the old upload directory.
 	 */
 	//@PostConstruct
-	public void init(final File restUploadDir)
-			/*throws IOException, RestErrorException*/ {
-		//try {
-			this.restUploadDir = restUploadDir;
-		//createUploadDir();
-		createScheduledExecutor();
-		/*} catch (IOException e) {
+	public void init(final File restTempFolder)
+			throws IOException, RestErrorException {
+		try {
+			this.baseDir = restTempFolder;
+			createUploadDir();
+			createScheduledExecutor();
+		} catch (IOException e) {
 			logger.log(Level.WARNING, "failed to initialize UploadRepo, got IOException: - " + e.getMessage());
 			throw e;
 		} catch (RestErrorException e) {
 			logger.log(Level.WARNING, "failed to initialize UploadRepo, got RestErrorException: - " + e.getMessage());
 			throw e;
-		}*/
+		}
 	}
 
 	private void createScheduledExecutor() {
@@ -94,7 +94,7 @@ public class UploadRepo {
 	@PreDestroy
 	public void destroy() throws IOException {
 		executor.shutdown();
-		//FileUtils.deleteDirectory(restUploadDir);
+		FileUtils.deleteDirectory(restUploadDir);
 	}
 
 	private void reset() {
@@ -102,10 +102,12 @@ public class UploadRepo {
 		createScheduledExecutor();
 	}
 
-	/*private void createUploadDir()
+	private void createUploadDir()
 			throws IOException, RestErrorException {
-		//restUploadDir = new File(baseDir, CloudifyConstants.UPLOADS_FOLDER_NAME);
+		restUploadDir = new File(baseDir, CloudifyConstants.UPLOADS_FOLDER_NAME);
+		restUploadDir.deleteOnExit();
 		if (restUploadDir.exists()) {
+			// TODO : noak - this is not supposed to happen, need to handle, maybe throw exception
 			FileUtils.deleteDirectory(restUploadDir);
 		}
 		final boolean mkdirs = restUploadDir.mkdirs();
@@ -121,7 +123,7 @@ public class UploadRepo {
 			throw new RestErrorException(
 					CloudifyMessageKeys.UPLOAD_DIRECTORY_CREATION_FAILED.getName(), absolutePath);
 		}
-	}*/
+	}
 
 	private void copyMultipartFileToLocalFile(final MultipartFile srcFile, final File storedFile)
 			throws IOException {
