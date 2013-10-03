@@ -425,7 +425,7 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 		}
 	}
 
-	void setLocalcloudMachineProvisioningConfig(
+	private void setLocalcloudMachineProvisioningConfig(
 			final ElasticDeploymentTopology deployment) {
 		final int reservedMemoryPerMachineInMB = 256;
 		final int reservedMemoryPerManagementMachineInMB = 256;
@@ -634,6 +634,17 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 	private Properties createServiceContextProperties() {
 
 		final Properties contextProperties = new Properties();
+		
+		contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME,
+				deploymentConfig.getApplicationName());
+		contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS,
+				deploymentConfig.getAuthGroups());
+		contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_DEPLOYMENT_ID,
+				deploymentConfig.getDeploymentId());
+		if (deploymentConfig.getTemplateName() != null) {
+			contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_TEMPLATE,
+					deploymentConfig.getTemplateName());
+		}
 		final Service service = deploymentConfig.getService();
 
 		final List<String> dependsOn = service.getDependsOn();
@@ -698,20 +709,10 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 	// adds all shared properties among all deployment types
 	private void addSharedDeploymentParameters(
 			final ElasticDeploymentTopology deployment) {
-		deployment.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME,
-				deploymentConfig.getApplicationName())
-				.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS,
-						deploymentConfig.getAuthGroups());
-		if (deploymentConfig.getTemplateName() != null) {
-			deployment.addContextProperty(
-					CloudifyConstants.CONTEXT_PROPERTY_TEMPLATE, deploymentConfig.getTemplateName());
-		}
 		deployment.name(deploymentConfig.getAbsolutePUName());
 		// add context properties
 		final Properties contextProperties = createServiceContextProperties();
 		setContextProperties(deployment, contextProperties);
-		deployment.addContextProperty(CloudifyConstants.CONTEXT_PROPERTY_DEPLOYMENT_ID,
-				deploymentConfig.getDeploymentId());
 
 		if (!isLocalcloud()) {
 			logger.fine("setting lrmi bind ports and container memory context properties");
