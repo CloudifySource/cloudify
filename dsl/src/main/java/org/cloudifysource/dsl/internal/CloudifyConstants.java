@@ -433,7 +433,7 @@ public final class CloudifyConstants {
 	/**
 	 * built-in command prefix
 	 */
-	public static final String BUILT_IN_COMMAND_PREFIX = "cloudify.";
+	public static final String BUILT_IN_COMMAND_PREFIX = "cloudify:";
 	
     // CHECKSTYLE:ON
 }
