@@ -136,7 +136,7 @@ public class ConditionLatch {
 		while (!isDone && System.currentTimeMillis() < end) {
 			if (verbose) {
 				logger.log(Level.FINE,
-						"\nnext check in " + TimeUnit.MILLISECONDS.toSeconds(pollingIntervalMilliseconds) + " seconds");
+						"next check in " + TimeUnit.MILLISECONDS.toSeconds(pollingIntervalMilliseconds) + " seconds");
 			}
 			Thread.sleep(pollingIntervalMilliseconds);
 			isDone = predicate.isDone();
