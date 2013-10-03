@@ -77,14 +77,20 @@ public class ExtendedMethodSecurityExpressionHandler extends
 	 * @return EvaluationContext, containing the permission evaluator to be used
 	 */
 	@Override
-	public StandardEvaluationContext createEvaluationContextInternal(final Authentication auth, final MethodInvocation mi) {
+	public StandardEvaluationContext createEvaluationContextInternal(final Authentication auth, 
+			final MethodInvocation mi) {
 		return new CustomMethodSecurityEvaluationContext(auth, mi, parameterNameDiscoverer);
 	}
 	
 	  /**
      * Creates the root object for expression evaluation.
+     * @param authentication The {@link Authentication} object of the current user
+     * @param invocation The attempted method invocation
+     * @return The custom {@link CustomMethodSecurityExpressionRoot} as the implementation of 
+     * {@link MethodSecurityExpressionOperations} to be used.
      */
-    protected MethodSecurityExpressionOperations createSecurityExpressionRoot(Authentication authentication, MethodInvocation invocation) {
+    protected MethodSecurityExpressionOperations createSecurityExpressionRoot(final Authentication authentication, 
+    		final MethodInvocation invocation) {
     	CustomMethodSecurityExpressionRoot root = new CustomMethodSecurityExpressionRoot(authentication);
         root.setThis(invocation.getThis());
         root.setPermissionEvaluator(getPermissionEvaluator());
@@ -109,6 +115,7 @@ public class ExtendedMethodSecurityExpressionHandler extends
 					+ filterExpression.getExpressionString());
 		}
 
+		// This comment is left here temporarily until we are absolutely sure it is not required [noak].
 		/*if (filterTarget instanceof Collection 
 				|| filterTarget.getClass().isArray()) {
 			return super.filter(filterTarget, filterExpression, ctx);
