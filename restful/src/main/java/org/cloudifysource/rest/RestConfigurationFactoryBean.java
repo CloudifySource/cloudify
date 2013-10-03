@@ -150,8 +150,8 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
     	String folderName = baseFolderName;
     	
     	while (!uniqueNameFound && index < 100) {
-			//create a new name (temp1, temp2... temp100)
-    		index = index++;
+			//create a new name (temp1, temp2... temp99)
+    		index++;
     		folderName = baseFolderName + index;
     		
         	File restTempFolder = new File(parent, folderName);
