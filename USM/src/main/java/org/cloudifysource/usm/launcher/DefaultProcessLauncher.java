@@ -46,6 +46,7 @@ import org.cloudifysource.domain.LifecycleEvents;
 import org.cloudifysource.domain.entry.ExecutableDSLEntry;
 import org.cloudifysource.domain.entry.ExecutableDSLEntryType;
 import org.cloudifysource.dsl.entry.ClosureExecutableEntry;
+import org.cloudifysource.dsl.entry.JavaExecutableEntry;
 import org.cloudifysource.dsl.entry.ListExecutableEntry;
 import org.cloudifysource.dsl.entry.StringExecutableEntry;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -54,6 +55,7 @@ import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.dsl.utils.ServiceUtils.FullServiceName;
 import org.cloudifysource.usm.USMException;
 import org.cloudifysource.usm.USMUtils;
+import org.cloudifysource.usm.commands.BuiltInCommand;
 import org.cloudifysource.usm.dsl.ServiceConfiguration;
 import org.hyperic.sigar.Sigar;
 import org.openspaces.core.cluster.ClusterInfo;
@@ -672,6 +674,10 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 						e);
 				throw new USMException("Failed to execute closure " + e.getMessage(), e);
 			}
+		}
+		if (arg.getEntryType().equals(ExecutableDSLEntryType.JAVA)) {
+			Object command = ((JavaExecutableEntry) arg).getCommand();
+			return ((BuiltInCommand) command).invoke(paramsList.toArray());
 		}
 
 		final Process proc = launchProcessAsync(arg,

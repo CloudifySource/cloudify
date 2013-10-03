@@ -30,6 +30,10 @@ public enum ExecutableDSLEntryType {
 	 */
 	CLOSURE,
 	/**************
+	 * A java command class to be executed in process.
+	 */
+	JAVA,
+	/**************
 	 * A map where keys are regular expression mapping to OS names, and values are executable DSL entries.
 	 */
 	MAP,
