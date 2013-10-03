@@ -19,6 +19,7 @@ import java.util.Arrays;
 
 import org.cloudifysource.domain.context.ServiceContext;
 import org.cloudifysource.usm.USMLifecycleBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -28,26 +29,31 @@ import org.springframework.stereotype.Component;
  *
  */
 @Component
-public class StopMaintenanceMode implements BuiltInCommand {
+public class StopMaintenanceMode implements BuiltInCommand, InitializingBean {
 
 	private static final  String name = "stop-maintenance-mode";
 	private static final String successMessage = "agent failure detection enabled successfully.";
 	
 	@Autowired(required = true)
 	private USMLifecycleBean usmLifecycleBean;
+	
+	private ServiceContext context;
 
 	@Override
 	public Object invoke(final Object... args) {
 		verifyParams(args);
-		final ServiceContext serviceContext = usmLifecycleBean.getConfiguration().getServiceContext();
-		serviceContext.stopMaintenanceMode();
+		this.getContext().stopMaintenanceMode();
     	return successMessage;
-		
+	}
+	
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		this.setContext(usmLifecycleBean.getConfiguration().getServiceContext());
 	}
 
 	void verifyParams(final Object... args) {
 		if (args.length != 0) {
-			throw new IllegalStateException("command " + name + " does not accept parameters. received " 
+			throw new IllegalArgumentException("command " + name + " does not accept parameters. received " 
 						+ Arrays.toString(args));
 		}
 	}
@@ -55,5 +61,13 @@ public class StopMaintenanceMode implements BuiltInCommand {
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	public ServiceContext getContext() {
+		return context;
+	}
+
+	public void setContext(ServiceContext context) {
+		this.context = context;
 	}
 }
