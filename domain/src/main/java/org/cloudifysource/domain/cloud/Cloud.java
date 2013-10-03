@@ -33,7 +33,7 @@ import org.cloudifysource.domain.internal.CloudifyDSLEntity;
 public class Cloud {
 
 	private String name;
-	private CloudProvider provider;
+	private CloudProvider provider = new CloudProvider();
 	private CloudUser user = new CloudUser();
 	private CloudConfiguration configuration = new CloudConfiguration();
 	private Map<String, Object> custom = new HashMap<String, Object>();

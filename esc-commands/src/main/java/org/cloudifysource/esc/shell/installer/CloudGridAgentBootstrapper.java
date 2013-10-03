@@ -26,8 +26,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -38,14 +36,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.client.SystemDefaultHttpClient;
 import org.cloudifysource.domain.cloud.Cloud;
-import org.cloudifysource.domain.cloud.ScriptLanguages;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
@@ -61,7 +52,6 @@ import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDri
 import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
 import org.cloudifysource.esc.driver.provisioning.jclouds.ManagementWebServiceInstaller;
 import org.cloudifysource.esc.driver.provisioning.validation.ValidationMessageType;
-import org.cloudifysource.esc.driver.provisioning.validation.ValidationResultType;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
@@ -304,7 +294,7 @@ public class CloudGridAgentBootstrapper {
 		final ProvisioningContextImpl ctx = new ProvisioningContextImpl();
 		ctx.setLocationId(null);
 		ctx.setCloudFile(this.cloudFile);
-		InstallationDetailsBuilder builder = ctx.getInstallationDetailsBuilder();
+		final InstallationDetailsBuilder builder = ctx.getInstallationDetailsBuilder();
 
 		builder.setReservationId(null);
 		builder.setAdmin(null);
@@ -380,6 +370,7 @@ public class CloudGridAgentBootstrapper {
 
 	}
 
+	@SuppressWarnings("deprecation")
 	private MachineDetails[] locateManagementMachinesFromFile() throws CLIStatusException {
 
 		final ObjectMapper mapper = new ObjectMapper();
@@ -556,7 +547,7 @@ public class CloudGridAgentBootstrapper {
 		try {
 
 			if (performValidation) {
-				validateCloudifyUrls(validationContext);
+				new BootstrapUrlValidator(cloud).validateCloudifyUrls(validationContext);
 			}
 
 			final ComputeDriverConfiguration configuration = new ComputeDriverConfiguration();
@@ -859,7 +850,7 @@ public class CloudGridAgentBootstrapper {
 		final Integer port = cloud.getConfiguration().getComponents().getDiscovery().getDiscoveryPort();
 
 		for (int i = 0; i < installations.length; i++) {
-			InstallationDetails detail = installations[i];
+			final InstallationDetails detail = installations[i];
 			locators[i] = cloud.getConfiguration().isConnectToPrivateIp()
 					? detail.getPrivateIp() : detail.getPublicIp();
 		}
@@ -988,64 +979,4 @@ public class CloudGridAgentBootstrapper {
 		this.existingManagersFile = existingManagersFile;
 	}
 
-	private void validateCloudifyUrls(final ValidationContext validationContext) throws CloudProvisioningException {
-		final String baseCloudifyUrl = cloud.getProvider().getCloudifyUrl();
-
-		final SystemDefaultHttpClient client = new SystemDefaultHttpClient();
-		
-		if (baseCloudifyUrl.endsWith(".tar.gz")
-				|| baseCloudifyUrl.endsWith(".zip")) {
-			validateUrl(client, baseCloudifyUrl, validationContext);
-		} else {
-			final Set<String> scriptLanguages = getScriptLanguages();
-			if (scriptLanguages.contains(ScriptLanguages.LINUX_SHELL.toString())) {
-				validateUrl(client, baseCloudifyUrl + ".tar.gz", validationContext);
-			}
-
-			if (scriptLanguages.contains(ScriptLanguages.WINDOWS_BATCH.toString())) {
-				validateUrl(client, baseCloudifyUrl + ".zip", validationContext);
-			}
-		}
-
-	}
-
-	private void validateUrl(final DefaultHttpClient httpClient, final String cloudifyUrl, final ValidationContext validationContext)
-			throws CloudProvisioningException {
-
-		final HttpHead httpMethod = new HttpHead(cloudifyUrl);
-
-		try {
-			validationContext.validationOngoingEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE,
-					ShellUtils.getFormattedMessage(CloudifyErrorMessages.EVENT_VALIDATING_CLOUDIFY_URL.getName(),
-							cloudifyUrl));
-			final HttpResponse response = httpClient.execute(httpMethod);
-			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-				validationContext.validationEventEnd(ValidationResultType.ERROR);
-				logger.warning("Failed to validate Cloudify URL: " + cloudifyUrl);
-				throw new CloudProvisioningException("Invalid cloudify URL: " + cloudifyUrl);
-			}
-			validationContext.validationEventEnd(ValidationResultType.OK);
-		} catch (final ClientProtocolException e) {
-			validationContext.validationOngoingEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE,
-					" Unable to validate URL");
-			validationContext.validationEventEnd(ValidationResultType.WARNING);
-			logger.fine("Failed to validate Cloudify URL: " + cloudifyUrl);
-		} catch (final IOException e) {
-			validationContext.validationOngoingEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE,
-					" Unable to validate URL");
-			validationContext.validationEventEnd(ValidationResultType.WARNING);
-			logger.fine("Failed to validate Cloudify URL: " + cloudifyUrl);
-		}
-	}
-
-	private Set<String> getScriptLanguages() {
-		final Set<String> langs = new HashSet<String>();
-
-		for (final Entry<String, ComputeTemplate> entry : cloud.getCloudCompute().getTemplates().entrySet()) {
-			final ComputeTemplate template = entry.getValue();
-			langs.add(template.getScriptLanguage().toString());
-		}
-
-		return langs;
-	}
 }
