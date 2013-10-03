@@ -16,10 +16,12 @@
 package org.cloudifysource.usm.commands;
 
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import org.cloudifysource.domain.context.ServiceContext;
 import org.cloudifysource.usm.USMLifecycleBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -29,7 +31,7 @@ import org.springframework.stereotype.Component;
  *
  */
 @Component
-public class StartMaintenanceMode implements BuiltInCommand {
+public class StartMaintenanceMode implements BuiltInCommand, InitializingBean {
 	
 	private static final String name = "start-maintenance-mode";
 	private static final String successMessage = "agent failure detection disabled" 
@@ -37,12 +39,13 @@ public class StartMaintenanceMode implements BuiltInCommand {
 	
 	@Autowired(required = true)
 	private USMLifecycleBean usmLifecycleBean;
+	
+	private ServiceContext context;
 
 	@Override
 	public Object invoke(final Object... params) {
 		validateParams(params);
-		final ServiceContext serviceContext = usmLifecycleBean.getConfiguration().getServiceContext();
-		serviceContext.startMaintenanceMode(Long.parseLong(params[0].toString()), TimeUnit.MINUTES);
+		getContext().startMaintenanceMode(Long.parseLong(params[0].toString()), TimeUnit.MINUTES);
 		return MessageFormat.format(successMessage, params[0].toString());
 	}
 	
@@ -51,15 +54,29 @@ public class StartMaintenanceMode implements BuiltInCommand {
 		return name;
 	}
 
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		this.setContext(usmLifecycleBean.getConfiguration().getServiceContext());
+	}
+	
 	private void validateParams(final Object... params) {
 		if (params.length != 1) {
-			throw new IllegalStateException("command " + name + " requires one param of type 'long'");
+			throw new IllegalArgumentException("command " + name + " requires one param of type 'long', got " 
+											+ Arrays.toString(params));
 		}
 		try {
 			Long.parseLong(params[0].toString());
 		} catch (NumberFormatException e) {
-			throw new IllegalStateException("parameter type mismatch. can't convert " 
-														+ params[0].toString() + " to 'long'", e);
+			throw new IllegalArgumentException("parameter type mismatch. can't convert " 
+														+ params[0].getClass() + " to 'long'", e);
 		}
+	}
+
+	public ServiceContext getContext() {
+		return context;
+	}
+
+	public void setContext(final ServiceContext context) {
+		this.context = context;
 	}
 }
