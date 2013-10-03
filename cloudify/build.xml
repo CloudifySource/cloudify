@@ -80,8 +80,8 @@
 	<property name="cloudify.parent.pom.file" value="${basedir}/pom.xml"/>
 	<property name="streaming-bigdata.pom.file" value="${recipes.local.copy}/apps/streaming-bigdata/pom.xml"/>
 	<property name="s3.cloudify.publish.folder" value="${cloudify.version}-SNAPSHOT"/>
-	<property name="s3.gs.packages.publish.folder" value="${gs.version}-SNAPSHOT"/>
-
+	<property name="gs.version.tag" value="gsVersion" />
+	
 	<fileset id="all-poms-fileset" dir="${basedir}/../" includes="**/pom.xml" excludes="**/tmp/**" />
 	
 	<condition property="recipes.available" value="true">
@@ -94,50 +94,6 @@
 	-->
 	
 	<target name="update_platform_version" depends="replace.build.related.settings,replace.cloudify.build.number" unless="gs.internal.systems.not.available">
-		<pathconvert property="all-poms-list" refid="all-poms-fileset" pathsep=" "/>
-		<exec executable="git" dir="${basedir}">
-			<arg value="status" />
-		</exec>
-		
-		<echo message="The target branchname is: ${branchname}"/>
-		
-       	<exec executable="git" dir="${basedir}">
-			<arg value="checkout" />
-			<arg value="${branchname}" />			
-		</exec>
-		<exec executable="git" dir="${basedir}">
-			<arg line="pull" />
-		</exec>	
-		<exec executable="git" dir="${basedir}">
-			<arg line="add **/${platform.verion.file.name} ${build.properties.file}  " />
-		</exec>
-		<exec executable="git" dir="${basedir}">
-			<arg value="commit" />
-			<arg value="-m" />
-			<arg value="Build version advanced to ${cloudify.build.number}" />			
-		</exec>
-		<exec executable="git" dir="${basedir}">
-			<arg value="push" />
-		</exec>
-	
-		<exec executable="git" dir="${recipes.local.copy}">
-			<arg value="checkout" />
-			<arg value="${branchname}" />			
-		</exec>
-		<exec executable="git" dir="${recipes.local.copy}">
-			<arg line="pull" />
-		</exec>
-		<exec executable="git" dir="${recipes.local.copy}">
-			<arg line="add ${streaming-bigdata.pom.file}" />
-		</exec>
-		<exec executable="git" dir="${recipes.local.copy}">
-			<arg value="commit" />
-			<arg value="-m" />
-			<arg value="Build version advanced to ${cloudify.build.number}" />			
-		</exec>
-		<exec executable="git" dir="${recipes.local.copy}">
-			<arg value="push" />
-		</exec>
    </target>
 	
 	<target name="usage">
@@ -190,7 +146,7 @@
 	    <property name="gs.milestone.field" value="gs.milestone" />
 	    <property name="gs.build.number.field" value="gs.build.number" />
 		<property name="s3.gs.publish.folder.field" value="s3.gs.publish.folder" />
-		<property name="gs.version.tag" value="gsVersion" />
+		<property name="s3.gs.packages.publish.folder.field" value="s3.gs.packages.publish.folder" />
 			 
 		<replaceregexp file="${build.properties.file}"
             match="${cloudify.version.field}=(.*)"
@@ -219,6 +175,10 @@
 	   	<replaceregexp file="${build.properties.file}"
 	   	    match="${s3.gs.publish.folder.field}=(.*)"
 	   	    replace="${s3.gs.publish.folder.field}=${s3.gs.publish.folder}"/>
+		
+		<replaceregexp file="${build.properties.file}"
+	   	    match="${s3.gs.packages.publish.folder.field}=(.*)"
+	   	    replace="${s3.gs.packages.publish.folder.field}=${s3.gs.packages.publish.folder}"/>
 		
 		<replaceregexp file="${cloudify.parent.pom.file}"
 			match="&lt;${gs.version.tag}&gt;(.*)&lt;/${gs.version.tag}&gt;"
@@ -461,6 +421,53 @@
 		</sequential>
 	</macrodef>
 
+	<target name="commit_updated_dev_poms">
+	
+		<pathconvert property="all-poms-list" refid="all-poms-fileset" pathsep=" "/>
+		<exec executable="git" dir="${basedir}">
+			<arg value="status" />
+		</exec>
+		
+		<echo message="The target branchname is: ${branchname}"/>
+		
+       	<exec executable="git" dir="${basedir}">
+			<arg value="checkout" />
+			<arg value="${branchname}" />			
+		</exec>
+		<exec executable="git" dir="${basedir}">
+			<arg line="pull" />
+		</exec>	
+		<exec executable="git" dir="${basedir}">
+			<arg line="add **/${platform.verion.file.name} ${build.properties.file} ${all-poms-list} " />
+		</exec>
+		<exec executable="git" dir="${basedir}">
+			<arg value="commit" />
+			<arg value="-m" />
+			<arg value="Build version advanced to ${cloudify.build.number}" />			
+		</exec>
+		<exec executable="git" dir="${basedir}">
+			<arg value="push" />
+		</exec>
+	
+		<exec executable="git" dir="${recipes.local.copy}">
+			<arg value="checkout" />
+			<arg value="${branchname}" />			
+		</exec>
+		<exec executable="git" dir="${recipes.local.copy}">
+			<arg line="pull" />
+		</exec>
+		<exec executable="git" dir="${recipes.local.copy}">
+			<arg line="add ${streaming-bigdata.pom.file}" />
+		</exec>
+		<exec executable="git" dir="${recipes.local.copy}">
+			<arg value="commit" />
+			<arg value="-m" />
+			<arg value="Build version advanced to ${cloudify.build.number}" />			
+		</exec>
+		<exec executable="git" dir="${recipes.local.copy}">
+			<arg value="push" />
+		</exec>
+	</target>	
    
     <!-- - - - - - - - - - - - - - - - - -
            target: archive.versions
@@ -473,15 +480,19 @@
         <ant target="prepare.cloudify.package" />
         <ant target="prepare.bigdata.package" />
         <ant target="copy.packages.to.build.repository" />
-
-        <!-- conditional task (with property: publish.cloudify.build) -->
+    	
+    	<!-- Update and commit poms, upload jars to maven repository -->
+    	<ant target="update_maven_version_for_development" />
+    	<ant target="commit_updated_dev_poms" />
+    	<ant target="publish.cloudify.jars.to.maven.repository" />
+    	<ant target="publish.cloudify.jars.to.maven.snapshot.repository" />    	
+        
+    	<!-- conditional task (with property: publish.cloudify.build) -->
         <ant target="publish.bigdata.to.storage" />
 
         <!-- conditional task (with property: publish.cloudify.build) -->
         <ant target="publish.cloudify.to.storage" />
-
-        <ant target="publish.cloudify.jars.to.maven.repository" />
-    	<ant target="publish.cloudify.jars.to.maven.snapshot.repository" /> 
+ 
     </target>
 
     <target name="archive.cloudify.versions">
@@ -625,7 +636,40 @@
             <arg value="-Dput.container=${cloudify.maven.container}"/>
         </exec>
 	</target>
+	<target name="update_maven_version_for_development" if="cloudify.build.number">
+   		<condition property="maven.cloudify.dev.version" value="${s3.cloudify.publish.folder}">
+   			<isset property="release.build"/>
+  	    </condition>
+   		
+   		<condition property="maven.cloudify.dev.version" value="${s3.cloudify.snapshot.publish.folder}">
+   			<not>
+   				<isset property="release.build"/>
+   			</not>
+  	    </condition>
+		
+		<condition property="maven.gs.dev.version" value="${s3.gs.publish.folder}">
+   			<isset property="release.build"/>
+  	    </condition>
+   		
+   		<condition property="maven.gs.dev.version" value="${s3.gs.packages.publish.folder}">
+   			<not>
+   				<isset property="release.build"/>
+   			</not>
+  	    </condition>
 	
+		<exec executable="${mvn.executable}" dir="${basedir}">
+			<arg line="versions:set -DnewVersion=${maven.cloudify.dev.version} -DgenerateBackupPoms=false"/>
+		</exec>
+		
+		<replaceregexp file="${cloudify.parent.pom.file}"
+			match="&lt;${gs.version.tag}&gt;(.*)&lt;/${gs.version.tag}&gt;"
+			replace="&lt;${gs.version.tag}&gt;${maven.gs.dev.version}&lt;/${gs.version.tag}&gt;"/>
+		
+		<replaceregexp file="${streaming-bigdata.pom.file}"
+			match="&lt;${gs.version.tag}&gt;(.*)&lt;/${gs.version.tag}&gt;"
+			replace="&lt;${gs.version.tag}&gt;${maven.gs.dev.version}&lt;/${gs.version.tag}&gt;"/>
+	</target>
+		
 	<target name="publish.cloudify.jars.to.maven.snapshot.repository" unless="release.build">
 		
 		<property name="repository.id" value="org.openspaces" />
@@ -633,9 +677,7 @@
 		
 		<echo message="uploading cloudify snapshot jar artifacts to S3" />
 		
-		<exec executable="${mvn.executable}" dir="${basedir}">
-			<arg line="versions:set -DnewVersion=${s3.cloudify.snapshot.publish.folder} -DgenerateBackupPoms=false"/>
-		</exec>
+		
 		
 		<exec executable="${mvn.executable}" dir="${esc.local.copy}">
 			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/esc.jar -Dsources=target/esc-sources.jar"/>
@@ -656,10 +698,6 @@
 		<exec executable="${mvn.executable}" dir="${dsl.local.copy}">
 			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/dsl.jar -Dsources=target/dsl-sources.jar"/>
 		</exec>
-		
-		<exec executable="${mvn.executable}" dir="${dsl.local.copy}">
-			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/dsl.jar -Dsources=target/dsl-sources.jar"/>
-		</exec>
 			
 		<exec executable="${mvn.executable}" dir="${cli.local.copy}">
 			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/cli.jar"/>
@@ -677,6 +715,8 @@
 			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/management-space.jar -Dsources=target/management-space-sources.jar"/>
 		</exec>
 	</target>
+	
+
 	
 	<target name="prepare.bigdata.package">
 		<unzip.xap new.installation.dir.name="${xap.installation.dir}"/>
@@ -880,7 +920,7 @@
 	<target name="download.zip" unless="appropriate.xap.zip.present">
 		<loadproperties srcfile="${build.properties.file}"/>
 		<mkdir dir="${xap.files.tmp.dir}" /> 
-		<echo message="Please wait. Downloading ${cloudify.cdn.publish.url}/com/gigaspaces/${s3.gs.packages.publish.folder}/gigaspaces-xap-premium-${gs.version}-ga-b${gs.build.number}.zip." />
+		<echo message="Please wait. Downloading ${cloudify.cdn.publish.url}/com/gigaspaces/${s3.gs.packages.publish.folder}/${xap.zip.name}." />
 		<get verbose="true" src="${cloudify.cdn.publish.url}/com/gigaspaces/xap-core/${s3.gs.packages.publish.folder}/${xap.zip.name}" dest="${xap.files.tmp.dir}"/>
 	</target>
 	
@@ -896,7 +936,23 @@
 		</exec>
 	</target>
 	
-	<target name="cloudify.zip" depends="prepare.env, cloudify.install, prepare.cloudify.package.without.unzip" />
+	<target name="cloudify.zip" depends="prepare.env, cloudify.install, prepare.cloudify.package.without.unzip">
+		<echo>
+******************************************************************
+  
+  Cloudify packages were sucessfully created:
+     zip:    ${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip
+     tar.gz: ${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.tar.gz
+
+  Steps to perform before trying this build out on a public cloud:
+     1. publish the packages online
+     2. put the package link from step 1 into appropriate cloud driver, for example: uncomment cloudifyUrl property  
+	    in ${CLOUDIFY_HOME}/clouds/ec2/ec2-cloud.groovy and update its link
+******************************************************************
+		</echo>
+			
+              			
+	</target>
 	<target name="bigdata.zip" depends="prepare.env, cloudify.install, prepare.bigdata.package" />
 	<target name="clean.all">
 		<delete dir="${tmp.dir}"/>
