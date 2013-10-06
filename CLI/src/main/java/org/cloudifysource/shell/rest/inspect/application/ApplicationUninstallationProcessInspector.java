@@ -44,7 +44,8 @@ public class ApplicationUninstallationProcessInspector extends UninstallationPro
             final Map<String, Integer> currentRunningInstancesPerService,
             final String applicationName,
             final int nextEventId) {
-        super(restClient, deploymentId, verbose, initWithZeros(currentRunningInstancesPerService.keySet()), currentRunningInstancesPerService);
+        super(restClient, deploymentId, verbose, initWithZeros(currentRunningInstancesPerService.keySet()), 
+        		currentRunningInstancesPerService);
         this.applicationName = applicationName;
         setEventIndex(nextEventId);
     }

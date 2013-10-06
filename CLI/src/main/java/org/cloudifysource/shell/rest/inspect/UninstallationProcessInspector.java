@@ -51,7 +51,8 @@ public abstract class UninstallationProcessInspector extends InstallationProcess
     public void waitForLifeCycleToEnd(final long timeout) 
     		throws InterruptedException, CLIException, TimeoutException {
 
-
+    	printInitialRunningInstances();
+    	
         ConditionLatch conditionLatch = createConditionLatch(timeout);
 
         conditionLatch.waitFor(new ConditionLatch.Predicate() {
@@ -105,12 +106,14 @@ public abstract class UninstallationProcessInspector extends InstallationProcess
 
             private void printUnInstalledInstances() throws RestClientException {
                 for (Map.Entry<String, Integer> entry : plannedNumberOfInstancesPerService.entrySet()) {
-                    int runningInstances = getNumberOfRunningInstances(entry.getKey());
-                    Integer current = currentRunningInstancesPerService.get(entry.getKey());
-                    if (runningInstances < current) {
+                    String serviceName = entry.getKey();
+					int currentRunningInstances = getNumberOfRunningInstances(serviceName);
+                    Integer lastUpdatedRunningInstances = currentRunningInstancesPerService.get(serviceName);
+                    if (currentRunningInstances < lastUpdatedRunningInstances) {
                         // a new instance is now running
-                        displayer.printEvent("Installed " + runningInstances + " planned " + entry.getValue());
-                        currentRunningInstancesPerService.put(entry.getKey(), runningInstances);
+                        displayer.printEvent(serviceName 
+                        		+ ": installed " + currentRunningInstances + " planned " + entry.getValue());
+                        currentRunningInstancesPerService.put(serviceName, currentRunningInstances);
                     }
                 }
             }
@@ -118,6 +121,15 @@ public abstract class UninstallationProcessInspector extends InstallationProcess
 
 
     }
+
+	private void printInitialRunningInstances() {
+		for (Map.Entry<String, Integer> entry : plannedNumberOfInstancesPerService.entrySet()) {
+			String serviceName = entry.getKey();
+			int numberOfRunningInstances = currentRunningInstancesPerService.get(serviceName);
+            displayer.printEvent(serviceName 
+            		+ ": installed " + numberOfRunningInstances + " planned " + entry.getValue());
+		}
+	}
 
 	public void setWaitForCloudResourcesRelease(final boolean waitForCloudResourcesRelease) {
 		this.waitForCloudResourcesRelease = waitForCloudResourcesRelease;
