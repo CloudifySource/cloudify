@@ -111,6 +111,8 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
     	
     	File restTempFolder = new File(restTempFolderName);
     	
+    	// if the temp folder exists (left over of an unexpected shutdown) - delete it
+    	// if deletion fails - create another temp folder next to it (cloudify1, cloudify2...)
         if (restTempFolder.exists()) {
         	try {
 				FileUtils.deleteDirectory(restTempFolder);
@@ -121,6 +123,7 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
 			}
         }
         
+        restTempFolder.deleteOnExit();
         final boolean mkdirs = restTempFolder.mkdirs();
         final String absolutePath = restTempFolder.getAbsolutePath();
         
@@ -136,7 +139,7 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
 					CloudifyMessageKeys.UPLOAD_DIRECTORY_CREATION_FAILED.getName(), absolutePath);
 		}
         
-        restTempFolder.deleteOnExit();
+        
         return restTempFolder;
 	}
     
@@ -149,10 +152,9 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
     	String baseFolderName = originalRestTempFolder.getName();
     	String folderName = baseFolderName;
     	
-    	while (!uniqueNameFound && index < 100) {
+    	while (!uniqueNameFound && index < 99) {
 			//create a new name (temp1, temp2... temp99)
-    		index++;
-    		folderName = baseFolderName + index;
+    		folderName = baseFolderName + (++index);
     		
         	File restTempFolder = new File(parent, folderName);
     		if (!restTempFolder.exists()) {

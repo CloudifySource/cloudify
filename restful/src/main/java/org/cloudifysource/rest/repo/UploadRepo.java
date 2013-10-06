@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.apache.commons.io.FileUtils;
@@ -53,11 +54,10 @@ public class UploadRepo {
 	 * @param restTempFolder - the temp directory to be used
 	 * @throws RestErrorException
 	 *             If failed to create upload directory.
-	 * 
 	 * @throws IOException
 	 *             If failed to delete the old upload directory.
 	 */
-	//@PostConstruct
+	@PostConstruct
 	public void init(final File restTempFolder)
 			throws IOException, RestErrorException {
 		try {
