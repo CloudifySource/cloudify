@@ -485,15 +485,7 @@ public final class IPUtils {
 	 */
 	public static String resolveHostNameToIp(final String hostName) throws UnknownHostException {
 		final InetAddress byName = InetAddress.getByName(hostName);
-		try {
-			if (byName.isReachable(DEFAULT_CONNECTION_TIMEOUT * MILLISECONDS_IN_A_SECOND)) {
-				return byName.getHostAddress();
-			} else {
-				return null;
-			}
-		} catch (final IOException e) {
-			return null; // not reachable
-		}
+		return byName.getHostAddress();
 	}
 
 	/**
