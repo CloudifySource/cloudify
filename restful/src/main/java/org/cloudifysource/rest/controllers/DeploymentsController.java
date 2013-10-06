@@ -136,6 +136,7 @@ import org.openspaces.admin.space.ElasticSpaceDeployment;
 import org.openspaces.core.GigaSpace;
 import org.openspaces.core.util.MemoryUnit;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -754,12 +755,38 @@ public class DeploymentsController extends BaseRestController {
 	 * @throws ResourceNotFoundException .
 	 */
 	@RequestMapping(value = "/applications/{appName}/description", method = RequestMethod.GET)
-	@PostFilter("hasPermission(filterObject, 'view')")
 	public ApplicationDescription getApplicationDescription(
 			@PathVariable final String appName)
 			throws ResourceNotFoundException {
 		final ApplicationDescriptionFactory appDescriptionFactory =
 				new ApplicationDescriptionFactory(restConfig.getAdmin());
+
+		// Check that Application exists
+		final org.openspaces.admin.application.Application app = this.restConfig.getAdmin().getApplications()
+				.waitFor(appName, 10, TimeUnit.SECONDS);
+		if (app == null) {
+			throw new ResourceNotFoundException(appName);
+		}
+		
+		// if security is turned on - verify the current user is allowed to view this application
+		if (permissionEvaluator != null) {
+			final ProcessingUnit[] pus = app.getProcessingUnits().getProcessingUnits();
+			if (pus.length > 0) {
+				final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+				final CloudifyAuthorizationDetails authDetails = 
+						new CloudifyAuthorizationDetails(authentication);
+				// all the application PUs are supposed to have the same auth-groups setting so we use the first.
+				final String puAuthGroups = pus[0].getBeanLevelProperties().getContextProperties().
+						getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
+				try {
+					permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "view");
+				} catch (AccessDeniedException e) {
+					// since this is request to "view" an object, access denied should appear as "resource not found"
+					throw new ResourceNotFoundException(appName);
+				}
+			}
+		}
+		
 		return appDescriptionFactory.getApplicationDescription(appName);
 	}
 
@@ -1348,6 +1375,13 @@ public class DeploymentsController extends BaseRestController {
 					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
 			final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 			final CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
+			try {
+				permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "view");
+			} catch (AccessDeniedException e) {
+				// if the user is not allowed to view the object, access denied should appear as "resource not found"
+				throw new ResourceNotFoundException(appName);
+			}
+			
 			permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
 		}
 
