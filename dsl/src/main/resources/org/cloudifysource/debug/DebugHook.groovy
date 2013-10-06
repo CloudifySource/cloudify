@@ -15,7 +15,7 @@
  *******************************************************************************/
 package org.cloudifysource.debug
 
-import org.cloudifysource.domain.context.ServiceContext
+import org.cloudifysource.dsl.context.ServiceContext
 import org.cloudifysource.dsl.utils.ServiceUtils;
 
 import groovy.util.logging.*
