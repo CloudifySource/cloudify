@@ -50,7 +50,7 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyConstants.USMState;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.dsl.utils.ServiceUtils.FullServiceName;
-import org.cloudifysource.usm.commands.BuiltInCommand;
+import org.cloudifysource.usm.commands.USMBuiltInCommand;
 import org.cloudifysource.usm.dsl.DSLEntryExecutor;
 import org.cloudifysource.usm.events.EventResult;
 import org.cloudifysource.usm.events.StartReason;
@@ -138,7 +138,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	private USMLifecycleBean usmLifecycleBean;
 	
 	@Autowired(required = true)
-	private BuiltInCommand[] builtInCommands = null;
+	private USMBuiltInCommand[] builtInCommands = null;
 
 	private Process process;
 
@@ -1563,7 +1563,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	}
 	
 	private JavaExecutableEntry getBuiltInCommand(final String commandName) {
-		for (BuiltInCommand command : getBuiltInCommands()) {
+		for (USMBuiltInCommand command : getBuiltInCommands()) {
 			if (command.getName().equalsIgnoreCase(commandName)) {
 				JavaExecutableEntry entry = new JavaExecutableEntry();
 				entry.setCommand(command);
@@ -1726,7 +1726,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		return usmLifecycleBean;
 	}
 	
-	public BuiltInCommand[] getBuiltInCommands() {
+	public USMBuiltInCommand[] getBuiltInCommands() {
 		return builtInCommands;
 	}
 

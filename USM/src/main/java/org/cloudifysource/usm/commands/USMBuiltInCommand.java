@@ -19,9 +19,10 @@ package org.cloudifysource.usm.commands;
 /**
  * an interface for built-in command.
  * @author adaml
+ * @since 2.7.0
  *
  */
-public interface BuiltInCommand {
+public interface USMBuiltInCommand {
 
 	/**
 	 * invoke the command with the specified parameters.

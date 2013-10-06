@@ -13,32 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.dsl.entry;
+package org.cloudifysource.usm.commands;
 
-import org.cloudifysource.domain.entry.ExecutableDSLEntry;
-import org.cloudifysource.domain.entry.ExecutableDSLEntryType;
-
-/**
- * an executable entry holding a java command.
- * @author adaml
+/**************************
+ * Implementation of USM built-in commands.
+ * 
+ * @author adaml.
  * @since 2.7.0
- *
- */
-public class JavaExecutableEntry implements ExecutableDSLEntry {
-
-	private Object command;
-	
-	@Override
-	public ExecutableDSLEntryType getEntryType() {
-		return ExecutableDSLEntryType.JAVA;
-	}
-	
-	public Object getCommand() {
-		return command;
-	}
-	
-	public void setCommand(final Object command) {
-		this.command = command;
-	}
-
-}
+ *****************************/

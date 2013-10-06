@@ -29,7 +29,7 @@ import org.mockito.stubbing.Answer;
 /**
  * 
  * @author adaml
- *
+ * @since 2.7.0
  */
 public class BuiltInCommandsTest {
 	
@@ -61,6 +61,16 @@ public class BuiltInCommandsTest {
 		command.invoke("5");
 		Assert.assertTrue("the 'startMaintenanceMode' method was not invoked as expected.", invoked);
 		
+
+	}
+	
+	@Test
+	public void testInvalidParamsOnStartMaintenanceCommand() {
+		StartMaintenanceMode command = new StartMaintenanceMode();
+		// create the context mock.
+		final ServiceContext contextMock = Mockito.mock(ServiceContext.class);
+		// set the mock context in the command.
+		command.setContext(contextMock);
 		// test wrong input type on invocation.
 		try {
 			command.invoke("string");
@@ -81,7 +91,7 @@ public class BuiltInCommandsTest {
 	}
 	
 	@Test
-	public void testSStopMaintenance() {
+	public void testStopMaintenance() {
 		
 		StopMaintenanceMode command = new StopMaintenanceMode();
 		// create the context mock.
@@ -101,6 +111,16 @@ public class BuiltInCommandsTest {
 		command.invoke();
 		Assert.assertTrue("the 'startMaintenanceMode' method was not invoked as expected.", invoked);
 		
+
+	}
+	
+	@Test
+	public void testInvalidParamsOnStopMaintenanceCommand() {
+		StopMaintenanceMode command = new StopMaintenanceMode();
+		// create the context mock.
+		final ServiceContext contextMock = Mockito.mock(ServiceContext.class);
+		// set the mock context in the command.
+		command.setContext(contextMock);
 		// test wrong number of params in input. 
 		try {
 			command.invoke("string");
@@ -110,6 +130,4 @@ public class BuiltInCommandsTest {
 							+ " received [string]"));
 		}
 	}
-
-	
 }

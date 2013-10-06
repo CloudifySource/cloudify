@@ -55,7 +55,7 @@ import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.dsl.utils.ServiceUtils.FullServiceName;
 import org.cloudifysource.usm.USMException;
 import org.cloudifysource.usm.USMUtils;
-import org.cloudifysource.usm.commands.BuiltInCommand;
+import org.cloudifysource.usm.commands.USMBuiltInCommand;
 import org.cloudifysource.usm.dsl.ServiceConfiguration;
 import org.hyperic.sigar.Sigar;
 import org.openspaces.core.cluster.ClusterInfo;
@@ -676,8 +676,15 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 			}
 		}
 		if (arg.getEntryType().equals(ExecutableDSLEntryType.JAVA)) {
-			Object command = ((JavaExecutableEntry) arg).getCommand();
-			return ((BuiltInCommand) command).invoke(paramsList.toArray());
+			try {
+				Object command = ((JavaExecutableEntry) arg).getCommand();
+				return ((USMBuiltInCommand) command).invoke(paramsList.toArray());
+			} catch (Exception e) {
+				logger.log(Level.SEVERE,
+						"A USM built-in command failed to execute: " + e.getMessage(),
+						e);
+				throw new USMException("Failed to execute USM built-in command " + e.getMessage(), e);
+			}
 		}
 
 		final Process proc = launchProcessAsync(arg,

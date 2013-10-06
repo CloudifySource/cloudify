@@ -26,13 +26,14 @@ import org.springframework.stereotype.Component;
 /**
  * a built-in command used to enables the GSA failure detection of the PU instance.
  * @author adaml
+ * @since 2.7.0
  *
  */
 @Component
-public class StopMaintenanceMode implements BuiltInCommand, InitializingBean {
+public class StopMaintenanceMode implements USMBuiltInCommand, InitializingBean {
 
-	private static final  String name = "stop-maintenance-mode";
-	private static final String successMessage = "agent failure detection enabled successfully.";
+	private static final  String NAME = "stop-maintenance-mode";
+	private static final String SUCCESS_MESSAGE = "agent failure detection enabled successfully.";
 	
 	@Autowired(required = true)
 	private USMLifecycleBean usmLifecycleBean;
@@ -43,7 +44,7 @@ public class StopMaintenanceMode implements BuiltInCommand, InitializingBean {
 	public Object invoke(final Object... args) {
 		verifyParams(args);
 		this.getContext().stopMaintenanceMode();
-    	return successMessage;
+    	return SUCCESS_MESSAGE;
 	}
 	
 	@Override
@@ -53,14 +54,14 @@ public class StopMaintenanceMode implements BuiltInCommand, InitializingBean {
 
 	void verifyParams(final Object... args) {
 		if (args.length != 0) {
-			throw new IllegalArgumentException("command " + name + " does not accept parameters. received " 
+			throw new IllegalArgumentException("command " + NAME + " does not accept parameters. received " 
 						+ Arrays.toString(args));
 		}
 	}
 
 	@Override
 	public String getName() {
-		return name;
+		return NAME;
 	}
 
 	public ServiceContext getContext() {

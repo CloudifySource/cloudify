@@ -28,13 +28,14 @@ import org.springframework.stereotype.Component;
 /**
  * a built-in command used to disable the GSA failure detection of the calling PU instance.
  * @author adaml
+ * @since 2.7.0
  *
  */
 @Component
-public class StartMaintenanceMode implements BuiltInCommand, InitializingBean {
+public class StartMaintenanceMode implements USMBuiltInCommand, InitializingBean {
 	
-	private static final String name = "start-maintenance-mode";
-	private static final String successMessage = "agent failure detection disabled" 
+	private static final String COMMAND_NAME = "start-maintenance-mode";
+	private static final String SUCCESS_MESSAGE = "agent failure detection disabled" 
 												+ " successfully for a period of {0} minutes";
 	
 	@Autowired(required = true)
@@ -46,12 +47,12 @@ public class StartMaintenanceMode implements BuiltInCommand, InitializingBean {
 	public Object invoke(final Object... params) {
 		validateParams(params);
 		getContext().startMaintenanceMode(Long.parseLong(params[0].toString()), TimeUnit.MINUTES);
-		return MessageFormat.format(successMessage, params[0].toString());
+		return MessageFormat.format(SUCCESS_MESSAGE, params[0].toString());
 	}
 	
 	@Override
 	public String getName() {
-		return name;
+		return COMMAND_NAME;
 	}
 
 	@Override
@@ -61,7 +62,7 @@ public class StartMaintenanceMode implements BuiltInCommand, InitializingBean {
 	
 	private void validateParams(final Object... params) {
 		if (params.length != 1) {
-			throw new IllegalArgumentException("command " + name + " requires one param of type 'long', got " 
+			throw new IllegalArgumentException("command " + COMMAND_NAME + " requires one param of type 'long', got " 
 											+ Arrays.toString(params));
 		}
 		try {
