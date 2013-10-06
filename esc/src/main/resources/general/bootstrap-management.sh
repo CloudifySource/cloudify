@@ -57,7 +57,7 @@ function run_script {
     fi
 }
 
-echo Checking script path
+echo Loading Cloudify Environment
 SCRIPT=`readlink -f $0`
 SCRIPTPATH=`dirname $SCRIPT`
 echo script path is $SCRIPTPATH
@@ -75,23 +75,16 @@ fi
 
 source ${ENV_FILE_PATH}
 
-export LIMIT="5020"
-export PRIVILEGED="true"
-export WORKING_HOME_DIRECTORY="/export/tgrid/TestingGrid-latest/bin"
-
-if [ -f ${WORKING_HOME_DIRECTORY}/break.bin ]
-then
-	echo breaking
-	exit 5
-fi
+# Priviliged Script execution
+###############################
+echo CLOUDIFY_OPEN_FILES_LIMIT is $CLOUDIFY_OPEN_FILES_LIMIT 
 
 function privilegedActions {
 	echo Executing priviliged bootstrap actions in PID $$
-	if [ ! -z $LIMIT ] 
+	if [ ! -z $CLOUDIFY_OPEN_FILES_LIMIT ] 
 	then
 		echo setting hard and soft open files ulimit to $LIMIT
-#		ulimit -Hn $LIMIT
-		ulimit -Sn $LIMIT
+		ulimit -HSn $LIMIT
 	fi
 	if [ -f ${WORKING_HOME_DIRECTORY}/privileged-script.sh ]
 	then
@@ -100,6 +93,7 @@ function privilegedActions {
 	fi
 }
 
+# first check if we are in an advanced step of priviliged bootstrap
 if [ ! -z $PRIVILEGED_BOOTSTRAP_USER ]
 then
 	echo In second phase of privileged bootstrap in PID $$
@@ -126,10 +120,15 @@ else
 				priviligedActions
 			else	
 				# verify passwordless sudo privileges for current user
-				sudo -n ls > /dev/null || exit 1
-				export PRIVILEGED_BOOTSTRAP_USER=`whoami`
-				sudo -E ${WORKING_HOME_DIRECTORY}/test.sh
-				exit 0
+				if [ "$GIGASPACES_AGENT_ENV_PRIVILEGED" = "true" ]; then
+					sudo -n ls > /dev/null || exit 1
+					export PRIVILEGED_BOOTSTRAP_USER=`whoami`
+					sudo -E ${WORKING_HOME_DIRECTORY}/bootstrap-management.sh
+					exit 0
+				else
+					# not a password-less sudoer - bootstrap must fail
+					exit 115 
+				fi
 			fi
 		else
 			echo Standard bootstrap process will be used
@@ -140,6 +139,7 @@ fi
 
 # phase 3
 echo Beginning standard bootstrap process in PID $$
+echo ulimit is:
 ulimit -n
 
 
