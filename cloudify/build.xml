@@ -509,7 +509,7 @@
         <ant target="publish.bigdata.to.storage" />
 
         <!-- conditional task (with property: publish.cloudify.build) -->
-        <ant target="publish.cloudify.to.storage" />
+   		 <ant target="publish.cloudify.to.storage" />
  
     </target>
 
@@ -920,7 +920,7 @@
 		</exec>
 	</target>
 	
-    <target name="rebuild.and.add.cloudify.version.to.cloudify.package">
+    <target name="add.cloudify.version.to.cloudify.package">
     	   	
     	<echo message="Copy security-ldap component"/>
         <copy todir="@{installation.dir}/lib/platform/cloudify" overwrite="true">
