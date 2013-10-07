@@ -19,6 +19,7 @@ function setCloudifyJavaOptions() {
 }
 
 function setCloudifyClassPath() {
+	VERSION_JAR=${JSHOMEDIR}/lib/required/version.jar
 	CLI_JARS=${JSHOMEDIR}/tools/cli/cli.jar
 	SIGAR_JARS=${JSHOMEDIR}/lib/platform/sigar/sigar.jar
 	GROOVY_JARS=${JSHOMEDIR}/tools/groovy/lib/*
@@ -54,7 +55,7 @@ function setCloudifyClassPath() {
 		fi
 	done
 	
-	CLOUDIFY_CLASSPATH=${CLI_JARS}:${DSL_JARS}${CPS}${DEPLOY_JARS}${CPS}${GS_JARS}${CPS}${SIGAR_JARS}${CPS}${GROOVY_JARS}${CPS}${ESC_JARS}${CPS}${PLUGIN_JARS}
+	CLOUDIFY_CLASSPATH=${VERSION_JAR}${CPS}${CLI_JARS}${CPS}${DSL_JARS}${CPS}${DEPLOY_JARS}${CPS}${GS_JARS}${CPS}${SIGAR_JARS}${CPS}${GROOVY_JARS}${CPS}${ESC_JARS}${CPS}${PLUGIN_JARS}
 }
 
 function setCommandLine() {

@@ -59,12 +59,14 @@
 	<property name="security.local.copy" value="${basedir}/../security" />
 	<property name="security-ldap.local.copy" value="${basedir}/../security-ldap" />
     <property name="management-space.local.copy" value="${basedir}/../management-space" />
+	<property name="version.local.copy" value="${basedir}/../version" />
 	<property name="releases.dir" value="${basedir}/releases" />
 	<property name="build.prefix" value="build_" />
 	<property name="package.build" value="${basedir}/package_build" />
 	<property name="gigaspaces.related.folder" value="${package.build}/gigaspaces" />
 	<property name="gs-webui.related.folder" value="${package.build}/gs-webui" />
 	<property name="platform.verion.file.name" value="CloudifyVersion.java" />
+	<property name="cloudify.version.file" value="${version.local.copy}/src/main/java/com/j_spaces/kernel/${platform.verion.file.name}" />
 	<property name="cloudify.maven.container" value="gigaspaces-maven-repository-eu" />
 	<property name="cloudify.cdn.publish.url" value="http://repository.cloudifysource.org" />
 	<property name="cloudify.put.source" value="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
@@ -115,27 +117,31 @@
        <property name="build.type.field" value="BUILD_TYPE" />
 	   <property name="version.field" value="VERSION" />
 	   <property name="build.timestamp.field" value="BUILD_TIMESTAMP" />
-		
+	   
 	
-       <replaceregexp file="${gigaspaces.related.folder}/src/java/com/j_spaces/kernel/${platform.verion.file.name}"
-                        match="${build.number.field} = (.*)"
-                        replace='${build.number.field} = "${cloudify.build.number}";'/>
+       <replaceregexp file="${cloudify.version.file}"
+            match="${build.number.field} = (.*)"
+            replace='${build.number.field} = "${cloudify.build.number}";'/>
 
-       <replaceregexp file="${gigaspaces.related.folder}/src/java/com/j_spaces/kernel/${platform.verion.file.name}"
-                        match="${milestone.field} = (.*)"
-                        replace='${milestone.field} = "${cloudify.milestone}";'/>
+       <replaceregexp file="${cloudify.version.file}"
+            match="${milestone.field} = (.*)"
+            replace='${milestone.field} = "${cloudify.milestone}";'/>
 
-       <replaceregexp file="${gigaspaces.related.folder}/src/java/com/j_spaces/kernel/${platform.verion.file.name}"
-                        match="${build.type.field} = (.*)"
-                        replace='${build.type.field} = "${build.type}";'/>
+       <replaceregexp file="${cloudify.version.file}"
+            match="${build.type.field} = (.*)"
+            replace='${build.type.field} = "${build.type}";'/>
 
-		<replaceregexp file="${gigaspaces.related.folder}/src/java/com/j_spaces/kernel/${platform.verion.file.name}"
-                        match="${version.field} = (.*)"
-                        replace='${version.field} = "${cloudify.version}";'/>
+		<replaceregexp file="${cloudify.version.file}"
+            match="${version.field} = (.*)"
+            replace='${version.field} = "${cloudify.version}";'/>
 		
-		<replaceregexp file="${gigaspaces.related.folder}/src/java/com/j_spaces/kernel/${platform.verion.file.name}"
-			            match="${build.timestamp.field} = (.*)"
-			            replace='${build.timestamp.field} = "${build.timestamp}";'/>
+		<replaceregexp file="${cloudify.version.file}"
+            match="${build.timestamp.field} = (.*)"
+            replace='${build.timestamp.field} = "${build.timestamp}";'/>
+		
+		<exec executable="${mvn.executable}" dir="${version.local.copy}">
+			<arg line="install"/>
+		</exec>
    </target>
 	
 	<!-- Remark: XAP  properties are updated from the XAP build --> 
@@ -368,7 +374,7 @@
 	
 	<target name="prepare.cloudify.package.without.unzip">
 		<loadproperties srcfile="${build.properties.file}"/>
-    	<ant target="update.gs.runtime" />
+    	<ant target="add.cloudify.version.to.cloudify.package" />
     	<ant target="remove.xap.related.modules" />
         <ant target="update.lus.groups"/>
         <add.cloudify.modules/>
@@ -450,7 +456,7 @@
 			<arg line="pull" />
 		</exec>	
 		<exec executable="git" dir="${basedir}">
-			<arg line="add **/${platform.verion.file.name} ${build.properties.file} ${all-poms-list} " />
+			<arg line="add ${cloudify.version.file} ${build.properties.file} ${all-poms-list} " />
 		</exec>
 		<exec executable="git" dir="${basedir}">
 			<arg value="commit" />
@@ -566,7 +572,16 @@
 	
 	<target name="publish.cloudify.jars.to.maven.repository">
 		<echo message="uploading cloudify jar artifacts to S3" />
-				
+			
+		<exec executable="${mvn.executable}">
+			<arg value="s3client:deploy-native" />
+			<arg value="-Dput.user=${put.user}" />
+			<arg value="-Dput.key=${put.key}" />
+			<arg value="-Dput.source=${maven.repo.local}/org/cloudifysource/version/${s3.cloudify.publish.folder}" />
+			<arg value="-Dput.target=org/cloudifysource/version/${s3.cloudify.publish.folder}" />
+			<arg value="-Dput.container=${cloudify.maven.container}"/>
+		</exec>
+		
 		<exec executable="${mvn.executable}">
 			<arg value="s3client:deploy-native" />
 			<arg value="-Dput.user=${put.user}" />
@@ -709,7 +724,9 @@
 		
 		<echo message="uploading cloudify snapshot jar artifacts to S3" />
 		
-		
+		<exec executable="${mvn.executable}" dir="${version.local.copy}">
+			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/version.jar"/>
+		</exec>
 		
 		<exec executable="${mvn.executable}" dir="${esc.local.copy}">
 			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/esc.jar -Dsources=target/esc-sources.jar"/>
@@ -903,44 +920,12 @@
 		</exec>
 	</target>
 	
-    <target name="update.gs.runtime">
-
-        <!-- define properties for temp directories -->
-        <property name="src.tmp.dir" value="src-tmp-dir"/>
-        <property name="dst.tmp.dir" value="dst-tmp-dir"/>
-
-        <!-- create temp directories -->
-        <mkdir dir="${src.tmp.dir}"/>
-        <mkdir dir="${dst.tmp.dir}"/>
-
-    	 <copy todir="${src.tmp.dir}">
-            <fileset dir="${gigaspaces.related.folder}/src/java">
-                <include name="com/j_spaces/kernel/${platform.verion.file.name}"/>
-            </fileset>
+    <target name="rebuild.and.add.cloudify.version.to.cloudify.package">
+    	   	
+    	<echo message="Copy security-ldap component"/>
+        <copy todir="@{installation.dir}/lib/platform/cloudify" overwrite="true">
+            <fileset dir="${security-ldap.local.copy}/target/" includes="*.jar" excludes=".svn"/>
         </copy>
-
-    	<javac
-            classpath="${tmp.dir}/${cloudify.installation.dir}/lib/required/${gs.runtime.jar}"
-            nowarn="on"
-            srcdir="${src.tmp.dir}"
-            destdir="${dst.tmp.dir}"
-            debug="on"
-            memoryMaximumSize="512m"
-            fork="yes"
-            source="1.6">
-        </javac>
-
-        <jar jarfile="${tmp.dir}/${cloudify.installation.dir}/lib/required/${gs.runtime.jar}" update="true">
-            <fileset dir="${dst.tmp.dir}"/>
-        </jar>
-    	
-    	<jar jarfile="${tmp.dir}/${cloudify.installation.dir}/lib/platform/boot/${gs.boot.jar}" update="true">
-            <fileset dir="${dst.tmp.dir}"/>
-        </jar>
-
-        <!-- delete temp folders -->
-        <delete dir="${src.tmp.dir}"/>
-        <delete dir="${dst.tmp.dir}"/>
     </target>
 
 	<target name="prepare.env">
