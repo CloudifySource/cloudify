@@ -923,8 +923,8 @@
     <target name="add.cloudify.version.to.cloudify.package">
     	   	
     	<echo message="Copy security-ldap component"/>
-        <copy todir="@{installation.dir}/lib/platform/cloudify" overwrite="true">
-            <fileset dir="${security-ldap.local.copy}/target/" includes="*.jar" excludes=".svn"/>
+        <copy todir="${tmp.dir}/${cloudify.installation.dir}/lib/required" overwrite="true">
+            <fileset dir="${version.local.copy}/target/" includes="version.jar" excludes=".svn"/>
         </copy>
     </target>
 
