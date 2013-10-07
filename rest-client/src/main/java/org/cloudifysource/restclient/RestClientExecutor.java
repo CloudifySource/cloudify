@@ -344,6 +344,12 @@ public class RestClientExecutor {
 						new ObjectMapper().readValue(responseBody, new TypeReference<Response<Void>>() { });
                 // we also have the response in the proper format.
                 // remember, we only got here because some sort of error happened on the server.
+				if (logger.isLoggable(Level.FINE)) {
+					logger.log(Level.FINE, "[checkForError] - REST request to " + requestUri 
+							+ "  failed. throwing RestClientException: [statusCode " 
+							+ statusCode + " reasonPhrase " + reasonPhrase + " defaultMessage " + entity.getMessage() 
+							+ " messageCode" + entity.getMessageId() + "]");
+				}
 				throw MessagesUtils.createRestClientResponseException(statusCode,
 																	reasonPhrase,
 																	entity.getVerbose(),

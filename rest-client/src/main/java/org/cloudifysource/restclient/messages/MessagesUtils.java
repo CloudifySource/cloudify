@@ -17,6 +17,7 @@ import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
@@ -91,6 +92,11 @@ public final class MessagesUtils {
 					formattedMessage = MessageFormat.format(bundleMessage, arguments);
 				} catch (final IllegalArgumentException e) {
 					// ignore, we will return the message code instead
+					if (logger.isLoggable(Level.FINE)) {
+						logger.fine("Failed to create a MessageFormat with the given pattern [" 
+								+ bundleMessage + "] and the given arguments " + Arrays.toString(arguments) 
+								+ ". returning messageCode [" + messageCode + "]");
+					}
 				}
 			}
 		}
@@ -170,8 +176,19 @@ public final class MessagesUtils {
 			final String defaultMessage,
 			final String messageCode,
 			final Object... arguments) {
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("[createRestClientResponseException] - getting formatted message with messageCode [" 
+					+ messageCode + "] and arguments " + Arrays.toString(arguments));
+		}
 		String  formattedMessage = getFormattedMessageSilently(messageCode, arguments);
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("[createRestClientResponseException] - the formatted message: " + formattedMessage);
+		}
 		if (formattedMessage.equalsIgnoreCase(messageCode) && StringUtils.isNotBlank(defaultMessage)) {
+			if (logger.isLoggable(Level.FINE)) {
+				logger.fine("[createRestClientResponseException] - cahnging the formatted message to defaultMessage: " 
+						+ defaultMessage);
+			}
 			formattedMessage = defaultMessage;
 		}
 		return new RestClientResponseException(

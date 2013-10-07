@@ -67,7 +67,8 @@ public abstract class BaseRestController {
     // thread safe
     // @see http://wiki.fasterxml.com/JacksonFAQ for more info.
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
+    private static final Logger logger = Logger.getLogger(BaseRestController.class.getName());
+    
     @Autowired(required = true)
     protected MessageSource messageSource;
 
@@ -131,13 +132,15 @@ public abstract class BaseRestController {
                                      final RestErrorException e) throws IOException {
 
         String messageId = (String) e.getErrorDescription().get("error");
-        Object[] messageArgs = (Object[]) e.getErrorDescription().get(
-                "error_args");
+        Object[] messageArgs = (Object[]) e.getErrorDescription().get("error_args");
         String formattedMessage;
         try {
-        	formattedMessage = messageSource.getMessage(messageId,
-        			messageArgs, Locale.US);
+        	formattedMessage = messageSource.getMessage(messageId, messageArgs, Locale.US);
         } catch (NoSuchMessageException ne) {
+         	if (logger.isLoggable(Level.FINE)) {
+        		logger.fine("[handleResourceNotFoundException] - failed to get message from messageSource [" 
+        				+ "messageId " + messageId + " arguments " + Arrays.toString(messageArgs) + "]");
+        	}
         	formattedMessage = messageId + " [" + Arrays.toString(messageArgs) + "]";
         }
 
@@ -193,8 +196,16 @@ public abstract class BaseRestController {
 
         String messageId = CloudifyMessageKeys.MISSING_RESOURCE.getName();
         Object[] messageArgs = new Object[] {e.getResourceDescription()};
-        String formattedMessage = messageSource.getMessage(messageId,
-                messageArgs, Locale.US);
+        String formattedMessage;
+        try {
+        	formattedMessage = messageSource.getMessage(messageId, messageArgs, Locale.US);
+        } catch (NoSuchMessageException ne) {
+        	if (logger.isLoggable(Level.FINE)) {
+        		logger.fine("[handleResourceNotFoundException] - failed to get message from messageSource [" 
+        				+ "messageId " + messageId + " arguments " + Arrays.toString(messageArgs) + "]");
+        	}
+        	formattedMessage = messageId + " [" + Arrays.toString(messageArgs) + "]";
+        }
 
         Response<Void> finalResponse = new Response<Void>();
         finalResponse.setStatus("Failed");
@@ -203,6 +214,11 @@ public abstract class BaseRestController {
         finalResponse.setResponse(null);
         finalResponse.setVerbose(ExceptionUtils.getFullStackTrace(e));
 
+        if (logger.isLoggable(Level.FINE)) {
+        	logger.fine("[handleResourceNotFoundException] - update failed response [message " 
+        			+ formattedMessage + " message ID " + messageId + "]");
+        }
+        
         String responseString = OBJECT_MAPPER.writeValueAsString(finalResponse);
         response.getOutputStream().write(responseString.getBytes());
     }

@@ -45,6 +45,7 @@ import org.cloudifysource.domain.ComputeDetails;
 import org.cloudifysource.domain.Service;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
 import org.cloudifysource.dsl.internal.DSLServiceCompilationResult;
@@ -320,6 +321,9 @@ public class DeploymentsController extends BaseRestController {
 			@RequestParam(required = false, defaultValue = "-1") final int to)
 			throws Throwable {
 
+		if (deploymentId == null) {
+			throw new RestErrorException(CloudifyErrorMessages.MISSING_DEPLOYMENT_ID.getName(), "getDeploymentEvents");
+		}
 		verifyDeploymentIdExists(deploymentId);
 		
 		// limit the default number of events returned to the client.
@@ -373,6 +377,10 @@ public class DeploymentsController extends BaseRestController {
 			@PathVariable final String deploymentId)
 			throws Throwable {
 
+		if (deploymentId == null) {
+			throw new RestErrorException(CloudifyErrorMessages.MISSING_DEPLOYMENT_ID.getName(), 
+					"getLastDeploymentEvent");
+		}
 		verifyDeploymentIdExists(deploymentId);
 		
 		EventsCacheKey key = new EventsCacheKey(deploymentId);
@@ -423,8 +431,8 @@ public class DeploymentsController extends BaseRestController {
 					return;
 				}
 			}
-			if (logger.isLoggable(Level.FINE)) {
-				logger.fine("[validateDeploymentIdExists] - " 
+			if (logger.isLoggable(Level.WARNING)) {
+				logger.warning("[validateDeploymentIdExists] - " 
 						+ "There is no processing unit with the given deployment id [" + deploymentId + "]");
 			}
 			throw new ResourceNotFoundException("Deployment id " + deploymentId);
@@ -1185,12 +1193,17 @@ public class DeploymentsController extends BaseRestController {
 	 * @param deploymentId
 	 *            The deployment id.
 	 * @return The services description.
+	 * @throws RestErrorException If the deployment id is null.
 	 * @throws ResourceNotFoundException . 
 	 */
 	@RequestMapping(value = "/{deploymentId}/description", method = RequestMethod.GET)
 	public List<ServiceDescription> getServiceDescriptionListByDeploymentId(
-			@PathVariable final String deploymentId) throws ResourceNotFoundException {
+			@PathVariable final String deploymentId) throws ResourceNotFoundException, RestErrorException {
 
+		if (deploymentId == null) {
+			throw new RestErrorException(CloudifyErrorMessages.MISSING_DEPLOYMENT_ID.getName(), 
+					"getServiceDescriptionListByDeploymentId");
+		}
 		verifyDeploymentIdExists(deploymentId);
 		
 		final ApplicationDescriptionFactory appDescriptionFactory =

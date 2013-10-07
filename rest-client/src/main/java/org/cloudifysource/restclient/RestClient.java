@@ -36,6 +36,7 @@ import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.rest.AddTemplatesException;
 import org.cloudifysource.dsl.rest.request.AddTemplatesRequest;
 import org.cloudifysource.dsl.rest.request.InstallApplicationRequest;
@@ -283,6 +284,7 @@ public class RestClient {
 	 */
 	public DeploymentEvents getDeploymentEvents(final String deploymentId, final int from, final int to)
 			throws RestClientException {
+		validateDeploymentID(deploymentId, "getDeploymentEvents(String,int,int)");
 		String url = getFormattedUrl(
 				versionedDeploymentControllerUrl, 
 				GET_DEPLOYMENT_EVENTS_URL_FORMAT, 
@@ -291,6 +293,16 @@ public class RestClient {
 				String.valueOf(to));
 		return executor.get(url, new TypeReference<Response<DeploymentEvents>>() {
 		});
+	}
+
+	private void validateDeploymentID(final String deploymentId, final String methodName) throws RestClientException {
+		if (deploymentId == null) {
+			logger.warning("[" + methodName + "] - deployment ID is missing.");
+			RestClientException restClientException = 
+					MessagesUtils.createRestClientException(
+							CloudifyErrorMessages.MISSING_DEPLOYMENT_ID.getName(), methodName);
+			throw restClientException;
+		}
 	}
 
 	/**
@@ -323,6 +335,7 @@ public class RestClient {
 	 */
 	public List<ServiceDescription> getServiceDescriptions(final String deploymentId)
 			throws RestClientException {
+		validateDeploymentID(deploymentId, "getServiceDescriptions(String)");
 		String url = getFormattedUrl(
 				versionedDeploymentControllerUrl, 
 				GET_SERVICES_DESCRIPTION_URL_FORMAT, 
@@ -412,7 +425,7 @@ public class RestClient {
 	 *             in case of an error on the rest server.
 	 */
 	public DeploymentEvents getLastEvent(final String deploymentId) throws RestClientException {
-
+		validateDeploymentID(deploymentId, "getLastEvent(String)");
 		final String url = getFormattedUrl(
 				versionedDeploymentControllerUrl, 
 				GET_LAST_EVENT_URL_FORMAT, 
