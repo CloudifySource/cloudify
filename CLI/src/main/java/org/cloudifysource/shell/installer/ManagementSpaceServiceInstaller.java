@@ -60,6 +60,8 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 
 	private String persistentStoragePath;
 
+	private String cloudName;
+
 	/**
 	 * Sets the management space availability behavior. A highly-available space is a space that must always have a
 	 * backup instance, running on a separate machine.

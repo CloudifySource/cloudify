@@ -998,6 +998,13 @@ public class LocalhostGridAgentBootstrapper {
 				startLocalCloudManagementServicesContainer(agent);
 			}
 
+			String cloudName = null;
+			if (this.cloud != null) {
+				cloudName = this.cloud.getName();
+			} else {
+				cloudName = "local-cloud";
+			}
+
 			connectionLogs.supressConnectionErrors();
 			try {
 				ManagementSpaceServiceInstaller managementSpaceInstaller = null;
@@ -1016,6 +1023,7 @@ public class LocalhostGridAgentBootstrapper {
 					managementSpaceInstaller.addListeners(this.eventsListenersList);
 					managementSpaceInstaller.setIsLocalCloud(isLocalCloud);
 					managementSpaceInstaller.setLrmiCommandLineArgument(gscLrmiCommandLineArg);
+					managementSpaceInstaller.setCloudName(cloudName);
 
 					if (!this.isLocalCloud) {
 						final String persistentStoragePath = this.cloud.getConfiguration().getPersistentStoragePath();
@@ -1037,7 +1045,8 @@ public class LocalhostGridAgentBootstrapper {
 
 				if (!noWebServices) {
 					installWebServices(username, password, isLocalCloud,
-							ShellUtils.isSecureConnection(securityProfile), agent, managementServicesInstallers);
+							ShellUtils.isSecureConnection(securityProfile), agent, managementServicesInstallers,
+							cloudName);
 				}
 
 				for (final AbstractManagementServiceInstaller managementServiceInstaller : managementServicesInstallers) {
@@ -1172,20 +1181,13 @@ public class LocalhostGridAgentBootstrapper {
 
 	private void installWebServices(final String username, final String password, final boolean isLocalCloud,
 			final boolean isSecureConnection, final GridServiceAgent agent,
-			final List<AbstractManagementServiceInstaller> managementServices)
+			final List<AbstractManagementServiceInstaller> managementServices, final String cloudName)
 			throws CLIException {
 		final String gscLrmiCommandLineArg = getGscLrmiCommandLineArg();
 		final String webuiMemory = getWebServiceMemory(CloudifyConstants.WEBUI_MAX_MEMORY_ENVIRONMENT_VAR);
 		final int webuiPort = getWebservicePort(CloudifyConstants.WEBUI_PORT_ENV_VAR, isSecureConnection);
 
 		final String webUiFileName = EnvironmentUtils.findWebuiWar();
-
-		String cloudName = null;
-		if (this.cloud != null) {
-			cloudName = this.cloud.getName();
-		} else {
-			cloudName = "local-cloud";
-		}
 
 		final ManagementWebServiceInstaller webuiInstaller = new ManagementWebServiceInstaller();
 		webuiInstaller.setAdmin(agent.getAdmin());
