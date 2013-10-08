@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.StringTokenizer;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -38,6 +39,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.CharEncoding;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.CloudUser;
@@ -79,6 +81,8 @@ import com.amazonaws.services.ec2.model.DescribeVolumesRequest;
 import com.amazonaws.services.ec2.model.DescribeVolumesResult;
 import com.amazonaws.services.ec2.model.EbsBlockDevice;
 import com.amazonaws.services.ec2.model.Filter;
+import com.amazonaws.services.ec2.model.GetConsoleOutputRequest;
+import com.amazonaws.services.ec2.model.GetConsoleOutputResult;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Placement;
 import com.amazonaws.services.ec2.model.Reservation;
@@ -101,6 +105,102 @@ import com.amazonaws.services.s3.model.S3Object;
 public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 		ProvisioningDriver, CustomServiceDataAware {
 
+	/**
+	 * Runnable to retrieve console output from a EC2 instance.
+	 */
+	private class EC2Console implements Runnable {
+
+		private AmazonEC2 ec2;
+		private int nbAlreadyReadLines = 0;
+
+		private String ipAddress;
+		private int agentPort;
+
+		private String instanceId;
+		private String logHeader;
+		private boolean loop = true;
+
+		public EC2Console(final String instanceId, final String ipAddress, final int agentPort)
+				throws CloudProvisioningException {
+			this.ipAddress = ipAddress;
+			this.agentPort = agentPort;
+			this.instanceId = instanceId;
+			this.logHeader = "[" + instanceId + "] ";
+			this.ec2 = createAmazonEC2();
+		}
+
+		@Override
+		public void run() {
+			if (logger.isLoggable(Level.FINER)) {
+				logger.finer(logHeader + "Getting console ouput...");
+			}
+			while (!Thread.interrupted() && loop) {
+				try {
+					sleep();
+
+					// If the agent is started, stop the tail
+					if (isPortReachable(ipAddress, agentPort)) {
+						if (logger.isLoggable(Level.FINEST)) {
+							logger.finest(logHeader + "Stopping the loop...");
+						}
+						loop = false;
+					}
+
+					// Read the console output
+					final String read = this.readEc2Output();
+					if (read != null) {
+						// Print the console output if there is something to print
+						this.printOutput(read);
+					}
+				} catch (final IllegalStateException e) {
+					if ("Connection pool shut down".equals(e.getMessage())) {
+						if (logger.isLoggable(Level.FINEST)) {
+							logger.finest(logHeader + "Getting console ouput...");
+						}
+						loop = false;
+					}
+				} catch (final Exception e) {
+					logger.log(Level.WARNING, logHeader + "Error occurs when getting console output", e);
+				}
+			}
+			if (logger.isLoggable(Level.FINER)) {
+				logger.finer(logHeader + "Stop scrolling console ouput...");
+			}
+		}
+
+		private String readEc2Output() {
+			final GetConsoleOutputRequest request = new GetConsoleOutputRequest(instanceId);
+			final GetConsoleOutputResult consoleOutput = ec2.getConsoleOutput(request);
+			final String output = consoleOutput.getOutput();
+			if (output != null) {
+				final String x = new String(Base64.decodeBase64(output));
+				return x;
+			} else {
+				logger.finest("[" + instanceId + "] No output yet");
+			}
+			return null;
+		}
+
+		private void printOutput(final String read) {
+			final StringTokenizer st = new StringTokenizer(read, "\n");
+			final int tokenCount = st.countTokens();
+
+			// On linux machines, ec2 returns the full output history.
+			// We have to ignore lines we already read.
+			for (int i = 0; i < this.nbAlreadyReadLines; i++) {
+				st.nextToken();
+			}
+			if (!st.hasMoreElements()) {
+				logger.finest(logHeader + "No additional output");
+			}
+			while (st.hasMoreElements()) {
+				logger.info(logHeader + st.nextElement().toString());
+			}
+			this.nbAlreadyReadLines = tokenCount;
+		}
+	}
+
+	private static final int NB_THREADS_CONSOLE_OUTPUT = 20;
 	private static final int DEFAULT_CLOUDIFY_AGENT_PORT = 7002;
 	private static final int AMAZON_EXCEPTION_CODE_400 = 400;
 	private static final int MAX_SERVERS_LIMIT = 200;
@@ -142,6 +242,8 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 	private Object cloudTemplateName;
 	private String cloudName;
 	private String managerCfnTemplateFileName;
+
+	private ExecutorService debugExecutors;
 
 	/**
 	 * *****************************************************************************************************************
@@ -310,6 +412,12 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 			String locationId = (String) managerTemplate.getCustom().get("s3LocationId");
 			CloudUser user = this.cloud.getUser();
 			this.amazonS3Uploader = new AmazonS3Uploader(user.getUser(), user.getApiKey(), locationId);
+
+			// Setup debug console output
+			final boolean debug = BooleanUtils.toBoolean((String) managerTemplate.getCustom().get("debugMode"));
+			if (debug) {
+				this.debugExecutors = Executors.newFixedThreadPool(NB_THREADS_CONSOLE_OUTPUT);
+			}
 
 		} catch (final CloudProvisioningException e) {
 			throw new IllegalArgumentException(e);
@@ -515,9 +623,6 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 
 	private void sleep() {
 		try {
-			if (logger.isLoggable(Level.FINEST)) {
-				logger.finest("sleeping...");
-			}
 			Thread.sleep(WAIT_STATUS_SLEEP_TIME);
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
@@ -748,15 +853,16 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 	}
 
 	private Instance createEC2Instance(final PrivateEc2Template cfnTemplate, final ProvisioningContextImpl ctx,
-			final boolean management, final String machineName, final long duration, final TimeUnit unit)
+			final boolean management, final String machineName, final long duration,
+			final TimeUnit unit)
 			throws CloudProvisioningException, TimeoutException {
 
+		final ComputeTemplate template = this.getManagerComputeTemplate();
 		final InstanceProperties properties = cfnTemplate.getEC2Instance().getProperties();
 
 		final String availabilityZone = properties.getAvailabilityZone() == null
 				? null : properties.getAvailabilityZone().getValue();
 		final Placement placement = availabilityZone == null ? null : new Placement(availabilityZone);
-
 		final String imageId = properties.getImageId() == null ? null : properties.getImageId().getValue();
 		final String instanceType = properties.getInstanceType() == null
 				? null : properties.getInstanceType().getValue();
@@ -779,7 +885,6 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 				s3Object = this.uploadCloudDir(ctx, script, management);
 				final String cloudFileS3 = this.amazonS3Uploader.generatePresignedURL(s3Object);
 
-				ComputeTemplate template = this.getManagerComputeTemplate();
 				String cloudFileDir = (String) template.getRemoteDirectory();
 				// Remove '/' from the path if it's the last char.
 				if (cloudFileDir.length() > 1 && cloudFileDir.endsWith("/")) {
@@ -840,6 +945,14 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 			ec2Instance = this.waitRunningInstance(ec2Instance, duration, unit);
 			this.tagEC2Instance(ec2Instance, machineName, cfnTemplate.getEC2Instance());
 			this.tagEC2Volumes(ec2Instance.getInstanceId(), cfnTemplate);
+
+			final boolean debug = BooleanUtils.toBoolean((String) template.getCustom().get("debugMode"));
+			if (debug) {
+				debugExecutors.submit(new EC2Console(
+						ec2Instance.getInstanceId(),
+						ec2Instance.getPublicIpAddress(),
+						DEFAULT_CLOUDIFY_AGENT_PORT));
+			}
 			this.waitRunningAgent(ec2Instance.getPublicIpAddress(), duration, unit);
 
 			return ec2Instance;
@@ -852,25 +965,34 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 
 	private void waitRunningAgent(final String host, final long duration, final TimeUnit unit) {
 		long endTime = System.currentTimeMillis() + unit.toMillis(duration);
-		Socket socket = null;
 		while (System.currentTimeMillis() < endTime) {
-			try {
-				socket = new Socket(host, DEFAULT_CLOUDIFY_AGENT_PORT);
+			if (this.isPortReachable(host, DEFAULT_CLOUDIFY_AGENT_PORT)) {
 				logger.fine("Agent is reachable on: " + host + ":" + DEFAULT_CLOUDIFY_AGENT_PORT);
 				break;
-			} catch (Exception e) {
+			} else {
 				this.sleep();
-			} finally {
-				if (socket != null) {
-					try {
-						socket.close();
-					} catch (IOException e) {
-						continue;
-					}
-				}
 			}
 		}
 
+	}
+
+	private boolean isPortReachable(final String host, final int port) {
+		Socket socket = null;
+		try {
+			socket = new Socket(host, port);
+			return true;
+		} catch (Exception e) {
+			return false;
+		} finally {
+			if (socket != null) {
+				try {
+					socket.close();
+				} catch (IOException e) {
+					logger.warning("Can't close port: " + host + ":" + port);
+					return false;
+				}
+			}
+		}
 	}
 
 	private S3Object uploadCloudDir(final ProvisioningContextImpl ctx, final String script, final boolean isManagement)
@@ -1173,6 +1295,12 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 	public void close() {
 		if (ec2 != null) {
 			ec2.shutdown();
+		}
+		if (debugExecutors != null) {
+			if (logger.isLoggable(Level.FINEST)) {
+				logger.finest("Shutting down console output executor.");
+			}
+			debugExecutors.shutdownNow();
 		}
 	}
 
