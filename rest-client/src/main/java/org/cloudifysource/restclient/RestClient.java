@@ -13,28 +13,34 @@
 package org.cloudifysource.restclient;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
-import java.security.KeyStore;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.commons.lang.CharEncoding;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.http.HttpVersion;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.conn.ssl.X509HostnameVerifier;
+import org.apache.http.impl.client.AbstractHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.SystemDefaultHttpClient;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
-import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpProtocolParams;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.rest.AddTemplatesException;
@@ -79,7 +85,6 @@ public class RestClient {
 	private static final String TEMPLATES_CONTROLLER_URL = "/templates/";
 
 	private static final String INSTALL_SERVICE_URL_FORMAT = "%s/services/%s";
-	private static final String LIST_SERVICES_URL_FORMAT = "";
 	private static final String INSTALL_APPLICATION_URL_FORMAT = "%s";
 	private static final String UPLOAD_URL_FORMAT = "%s";
 	private static final String GET_DEPLOYMENT_EVENTS_URL_FORMAT = "%s/events/?from=%s&to=%s";
@@ -353,8 +358,8 @@ public class RestClient {
 	 */
 	public ApplicationDescription getApplicationDescription(final String appName) throws RestClientException {
 		String url = getFormattedUrl(
-				versionedDeploymentControllerUrl, 
-				GET_APPLICATION_DESCRIPTION_URL_FORMAT, 
+				versionedDeploymentControllerUrl,
+				GET_APPLICATION_DESCRIPTION_URL_FORMAT,
 				appName);
 		return executor.get(url, new TypeReference<Response<ApplicationDescription>>() {
 		});
@@ -439,7 +444,7 @@ public class RestClient {
 	 * Validate file before uploading.
 	 * @param file 
 	 * 			The file to upload.
-	 * @throws RestClientException
+	 * @throws RestClientException .
 	 */
 	protected void validateFile(final File file) throws RestClientException {
 		if (file == null) {
@@ -486,28 +491,69 @@ public class RestClient {
 	 */
 	private DefaultHttpClient getSSLHttpClient(final URL url) throws RestClientException {
 		try {
-			final KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-			trustStore.load(null, null);
-			
-			final SSLSocketFactory sf = 
-					new RestSSLSocketFactory(trustStore, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-
-			final HttpParams params = new BasicHttpParams();
-			HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-			HttpProtocolParams.setContentCharset(params, CharEncoding.UTF_8);
-
-			final SchemeRegistry registry = new SchemeRegistry();
-			Scheme scheme = new Scheme(HTTPS, sf, url.getPort());
-			registry.register(scheme);
-			
-			final ClientConnectionManager ccm = new PoolingClientConnectionManager(registry);
-			return new DefaultHttpClient(ccm, params);
+			final X509TrustManager trustManager = createTrustManager();
+			SSLContext ctx = SSLContext.getInstance("TLS");
+			ctx.init(null, new TrustManager[]{trustManager}, null);
+			SSLSocketFactory ssf = new SSLSocketFactory(ctx, createHostnameVerifier());
+			AbstractHttpClient base = new DefaultHttpClient();
+			ClientConnectionManager ccm = base.getConnectionManager();
+			SchemeRegistry sr = ccm.getSchemeRegistry();
+			sr.register(new Scheme(HTTPS, url.getPort(), ssf));
+			return new DefaultHttpClient(ccm, base.getParams());
 		} catch (final Exception e) {
 			throw new RestClientException(FAILED_CREATING_CLIENT, "Failed creating http client",
 					ExceptionUtils.getFullStackTrace(e));
 		}
 	}
+	
+	
+	private X509TrustManager createTrustManager() {
+		X509TrustManager tm = new X509TrustManager() {
+			
+			@Override
+			public X509Certificate[] getAcceptedIssuers() {
+				return null;
+			}
+			
+			@Override
+			public void checkServerTrusted(final X509Certificate[] chain, final String authType) 
+					throws CertificateException {
+			}
+			
+			@Override
+			public void checkClientTrusted(final X509Certificate[] chain, final String authType) 
+					throws CertificateException {
+			}
+		};
+		return tm;
+	}
 
+	
+	private X509HostnameVerifier createHostnameVerifier() {
+		X509HostnameVerifier verifier = new X509HostnameVerifier() {
+			
+			@Override
+			public boolean verify(final String arg0, final SSLSession arg1) {
+				return true;
+			}
+			
+			@Override
+			public void verify(final String host, final String[] cns, final String[] subjectAlts) 
+					throws SSLException {
+			}
+			
+			@Override
+			public void verify(final String host, final X509Certificate cert) 
+					throws SSLException {
+			}
+			
+			@Override
+			public void verify(final String host, final SSLSocket ssl) 
+					throws IOException {
+			}
+		};
+        return verifier;
+	}
 	/**
 	 * 
 	 * @param controllerUrl .
