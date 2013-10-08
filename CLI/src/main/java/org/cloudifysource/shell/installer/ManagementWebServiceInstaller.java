@@ -29,6 +29,7 @@ import java.util.logging.Level;
 import net.jini.discovery.Constants;
 
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
@@ -69,6 +70,8 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	private boolean isLocalcloud;
 	private boolean isSecureConnection; // Indicates whether the connection to this web server is secure (SSL)
 	private String lrmiCommandLineArgument = "";
+	private String cloudName;
+
 
 	/**
 	 * Sets the service's port.
@@ -410,6 +413,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 		props.setProperty("web.sslPort", portAsString);
 		props.setProperty("web.context", "/");
 		props.setProperty("web.context.unique", "true");
+		props.setProperty(CloudifyConstants.CONTEXT_PROPERTY_CLOUD_NAME, this.cloudName);
 		return props;
 	}
 
@@ -570,6 +574,14 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 
 	public void setLrmiCommandLineArgument(final String lrmiCommandLineArgument) {
 		this.lrmiCommandLineArgument = lrmiCommandLineArgument;
+	}
+
+	public String getCloudName() {
+		return cloudName;
+	}
+
+	public void setCloudName(final String cloudName) {
+		this.cloudName = cloudName;
 	}
 
 }

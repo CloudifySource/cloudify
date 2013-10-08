@@ -120,7 +120,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	// localcloud management agent starts 1 esm, 1 gsm,1 lus
 	private static final String[] LOCALCLOUD_WIN_MANAGEMENT_ARGUMENTS = new String[] { "start", "\"LH,GSM,GSA,ESM\"",
-		"gsa.global.lus", "0", "gsa.lus", "0", "gsa.gsc", "0", "gsa.global.gsm", "0",
+			"gsa.global.lus", "0", "gsa.lus", "0", "gsa.gsc", "0", "gsa.global.gsm", "0",
 			"gsa.gsm_lus", "0", "gsa.global.esm", "0", "gsa.esm", "0" };
 	// localcloud management agent starts 1 esm, 1 gsm,1 lus
 	private static final String[] LOCALCLOUD_LINUX_MANAGEMENT_ARGUMENTS = new String[] { "start",
@@ -1040,8 +1040,7 @@ public class LocalhostGridAgentBootstrapper {
 							ShellUtils.isSecureConnection(securityProfile), agent, managementServicesInstallers);
 				}
 
-				for (final AbstractManagementServiceInstaller managementServiceInstaller 
-						: managementServicesInstallers) {
+				for (final AbstractManagementServiceInstaller managementServiceInstaller : managementServicesInstallers) {
 					managementServiceInstaller.waitForInstallation(adminFacade, agent,
 							ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
 					if (managementServiceInstaller instanceof ManagementSpaceServiceInstaller) {
@@ -1121,16 +1120,16 @@ public class LocalhostGridAgentBootstrapper {
 				logger.fine("OK, LUS, GSM and ESM are up and running.");
 			} catch (final Exception e) {
 				// LUS, GSM or ESM not found
-				logger.log(Level.WARNING, "Error! Some management components (LUS/ESM/GSM) are not available after bootstrap "
-						+ "completed. Reported error: " + e.getMessage(), e);
+				logger.log(Level.WARNING,
+						"Error! Some management components (LUS/ESM/GSM) are not available after bootstrap "
+								+ "completed. Reported error: " + e.getMessage(), e);
 				throw new CLIValidationException(e, 132,
 						CloudifyErrorMessages.POST_BOOTSTRAP_MISSING_MGMT_COMPONENT.getName());
 			}
 
 			connectionLogs.supressConnectionErrors();
 			try {
-				for (final AbstractManagementServiceInstaller managementServiceInstaller 
-						: managementServicesInstallers) {
+				for (final AbstractManagementServiceInstaller managementServiceInstaller : managementServicesInstallers) {
 					String serviceName = "";
 					try {
 						serviceName = managementServiceInstaller.getServiceName();
@@ -1181,6 +1180,13 @@ public class LocalhostGridAgentBootstrapper {
 
 		final String webUiFileName = EnvironmentUtils.findWebuiWar();
 
+		String cloudName = null;
+		if (this.cloud != null) {
+			cloudName = this.cloud.getName();
+		} else {
+			cloudName = "local-cloud";
+		}
+
 		final ManagementWebServiceInstaller webuiInstaller = new ManagementWebServiceInstaller();
 		webuiInstaller.setAdmin(agent.getAdmin());
 		webuiInstaller.setVerbose(verbose);
@@ -1194,6 +1200,8 @@ public class LocalhostGridAgentBootstrapper {
 		webuiInstaller.setIsLocalCloud(isLocalCloud);
 		webuiInstaller.setIsSecureConnection(isSecureConnection);
 		webuiInstaller.setLrmiCommandLineArgument(gscLrmiCommandLineArg);
+
+		webuiInstaller.setCloudName(cloudName);
 
 		try {
 			webuiInstaller.installWebService();
@@ -1228,6 +1236,7 @@ public class LocalhostGridAgentBootstrapper {
 		restInstaller.setIsLocalCloud(isLocalCloud);
 		restInstaller.setIsSecureConnection(isSecureConnection);
 		restInstaller.setLrmiCommandLineArgument(gscLrmiCommandLineArg);
+		restInstaller.setCloudName(cloudName);
 
 		try {
 			restInstaller.installWebService();
