@@ -940,6 +940,13 @@ public class LocalhostGridAgentBootstrapper {
 				startLocalCloudManagementServicesContainer(agent);
 			}
 
+			String cloudName = null;
+			if(this.cloud == null) {
+				cloudName = "local-cloud";
+			} else {
+				cloudName = this.cloud.getName();
+			}
+				
 			connectionLogs.supressConnectionErrors();
 			try {
 				ManagementSpaceServiceInstaller managementSpaceInstaller = null;
@@ -958,6 +965,7 @@ public class LocalhostGridAgentBootstrapper {
 					managementSpaceInstaller.addListeners(this.eventsListenersList);
 					managementSpaceInstaller.setIsLocalCloud(isLocalCloud);
 					managementSpaceInstaller.setLrmiCommandLineArgument(gscLrmiCommandLineArg);
+					managementSpaceInstaller.setCloudName(cloudName);
 
 					if (!this.isLocalCloud) {
 						final String persistentStoragePath = this.cloud.getConfiguration().getPersistentStoragePath();
@@ -979,7 +987,7 @@ public class LocalhostGridAgentBootstrapper {
 
 				if (!noWebServices) {
 					installWebServices(username, password, isLocalCloud,
-							ShellUtils.isSecureConnection(securityProfile), agent, waitForManagementServices);
+							ShellUtils.isSecureConnection(securityProfile), agent, waitForManagementServices, cloudName);
 				}
 
 				for (final AbstractManagementServiceInstaller managementServiceInstaller : waitForManagementServices) {
@@ -1030,7 +1038,7 @@ public class LocalhostGridAgentBootstrapper {
 
 	private void installWebServices(final String username, final String password, final boolean isLocalCloud,
 			final boolean isSecureConnection, final GridServiceAgent agent,
-			final List<AbstractManagementServiceInstaller> waitForManagementServices)
+			final List<AbstractManagementServiceInstaller> waitForManagementServices, final String cloudName)
 			throws CLIException {
 		final String gscLrmiCommandLineArg = getGscLrmiCommandLineArg();
 		final String webuiMemory = getWebServiceMemory(CloudifyConstants.WEBUI_MAX_MEMORY_ENVIRONMENT_VAR);
@@ -1049,7 +1057,8 @@ public class LocalhostGridAgentBootstrapper {
 		webuiInstaller.setIsLocalCloud(isLocalCloud);
 		webuiInstaller.setIsSecureConnection(isSecureConnection);
 		webuiInstaller.setLrmiCommandLineArgument(gscLrmiCommandLineArg);
-
+		webuiInstaller.setCloudName(cloudName);
+		
 		try {
 			webuiInstaller.installWebService();
 		} catch (final ProcessingUnitAlreadyDeployedException e) {
@@ -1083,6 +1092,7 @@ public class LocalhostGridAgentBootstrapper {
 		restInstaller.setIsLocalCloud(isLocalCloud);
 		restInstaller.setIsSecureConnection(isSecureConnection);
 		restInstaller.setLrmiCommandLineArgument(gscLrmiCommandLineArg);
+		restInstaller.setCloudName(cloudName);
 
 		try {
 			restInstaller.installWebService();

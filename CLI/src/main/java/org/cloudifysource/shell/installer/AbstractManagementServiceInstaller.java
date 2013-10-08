@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.exceptions.CLIException;
@@ -53,7 +54,7 @@ public abstract class AbstractManagementServiceInstaller {
 	protected String agentZone;
 	protected long progressInSeconds;
 	protected List<String> dependencies = new ArrayList<String>();
-
+	protected String cloudName;
 	/**
 	 * The name of the management application.
 	 */
@@ -186,6 +187,7 @@ public abstract class AbstractManagementServiceInstaller {
 	protected Properties getContextProperties() {
 		final Properties props = new Properties();
 		props.setProperty("com.gs.application", MANAGEMENT_APPLICATION_NAME);
+		props.setProperty(CloudifyConstants.CONTEXT_PROPERTY_CLOUD_NAME, this.cloudName);
 		return props;
 	}
 
@@ -201,6 +203,14 @@ public abstract class AbstractManagementServiceInstaller {
 	protected ConditionLatch createConditionLatch(final long timeout, final TimeUnit timeunit) {
 		return new ConditionLatch().timeout(timeout, timeunit).pollingInterval(progressInSeconds, TimeUnit.SECONDS)
 				.timeoutErrorMessage(TIMEOUT_ERROR_MESSAGE).verbose(verbose);
+	}
+	
+	/***********
+	 * Sets the cloud name for this management service.
+	 * @param cloudName the cloud name.
+	 */
+	public void setCloudName(final String cloudName) {
+		this.cloudName = cloudName;
 	}
 
 }
