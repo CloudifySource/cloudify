@@ -201,165 +201,165 @@
 
 				<exclusion>
 					<artifactId>cloudsigma-zrh</artifactId>
-					<groupId>org.jclouds.provider</groupId>
+					<groupId>org.apache.jclouds.provider</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>openstack-common</artifactId>
-					<groupId>org.jclouds.common</groupId>
+					<groupId>org.apache.jclouds.common</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>deltacloud</artifactId>
-					<groupId>org.jclouds.api</groupId>
+					<groupId>org.apache.jclouds.api</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>elastichosts-sat-p</artifactId>
-					<groupId>org.jclouds.provider</groupId>
+					<groupId>org.apache.jclouds.provider</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>savvis-symphonyvpdc</artifactId>
-					<groupId>org.jclouds.provider</groupId>
+					<groupId>org.apache.jclouds.provider</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>skalicloud-sdg-my</artifactId>
-					<groupId>org.jclouds.provider</groupId>
+					<groupId>org.apache.jclouds.provider</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>byon</artifactId>
-					<groupId>org.jclouds.api</groupId>
+					<groupId>org.apache.jclouds.api</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>cloudservers-uk</artifactId>
-					<groupId>org.jclouds.provider</groupId>
+					<groupId>org.apache.jclouds.provider</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>nova</artifactId>
-					<groupId>org.jclouds.api</groupId>
+					<groupId>org.apache.jclouds.api</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>gogrid</artifactId>
-					<groupId>org.jclouds.provider</groupId>
+					<groupId>org.apache.jclouds.provider</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>eucalyptus</artifactId>
-					<groupId>org.jclouds.api</groupId>
+					<groupId>org.apache.jclouds.api</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>rimuhosting</artifactId>
-					<groupId>org.jclouds.provider</groupId>
+					<groupId>org.apache.jclouds.provider</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>cloudsigma</artifactId>
-					<groupId>org.jclouds.api</groupId>
+					<groupId>org.apache.jclouds.api</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>eucalyptus-partnercloud-ec2</artifactId>
-					<groupId>org.jclouds.provider</groupId>
+					<groupId>org.apache.jclouds.provider</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>trmk-vcloudexpress</artifactId>
-					<groupId>org.jclouds.provider</groupId>
+					<groupId>org.apache.jclouds.provider</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>openhosting-east1</artifactId>
-					<groupId>org.jclouds.provider</groupId>
+					<groupId>org.apache.jclouds.provider</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>aws-ec2</artifactId>
-					<groupId>org.jclouds.provider</groupId>
+					<groupId>org.apache.jclouds.provider</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>
 						greenhousedata-element-vcloud
 					</artifactId>
-					<groupId>org.jclouds.provider</groupId>
+					<groupId>org.apache.jclouds.provider</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>cloudstack</artifactId>
-					<groupId>org.jclouds.api</groupId>
+					<groupId>org.apache.jclouds.api</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>cloudsigma-lvs</artifactId>
-					<groupId>org.jclouds.provider</groupId>
+					<groupId>org.apache.jclouds.provider</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>vcloud</artifactId>
-					<groupId>org.jclouds.api</groupId>
+					<groupId>org.apache.jclouds.api</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>jclouds-core</artifactId>
-					<groupId>org.jclouds</groupId>
+					<groupId>org.apache.jclouds</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>stratogen-vcloud-mycloud</artifactId>
-					<groupId>org.jclouds.provider</groupId>
+					<groupId>org.apache.jclouds.provider</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>slicehost</artifactId>
-					<groupId>org.jclouds.provider</groupId>
+					<groupId>org.apache.jclouds.provider</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>softlayer</artifactId>
-					<groupId>org.jclouds.provider</groupId>
+					<groupId>org.apache.jclouds.provider</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>ninefold-compute</artifactId>
-					<groupId>org.jclouds.provider</groupId>
+					<groupId>org.apache.jclouds.provider</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>jclouds-allcompute</artifactId>
-					<groupId>org.jclouds</groupId>
+					<groupId>org.apache.jclouds</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>bluelock-vcloud-zone01</artifactId>
-					<groupId>org.jclouds.provider</groupId>
+					<groupId>org.apache.jclouds.provider</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>serverlove-z1-man</artifactId>
-					<groupId>org.jclouds.provider</groupId>
+					<groupId>org.apache.jclouds.provider</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>jclouds-scriptbuilder</artifactId>
-					<groupId>org.jclouds</groupId>
+					<groupId>org.apache.jclouds</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>elastichosts-lon-b</artifactId>
-					<groupId>org.jclouds.provider</groupId>
+					<groupId>org.apache.jclouds.provider</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>elasticstack</artifactId>
-					<groupId>org.jclouds.api</groupId>
+					<groupId>org.apache.jclouds.api</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>aws-common</artifactId>
-					<groupId>org.jclouds.common</groupId>
+					<groupId>org.apache.jclouds.common</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>jclouds-compute</artifactId>
-					<groupId>org.jclouds</groupId>
+					<groupId>org.apache.jclouds</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>elastichosts-lon-p</artifactId>
-					<groupId>org.jclouds.provider</groupId>
+					<groupId>org.apache.jclouds.provider</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>trmk-common</artifactId>
-					<groupId>org.jclouds.common</groupId>
+					<groupId>org.apache.jclouds.common</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>trmk-ecloud</artifactId>
-					<groupId>org.jclouds.provider</groupId>
+					<groupId>org.apache.jclouds.provider</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>go2cloud-jhb1</artifactId>
-					<groupId>org.jclouds.provider</groupId>
+					<groupId>org.apache.jclouds.provider</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>cloudservers-us</artifactId>
-					<groupId>org.jclouds.provider</groupId>
+					<groupId>org.apache.jclouds.provider</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>cloudservers</artifactId>
-					<groupId>org.jclouds.api</groupId>
+					<groupId>org.apache.jclouds.api</groupId>
 				</exclusion>
 				<exclusion>
 					<artifactId>ant-launcher</artifactId>

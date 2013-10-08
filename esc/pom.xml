@@ -85,7 +85,7 @@
 			<version>0.1.49</version>
 		</dependency>
 		<dependency>
-			<groupId>org.jclouds</groupId>
+			<groupId>org.apache.jclouds</groupId>
 			<artifactId>jclouds-allcompute</artifactId>
 			<version>${jcloudsVersion}</version>
 		</dependency>
@@ -138,7 +138,7 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.jclouds.driver</groupId>
+			<groupId>org.apache.jclouds.driver</groupId>
 			<artifactId>jclouds-bouncycastle</artifactId>
 			<version>${jcloudsVersion}</version>
 		</dependency>
@@ -232,6 +232,6 @@
 		</plugins>
 	</build>
 	<properties>
-		<jcloudsVersion>1.6.0</jcloudsVersion>
+		<jcloudsVersion>1.6.2-incubating</jcloudsVersion>
 	</properties>
 </project>
