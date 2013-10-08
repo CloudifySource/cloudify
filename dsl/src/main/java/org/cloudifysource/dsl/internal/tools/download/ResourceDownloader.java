@@ -19,19 +19,21 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.cert.X509Certificate;
 import java.text.MessageFormat;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.impl.client.DefaultHttpClient;
 
 /**
  * This class enables resource download and resource verification using the VerifyChecksum class
@@ -347,27 +349,45 @@ public class ResourceDownloader {
 					+ destination.getAbsolutePath(), e);
 		}
 	}
+	
+	private TrustManager[] getTrustingManager() {
+        TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+            @Override
+            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
+
+            @Override
+            public void checkClientTrusted(final X509Certificate[] certs, final String authType) {
+                // Do nothing
+            }
+
+            @Override
+            public void checkServerTrusted(final X509Certificate[] certs, final String authType) {
+                // Do nothing
+            }
+
+        } };
+        return trustAllCerts;
+    }
 
 	private InputStream openConnectionInputStream(final URL url) throws ResourceDownloadException {
-
-		final DefaultHttpClient httpClient = new DefaultHttpClient();
-		final HttpHead httpMethod = new HttpHead(url.toString());
-
-		HttpResponse response;
-		try {
-			logger.fine("validating url");
-			response = httpClient.execute(httpMethod);
-			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-				logger.warning("Failed to validate Resource URL: " + url.toString());
-				throw new ResourceDownloadException("Invalid resource URL: " + url.toString());
+		if (url.toString().startsWith("https")) {
+			try {
+				final SSLContext sc = SSLContext.getInstance("SSL");
+				sc.init(null, getTrustingManager(), new java.security.SecureRandom());
+				HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+			} catch (Exception e) {
+				throw new ResourceDownloadException("Failed setting default SSL socket. reason " + e.getMessage(), e);
 			}
+		}
+		try {
 			final URLConnection connection = url.openConnection();
-			if(url.getUserInfo() != null) {
-                
+			if (url.getUserInfo() != null) {
                 String basicAuth = "Basic " + new String(new Base64().encode(url.getUserInfo().getBytes()));
                 connection.setRequestProperty("Authorization", basicAuth);
                 
-            }else if (this.userName != null || this.password != null) {
+            } else if (this.userName != null || this.password != null) {
 				logger.fine("Setting connection credentials");
 				String up = this.userName + ":" + this.password;
 				String encoding = new String(
