@@ -210,8 +210,7 @@ public class DeploymentsController extends BaseRestController {
 	 * Initialization.
 	 */
 	@PostConstruct
-	public void init() throws RestErrorException {
-		// TODO noak: is it ok that we throw an exception here?
+	public void init() throws IOException, RestErrorException {
 		gigaSpace = restConfig.getGigaSpace();
 		permissionEvaluator = restConfig.getPermissionEvaluator();
 		repo.init(restConfig.getRestTempFolder());

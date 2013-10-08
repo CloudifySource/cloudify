@@ -48,8 +48,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class RestConfigurationFactoryBean implements FactoryBean<RestConfiguration> {
 
-    private static final Logger logger = Logger.getLogger(RestConfigurationFactoryBean.class.getName());
-
+	private static final int MAX_FILE_NAME_APPENDER = 99;
+	private static final Logger logger = Logger.getLogger(RestConfigurationFactoryBean.class.getName());
+    
     private RestConfiguration config;
 
     @GigaSpaceContext(name = "gigaSpace")
@@ -117,9 +118,20 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
         	try {
 				FileUtils.deleteDirectory(restTempFolder);
 			} catch (IOException e) {
-				logger.warning("failed to delete rest template folder [" + restTempFolder.getAbsolutePath() + "]");
+				logger.warning("failed to delete rest template folder [" + restTempFolder.getAbsolutePath() + "], "
+						+ "attempting to create a new folder for this purpose");
 				e.printStackTrace();
-				restTempFolder = getUniqueFolder(restTempFolder);
+				
+				try {
+					String uniqueFolderName = org.cloudifysource.esc.util.FileUtils.createUniqueFolderName(
+							restTempFolder.getParentFile(), restTempFolder.getName(), MAX_FILE_NAME_APPENDER);
+					restTempFolder = new File(restTempFolder.getParentFile(), uniqueFolderName);
+				} catch (IOException ioe) {
+					//TODO noak: improve this error handling?
+					ioe.printStackTrace();
+	    			throw new RestErrorException(
+	    					CloudifyMessageKeys.UPLOAD_DIRECTORY_CREATION_FAILED.getName(), ioe.getMessage());
+				}
 			}
         }
         
@@ -142,52 +154,6 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
         
         return restTempFolder;
 	}
-    
-    private File getUniqueFolder(final File originalRestTempFolder) throws RestErrorException {
-    	
-    	int index = 0;
-    	boolean uniqueNameFound = false;
-    	//String uniqueFolderName = "";
-    	File parent = originalRestTempFolder.getParentFile();
-    	String baseFolderName = originalRestTempFolder.getName();
-    	String folderName = baseFolderName;
-    	
-    	while (!uniqueNameFound && index < 99) {
-			//create a new name (temp1, temp2... temp99)
-    		folderName = baseFolderName + (++index);
-    		
-        	File restTempFolder = new File(parent, folderName);
-    		if (!restTempFolder.exists()) {
-    			uniqueNameFound = true;
-        	} else {
-            	try {
-    				FileUtils.deleteDirectory(restTempFolder);
-    				uniqueNameFound = true;
-    			} catch (IOException e) {
-    				logger.warning("failed to delete rest template folder [" + restTempFolder.getAbsolutePath() + "]");
-    				e.printStackTrace();
-    			}
-            }
-    	}    	
-    	
-    	if (!uniqueNameFound) {
-    		//create folder with a new unique name
-    		try {
-    			File tempFile = File.createTempFile(folderName, ".tmp");
-    			folderName = StringUtils.substringBeforeLast(tempFile.getName(), ".tmp");
-    			parent = new File(tempFile.getParent());
-    			FileUtils.deleteDirectory(tempFile);
-    		} catch (IOException e) {
-    			//TODO noak: improve this error handling
-    			e.printStackTrace();
-    			throw new RestErrorException(
-    					CloudifyMessageKeys.UPLOAD_DIRECTORY_CREATION_FAILED.getName(), e.getMessage());
-    		}
-    	}
-    	
-    	return new File(parent, folderName);
-    }
-    
 
 	private Cloud readCloud() {
         logger.info("Loading cloud configuration");
