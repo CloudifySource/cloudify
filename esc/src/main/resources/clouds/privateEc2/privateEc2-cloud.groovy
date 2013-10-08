@@ -98,7 +98,8 @@ cloud {
 				custom ([
 					"cfnManagerTemplate":"privateEc2-cfn.template",
 					"s3BucketName":bucketName,
-					"s3LocationId":bucketLocationId
+					"s3LocationId":bucketLocationId,
+                    "debugMode":debugMode
 				])
 				
             },
