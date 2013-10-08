@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelectInfo;
 import org.apache.commons.vfs2.FileSelector;
@@ -13,6 +14,7 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.provider.sftp.SftpFileSystemConfigBuilder;
 import org.cloudifysource.domain.cloud.FileTransferModes;
+import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 
 /**
  * A utility class for file system handling.
@@ -169,5 +171,54 @@ public class FileUtils {
 			}
 		}
 	}
+	
+
+	/**
+	 * Creates a folder a unique name based on the given basicFolderName, inside the specified parent folder.
+	 * If the folder by that name already exists in the parent folder - a number is appended to that name, until
+	 * a unique name is found. e.g.: "myfolder1", "myfolder2" ... "myfolder99" (max index is set by maxAppender).
+	 * If all those names are already in use (meaning there are existing folders with these names) -
+	 * we create a completely new random name using "File.createTempFile".
+	 * 
+	 * @param parentFolder The folder to contain the new folder created by this method.
+	 * @param basicFolderName The base name to be used for the new folder. Numbers might be appended to this name to 
+	 * reach uniqueness. 
+	 * @param maxAppender The maximum number appended to the basic folder name to reach uniqueness. If a unique name
+	 * is not found for the folder and the maximum is reached, a new random name using "File.createTempFile".
+	 * @return The unique name
+	 * @throws IOException Indicates a failure to generate a unique folder name
+	 */
+	public static String createUniqueFolderName(final File parentFolder, final String basicFolderName, 
+			final int maxAppender) throws IOException {
+    	
+    	int index = 0;
+    	boolean uniqueNameFound = false;
+    	String folderName = basicFolderName;
+    	
+    	while (!uniqueNameFound && index < maxAppender) {
+			//create a new name (temp1, temp2... temp99)
+    		folderName = basicFolderName + (++index);
+    		
+        	File restTempFolder = new File(parentFolder, folderName);
+    		if (!restTempFolder.exists()) {
+    			uniqueNameFound = true;
+    		}
+    	}    	
+    	
+    	if (!uniqueNameFound) {
+    		//create folder with a new unique name
+   			File tempFile = File.createTempFile(folderName, ".tmp");
+   			tempFile.deleteOnExit();
+   			folderName = StringUtils.substringBeforeLast(tempFile.getName(), ".tmp");
+   			uniqueNameFound = true;
+    	}
+    	
+    	if (uniqueNameFound) {
+    		return folderName;
+    	} else {
+    		throw new IOException(CloudifyMessageKeys.UPLOAD_DIRECTORY_CREATION_FAILED.getName());
+    	}
+    }
+    
 
 }
