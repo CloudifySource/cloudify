@@ -79,41 +79,53 @@ source ${ENV_FILE_PATH}
 ###############################
 echo CLOUDIFY_OPEN_FILES_LIMIT is $CLOUDIFY_OPEN_FILES_LIMIT 
 
+if [ -f ${WORKING_HOME_DIRECTORY}/break.bin ] 
+then
+	echo "Exiting due to break file detected"
+	exit 0
+fi
+
 function privilegedActions {
-	echo Executing priviliged bootstrap actions in PID $$
+	echo Executing priviliged bootstrap actions
 	if [ ! -z $CLOUDIFY_OPEN_FILES_LIMIT ] 
 	then
-		echo setting hard and soft open files ulimit to $LIMIT
-		ulimit -HSn $LIMIT
+		echo setting hard and soft open files ulimit to $CLOUDIFY_OPEN_FILES_LIMIT
+		ulimit -HSn $CLOUDIFY_OPEN_FILES_LIMIT
+		echo Finished setting open files limit
+	
 	fi
 	if [ -f ${WORKING_HOME_DIRECTORY}/privileged-script.sh ]
 	then
 		echo executing privileged script
 		source ${WORKING_HOME_DIRECTORY}/privileged-script.sh
 	fi
+	
+	echo finished priviliged actions 
 }
+
 
 # first check if we are in an advanced step of priviliged bootstrap
 if [ ! -z $PRIVILEGED_BOOTSTRAP_USER ]
 then
-	echo In second phase of privileged bootstrap in PID $$
+	echo In second phase of privileged bootstrap
 	# phase 2
 	privilegedActions
 	targetUser="$PRIVILEGED_BOOTSTRAP_USER"
 	export PRIVILEGED_BOOTSTRAP_USER=
-	sudo -s -u $targetUser "export PRIVILEGED_MARKER=on;${WORKING_HOME_DIRECTORY}/test.sh"
-	exit 0
+	echo "export PRIVILEGED_MARKER=on;${WORKING_HOME_DIRECTORY}/bootstrap-management.sh" | sudo -u $targetUser -s
+	exit $?
 else
 	if [ ! -z $PRIVILEGED_MARKER ]
 	then
 		# finished privileged phase of bootstrap
-		echo finished privileged phase of bootstrap in PID $$
+		export PRIVILEGED_MARKER=
+		echo finished privileged phase of bootstrap
 	else
 
-		if [ ! -z $LIMIT -o -f "privileged-script.sh" ] 
+		if [ ! -z $CLOUDIFY_OPEN_FILES_LIMIT ] || [ -f "privileged-script.sh" ] 
 		then
 			# phase 1 - begin priviliged bootstrap process
-			echo In first phase of privileged bootstrap in PID $$
+			echo In first phase of privileged bootstrap
 			if [ `whoami` = "root" ] 
 			then
 				# just run the privileged actions now
@@ -136,14 +148,6 @@ else
 	fi
 
 fi
-
-# phase 3
-echo Beginning standard bootstrap process in PID $$
-echo ulimit is:
-ulimit -n
-
-
-
 
 # Execute pre-bootstrap customization script if exists
 run_script "pre-bootstrap"
