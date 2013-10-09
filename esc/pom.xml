@@ -38,9 +38,6 @@
 		<dependency>
 			<groupId>com.gigaspaces</groupId>
 			<artifactId>gs-openspaces</artifactId>
-			<version>${gsVersion}</version>
-			<type>jar</type>
-			<scope>provided</scope>
 			<exclusions>
 				<exclusion>
 					<artifactId>ant</artifactId>
@@ -65,8 +62,6 @@
 		<dependency>
 			<groupId>com.gigaspaces</groupId>
 			<artifactId>gs-runtime</artifactId>
-			<version>${gsVersion}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
