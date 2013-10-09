@@ -63,8 +63,6 @@
 		<dependency>
 			<groupId>com.gigaspaces</groupId>
 			<artifactId>gs-openspaces</artifactId>
-			<version>${gsVersion}</version>
-			<scope>provided</scope>
 			<exclusions>
 				<exclusion>
 					<groupId>log4j</groupId>
@@ -430,30 +428,6 @@
 	<build>
 		<defaultGoal>install</defaultGoal>
 		<plugins>
-
-			<plugin>
-				<groupId>org.mortbay.jetty</groupId>
-				<artifactId>jetty-maven-plugin</artifactId>
-				<version>7.4.5.v20110725</version>
-				<dependencies>
-					<dependency>
-						<groupId>org.springframework</groupId>
-						<artifactId>spring-core</artifactId>
-						<version>${springVersion}</version>
-					</dependency>
-					<dependency>
-						<groupId>com.gigaspaces</groupId>
-						<artifactId>gs-openspaces</artifactId>
-						<version>${gsVersion}</version>
-					</dependency>
-				</dependencies>
-				<configuration>
-					<scanIntervalSeconds>10</scanIntervalSeconds>
-					<webAppConfig>
-						<contextPath>/</contextPath>
-					</webAppConfig>
-				</configuration>
-			</plugin>
 
 			<plugin>
 				<!-- To run javadoc: mvn javadoc:javadoc -->
