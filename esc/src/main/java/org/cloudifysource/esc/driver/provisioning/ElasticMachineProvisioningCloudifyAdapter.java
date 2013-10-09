@@ -815,7 +815,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				//machineStopped == false means machine was already stopped
 				//failedToShutdownAgentException == null means we just recently stopped the agent.
 				throw new ElasticMachineProvisioningException("Attempt to shutdown machine with IP: " + machineIp
-						+ " for agent with UID: " + agent.getUid() + " has failed. Cloud driver claims machine was already stopped, however we just recently stopped the agent process on that machine.");
+						+ " for agent with UID: " + agent.getUid() + " has failed. Cloud driver claims machine was " 
+						+ "already stopped, however we just recently stopped the agent process on that machine.");
 			}
 
 		} catch (final CloudProvisioningException e) {
@@ -858,12 +859,23 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	 *      refactor this method's name since it is called via reflection by the ESM. >>>>>>> CLOUDIFY-1837 Scan all
 	 *      agents for GSA with both required host address and reservation ID
 	 * 
+	 * @throws ElasticMachineProvisioningException .
+	 * @throws InterruptedException .
 	 * @author elip
 	 * @return The storage driver.
 	 */
-	public RemoteStorageProvisioningDriverAdapter getStorageImpl() {
-		return new RemoteStorageProvisioningDriverAdapter(storageProvisioning, cloud.getCloudStorage().getTemplates()
-				.get(storageTemplateName));
+	public RemoteStorageProvisioningDriverAdapter getStorageImpl() throws ElasticMachineProvisioningException,
+	  InterruptedException {
+		// configure drivers if this is first time (occurs when using the management machine for storage,
+		// so create machine is not called earlier)
+		try {
+			configureDrivers();
+		} catch (final CloudProvisioningException e) {
+			throw new ElasticMachineProvisioningException("Failed to configure cloud driver for first use: "
+					+ e.getMessage(), e);
+		}
+		return new RemoteStorageProvisioningDriverAdapter(storageProvisioning, cloud.getCloudStorage().
+				getTemplates().get(storageTemplateName));
 	}
 
 	private void initCloudObject(final String cloudConfigDirectory, final String overridesScript) throws DSLException {
