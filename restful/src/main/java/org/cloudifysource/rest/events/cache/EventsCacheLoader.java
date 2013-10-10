@@ -104,13 +104,13 @@ public class EventsCacheLoader extends CacheLoader<EventsCacheKey, EventsCacheVa
 
         // pickup any new containers along with the old ones
         Set<GridServiceContainer> containersForDeployment = new HashSet<GridServiceContainer>();
-
-        containersForDeployment.addAll(containerProvider.getContainersForDeployment(key.getDeploymentId()));
-
-        if (containersForDeployment.isEmpty()) {
-        	// get containers by the deployment id
-        	containersForDeployment = containerProvider.getContainersForDeployment(
-                    key.getDeploymentId());
+        Set<GridServiceContainer> containers = oldValue.getContainers();
+        
+        if (containers.isEmpty()) {
+        	containersForDeployment.addAll(containerProvider.getContainersForDeployment(key.getDeploymentId()));
+        } else {
+        	// uninstall process is taking place.
+        	containersForDeployment.addAll(containers);
         }
         if (!containersForDeployment.isEmpty()) {
             int index = oldValue.getLastEventIndex() + 1;

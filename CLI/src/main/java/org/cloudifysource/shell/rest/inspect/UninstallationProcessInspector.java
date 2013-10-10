@@ -57,52 +57,33 @@ public abstract class UninstallationProcessInspector extends InstallationProcess
 
         conditionLatch.waitFor(new ConditionLatch.Predicate() {
 
-            private boolean lifeCycleEnded = false;
-
-            @Override
-            public boolean isDone() throws CLIException, InterruptedException {
-                try {
-                    boolean ended = false;
-                    lifeCycleEnded = lifeCycleEnded();
-                    List<String> latestEvents = getLatestEvents();
-                    if (!lifeCycleEnded) {
-                        if (!latestEvents.isEmpty()) {
-                            if (latestEvents.contains(CloudifyConstants.UNDEPLOYED_SUCCESSFULLY_EVENT)) {
-                                ended = true;
-                            }
-                            displayer.printEvents(latestEvents);
-                        } else {
-                            if (!lifeCycleEnded) {
-                                displayer.printNoChange();
-                            }
-                        }
-                        printUnInstalledInstances();
-                        if (lifeCycleEnded && waitForCloudResourcesRelease) {
-                            displayer.printEvent("releasing cloud resources...");
-                            return ended;
-                        }
-                    }
-
-                    if (lifeCycleEnded) {
-                    	if (waitForCloudResourcesRelease) {
-                            if (latestEvents.contains(CloudifyConstants.UNDEPLOYED_SUCCESSFULLY_EVENT)) {
-                                ended = true;
-                            } else {
-                                displayer.printNoChange();
-                            }
-                    	} else {
-                    		ended = true;
-                    	}
-                    }
-                    return ended;
-                } catch (final RestClientException e) {
-                	String message = e.getMessageFormattedText();
-                	if (message == null) {
-                		message = e.getMessage();
-                	}
-                    throw new CLIException(message, e, e.getVerbose());
-                }
-            }
+        	@Override
+        	public boolean isDone() throws CLIException, InterruptedException {
+        		try {
+        			boolean ended = false;
+        			final List<String> latestEvents = getLatestEvents();
+        			if (!latestEvents.isEmpty()) {
+        				if (latestEvents.contains(CloudifyConstants.UNDEPLOYED_SUCCESSFULLY_EVENT)) {
+        					ended = true;
+        				}
+        				displayer.printEvents(latestEvents);
+        			} else {
+        				displayer.printNoChange();
+        			}
+        			printUnInstalledInstances();
+//        			if (waitForCloudResourcesRelease) {
+//        				displayer.printEvent("releasing cloud resources...");
+//        				return ended;
+//        			}
+        			return ended;
+        		} catch (final RestClientException e) {
+        			String message = e.getMessageFormattedText();
+        			if (message == null) {
+        				message = e.getMessage();
+        			}
+        			throw new CLIException(message, e, e.getVerbose());
+        		}
+        	}
 
             private void printUnInstalledInstances() throws RestClientException {
                 for (Map.Entry<String, Integer> entry : plannedNumberOfInstancesPerService.entrySet()) {

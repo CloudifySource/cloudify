@@ -13,6 +13,7 @@
 package org.cloudifysource.rest.events.cache;
 
 import org.cloudifysource.dsl.rest.response.DeploymentEvents;
+import org.openspaces.admin.gsc.GridServiceContainer;
 import org.openspaces.admin.pu.ProcessingUnit;
 
 import java.util.HashSet;
@@ -34,6 +35,7 @@ public class EventsCacheValue {
     private int lastEventIndex;
     private volatile Object mutex = new Object();
     private Set<ProcessingUnit> processingUnits = new HashSet<ProcessingUnit>();
+    private Set<GridServiceContainer> containers = new HashSet<GridServiceContainer>();
 
     public Set<ProcessingUnit> getProcessingUnits() {
         return processingUnits;
@@ -73,4 +75,12 @@ public class EventsCacheValue {
                 + ", lastRefreshedTimestamp=" + lastRefreshedTimestamp
                 + ", lastEventIndex=" + lastEventIndex + ", mutex=" + mutex + '}';
     }
+
+	public Set<GridServiceContainer> getContainers() {
+		return containers;
+	}
+
+	public void setContainers(Set<GridServiceContainer> containers) {
+		this.containers = containers;
+	}
 }

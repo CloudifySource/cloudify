@@ -90,6 +90,7 @@ import org.cloudifysource.rest.deploy.ElasticProcessingUnitDeploymentFactory;
 import org.cloudifysource.rest.deploy.ElasticProcessingUnitDeploymentFactoryImpl;
 import org.cloudifysource.rest.deploy.ServiceApplicationDependentProperties;
 import org.cloudifysource.rest.events.EventsUtils;
+import org.cloudifysource.rest.events.cache.AdminBasedGridServiceContainerProvider;
 import org.cloudifysource.rest.events.cache.EventsCache;
 import org.cloudifysource.rest.events.cache.EventsCacheKey;
 import org.cloudifysource.rest.events.cache.EventsCacheValue;
@@ -1476,6 +1477,11 @@ public class DeploymentsController extends BaseRestController {
 			// just add the reference for the current pu.
 			value.getProcessingUnits().add(processingUnit);
 		}
+		
+		final AdminBasedGridServiceContainerProvider provider = new AdminBasedGridServiceContainerProvider(admin);
+		// save reference to the containers if exits.
+		// will exist only if this is uninstall process.
+		value.getContainers().addAll(provider.getContainersForDeployment(deploymentId));
 	}
 
 	private String getEffectiveAuthGroups(final String authGroups) {
