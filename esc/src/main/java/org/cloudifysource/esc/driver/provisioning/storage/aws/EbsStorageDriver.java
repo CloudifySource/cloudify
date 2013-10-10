@@ -126,9 +126,11 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 			final long duration, final TimeUnit timeUnit)
 			throws TimeoutException, StorageProvisioningException {
 		
+		if (cloud == null) {
+			throw new IllegalStateException("Cloud object is not initialized");
+		}
 		
 		StorageTemplate storageTemplate = cloud.getCloudStorage().getTemplates().get(templateName);
-
 		
 		final long end = System.currentTimeMillis() + timeUnit.toMillis(duration);
 		int size = storageTemplate.getSize();
