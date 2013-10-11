@@ -17,11 +17,10 @@ import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.Map;
 
-import javax.ws.rs.core.MediaType;
-
 import junit.framework.Assert;
 
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.junit.Before;
@@ -113,7 +112,7 @@ public abstract class ControllerTest {
         // validate the response
         Assert.assertTrue("Wrong response status: " + response.getStatus(),
                 response.getStatus() == HttpStatus.OK.value());
-        Assert.assertTrue(response.getContentType().contains(MediaType.APPLICATION_JSON));
+        Assert.assertTrue(response.getContentType().contains(CloudifyConstants.MIME_TYPE_APPLICATION_JSON));
 
         return response;
     }
@@ -167,7 +166,7 @@ public abstract class ControllerTest {
         final MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRequestURI(requestUri);
         request.setMethod("GET");
-        request.setContentType(MediaType.APPLICATION_JSON);
+        request.setContentType(CloudifyConstants.MIME_TYPE_APPLICATION_JSON);
 
         return request;
     }
@@ -177,7 +176,7 @@ public abstract class ControllerTest {
         final MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRequestURI(requestUri);
         request.setMethod("POST");
-        request.setContentType(MediaType.APPLICATION_JSON);
+        request.setContentType(CloudifyConstants.MIME_TYPE_APPLICATION_JSON);
 
         if (StringUtils.isNotBlank(contentAsJson)) {
             request.setContent(contentAsJson.getBytes());
@@ -201,7 +200,7 @@ public abstract class ControllerTest {
         final MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRequestURI(requestUri);
         request.setMethod("DELETE");
-        request.setContentType(MediaType.APPLICATION_JSON);
+        request.setContentType(CloudifyConstants.MIME_TYPE_APPLICATION_JSON);
 
         return request;
     }

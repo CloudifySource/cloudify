@@ -100,6 +100,9 @@ import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticMachineProvisi
  * delegated to the CloudifyProvisioning implementation. If the started machine does not have an agent running, this
  * class will install gigaspaces and start the agent using the Agent-less Installer process.
  * 
+ * IMPORTANT NOTE: If you change the name of this class, you must also change the name in the esc-config project,
+ * in: org.cloudifysource.esc.driver.provisioning.CloudifyMachineProvisioningConfig.getBeanClassName()
+ * 
  * @author barakme
  * @since 2.0
  * 
