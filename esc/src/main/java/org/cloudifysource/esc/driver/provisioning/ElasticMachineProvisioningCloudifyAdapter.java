@@ -1242,11 +1242,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	}
 
 	/**
-	 * <<<<<<< HEAD Clears the list of machines provisioned by any provisioning driver. This method should be used for
 	 * testing purposes And should not be used concurrently with any other method. ======= Clears the list of machines
 	 * provisioned by any provisioning driver. This method should be used for testing purposes And should not be used
-	 * concurrently with any other method. >>>>>>> CLOUDIFY-1837 Scan all agents for GSA with both required host address
-	 * and reservation ID
+	 * concurrently with any other method.
 	 */
 	public static void clearContext() {
 		synchronized (PROVISIONING_DRIVER_CONTEXT_PER_DRIVER_CLASSNAME) {
