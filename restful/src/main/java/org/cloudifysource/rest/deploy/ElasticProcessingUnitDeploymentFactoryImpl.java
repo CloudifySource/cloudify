@@ -701,11 +701,12 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 								service.getNetwork().getProtocolDescription());
 			}
 		}
-		if (deploymentConfig.getCloud() != null) {
-			contextProperties.setProperty(
-					CloudifyConstants.CONTEXT_PROPERTY_CLOUD_NAME,
-					deploymentConfig.getCloud().getName());
-		}
+
+		final String cloudName = getCloudName();
+
+		contextProperties.setProperty(
+				CloudifyConstants.CONTEXT_PROPERTY_CLOUD_NAME,
+				cloudName);
 
 		contextProperties.setProperty(
 				CloudifyConstants.CONTEXT_PROPERTY_ELASTIC,
@@ -724,6 +725,14 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 		}
 
 		return contextProperties;
+	}
+
+	private String getCloudName() {
+		if (deploymentConfig.getCloud() != null) {
+			return deploymentConfig.getCloud().getName();
+		} else {
+			return CloudifyConstants.LOCAL_CLOUD_NAME;
+		}
 	}
 
 	// adds all shared properties among all deployment types

@@ -453,7 +453,12 @@ public final class CloudifyConstants {
 		ProcessorTypes.SUMMARY.getName(), ProcessorTypes.NETWORK.getName(), 
 		ProcessorTypes.THREAD.getName(), ProcessorTypes.LOG.getName()};
 	
-    // CHECKSTYLE:ON
+	/*******
+	 * Name of local cloud.
+	 */
+	public static final String LOCAL_CLOUD_NAME = "local-cloud";
+
+// CHECKSTYLE:ON
 }
 
 
