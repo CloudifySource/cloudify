@@ -93,6 +93,12 @@
 			<version>${cloudifyVersion}</version>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.cloudifysource</groupId>
+			<artifactId>version</artifactId>
+			<version>${cloudifyVersion}</version>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 
 </project>
