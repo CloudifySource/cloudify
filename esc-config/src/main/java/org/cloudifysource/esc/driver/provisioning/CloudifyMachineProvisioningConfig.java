@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.cloud.Cloud;
@@ -166,7 +167,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 
 	@Override
 	public String getBeanClassName() {
-		return ElasticMachineProvisioningCloudifyAdapter.class.getName();
+		return "org.cloudifysource.esc.driver.provisioning.ElasticMachineProvisioningCloudifyAdapter";
 	}
 
 	@Override
@@ -407,7 +408,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	 *            .
 	 */
 	public void setServiceCloudConfiguration(final byte[] serviceCloudConfiguration) {
-		final String encodedResult = jcifs.util.Base64.encode(serviceCloudConfiguration);
+		final String encodedResult = Base64.encodeBase64String(serviceCloudConfiguration);
 
 		properties.put(SERVICE_CLOUD_CONFIGURATION_KEY, encodedResult);
 	}
@@ -423,7 +424,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 			return null;
 		}
 
-		final byte[] decodedFile = jcifs.util.Base64.decode(encodedFile);
+		final byte[] decodedFile = Base64.decodeBase64(encodedFile);
 		return decodedFile;
 
 	}
