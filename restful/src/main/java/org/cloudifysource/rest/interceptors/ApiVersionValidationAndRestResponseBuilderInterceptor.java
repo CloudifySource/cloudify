@@ -22,7 +22,6 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.MediaType;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
@@ -106,7 +105,7 @@ public class ApiVersionValidationAndRestResponseBuilderInterceptor extends Handl
     	
         Object model = filterModel(modelAndView, handler);
         modelAndView.clear();
-        response.setContentType(MediaType.APPLICATION_JSON);
+        response.setContentType(CloudifyConstants.MIME_TYPE_APPLICATION_JSON);
         if (model instanceof Response<?>) {
             String responseBodyStr = new ObjectMapper().writeValueAsString(model);
             response.getOutputStream().write(responseBodyStr.getBytes());

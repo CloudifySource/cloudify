@@ -458,7 +458,12 @@ public final class CloudifyConstants {
 	 */
 	public static final String LOCAL_CLOUD_NAME = "local-cloud";
 
-// CHECKSTYLE:ON
+	/*****
+	 * Useful json mime type constant.
+	 */
+	public static final String MIME_TYPE_APPLICATION_JSON = "application/json";
+   
+	// CHECKSTYLE:ON
 }
 
 
