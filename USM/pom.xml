@@ -82,6 +82,12 @@
 			<type>zip</type>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.cloudifysource</groupId>
+			<artifactId>version</artifactId>
+			<version>${cloudifyVersion}</version>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<defaultGoal>package</defaultGoal>
