@@ -101,6 +101,7 @@ public class DeploymentFactoryTest {
                 deploymentHolder.getScaleStrategy().getProperties().get("memory-capacity-megabytes").equals("512"));
         Assert.assertTrue("container memory capacity should be set to 512",
                 elasticProperties.get("container.memory-capacity").equals("512"));
+        Assert.assertEquals(CloudifyConstants.LOCAL_CLOUD_NAME, deploymentHolder.getContextProperties().get(CloudifyConstants.CONTEXT_PROPERTY_CLOUD_NAME));
     }
 
     private void assertSharedLocalcloudProperties(
@@ -178,6 +179,8 @@ public class DeploymentFactoryTest {
         final Map<String, String> machineProps = machineProvisioning.getProperties();
         Assert.assertTrue("dedicated-management-machines should be set to true",
                 machineProps.get("dedicated-management-machines").equals("true"));
+        
+        Assert.assertEquals(this.cloud.getName(), deploymentHolder.getContextProperties().get(CloudifyConstants.CONTEXT_PROPERTY_CLOUD_NAME));
     }
 
     private DeploymentConfig createDeploymentConfig(final boolean isLocalcloud, final Service service) {

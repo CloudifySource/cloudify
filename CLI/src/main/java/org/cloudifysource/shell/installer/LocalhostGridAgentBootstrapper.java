@@ -1002,7 +1002,7 @@ public class LocalhostGridAgentBootstrapper {
 			if (this.cloud != null) {
 				cloudName = this.cloud.getName();
 			} else {
-				cloudName = "local-cloud";
+				cloudName = CloudifyConstants.LOCAL_CLOUD_NAME;
 			}
 
 			connectionLogs.supressConnectionErrors();

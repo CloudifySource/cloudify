@@ -445,6 +445,10 @@ public final class CloudifyConstants {
 	public static final String ILlEGAL_SERVICE_NAME_PREFIX = ".";
 	public static final String ILlEGAL_SERVICE_NAME_SUFFIX = ".";
 	
+	/*******
+	 * Name of local cloud.
+	 */
+	public static final String LOCAL_CLOUD_NAME = "local-cloud";
     // CHECKSTYLE:ON
 }
 
