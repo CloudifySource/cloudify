@@ -99,7 +99,7 @@ public final class ComputeDriverProvisioningAdapter extends BaseComputeDriver {
 			CloudProvisioningException {
 		ProvisioningContextAccess.setCurrentProvisioingContext(context);
 		try {
-			return super.startMachine(context, duration, unit);
+			return this.provisioningDriver.startMachine(context.getLocationId(), duration, unit);
 		} finally {
 			// clear thread local.
 			ProvisioningContextAccess.setCurrentProvisioingContext(null);
