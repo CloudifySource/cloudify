@@ -50,6 +50,7 @@ import org.cloudifysource.esc.driver.provisioning.events.MachineStartedCloudifyE
 import org.cloudifysource.esc.driver.provisioning.storage.BaseStorageDriver;
 import org.cloudifysource.esc.driver.provisioning.storage.RemoteStorageProvisioningDriverAdapter;
 import org.cloudifysource.esc.driver.provisioning.storage.StorageProvisioningDriver;
+import org.cloudifysource.esc.driver.provisioning.storage.StorageProvisioningException;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.EnvironmentFileBuilder;
 import org.cloudifysource.esc.installer.InstallationDetails;
@@ -342,6 +343,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			configureDrivers();
 		} catch (final CloudProvisioningException e) {
 			throw new ElasticMachineProvisioningException("Failed to configure cloud driver for first use: "
+					+ e.getMessage(), e);
+		} catch (StorageProvisioningException e) {
+			throw new ElasticMachineProvisioningException("Failed to configure storage driver for first use: "
 					+ e.getMessage(), e);
 		}
 
@@ -873,6 +877,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		} catch (final CloudProvisioningException e) {
 			throw new ElasticMachineProvisioningException("Failed to configure cloud driver for first use: "
 					+ e.getMessage(), e);
+		} catch (StorageProvisioningException e) {
+			throw new ElasticMachineProvisioningException("Failed to configure storage driver for first use: "
+					+ e.getMessage(), e);
 		}
 		return new RemoteStorageProvisioningDriverAdapter(storageProvisioning, cloud.getCloudStorage().
 				getTemplates().get(storageTemplateName));
@@ -958,10 +965,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					this.storageProvisioning = (StorageProvisioningDriver) Class.forName(storageClassName)
 							.newInstance();
 					this.storageTemplateName = config.getStorageTemplateName();
-					if (this.storageProvisioning instanceof BaseStorageDriver) {
-						((BaseStorageDriver) this.storageProvisioning).setComputeContext(cloudifyProvisioning
-								.getComputeContext());
-					}
 
 					logger.info("storage provisioning driver created successfully.");
 				}
@@ -990,13 +993,14 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	/********
 	 * Synchronized method verified that the setConfig() methods of cloud driver instances is called exactly once, the
 	 * first time they are needed.
+	 * @throws StorageProvisioningException 
 	 * 
 	 * @throws InterruptedException .
 	 * @throws ElasticMachineProvisioningException .
 	 * @throws CloudProvisioningException .
 	 */
 	private synchronized void configureDrivers() throws InterruptedException, ElasticMachineProvisioningException,
-			CloudProvisioningException {
+			CloudProvisioningException, StorageProvisioningException {
 		if (this.driversConfigured) {
 			return;
 		}
@@ -1009,7 +1013,12 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 		this.cloudifyProvisioning.setConfig(configuration);
 
+		
 		if (this.storageProvisioning != null) {
+			if (this.storageProvisioning instanceof BaseStorageDriver) {
+				((BaseStorageDriver) this.storageProvisioning).setComputeContext(cloudifyProvisioning
+						.getComputeContext());
+			}
 			this.storageProvisioning.setConfig(cloud, this.cloudTemplateName);
 		}
 
