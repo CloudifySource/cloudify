@@ -20,7 +20,7 @@ import org.cloudifysource.shell.exceptions.CLIException;
 /**
  * Created with IntelliJ IDEA. User: elip Date: 6/4/13 Time: 12:33 PM
  */
-public class SetInstancesScaledownInstallationProcessInspector extends ServiceUninstallationProcessInspector {
+public class SetInstancesScaledownInstallationProcessInspector extends ServiceInstallationProcessInspector {
 
 	private final int plannedNumberOfInstances;
 
@@ -36,13 +36,12 @@ public class SetInstancesScaledownInstallationProcessInspector extends ServiceUn
 		super(restClient,
 				deploymentId,
 				verbose,
-				currentNumberOfInstances,
 				serviceName,
-				applicationName,
-				currentEventIndex,
-				plannedNumberOfInstances);
-
-		this.setWaitForCloudResourcesRelease(false);
+				plannedNumberOfInstances,
+				currentNumberOfInstances,
+				applicationName);
+		
+		setEventIndex(currentEventIndex);
 		this.plannedNumberOfInstances = plannedNumberOfInstances;
 
 	}
