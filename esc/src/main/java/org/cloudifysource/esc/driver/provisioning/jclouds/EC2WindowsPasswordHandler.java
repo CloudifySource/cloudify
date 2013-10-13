@@ -24,7 +24,6 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.io.FileUtils;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
-import org.jclouds.ContextBuilder;
 import org.jclouds.cloudstack.domain.EncryptedPasswordAndPrivateKey;
 import org.jclouds.cloudstack.functions.WindowsLoginCredentialsFromEncryptedData;
 import org.jclouds.compute.ComputeServiceContext;
@@ -32,8 +31,10 @@ import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.crypto.Crypto;
 import org.jclouds.domain.Location;
 import org.jclouds.domain.LoginCredentials;
+import org.jclouds.ec2.EC2ApiMetadata;
 import org.jclouds.ec2.EC2Client;
 import org.jclouds.ec2.domain.PasswordData;
+import org.jclouds.ec2.features.WindowsApi;
 import org.jclouds.encryption.internal.JCECrypto;
 
 /************
@@ -69,9 +70,11 @@ public class EC2WindowsPasswordHandler {
 	public LoginCredentials getPassword(final NodeMetadata node, final ComputeServiceContext context, final long end,
 			final File pemFile)
 			throws InterruptedException, TimeoutException, CloudProvisioningException {
-		final EC2Client api = (EC2Client) ContextBuilder.newBuilder("EC2Client").build();
+
 		final Location zone = node.getLocation();
 		final Location region = zone.getParent();
+		WindowsApi winApi = EC2Client.class.cast(context.unwrap(EC2ApiMetadata.CONTEXT_TOKEN).getApi())
+		.getWindowsApiForRegion(region.getId()).get();
 		final String id = node.getId();
 
 		String key;
@@ -85,8 +88,7 @@ public class EC2WindowsPasswordHandler {
 		while (System.currentTimeMillis() < end) {
 			logger.fine("Reading Windows password");
 
-			final PasswordData passwordData = api.getWindowsServices().getPasswordDataInRegion(
-					region.getId(), amiId);
+			final PasswordData passwordData = winApi.getPasswordDataInRegion(region.getId(), amiId);
 
 			if (passwordData == null || passwordData.getPasswordData() == null
 					|| passwordData.getPasswordData().isEmpty()) {
