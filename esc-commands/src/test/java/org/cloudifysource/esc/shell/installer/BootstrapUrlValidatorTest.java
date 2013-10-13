@@ -91,7 +91,7 @@ public class BootstrapUrlValidatorTest {
 
 	}
 
-	//@Test
+	@Test
 	public void testProxy() throws Exception {
 		final Cloud cloud = new Cloud();
 		final ComputeTemplate template = new ComputeTemplate();
