@@ -1632,7 +1632,7 @@ public class LocalhostGridAgentBootstrapper {
 
 		if (isLocalCloud) {
 			logger.fine("Setting env vars COMPONENT_JAVA_OPTIONS: " + localCloudOptions);
-			environment.put("COMPONENT_JAVA_OPTIONS", localCloudOptions);
+			environment.put("EXT_JAVA_OPTIONS", localCloudOptions);
 			environment.put(CloudifyConstants.GIGASPACES_CLOUD_HARDWARE_ID, "localcloud");
 			environment.put(CloudifyConstants.GIGASPACES_CLOUD_IMAGE_ID, "localcloud");
 			environment.put(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME, "localcloud");
