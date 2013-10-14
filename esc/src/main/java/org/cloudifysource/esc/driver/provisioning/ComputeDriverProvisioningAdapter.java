@@ -175,5 +175,10 @@ public final class ComputeDriverProvisioningAdapter extends BaseComputeDriver {
 			super.validateCloudConfiguration(validationContext);
 		}
 	}
+	
+	@Override
+	public void stopManagementMachines() throws TimeoutException, CloudProvisioningException {
+		this.provisioningDriver.stopManagementMachines();
+	}
 
 }
