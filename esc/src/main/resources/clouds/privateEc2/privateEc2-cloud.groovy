@@ -29,7 +29,7 @@ cloud {
         provider "aws-ec2"
 
         // Mandatory. The prefix for new machines started for servies.
-        machineNamePrefix "cfy-agent-"
+        machineNamePrefix "cloudify-agent-"
         
         // Mandatory
         managementOnlyFiles ([])
@@ -38,7 +38,7 @@ cloud {
         sshLoggingLevel "WARNING"
 
         // Mandatory. Name of the new machine/s started as cloudify management machines. Names are case-insensitive.
-        managementGroup "cfy-manager"
+        managementGroup "cloudify-manager"
         // Mandatory. Number of management machines to start on bootstrap-cloud. In production, should be 2. Can be 1 for dev.
         numberOfManagementMachines 1
 
