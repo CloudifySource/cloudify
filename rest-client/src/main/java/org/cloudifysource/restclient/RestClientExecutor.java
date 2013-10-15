@@ -252,7 +252,14 @@ public class RestClientExecutor {
 		return executeRequest(postRequest, responseTypeReference);
 	}
 
-    private static String getResponseBody(
+	/**
+	 * Return the response's body.
+	 * @param response .
+	 * @return the response's body.
+	 * @throws RestClientIOException 
+	 * 			if failed to transform the response into string.
+	 */
+    public static String getResponseBody(
     		final HttpResponse response)
     				throws RestClientIOException {
 
