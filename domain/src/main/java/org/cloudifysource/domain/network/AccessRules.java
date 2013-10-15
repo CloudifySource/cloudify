@@ -16,6 +16,16 @@ package org.cloudifysource.domain.network;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.cloudifysource.domain.internal.CloudifyDSLEntity;
+
+/***********
+ * Access rules for a Cloudify service.
+ * @author barakme
+ * @since 2.7.0
+ *
+ */
+@CloudifyDSLEntity(name = "accessRules", clazz = AccessRules.class,
+		allowInternalNode = true, allowRootNode = true, parent = "network")
 public class AccessRules {
 
 	private List<AccessRule> incoming = new LinkedList<AccessRule>();

@@ -10,33 +10,8 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  *******************************************************************************/
+/*******
+ * Network related domain objects.
+ */
 package org.cloudifysource.domain.network;
 
-import org.cloudifysource.domain.internal.CloudifyDSLEntity;
-
-/********
- * Network definitions for a Cloudify service.
- * 
- * @author barakme
- * @since 2.7.0
- * 
- */
-@CloudifyDSLEntity(name = "network", clazz = Network.class,
-		allowInternalNode = true, allowRootNode = true, parent = "service")
-public class Network {
-
-	private AccessRules accessRules = new AccessRules();
-
-	public Network() {
-
-	}
-
-	public AccessRules getAccessRules() {
-		return accessRules;
-	}
-
-	public void setAccessRules(final AccessRules accessRules) {
-		this.accessRules = accessRules;
-	}
-
-}

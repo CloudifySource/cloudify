@@ -67,6 +67,8 @@ public class ComputeTemplate {
 
 	private String openFilesLimit = null;
 
+	private ComputeTemplateNetwork computeNetworks = new ComputeTemplateNetwork();
+
 	/**
 	 * Gets the image ID.
 	 * 
@@ -423,7 +425,15 @@ public class ComputeTemplate {
 		return openFilesLimit;
 	}
 
-	public void setOpenFilesLimit(String openFilesLimit) {
+	public void setOpenFilesLimit(final String openFilesLimit) {
 		this.openFilesLimit = openFilesLimit;
+	}
+
+	public ComputeTemplateNetwork getComputeNetworks() {
+		return computeNetworks;
+	}
+
+	public void setComputeNetworks(final ComputeTemplateNetwork computeNetworks) {
+		this.computeNetworks = computeNetworks;
 	}
 }
