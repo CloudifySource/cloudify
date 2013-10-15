@@ -1631,6 +1631,10 @@ public class LocalhostGridAgentBootstrapper {
 		}
 
 		if (isLocalCloud) {
+			String extOptions = environment.get("EXT_JAVA_OPTIONS");
+			if (!org.apache.commons.lang.StringUtils.isEmpty(extOptions)) {
+				localCloudOptions = localCloudOptions + " " + extOptions;
+			}
 			logger.fine("Setting env vars EXT_JAVA_OPTIONS: " + localCloudOptions);
 			environment.put("EXT_JAVA_OPTIONS", localCloudOptions);
 			// this is a workaround. the ext_java_options will not be 
