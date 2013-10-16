@@ -63,6 +63,7 @@ import org.cloudifysource.dsl.rest.response.UploadResponse;
 import org.cloudifysource.restclient.exceptions.RestClientException;
 import org.cloudifysource.restclient.messages.MessagesUtils;
 import org.cloudifysource.restclient.messages.RestClientMessageKeys;
+import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
@@ -612,21 +613,35 @@ public class RestClient {
 				ADD_TEMPALTES_URL_FORMAT);
 		AddTemplatesResponse response = null;
 		try {
-			response = executor.postObject(
+			return executor.postObject(
 					addTempaltesUrl, 
 					request, 
 					new TypeReference<Response<AddTemplatesResponse>>() { });
 		} catch (RestClientException e) {
 			String verbose = e.getVerbose();
+				// may be partial failure - in this case the verbose contains the AddTemplatesResponse object.
+				if (logger.isLoggable(Level.WARNING)) {
+					logger.log(Level.WARNING, 
+							"[addTemplates] - caught RestClientException, " 
+									+ "trying to read the response from the verbose", e);
+				}
 				try {
-					// may be partial failure - in this case the verbose contains the AddTemplatesResponse object.
 					response = new ObjectMapper().readValue(verbose, AddTemplatesResponse.class);
 					throw new AddTemplatesException(response);
-				} catch (Exception e1) {
+				} catch (JsonProcessingException e1) {
+					if (logger.isLoggable(Level.WARNING)) {
+						logger.log(Level.WARNING, "[addTemplates] - failed to read response from verbose: " + verbose 
+								+ ", caught JsonProcessingException.", e1);
+					}
 					throw e;
-				}
+				} catch (IOException e1) {
+					if (logger.isLoggable(Level.WARNING)) {
+						logger.log(Level.WARNING, "[addTemplates] - failed to read response from verbose: " + verbose 
+								+ " caught IOException.", e1);
+					}
+					throw e;
+				}				
 		}
-		return response;
 	}
 	
 	/**
