@@ -20,6 +20,7 @@ import org.cloudifysource.domain.cloud.DiscoveryComponent;
 import org.cloudifysource.domain.cloud.OrchestratorComponent;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.utilitydomain.openspaces.OpenspacesConstants;
+import org.openspaces.admin.gsa.GSAReservationId;
 
 /**
  * Service grid system properties utils class.
@@ -32,6 +33,7 @@ public final class GridCommandLineBuilder {
 	private static final String GSM_EXCLUDE_GSC_ON_FAILED_INSTACE_BOOL = "true";
 	private static final String GSM_EXCLUDE_GSC_ON_FAILED_INSTANCE = "gsm.excludeGscOnFailedInstance.disabled";
 	private static final String ZONES_PROPERTY = "com.gs.zones";
+	private static final String GSA_RESERVATION_ID_PROPERTY = "com.gs.agent.reservationid";
 	private static final String MANAGEMENT_ZONE = "management";
 	private static final String GSM_PENDING_REQUESTS_DELAY = "-Dorg.jini.rio.monitor.pendingRequestDelay=1000";
 	private static final String DISABLE_MULTICAST = "-Dcom.gs.multicast.enabled=false";
@@ -128,13 +130,20 @@ public final class GridCommandLineBuilder {
 	 *            Agent config
 	 * @param zone
 	 *            - the agent zone
+	 * @param reservationId
+	 *            - the reservation Id
 	 * @return Commandline arguments for the GSA
 	 */
-	public String getAgentCommandlineArgs(final AgentComponent agent, final String zone) {
+	public String getAgentCommandlineArgs(final AgentComponent agent, final String zone, 
+			final GSAReservationId reservationId) {
 
 		String agentCommandLineArgs = "";
 		if (StringUtils.isNotBlank(zone)) {
 			agentCommandLineArgs += "-D" + ZONES_PROPERTY + "=" + zone;
+		}
+		
+		if (reservationId != null && StringUtils.isNotBlank(reservationId.toString())) {
+			agentCommandLineArgs += " -D" + GSA_RESERVATION_ID_PROPERTY + "=" + reservationId.toString();
 		}
 
 		agentCommandLineArgs += " " + AUTO_SHUTDOWN_COMMANDLINE_ARGUMENT;
