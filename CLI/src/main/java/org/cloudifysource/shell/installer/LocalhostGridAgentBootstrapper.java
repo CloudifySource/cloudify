@@ -883,7 +883,7 @@ public class LocalhostGridAgentBootstrapper {
 			logger.fine(message);
 		}
 
-		cleanPUWorkDirectory();
+//		cleanPUWorkDirectory();
 		publishEvent(ShellUtils.getMessageBundle().getString("starting_cloudify_management"));
 		runCommand(command, args.toArray(new String[args.size()]), securityProfile, securityFilePath, keystoreFilePath,
 				keystorePassword);
