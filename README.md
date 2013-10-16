@@ -14,7 +14,7 @@ Enjoy!
 Requirements
 -------------
 1. Available Internet connection 
-2. Installed Java 6 or higher
+2. Installed Oracle JDK 6 or higher
 3. Installed Ant 1.8 or higher
 4. Installed maven 3 or higher 
 5. System variable  M2_HOME must be defined and point to maven installation folder.
