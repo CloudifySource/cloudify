@@ -13,6 +13,7 @@
 package org.cloudifysource.esc.driver.provisioning;
 
 import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.domain.network.Network;
 import org.openspaces.admin.Admin;
 
 /************
@@ -29,7 +30,12 @@ public class ComputeDriverConfiguration {
 	private boolean management;
 	private String serviceName;
 	private Admin admin;
-
+	
+	private Network network;
+	
+	public ComputeDriverConfiguration() {
+		
+	}
 	public Cloud getCloud() {
 		return cloud;
 	}
@@ -68,6 +74,14 @@ public class ComputeDriverConfiguration {
 
 	public void setAdmin(final Admin admin) {
 		this.admin = admin;
+	}
+
+	public Network getNetwork() {
+		return network;
+	}
+
+	public void setNetwork(Network network) {
+		this.network = network;
 	}
 
 }

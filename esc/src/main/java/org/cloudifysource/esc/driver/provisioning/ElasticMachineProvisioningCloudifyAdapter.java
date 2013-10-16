@@ -1025,6 +1025,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		configuration.setManagement(false);
 		configuration.setServiceName(serviceName);
 
+		configuration.setNetwork(this.config.getNetworkAsString());
 		this.cloudifyProvisioning.setConfig(configuration);
 
 		// initialize the storage driver
