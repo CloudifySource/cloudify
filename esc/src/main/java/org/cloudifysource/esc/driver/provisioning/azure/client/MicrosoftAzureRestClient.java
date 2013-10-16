@@ -212,7 +212,7 @@ public class MicrosoftAzureRestClient {
 			final long endTime) throws MicrosoftAzureException,
 			TimeoutException, InterruptedException {
 
-		logger.fine(getThreadIdentity() + "Creating cloud cervice");
+		logger.fine(getThreadIdentity() + "Creating cloud service");
 
 		CreateHostedService createHostedService = requestBodyBuilder
 				.buildCreateCloudService(affinityGroup);
@@ -227,7 +227,7 @@ public class MicrosoftAzureRestClient {
 			String requestId = extractRequestId(response);
 			waitForRequestToFinish(requestId, endTime);
 			serviceName = createHostedService.getServiceName();
-			logger.fine(getThreadIdentity() + "Cloud cervice created : " + serviceName);
+			logger.info("Cloud service created : " + serviceName);
 		} catch (final Exception e) {
 			logger.warning("Failed to create cloud service : " + e.getMessage());
 			if (e instanceof MicrosoftAzureException) {
@@ -409,7 +409,7 @@ public class MicrosoftAzureRestClient {
 				TimeUnit.MILLISECONDS);
 
 		String serviceName = null;
-		Deployment deployment = null;
+		Deployment deployment;
 
 		if (lockAcquired) {
 
