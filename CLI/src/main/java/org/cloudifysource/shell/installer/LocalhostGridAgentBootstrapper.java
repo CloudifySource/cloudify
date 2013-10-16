@@ -1631,16 +1631,8 @@ public class LocalhostGridAgentBootstrapper {
 		}
 
 		if (isLocalCloud) {
-			String extOptions = environment.get("EXT_JAVA_OPTIONS");
-			if (!org.apache.commons.lang.StringUtils.isEmpty(extOptions)) {
-				localCloudOptions = localCloudOptions + " " + extOptions;
-			}
-			logger.fine("Setting env vars EXT_JAVA_OPTIONS: " + localCloudOptions);
-			environment.put("EXT_JAVA_OPTIONS", localCloudOptions);
-			// this is a workaround. the ext_java_options will not be 
-			// appended to the java ops if java ops is not empty. 
-			//this should happen in the beginning of the setenv script
-			environment.remove("JAVA_OPTIONS");
+			logger.fine("Setting env vars COMPONENT_JAVA_OPTIONS: " + localCloudOptions);
+			environment.put("COMPONENT_JAVA_OPTIONS", localCloudOptions);
 			environment.put(CloudifyConstants.GIGASPACES_CLOUD_HARDWARE_ID, "localcloud");
 			environment.put(CloudifyConstants.GIGASPACES_CLOUD_IMAGE_ID, "localcloud");
 			environment.put(CloudifyConstants.GIGASPACES_CLOUD_TEMPLATE_NAME, "localcloud");
