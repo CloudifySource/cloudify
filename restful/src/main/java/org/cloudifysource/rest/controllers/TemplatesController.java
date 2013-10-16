@@ -268,9 +268,6 @@ public class TemplatesController extends BaseRestController {
 			// expected templates
 			final List<String> expectedAddedTemplates = new LinkedList<String>();
 			for (final ComputeTemplateHolder templateHolder : cloudTemplatesHolders) {
-				// rename template file to <templateName>-template.groovy if needed
-				// rename the properties and overrides files as well.
-				renameTemplateFilesIfNeeded(unzippedFolder, templateHolder);
 				expectedAddedTemplates.add(templateHolder.getName());
 			}
 			internalRequest.setExpectedTemplates(expectedAddedTemplates);
@@ -588,6 +585,18 @@ public class TemplatesController extends BaseRestController {
 				new File(templatesFolder, originalTemplateFileName).delete();
 				continue;
 			}
+			
+			// rename template file to <templateName>-template.groovy if needed
+			// rename the properties and overrides files as well.
+			try {
+				renameTemplateFilesIfNeeded(templatesFolder, holder);
+			} catch (final IOException e) {
+				failedToAddTemplates.put(templateName, "failed to rename template's file. error: " + e.getMessage());
+				// rename failed - delete the file so it wont be added to the additional templates folder.
+				new File(templatesFolder, originalTemplateFileName).delete();
+				continue;
+			}
+							
 			// add template to cloud templates list
 			final ComputeTemplate cloudTemplate = holder.getCloudTemplate();
 			templates.put(templateName, cloudTemplate);
