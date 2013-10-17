@@ -629,15 +629,25 @@ public class RestClient {
 					response = new ObjectMapper().readValue(verbose, AddTemplatesResponse.class);
 					throw new AddTemplatesException(response);
 				} catch (JsonProcessingException e1) {
-					if (logger.isLoggable(Level.WARNING)) {
-						logger.log(Level.WARNING, "[addTemplates] - failed to read response from verbose: " + verbose 
-								+ ", caught JsonProcessingException.", e1);
+					// failed to read the response from the verbose => not a partial failure 
+					// => throwing the original exception
+					if (logger.isLoggable(Level.FINE)) {
+						logger.log(Level.FINE, 
+								"[addTemplates] - caught JsonProcessingException " 
+										+ "when tried to read the response from the verbose, " 
+										+ " throwing the RestClientException that constructed " 
+										+ "from the original exception", e1);
 					}
 					throw e;
 				} catch (IOException e1) {
-					if (logger.isLoggable(Level.WARNING)) {
-						logger.log(Level.WARNING, "[addTemplates] - failed to read response from verbose: " + verbose 
-								+ " caught IOException.", e1);
+					// failed to read the response from the verbose => not a partial failure 
+					// => throwing the original exception
+					if (logger.isLoggable(Level.FINE)) {
+						logger.log(Level.FINE, 
+								"[addTemplates] - caught IOException " 
+										+ "when tried to read the response from the verbose, " 
+										+ " throwing the RestClientException that constructed " 
+										+ "from the original exception", e1);
 					}
 					throw e;
 				}				
