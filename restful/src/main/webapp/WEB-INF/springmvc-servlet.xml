@@ -35,7 +35,7 @@
 
 		<context:component-scan base-package="org.cloudifysource.rest" />
 
-<!-- 		<mvc:annotation-driven /> -->
+ 		<mvc:annotation-driven />
 
 		<mvc:resources mapping="/resources/**" location="/resources/" />
 		
