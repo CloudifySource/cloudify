@@ -759,6 +759,17 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 		final long endTime = System.currentTimeMillis() + unit.toMillis(duration);
 		final String machineIp = agent.getMachine().getHostAddress();
+		
+		// configure drivers if this is first time
+		try {
+			configureDrivers();
+		} catch (final CloudProvisioningException e) {
+			throw new ElasticMachineProvisioningException("Failed to configure cloud driver for first use: "
+					+ e.getMessage(), e);
+		} catch (StorageProvisioningException e) {
+			throw new ElasticMachineProvisioningException("Failed to configure storage driver for first use: "
+					+ e.getMessage(), e);
+		}
 
 		Exception failedToShutdownAgentException = null;
 		final GridServiceAgentStopRequestedEvent agentStopEvent = new GridServiceAgentStopRequestedEvent();
@@ -1001,9 +1012,12 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	 */
 	private synchronized void configureDrivers() throws InterruptedException, ElasticMachineProvisioningException,
 			CloudProvisioningException, StorageProvisioningException {
+		
 		if (this.driversConfigured) {
 			return;
 		}
+		
+		// initialize the provisioning driver
 		final ComputeDriverConfiguration configuration = new ComputeDriverConfiguration();
 		configuration.setAdmin(getGlobalAdminInstance(originalESMAdmin));
 		configuration.setCloud(cloud);
@@ -1013,7 +1027,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 		this.cloudifyProvisioning.setConfig(configuration);
 
-		
+		// initialize the storage driver
 		if (this.storageProvisioning != null) {
 			if (this.storageProvisioning instanceof BaseStorageDriver) {
 				((BaseStorageDriver) this.storageProvisioning).setComputeContext(cloudifyProvisioning
