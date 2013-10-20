@@ -12,24 +12,6 @@
  ******************************************************************************/
 package org.cloudifysource.restclient;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.Scheme;
@@ -50,6 +32,7 @@ import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
 import org.cloudifysource.dsl.rest.request.SetServiceInstancesRequest;
 import org.cloudifysource.dsl.rest.response.AddTemplatesResponse;
 import org.cloudifysource.dsl.rest.response.ApplicationDescription;
+import org.cloudifysource.dsl.rest.response.DeploymentEvent;
 import org.cloudifysource.dsl.rest.response.DeploymentEvents;
 import org.cloudifysource.dsl.rest.response.GetTemplateResponse;
 import org.cloudifysource.dsl.rest.response.InstallApplicationResponse;
@@ -66,6 +49,23 @@ import org.cloudifysource.restclient.messages.RestClientMessageKeys;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This class performs all the calls to the REST API, 
@@ -430,13 +430,13 @@ public class RestClient {
 	 * @throws RestClientException
 	 *             in case of an error on the rest server.
 	 */
-	public DeploymentEvents getLastEvent(final String deploymentId) throws RestClientException {
+	public DeploymentEvent getLastEvent(final String deploymentId) throws RestClientException {
 		validateDeploymentID(deploymentId, "getLastEvent(String)");
 		final String url = getFormattedUrl(
 				versionedDeploymentControllerUrl, 
 				GET_LAST_EVENT_URL_FORMAT, 
 				deploymentId);
-		return executor.get(url, new TypeReference<Response<DeploymentEvents>>() {
+		return executor.get(url, new TypeReference<Response<DeploymentEvent>>() {
 		});
 
 	}
