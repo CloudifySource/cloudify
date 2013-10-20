@@ -289,10 +289,8 @@ public class RestClientExecutor {
     	}
     }
 
-    private <T> T executeRequest(
-    		final HttpRequestBase request,
-    		final TypeReference<Response<T>> responseTypeReference)
-    				throws RestClientException {
+    private <T> T executeRequest(final HttpRequestBase request,
+    		                     final TypeReference<Response<T>> responseTypeReference) throws RestClientException {
     	HttpResponse httpResponse = null;
     	try {
     		IOException lastException = null;
@@ -316,8 +314,8 @@ public class RestClientExecutor {
     		}
     		if (lastException != null) {
     			if (logger.isLoggable(Level.WARNING)) {
-					logger.warning("Execute get request to " + request.getURI()
-							+ " failed after " + numOfTrials + " tries. exception was: " + lastException);
+					logger.warning("Failed executing " + request.getMethod() + " request to " + request.getURI()
+                            + " : " + lastException.getMessage());
 				}
     			throw MessagesUtils.createRestClientIOException(
     					RestClientMessageKeys.EXECUTION_FAILURE.getName(),
@@ -332,8 +330,7 @@ public class RestClientExecutor {
     	}
     }
 
-	private void checkForError(
-			final HttpResponse response, final String requestUri)
+	private void checkForError(final HttpResponse response, final String requestUri)
 					throws RestClientException {
 		StatusLine statusLine = response.getStatusLine();
 		final int statusCode = statusLine.getStatusCode();
