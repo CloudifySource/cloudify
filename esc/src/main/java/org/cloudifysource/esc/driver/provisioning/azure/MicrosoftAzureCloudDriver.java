@@ -243,8 +243,8 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			throws TimeoutException, CloudProvisioningException {
 
 		MachineDetails machineDetails = new MachineDetails();
-		CreatePersistentVMRoleDeploymentDescriptor desc = null;
-		RoleDetails roleAddressDetails = null;
+		CreatePersistentVMRoleDeploymentDescriptor desc;
+		RoleDetails roleAddressDetails;
 		try {
 
 			desc = new CreatePersistentVMRoleDeploymentDescriptor();
@@ -498,8 +498,9 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
         try {
             HostedServices hostedServices = azureClient.listHostedServices();
             if (!hostedServices.getHostedServices().isEmpty()) {
-                logger.warning("Scanning for leaking nodes...");
+                logger.warning("Found running cloud services. Scanning for leaking nodes...");
                 for (HostedService hostedService : hostedServices) {
+                    logger.fine("Searching for deployments in cloud service " + hostedService.getServiceName());
                     HostedService serviceWithDeployments = azureClient.getHostedService(hostedService.getServiceName(), true);
                     Deployment deployment = serviceWithDeployments.getDeployments().getDeployments().get(0);
                     if (deployment != null) {
@@ -526,7 +527,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 
 		List<Future<?>> futures = new ArrayList<Future<?>>();
 
-		Disks disks = null;
+		Disks disks;
 		try {
 			disks = azureClient.listOSDisks();
 		} catch (MicrosoftAzureException e1) {

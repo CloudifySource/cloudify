@@ -270,8 +270,10 @@ public final class Utils {
 		} else {
 			details.setConnectedToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
 		}
-		details.setGsaCommandlineArgs(gridCommandBuilder.getAgentCommandlineArgs(componentsConfig.getAgent(),
-				details.isManagement() ? MANAGEMENT_ZONE : details.getZones()));
+		String agentCommandlineArgs = gridCommandBuilder.getAgentCommandlineArgs(componentsConfig.getAgent(),
+				details.isManagement() ? MANAGEMENT_ZONE : details.getZones(), reservationId);
+		
+		details.setGsaCommandlineArgs(agentCommandlineArgs);
 
 		// Add all template custom data fields starting with 'installer.' to the
 		// installation details

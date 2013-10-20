@@ -60,8 +60,6 @@ public class EnvironmentFileBuilder {
 
 	private static final String WORKING_HOME_DIRECTORY_ENV = "WORKING_HOME_DIRECTORY";
 
-	private static final String GSA_RESERVATION_ID_ENV = "GSA_RESERVATION_ID";
-
 	private static final String CLOUD_FILE = "CLOUD_FILE";
 
 	/********
@@ -153,10 +151,6 @@ public class EnvironmentFileBuilder {
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP, safePrivateIpAddress)
 				.exportVar(CloudifyConstants.CLOUDIFY_CLOUD_LOCATION_ID, details.getLocationId())
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP, safePublicIpAddress);
-
-		if (details.getReservationId() != null) {
-			builder.exportVar(GSA_RESERVATION_ID_ENV, details.getReservationId().toString());
-		}
 
 		if (details.isManagement()) {
 			String remotePath = details.getRemoteDir();
