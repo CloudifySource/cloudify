@@ -154,7 +154,7 @@ public abstract class InstallationProcessInspector {
 
 		List<String> eventsStrings = new ArrayList<String>();
 
-		DeploymentEvents events = restClient.getDeploymentEvents(deploymentId, lastEventIndex, -1);
+		DeploymentEvents events = restClient.getDeploymentEvents(deploymentId, lastEventIndex + 1, -1);
 		if (events == null || events.getEvents().isEmpty()) {
 			return eventsStrings;
 		}
@@ -162,7 +162,7 @@ public abstract class InstallationProcessInspector {
 		for (DeploymentEvent event : events.getEvents()) {
 			eventsStrings.add(event.getDescription());
 		}
-		lastEventIndex = events.getEvents().get(events.getEvents().size() - 1).getIndex() + 1;
+		lastEventIndex = events.getEvents().get(events.getEvents().size() - 1).getIndex();
 		return eventsStrings;
 	}
 
@@ -181,7 +181,7 @@ public abstract class InstallationProcessInspector {
 				.timeoutErrorMessage(getTimeoutErrorMessage());
 	}
 
-	public void setEventIndex(final int eventIndex) {
+	public void setLastEventIndex(final int eventIndex) {
 		this.lastEventIndex = eventIndex;
 	}
 }

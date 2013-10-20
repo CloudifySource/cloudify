@@ -12,11 +12,7 @@
  *******************************************************************************/
 package org.cloudifysource.shell.rest.inspect;
 
-import java.io.IOException;
-import java.util.concurrent.TimeoutException;
-
 import org.apache.felix.service.command.CommandSession;
-import org.cloudifysource.dsl.rest.response.DeploymentEvents;
 import org.cloudifysource.dsl.rest.response.ServiceDescription;
 import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.restclient.exceptions.RestClientException;
@@ -27,6 +23,10 @@ import org.cloudifysource.shell.exceptions.CLIStatusException;
 import org.cloudifysource.shell.installer.CLIEventsDisplayer;
 import org.cloudifysource.shell.rest.inspect.service.ServiceUninstallationProcessInspector;
 
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
+
 /**
  * Created with IntelliJ IDEA.
  * User: elip
@@ -36,7 +36,10 @@ import org.cloudifysource.shell.rest.inspect.service.ServiceUninstallationProces
 public class CLIServiceUninstaller {
 
     private static final int DEFAULT_TIMEOUT_MINUTES = 5;
+
     private CLIEventsDisplayer displayer = new CLIEventsDisplayer();
+
+    private static final Logger logger = Logger.getLogger(CLIServiceUninstaller.class.getName());
 
     private boolean askOnTimeout = true;
     private String applicationName;
@@ -78,12 +81,14 @@ public class CLIServiceUninstaller {
      */
     public void uninstall() throws CLIException, InterruptedException, IOException, RestClientException {
 
-        ServiceDescription serviceDescription = 
+        displayer.printEvent("uninstalling_service", serviceName);
+        displayer.printEvent("waiting_for_lifecycle_of_service", serviceName);
+
+        ServiceDescription serviceDescription =
         		restClient.getServiceDescription(applicationName, serviceName);
         String deploymentId = serviceDescription.getDeploymentId();
-		final int nextEventId = getNextEventId(restClient, deploymentId);
-        
-        restClient.uninstallService(applicationName, serviceName, initialTimeout);
+
+        final int lastEventIndex = restClient.getLastEvent(deploymentId).getIndex();
 
         ServiceUninstallationProcessInspector inspector =
                 new ServiceUninstallationProcessInspector(
@@ -93,13 +98,13 @@ public class CLIServiceUninstaller {
                         serviceDescription.getInstanceCount(),
                         serviceName,
                         applicationName,
-                        nextEventId);
+                        lastEventIndex);
 
-        // start polling for life cycle events
+        // make the request to uninstall the service
+        restClient.uninstallService(applicationName, serviceName, initialTimeout);
+
+        // start polling for events
         boolean isDone = false;
-        displayer.printEvent("uninstalling_service", serviceName);
-        displayer.printEvent("waiting_for_lifecycle_of_service", serviceName);
-
         int actualTimeout = initialTimeout;
         while (!isDone) {
             try {
@@ -129,14 +134,5 @@ public class CLIServiceUninstaller {
 
     private boolean promptWouldYouLikeToContinueQuestion() throws IOException {
         return ShellUtils.promptUser(session, "would_you_like_to_continue_service_uninstallation", serviceName);
-    }
-
-    private int getNextEventId(final RestClient client, final String deploymentId) throws RestClientException {
-        int lastEventId = 0;
-        final DeploymentEvents lastDeploymentEvents = client.getLastEvent(deploymentId);
-        if (!lastDeploymentEvents.getEvents().isEmpty()) {
-            lastEventId = lastDeploymentEvents.getEvents().iterator().next().getIndex();
-        }
-        return lastEventId + 1;
     }
 }

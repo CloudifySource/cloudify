@@ -93,7 +93,7 @@ public abstract class UninstallationProcessInspector extends InstallationProcess
                     if (currentRunningInstances < lastUpdatedRunningInstances) {
                         // a new instance is now running
                         displayer.printEvent(serviceName 
-                        		+ ": installed " + currentRunningInstances + " planned " + entry.getValue());
+                        		+ " : Installed " + currentRunningInstances + " Planned " + entry.getValue());
                         currentRunningInstancesPerService.put(serviceName, currentRunningInstances);
                     }
                 }
@@ -108,7 +108,7 @@ public abstract class UninstallationProcessInspector extends InstallationProcess
 			String serviceName = entry.getKey();
 			int numberOfRunningInstances = currentRunningInstancesPerService.get(serviceName);
             displayer.printEvent(serviceName 
-            		+ ": installed " + numberOfRunningInstances + " planned " + entry.getValue());
+            		+ ": Installed " + numberOfRunningInstances + " Planned " + entry.getValue());
 		}
 	}
 

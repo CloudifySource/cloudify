@@ -12,15 +12,9 @@
  *******************************************************************************/
 package org.cloudifysource.shell.rest.inspect;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.TimeoutException;
-
 import org.apache.felix.service.command.CommandSession;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.rest.response.ApplicationDescription;
-import org.cloudifysource.dsl.rest.response.DeploymentEvents;
 import org.cloudifysource.dsl.rest.response.ServiceDescription;
 import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.restclient.exceptions.RestClientException;
@@ -30,6 +24,11 @@ import org.cloudifysource.shell.exceptions.CLIException;
 import org.cloudifysource.shell.exceptions.CLIStatusException;
 import org.cloudifysource.shell.installer.CLIEventsDisplayer;
 import org.cloudifysource.shell.rest.inspect.application.ApplicationUninstallationProcessInspector;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created with IntelliJ IDEA.
@@ -95,7 +94,7 @@ public class CLIApplicationUninstaller {
 
         final String deploymentId = applicationDescription.getServicesDescription().get(0).getDeploymentId();
 
-        final int nextEventId = getNextEventId(restClient, deploymentId);
+        final int lastEventIndex = restClient.getLastEvent(deploymentId).getIndex();
 
         ApplicationUninstallationProcessInspector inspector =
                 new ApplicationUninstallationProcessInspector(
@@ -104,7 +103,7 @@ public class CLIApplicationUninstaller {
                         false,
                         currentNumberOfRunningInstancesPerService,
                         applicationName,
-                        nextEventId);
+                        lastEventIndex);
         inspector.setServiceDescriptionList(applicationDescription.getServicesDescription());
 
 
@@ -142,15 +141,6 @@ public class CLIApplicationUninstaller {
         }
         // drop one line before printing the last message
         displayer.printEvent("");
-    }
-
-    private int getNextEventId(final RestClient client, final String deploymentId) throws RestClientException {
-        int lastEventId = 0;
-        final DeploymentEvents lastDeploymentEvents = client.getLastEvent(deploymentId);
-        if (!lastDeploymentEvents.getEvents().isEmpty()) {
-            lastEventId = lastDeploymentEvents.getEvents().iterator().next().getIndex() + 1;
-        } 
-        return lastEventId;
     }
 
     private boolean promptWouldYouLikeToContinueQuestion() throws IOException {

@@ -385,7 +385,6 @@ public class InstallApplication extends AdminAwareCommand implements NewRestClie
 		request.setSelfHealing(!disableSelfHealing);
 		request.setTimeoutInMillis(TimeUnit.MINUTES.toMillis(timeoutInMinutes));
 
-
         //install application
         final InstallApplicationResponse installApplicationResponse =
         		newRestClient.installApplication(applicationName, request);

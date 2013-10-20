@@ -12,9 +12,6 @@
  *******************************************************************************/
 package org.cloudifysource.shell.rest.inspect;
 
-import java.io.IOException;
-import java.util.concurrent.TimeoutException;
-
 import org.apache.felix.service.command.CommandSession;
 import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.shell.Constants;
@@ -23,6 +20,9 @@ import org.cloudifysource.shell.exceptions.CLIException;
 import org.cloudifysource.shell.exceptions.CLIStatusException;
 import org.cloudifysource.shell.installer.CLIEventsDisplayer;
 import org.cloudifysource.shell.rest.inspect.service.ServiceInstallationProcessInspector;
+
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created with IntelliJ IDEA.
@@ -84,7 +84,10 @@ public class CLIServiceInstaller {
      */
     public void install() throws CLIException, InterruptedException, IOException {
 
-        ServiceInstallationProcessInspector inspector = 
+        displayer.printEvent("installing_service", serviceName, plannedNumberOfInstances);
+        displayer.printEvent("waiting_for_lifecycle_of_service", serviceName);
+
+        ServiceInstallationProcessInspector inspector =
         		new ServiceInstallationProcessInspector(
                 restClient,
                 deploymentId,
@@ -95,14 +98,10 @@ public class CLIServiceInstaller {
 
         int actualTimeout = initialTimeout;
         boolean isDone = false;
-        displayer.printEvent("installing_service", serviceName, plannedNumberOfInstances);
-        displayer.printEvent("waiting_for_lifecycle_of_service", serviceName);
         while (!isDone) {
             try {
-
                 inspector.waitForLifeCycleToEnd(actualTimeout);
                 isDone = true;
-
             } catch (final TimeoutException e) {
 
                 if (!askOnTimeout || !(Boolean) session.get(Constants.INTERACTIVE_MODE)) {

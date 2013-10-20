@@ -41,7 +41,7 @@ public class SetInstancesScaledownInstallationProcessInspector extends ServiceIn
 				currentNumberOfInstances,
 				applicationName);
 		
-		setEventIndex(currentEventIndex);
+		setLastEventIndex(currentEventIndex);
 		this.plannedNumberOfInstances = plannedNumberOfInstances;
 
 	}

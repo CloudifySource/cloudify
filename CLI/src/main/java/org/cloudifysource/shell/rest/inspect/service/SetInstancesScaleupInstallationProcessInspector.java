@@ -19,7 +19,6 @@ import org.cloudifysource.dsl.rest.response.ServiceDescription;
 import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.restclient.exceptions.RestClientException;
 import org.cloudifysource.restclient.exceptions.RestClientResponseException;
-import org.cloudifysource.shell.rest.inspect.service.ServiceInstallationProcessInspector;
 
 /**
  * Created with IntelliJ IDEA. User: elip Date: 6/4/13 Time: 12:33 PM
@@ -44,7 +43,7 @@ public class SetInstancesScaleupInstallationProcessInspector extends ServiceInst
 				plannedNumberOfInstances,
                 currentNumberOfInstances,
 				applicationName);
-		this.setEventIndex(currentEventIndex);
+		this.setLastEventIndex(currentEventIndex);
 		this.plannedNumberOfInstances = plannedNumberOfInstances;
 	}
 
