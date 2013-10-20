@@ -316,11 +316,10 @@ public class DeploymentsController extends BaseRestController {
 	 *             Thrown in case of any error.
 	 */
 	@RequestMapping(value = "{deploymentId}/events", method = RequestMethod.GET)
-	public DeploymentEvents getDeploymentEvents(
-			@PathVariable final String deploymentId,
-			@RequestParam(required = false, defaultValue = "0") final int from,
-			@RequestParam(required = false, defaultValue = "-1") final int to)
-			throws Throwable {
+	public DeploymentEvents getDeploymentEvents(@PathVariable final String deploymentId,
+			                                    @RequestParam(required = false, defaultValue = "1") final int from,
+			                                    @RequestParam(required = false, defaultValue = "-1") final int to)
+			                                    throws Throwable {
 
 		if (deploymentId == null) {
 			throw new RestErrorException(CloudifyErrorMessages.MISSING_DEPLOYMENT_ID.getName(), "getDeploymentEvents");
@@ -374,35 +373,24 @@ public class DeploymentsController extends BaseRestController {
 	 *             in case of an error while retrieving events.
 	 */
 	@RequestMapping(value = "{deploymentId}/events/last", method = RequestMethod.GET)
-	public DeploymentEvents getLastDeploymentEvent(
-			@PathVariable final String deploymentId)
+	public DeploymentEvent getLastDeploymentEvent(@PathVariable final String deploymentId)
 			throws Throwable {
 
-		if (deploymentId == null) {
-			throw new RestErrorException(CloudifyErrorMessages.MISSING_DEPLOYMENT_ID.getName(), 
-					"getLastDeploymentEvent");
-		}
-		verifyDeploymentIdExists(deploymentId);
-		
-		EventsCacheKey key = new EventsCacheKey(deploymentId);
-		logger.fine(EventsUtils.getThreadId()
-				+ " Received request for last event of key : " + key);
-		EventsCacheValue value;
-		try {
-			logger.fine(EventsUtils.getThreadId() + " Retrieving events from cache for key : " + key);
-			value = eventsCache.get(key);
-		} catch (final ExecutionException e) {
-			throw e.getCause();
-		}
-
-		// we don't want another request to modify our object during this calculation.
-		synchronized (value.getMutex()) {
-			eventsCache.refresh(key);
-			int lastEventId = value.getLastEventIndex();
-			// return the events. this MAY or MAY NOT be the complete set of events requested.
-			// request for specific events is treated as best effort. no guarantees all events are returned.
-			return EventsUtils.extractDesiredEvents(value.getEvents(), lastEventId, lastEventId);
-		}
+        EventsCacheKey key = new EventsCacheKey(deploymentId);
+        EventsCacheValue value = eventsCache.getIfExists(key);
+        int lastEventIndex = value.getLastEventIndex();
+        List<DeploymentEvent> events =
+                getDeploymentEvents(deploymentId, lastEventIndex, lastEventIndex + 1).getEvents();
+        if (events.size() == 2) {
+            // we have the old last event plus a new one. return the new one.
+            return events.get(1);
+        } else if (events.size() == 1) {
+            // we only have the old last event. return this one.
+            return events.get(0);
+        } else {
+            throw new IllegalStateException("Unexpected event list size for request of events [" + lastEventIndex +
+                    "]-[" + lastEventIndex + 1 + "] : " + events.size());
+        }
 	}
 
 	private void verifyDeploymentIdExists(final String deploymentId) 

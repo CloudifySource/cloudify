@@ -48,11 +48,11 @@ public class EventsCacheLoaderTest {
         EventsCacheValue loadedValue = loader.load(eventsCacheKey);
 
         // test last event index
-        Assert.assertEquals(LOG_ENTRIES_BATCH_SIZE - 1, loadedValue.getLastEventIndex());
+        Assert.assertEquals(LOG_ENTRIES_BATCH_SIZE, loadedValue.getLastEventIndex());
 
         // test all events are present and indexed correctly.
         List<DeploymentEvent> events = loadedValue.getEvents().getEvents();
-        for (int i = 0; i < LOG_ENTRIES_BATCH_SIZE; i++) {
+        for (int i = 1; i < LOG_ENTRIES_BATCH_SIZE; i++) {
             DeploymentEvent event = EventsUtils.retrieveEventWithIndex(i, events);
             Assert.assertNotNull(event);
         }
@@ -76,10 +76,10 @@ public class EventsCacheLoaderTest {
         Assert.assertSame(events, oldValue);
 
         // test last event index was updated correctly
-        Assert.assertEquals(2 * LOG_ENTRIES_BATCH_SIZE - 1, oldValue.getLastEventIndex());
+        Assert.assertEquals(2 * LOG_ENTRIES_BATCH_SIZE, oldValue.getLastEventIndex());
 
         // test events were updated
-        for (int i = 0; i < LOG_ENTRIES_BATCH_SIZE * 2; i++) {
+        for (int i = 1; i < LOG_ENTRIES_BATCH_SIZE * 2; i++) {
             DeploymentEvent event = EventsUtils.retrieveEventWithIndex(i, events.getEvents().getEvents());
             Assert.assertNotNull(event);
         }

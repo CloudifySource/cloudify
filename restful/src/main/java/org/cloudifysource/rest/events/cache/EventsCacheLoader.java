@@ -68,10 +68,10 @@ public class EventsCacheLoader extends CacheLoader<EventsCacheKey, EventsCacheVa
 
         // initial load. no events are present in the cache for this deployment.
         // iterate over all container and retrieve logs from logs cache.
-        Set<GridServiceContainer> containersForDeployment = containerProvider.getContainersForDeployment(
-                key.getDeploymentId());
+        Set<GridServiceContainer> containersForDeployment = containerProvider
+                .getContainersForDeployment(key.getDeploymentId());
 
-        int index = -1;
+        int index = 0;
         for (GridServiceContainer container : containersForDeployment) {
 
             LogEntryMatcherProviderKey logEntryMatcherProviderKey = createKey(container, key);
@@ -103,17 +103,11 @@ public class EventsCacheLoader extends CacheLoader<EventsCacheKey, EventsCacheVa
         logger.fine(EventsUtils.getThreadId() + "Reloading events cache entry for key " + key);
 
         // pickup any new containers along with the old ones
-        Set<GridServiceContainer> containersForDeployment = new HashSet<GridServiceContainer>();
-        Set<GridServiceContainer> containers = oldValue.getContainers();
-        
-        if (containers.isEmpty()) {
-        	containersForDeployment.addAll(containerProvider.getContainersForDeployment(key.getDeploymentId()));
-        } else {
-        	// uninstall process is taking place.
-        	containersForDeployment.addAll(containers);
-        }
+        Set<GridServiceContainer> containersForDeployment = oldValue.getContainers();
+        containersForDeployment.addAll(containerProvider.getContainersForDeployment(key.getDeploymentId()));
+
         if (!containersForDeployment.isEmpty()) {
-            int index = oldValue.getLastEventIndex() + 1;
+            int index = oldValue.getLastEventIndex();
             for (GridServiceContainer container : containersForDeployment) {
 
                 // this will give us just the new logs.
@@ -125,7 +119,7 @@ public class EventsCacheLoader extends CacheLoader<EventsCacheKey, EventsCacheVa
                     if (logEntry.isLog()) {
                         DeploymentEvent event = EventsUtils.logToEvent(
                                 logEntry, logEntries.getHostName(), logEntries.getHostAddress());
-                        event.setIndex(index++);
+                        event.setIndex(++index);
                         oldValue.getEvents().getEvents().add(event);
                     }
                 }
@@ -133,7 +127,7 @@ public class EventsCacheLoader extends CacheLoader<EventsCacheKey, EventsCacheVa
 
             // update refresh time.
             oldValue.setLastRefreshedTimestamp(System.currentTimeMillis());
-            oldValue.setLastEventIndex(index - 1);
+            oldValue.setLastEventIndex(index);
         }
         return Futures.immediateFuture(oldValue);
     }
