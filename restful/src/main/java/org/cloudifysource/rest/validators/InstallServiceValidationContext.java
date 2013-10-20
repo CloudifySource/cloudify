@@ -16,96 +16,114 @@ import java.io.File;
 
 import org.cloudifysource.domain.Service;
 import org.cloudifysource.domain.cloud.Cloud;
-import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
+import org.cloudifysource.dsl.internal.debug.DebugModes;
 import org.openspaces.admin.Admin;
 
 /**
  * A POJO for holding install-service validator's parameters.
- *
+ * 
  * @author yael
- *
+ * 
  */
 public class InstallServiceValidationContext {
-    private String absolutePuName;
-    private String templateName;
-    private Cloud cloud;
-    private Admin admin;
-    private Service service;
-    private InstallServiceRequest request;
-    private File cloudOverridesFile;
-    private File serviceOverridesFile;
-    private File cloudConfigurationFile;
+	private String absolutePuName;
+	private String templateName;
+	private Cloud cloud;
+	private Admin admin;
+	private Service service;
+	private File cloudOverridesFile;
+	private File serviceOverridesFile;
+	private File cloudConfigurationFile;
+	private boolean debugAll;
+	private String debugEvents;
+	private String debugMode = DebugModes.INSTEAD.getName();
 
-    public String getAbsolutePuName() {
-        return absolutePuName;
-    }
+	public String getAbsolutePuName() {
+		return absolutePuName;
+	}
 
-    public void setAbsolutePuName(final String absolutePuName) {
-        this.absolutePuName = absolutePuName;
-    }
+	public void setAbsolutePuName(final String absolutePuName) {
+		this.absolutePuName = absolutePuName;
+	}
 
-    public String getTemplateName() {
-        return templateName;
-    }
+	public String getTemplateName() {
+		return templateName;
+	}
 
-    public void setTemplateName(final String templateName) {
-        this.templateName = templateName;
-    }
+	public void setTemplateName(final String templateName) {
+		this.templateName = templateName;
+	}
 
-    public Cloud getCloud() {
-        return cloud;
-    }
+	public Cloud getCloud() {
+		return cloud;
+	}
 
-    public void setCloud(final Cloud cloud) {
-        this.cloud = cloud;
-    }
+	public void setCloud(final Cloud cloud) {
+		this.cloud = cloud;
+	}
 
-    public Admin getAdmin() {
-        return admin;
-    }
+	public Admin getAdmin() {
+		return admin;
+	}
 
-    public void setAdmin(final Admin admin) {
-        this.admin = admin;
-    }
+	public void setAdmin(final Admin admin) {
+		this.admin = admin;
+	}
 
-    public Service getService() {
-        return service;
-    }
+	public Service getService() {
+		return service;
+	}
 
-    public void setService(final Service service) {
-        this.service = service;
-    }
+	public void setService(final Service service) {
+		this.service = service;
+	}
 
-    public InstallServiceRequest getRequest() {
-        return request;
-    }
+	public File getCloudOverridesFile() {
+		return cloudOverridesFile;
+	}
 
-    public void setRequest(final InstallServiceRequest request) {
-        this.request = request;
-    }
+	public void setCloudOverridesFile(final File cloudOverridesFile) {
+		this.cloudOverridesFile = cloudOverridesFile;
+	}
 
-    public File getCloudOverridesFile() {
-        return cloudOverridesFile;
-    }
+	public File getServiceOverridesFile() {
+		return serviceOverridesFile;
+	}
 
-    public void setCloudOverridesFile(final File cloudOverridesFile) {
-        this.cloudOverridesFile = cloudOverridesFile;
-    }
+	public void setServiceOverridesFile(final File serviceOverridesFile) {
+		this.serviceOverridesFile = serviceOverridesFile;
+	}
 
-    public File getServiceOverridesFile() {
-        return serviceOverridesFile;
-    }
+	public File getCloudConfigurationFile() {
+		return cloudConfigurationFile;
+	}
 
-    public void setServiceOverridesFile(final File serviceOverridesFile) {
-        this.serviceOverridesFile = serviceOverridesFile;
-    }
+	public void setCloudConfigurationFile(final File cloudConfigurationFile) {
+		this.cloudConfigurationFile = cloudConfigurationFile;
+	}
 
-    public File getCloudConfigurationFile() {
-        return cloudConfigurationFile;
-    }
+	public boolean isDebugAll() {
+		return debugAll;
+	}
 
-    public void setCloudConfigurationFile(final File cloudConfigurationFile) {
-        this.cloudConfigurationFile = cloudConfigurationFile;
-    }
+	public void setDebugAll(final boolean debugAll) {
+		this.debugAll = debugAll;
+	}
+
+	public String getDebugEvents() {
+		return debugEvents;
+	}
+
+	public void setDebugEvents(final String debugEvents) {
+		this.debugEvents = debugEvents;
+	}
+
+	public String getDebugMode() {
+		return debugMode;
+	}
+
+	public void setDebugMode(final String debugMode) {
+		this.debugMode = debugMode;
+	}
 
 }

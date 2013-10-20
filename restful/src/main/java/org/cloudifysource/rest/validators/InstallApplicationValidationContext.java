@@ -15,22 +15,31 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
+import java.io.File;
+
 import org.cloudifysource.domain.Application;
 import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.dsl.internal.debug.DebugModes;
+import org.openspaces.admin.Admin;
 
 /**
  * 
- * install application validation context containing all necessary 
- * validation parameters required for validation.
+ * install application validation context containing all necessary validation
+ * parameters required for validation.
  * 
  * @author adaml
- *
+ * 
  */
 public class InstallApplicationValidationContext {
 
 	private Cloud cloud;
-	
 	private Application application;
+	private Admin admin;
+	private File cloudOverridesFile;
+	private File cloudConfigurationFile;
+	private boolean debugAll;
+	private String debugEvents;
+	private String debugMode = DebugModes.INSTEAD.getName();
 
 	public Cloud getCloud() {
 		return this.cloud;
@@ -47,4 +56,53 @@ public class InstallApplicationValidationContext {
 	public void setApplication(final Application application) {
 		this.application = application;
 	}
+
+	public Admin getAdmin() {
+		return admin;
+	}
+
+	public void setAdmin(final Admin admin) {
+		this.admin = admin;
+	}
+
+	public File getCloudOverridesFile() {
+		return cloudOverridesFile;
+	}
+
+	public void setCloudOverridesFile(final File cloudOverridesFile) {
+		this.cloudOverridesFile = cloudOverridesFile;
+	}
+
+	public File getCloudConfigurationFile() {
+		return cloudConfigurationFile;
+	}
+
+	public void setCloudConfigurationFile(final File cloudConfigurationFile) {
+		this.cloudConfigurationFile = cloudConfigurationFile;
+	}
+
+	public boolean isDebugAll() {
+		return debugAll;
+	}
+
+	public void setDebugAll(final boolean debugAll) {
+		this.debugAll = debugAll;
+	}
+
+	public String getDebugEvents() {
+		return debugEvents;
+	}
+
+	public void setDebugEvents(final String debugEvents) {
+		this.debugEvents = debugEvents;
+	}
+
+	public String getDebugMode() {
+		return debugMode;
+	}
+
+	public void setDebugMode(final String debugMode) {
+		this.debugMode = debugMode;
+	}
+
 }

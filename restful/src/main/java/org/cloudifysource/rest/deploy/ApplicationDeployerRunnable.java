@@ -129,6 +129,7 @@ public class ApplicationDeployerRunnable implements Runnable {
 					actualOverridesFile =
 							DSLReader.findDefaultDSLFileIfExists(DSLUtils.APPLICATION_OVERRIDES_FILE_NAME, appDir);
 				}
+				
 				// Pack the folder and name it absolutePuName
 				final File packedFile = Packager.pack(service, 
 													serviceDirectory, 
@@ -150,11 +151,12 @@ public class ApplicationDeployerRunnable implements Runnable {
 				
 				controller.installServiceInternal(
 						appName, 
-						serviceName, 
 						installServiceReq, 
 						deploymentID,
 						fileHolder,
-						serviceProps);
+						serviceProps,
+						service,
+						packedFile);
 				try {
 					FileUtils.deleteDirectory(packedFile.getParentFile());
 				} catch (final IOException ioe) {
