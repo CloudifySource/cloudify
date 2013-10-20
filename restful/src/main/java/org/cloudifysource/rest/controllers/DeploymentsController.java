@@ -381,15 +381,18 @@ public class DeploymentsController extends BaseRestController {
         int lastEventIndex = value.getLastEventIndex();
         List<DeploymentEvent> events =
                 getDeploymentEvents(deploymentId, lastEventIndex, lastEventIndex + 1).getEvents();
-        if (events.size() == 2) {
-            // we have the old last event plus a new one. return the new one.
-            return events.get(1);
-        } else if (events.size() == 1) {
-            // we only have the old last event. return this one.
-            return events.get(0);
-        } else {
-            throw new IllegalStateException("Unexpected event list size for request of events [" + lastEventIndex +
-                    "]-[" + lastEventIndex + 1 + "] : " + events.size());
+        switch (events.size()) {
+            case 0:
+                return null;
+            case 1:
+                // we only have the old last event. return this one.
+                return events.get(0);
+            case 2:
+                // we have the old last event plus a new one. return the new one.
+                return events.get(1);
+            default:
+                throw new IllegalStateException("Unexpected event list size for request of events [" + lastEventIndex +
+                        "]-[" + (lastEventIndex + 1) + "] : " + events.size());
         }
 	}
 
