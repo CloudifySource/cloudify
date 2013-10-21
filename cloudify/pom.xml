@@ -30,6 +30,7 @@
 		<sigarVersion>1.6.5</sigarVersion>
 		<sigarDistributionVersion>1.6.5.132</sigarDistributionVersion>
 		<groovyVersion>1.8.6</groovyVersion>
+		<asmVersion>3.2</asmVersion>
 	</properties>
 
 	<repositories>
@@ -174,6 +175,16 @@
         <version>${gsVersion}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>asm</groupId>
+        <artifactId>asm</artifactId>
+        <version>${asmVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>asm</groupId>
+        <artifactId>asm-commons</artifactId>
+        <version>${asmVersion}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
