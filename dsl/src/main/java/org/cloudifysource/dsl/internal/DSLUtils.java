@@ -207,7 +207,8 @@ public final class DSLUtils {
 				File newNameFile = new File(parent, newName);
 				boolean renamed = file.renameTo(newNameFile);
 				if (!renamed) {
-					throw new IOException("Failed to rename file " + file.getAbsolutePath());
+					throw new IOException("Failed to rename template file " + file.getAbsolutePath() 
+							+ " to " + newNameFile.getName());
 				}
 				return newName;
 			}
