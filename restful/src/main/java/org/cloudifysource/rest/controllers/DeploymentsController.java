@@ -123,6 +123,7 @@ import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.traverse.TopologicalOrderIterator;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
+import org.openspaces.admin.gsc.GridServiceContainer;
 import org.openspaces.admin.gsm.GridServiceManager;
 import org.openspaces.admin.internal.admin.InternalAdmin;
 import org.openspaces.admin.internal.pu.InternalProcessingUnit;
@@ -333,8 +334,8 @@ public class DeploymentsController extends BaseRestController {
 		}
 
 		EventsCacheKey key = new EventsCacheKey(deploymentId);
-		logger.fine(EventsUtils.getThreadId()
-				+ " Received request for events [" + from + "]-[" + to + "] . key : " + key);
+		logger.fine(EventsUtils.getThreadId() + " Received request for events [" + from + "]-[" + to + "] . key : " +
+                key);
 		EventsCacheValue value;
 		try {
 			logger.fine(EventsUtils.getThreadId() + " Retrieving events from cache for key : " + key);
@@ -376,14 +377,17 @@ public class DeploymentsController extends BaseRestController {
 	public DeploymentEvent getLastDeploymentEvent(@PathVariable final String deploymentId)
 			throws Throwable {
 
+        logger.fine("Received request for last deployment event for deployment " + deploymentId);
+
         EventsCacheKey key = new EventsCacheKey(deploymentId);
-        EventsCacheValue value = eventsCache.getIfExists(key);
+        EventsCacheValue value = eventsCache.get(key);
         int lastEventIndex = value.getLastEventIndex();
         List<DeploymentEvent> events =
                 getDeploymentEvents(deploymentId, lastEventIndex, lastEventIndex + 1).getEvents();
         switch (events.size()) {
             case 0:
-                return null;
+                // no events. return empty
+                return new DeploymentEvent();
             case 1:
                 // we only have the old last event. return this one.
                 return events.get(0);
@@ -422,10 +426,6 @@ public class DeploymentsController extends BaseRestController {
 				if (deploymentId.equals(puDeploymentId)) {
 					return;
 				}
-			}
-			if (logger.isLoggable(Level.WARNING)) {
-				logger.warning("[validateDeploymentIdExists] - " 
-						+ "There is no processing unit with the given deployment id [" + deploymentId + "]");
 			}
 			throw new ResourceNotFoundException("Deployment id " + deploymentId);
 		}
@@ -1256,8 +1256,11 @@ public class DeploymentsController extends BaseRestController {
 				appName);
 		final String deploymentId = uninstallOrder.get(0).getBeanLevelProperties()
 				.getContextProperties().getProperty(CloudifyConstants.CONTEXT_PROPERTY_DEPLOYMENT_ID);
-		// TODO: Add timeout.
-		FutureTask<Boolean> undeployTask = null;
+
+        logger.info("Uninstalling application " + appName + " . DeploymentId is " + deploymentId);
+        logger.fine("Uninstall order is " + orderToNames(uninstallOrder));
+
+		FutureTask<Boolean> undeployTask;
 		logger.log(Level.INFO, "Starting to poll for" + appName + " uninstall lifecycle events.");
 		if (uninstallOrder.size() > 0) {
 
@@ -1285,12 +1288,12 @@ public class DeploymentsController extends BaseRestController {
 										"Failed to locate GSM that is managing Processing Unit "
 												+ processingUnit.getName());
 							} else {
-								logger.log(Level.INFO,
-										"Undeploying Processing Unit "
-												+ processingUnit.getName());
+								logger.log(Level.INFO, "Undeploying Processing Unit " + processingUnit.getName());
 								populateEventsCache(deploymentId, processingUnit);
-								processingUnit.undeployAndWait(undeployTimeout,
+                                processingUnit.undeployAndWait(undeployTimeout,
 										TimeUnit.MILLISECONDS);
+                                logger.log(Level.INFO, "Processing Unit " + processingUnit.getName() + " was " +
+                                        "undeployed successfully");
 								final String serviceName = ServiceUtils.getApplicationServiceName(
 										processingUnit.getName(), appName);
 								logger.info("Removing application service scope attributes for service " + serviceName);
@@ -1312,8 +1315,7 @@ public class DeploymentsController extends BaseRestController {
 					DeploymentEvent undeployFinishedEvent = new DeploymentEvent();
 					undeployFinishedEvent.setDescription(CloudifyConstants.UNDEPLOYED_SUCCESSFULLY_EVENT);
 					eventsCache.add(new EventsCacheKey(deploymentId), undeployFinishedEvent);
-					logger.log(Level.INFO, "Application " + appName
-							+ " undeployment complete");
+					logger.log(Level.INFO, "Application " + appName + " uninstalled successfully");
 				}
 			}, Boolean.TRUE);
 
@@ -1330,6 +1332,15 @@ public class DeploymentsController extends BaseRestController {
 		}
 		throw new RestErrorException(errors);
 	}
+
+    private List<String> orderToNames(List<ProcessingUnit> order) {
+
+        List<String> names = new ArrayList<String>();
+        for (ProcessingUnit pu : order) {
+            names.add(pu.getName());
+        }
+        return names;
+    }
 
 	private void deleteApplicationScopeAttributes(final String applicationName) {
 		final ApplicationCloudifyAttribute applicationAttributeTemplate =
@@ -1453,9 +1464,8 @@ public class DeploymentsController extends BaseRestController {
 		}
 	}
 
-	private void populateEventsCache(
-			final String deploymentId,
-			final ProcessingUnit processingUnit) {
+	private void populateEventsCache(final String deploymentId,
+			                         final ProcessingUnit processingUnit) {
 		EventsCacheKey key = new EventsCacheKey(deploymentId);
 		EventsCacheValue value = eventsCache.getIfExists(key);
 		if (value == null) {
@@ -1466,13 +1476,17 @@ public class DeploymentsController extends BaseRestController {
 		} else {
 			// a value already exists for this deployment id.
 			// just add the reference for the current pu.
+            logger.fine("Adding processing unit " + processingUnit.getName() + " to events cache value with " +
+                    "deployment id " + deploymentId);
 			value.getProcessingUnits().add(processingUnit);
 		}
 		
 		final AdminBasedGridServiceContainerProvider provider = new AdminBasedGridServiceContainerProvider(admin);
 		// save reference to the containers if exits.
 		// will exist only if this is uninstall process.
-		value.getContainers().addAll(provider.getContainersForDeployment(deploymentId));
+        Set<GridServiceContainer> containersForDeployment = provider.getContainersForDeployment(deploymentId);
+        logger.fine("Adding containers " + containersForDeployment + " for events cache key with deployment id " + deploymentId);
+        value.getContainers().addAll(containersForDeployment);
 	}
 
 	private String getEffectiveAuthGroups(final String authGroups) {

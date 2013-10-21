@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -40,6 +41,8 @@ public class CLIApplicationUninstaller {
 
     private static final int DEFAULT_TIMEOUT_MINUTES = 15;
     private CLIEventsDisplayer displayer = new CLIEventsDisplayer();
+
+    private static final Logger logger = Logger.getLogger(CLIApplicationUninstaller.class.getName());
 
     private boolean askOnTimeout = true;
     private String applicationName;
@@ -76,9 +79,10 @@ public class CLIApplicationUninstaller {
      */
     public void uninstall() throws RestClientException, CLIException, InterruptedException, IOException {
 
-    	ApplicationDescription applicationDescription;
+        ApplicationDescription applicationDescription;
     	try {
     		applicationDescription = restClient.getApplicationDescription(applicationName);
+            logger.fine("Retrieved application description for application " + applicationName + " : " + applicationDescription);
     	} catch (RestClientException e) {
     		if (CloudifyMessageKeys.MISSING_RESOURCE.getName().equals(e.getMessageCode())) {
     			throw new RestClientException("failed_to_locate_app", 
@@ -93,6 +97,7 @@ public class CLIApplicationUninstaller {
         }
 
         final String deploymentId = applicationDescription.getServicesDescription().get(0).getDeploymentId();
+        logger.fine("DeploymentId for application " + applicationName + " is " + deploymentId);
 
         final int lastEventIndex = restClient.getLastEvent(deploymentId).getIndex();
 
@@ -106,17 +111,15 @@ public class CLIApplicationUninstaller {
                         lastEventIndex);
         inspector.setServiceDescriptionList(applicationDescription.getServicesDescription());
 
+        displayer.printEvent("uninstalling_application", applicationName);
 
         restClient.uninstallApplication(
                 applicationName, initialTimeout);
 
+        displayer.printEvent("waiting_for_lifecycle_of_application", applicationName);
 
         // start polling for life cycle events
         boolean isDone = false;
-        displayer.printEvent("uninstalling_application", applicationName);
-        displayer.printEvent("waiting_for_lifecycle_of_application", applicationName);
-
-
         int actualTimeout = initialTimeout;
         while (!isDone) {
             try {
