@@ -304,10 +304,8 @@ public class RestClient {
 	private void validateDeploymentID(final String deploymentId, final String methodName) throws RestClientException {
 		if (deploymentId == null) {
 			logger.warning("[" + methodName + "] - deployment ID is missing.");
-			RestClientException restClientException = 
-					MessagesUtils.createRestClientException(
-							CloudifyErrorMessages.MISSING_DEPLOYMENT_ID.getName(), methodName);
-			throw restClientException;
+            throw MessagesUtils.createRestClientException(
+                    CloudifyErrorMessages.MISSING_DEPLOYMENT_ID.getName(), methodName);
 		}
 	}
 
