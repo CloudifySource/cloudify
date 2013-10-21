@@ -12,32 +12,7 @@
  *******************************************************************************/
 package org.cloudifysource.rest.controllers;
 
-import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_LUS;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.annotation.PostConstruct;
-
 import net.jini.core.discovery.LookupLocator;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.Application;
@@ -150,6 +125,29 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import javax.annotation.PostConstruct;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_LUS;
 
 /**
  * This controller is responsible for retrieving information about deployments. It is also the entry point for deploying
@@ -980,7 +978,7 @@ public class DeploymentsController extends BaseRestController {
 
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(appName, serviceName);
 
-		logger.info("[installService] - installing service " + serviceName);
+		logger.info("Installing service " + serviceName);
 
 		// this validation should only happen on install service.
 		String uploadKey = request.getServiceFolderUploadKey();
@@ -1279,8 +1277,8 @@ public class DeploymentsController extends BaseRestController {
 							permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
 						}
 
-						final long undeployTimeout = TimeUnit.MINUTES.toMillis(timeoutInMinutes)
-								- (System.currentTimeMillis() - startTime);
+						final long undeployTimeout =
+                                startTime + TimeUnit.MINUTES.toMillis(timeoutInMinutes) - System.currentTimeMillis();
 						try {
 							if (processingUnit.waitForManaged(WAIT_FOR_MANAGED_TIMEOUT_SECONDS,
 									TimeUnit.SECONDS) == null) {
@@ -1288,7 +1286,8 @@ public class DeploymentsController extends BaseRestController {
 										"Failed to locate GSM that is managing Processing Unit "
 												+ processingUnit.getName());
 							} else {
-								logger.log(Level.INFO, "Undeploying Processing Unit " + processingUnit.getName());
+								logger.log(Level.INFO, "Undeploying Processing Unit " + processingUnit.getName()
+                                    + " . Timeout is " + undeployTimeout);
 								populateEventsCache(deploymentId, processingUnit);
                                 processingUnit.undeployAndWait(undeployTimeout,
 										TimeUnit.MILLISECONDS);
