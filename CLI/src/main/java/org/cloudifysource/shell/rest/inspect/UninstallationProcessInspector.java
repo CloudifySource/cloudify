@@ -12,6 +12,7 @@
  *******************************************************************************/
 package org.cloudifysource.shell.rest.inspect;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
@@ -61,16 +62,23 @@ public abstract class UninstallationProcessInspector extends InstallationProcess
         	public boolean isDone() throws CLIException, InterruptedException {
         		try {
         			boolean ended = false;
-        			final List<String> latestEvents = getLatestEvents();
-        			if (!latestEvents.isEmpty()) {
-        				if (latestEvents.contains(CloudifyConstants.UNDEPLOYED_SUCCESSFULLY_EVENT)) {
+        			final List<String> instanceCountEvents = loadUnInstalledInstancesEvents();
+        			final List<String> latestLifecycleEvents = getLatestEvents();
+        			if (!latestLifecycleEvents.isEmpty()) {
+        				if (latestLifecycleEvents.contains(CloudifyConstants.UNDEPLOYED_SUCCESSFULLY_EVENT)) {
         					ended = true;
         				}
-        				displayer.printEvents(latestEvents);
+        				displayer.printEvents(latestLifecycleEvents);
         			} else {
         				displayer.printNoChange();
         			}
-        			printUnInstalledInstances();
+        			
+        			for (String instanceEvent : instanceCountEvents) {
+						displayer.printEvent(instanceEvent);
+					}
+        			
+        			// is there no way to determin if lifecycle events ended when
+        			// polling for uninstall events ?
 //        			if (waitForCloudResourcesRelease) {
 //        				displayer.printEvent("releasing cloud resources...");
 //        				return ended;
@@ -85,18 +93,20 @@ public abstract class UninstallationProcessInspector extends InstallationProcess
         		}
         	}
 
-            private void printUnInstalledInstances() throws RestClientException {
+            private List<String> loadUnInstalledInstancesEvents() throws RestClientException {
+            	final List<String> eventsList = new ArrayList<String>();
                 for (Map.Entry<String, Integer> entry : plannedNumberOfInstancesPerService.entrySet()) {
                     String serviceName = entry.getKey();
 					int currentRunningInstances = getNumberOfRunningInstances(serviceName);
                     Integer lastUpdatedRunningInstances = currentRunningInstancesPerService.get(serviceName);
                     if (currentRunningInstances < lastUpdatedRunningInstances) {
                         // a new instance is now running
-                        displayer.printEvent(serviceName 
+                    	currentRunningInstancesPerService.put(serviceName, currentRunningInstances);
+                        eventsList.add(serviceName 
                         		+ " : Installed " + currentRunningInstances + " Planned " + entry.getValue());
-                        currentRunningInstancesPerService.put(serviceName, currentRunningInstances);
                     }
                 }
+				return eventsList;
             }
         });
 
