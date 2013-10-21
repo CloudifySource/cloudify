@@ -91,6 +91,7 @@ public class EventsCache {
      * @param key The key to refresh.
      */
     public void refresh(final EventsCacheKey key) {
+        logger.fine("Refreshing events cache for entry " + key);
         eventsLoadingCache.refresh(key);
     }
 
@@ -102,6 +103,7 @@ public class EventsCache {
      * @throws java.util.concurrent.ExecutionException Thrown in case a failure happened while loading the cache with a new entry.
      */
     public EventsCacheValue get(final EventsCacheKey key) throws ExecutionException {
+        logger.fine("Retrieving events cache value for entry " + key);
         return eventsLoadingCache.get(key);
     }
 
@@ -111,6 +113,7 @@ public class EventsCache {
      * @return The cache value. containing also the events. null if doesnt exist.
      */
     public EventsCacheValue getIfExists(final EventsCacheKey key) {
+        logger.fine("Retrieving events cache value for entry " + key + " if exists");
         return eventsLoadingCache.getIfPresent(key);
     }
 
@@ -121,7 +124,10 @@ public class EventsCache {
      */
     public void put(final EventsCacheKey key, final EventsCacheValue value) {
         if (!eventsLoadingCache.asMap().containsKey(key)) {
+            logger.fine("Putting new value in events cache for key " + key + " : " + value);
             eventsLoadingCache.asMap().put(key, value);
+        } else {
+            logger.fine("Not putting new value in events cache for key " + key + " . it already exists.");
         }
     }
     
@@ -132,8 +138,11 @@ public class EventsCache {
      */
     public void add(final EventsCacheKey key, final DeploymentEvent event) {
     	EventsCacheValue eventsCacheValue = eventsLoadingCache.asMap().get(key);
-		DeploymentEvents events = eventsCacheValue.getEvents();
-        event.setIndex(eventsCacheValue.getLastEventIndex() + 1);
-    	events.getEvents().add(event);
+        synchronized (eventsCacheValue.getMutex()) {
+            DeploymentEvents events = eventsCacheValue.getEvents();
+            event.setIndex(eventsCacheValue.getLastEventIndex() + 1);
+            logger.fine("Adding event " + event + " to cache value with key " + key);
+            events.getEvents().add(event);
+        }
     }
 }

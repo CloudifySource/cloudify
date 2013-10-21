@@ -111,6 +111,7 @@ public class EventsCacheLoaderTest {
             Mockito.when(mockContainer.logEntries(Mockito.any(LogEntryMatcher.class)))
                     .thenReturn(mockLogEntries);
             Mockito.when(mockContainer.getUid()).thenReturn(UUID.randomUUID().toString());
+            Mockito.when(mockContainer.isDiscovered()).thenReturn(true);
             return mockContainer;
         }
 
