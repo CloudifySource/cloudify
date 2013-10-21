@@ -39,6 +39,7 @@ import org.cloudifysource.domain.cloud.RestComponent;
 import org.cloudifysource.domain.cloud.UsmComponent;
 import org.cloudifysource.domain.cloud.WebuiComponent;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
+import org.cloudifysource.domain.network.AccessRule;
 import org.cloudifysource.domain.statistics.PercentileInstancesStatisticsConfig;
 import org.cloudifysource.dsl.internal.DSLValidationException;
 
@@ -90,6 +91,8 @@ public class DSLValidationFactory {
 		validatorByClass.put(TenantSharedIsolationSLADescriptor.class.getName(), TenantSharedIsolationSLADescriptorValidator.class);
 		validatorByClass.put(UsmComponent.class.getName(), UsmComponentValidator.class);
 		validatorByClass.put(WebuiComponent.class.getName(), WebuiComponentValidator.class);
+		validatorByClass.put(AccessRule.class.getName(), AccessRuleValidator.class);
+		
 	}
 	
 	public static void main(String[] args) throws DSLValidationException {

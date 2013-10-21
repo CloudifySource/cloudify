@@ -12,8 +12,8 @@
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning;
 
+import org.cloudifysource.domain.ServiceNetwork;
 import org.cloudifysource.domain.cloud.Cloud;
-import org.cloudifysource.domain.network.Network;
 import org.openspaces.admin.Admin;
 
 /************
@@ -31,7 +31,7 @@ public class ComputeDriverConfiguration {
 	private String serviceName;
 	private Admin admin;
 	
-	private Network network;
+	private ServiceNetwork network;
 	
 	public ComputeDriverConfiguration() {
 		
@@ -76,11 +76,11 @@ public class ComputeDriverConfiguration {
 		this.admin = admin;
 	}
 
-	public Network getNetwork() {
+	public ServiceNetwork getNetwork() {
 		return network;
 	}
 
-	public void setNetwork(Network network) {
+	public void setNetwork(final ServiceNetwork network) {
 		this.network = network;
 	}
 

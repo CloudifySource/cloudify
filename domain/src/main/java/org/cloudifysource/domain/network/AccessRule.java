@@ -21,7 +21,7 @@ import org.cloudifysource.domain.internal.CloudifyDSLEntity;
  * @since 2.7.0
  * 
  */
-@CloudifyDSLEntity(name = "rule", clazz = AccessRule.class,
+@CloudifyDSLEntity(name = "accessRule", clazz = AccessRule.class,
 		allowInternalNode = true, allowRootNode = true, parent = "accessRules")
 public class AccessRule {
 

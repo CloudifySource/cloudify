@@ -12,31 +12,25 @@
  *******************************************************************************/
 package org.cloudifysource.domain.network;
 
-import org.cloudifysource.domain.internal.CloudifyDSLEntity;
+import java.util.LinkedList;
+import java.util.List;
 
 /********
- * Network definitions for a Cloudify service.
+ * Represents a port range, which can contains multiple sub ranges.
  * 
  * @author barakme
  * @since 2.7.0
  * 
  */
-@CloudifyDSLEntity(name = "network", clazz = Network.class,
-		allowInternalNode = true, allowRootNode = true, parent = "service")
-public class Network {
+public class PortRange {
 
-	private AccessRules accessRules = new AccessRules();
+	private List<PortRangeEntry> ranges = new LinkedList<PortRangeEntry>();
 
-	public Network() {
-
+	public List<PortRangeEntry> getRanges() {
+		return ranges;
 	}
 
-	public AccessRules getAccessRules() {
-		return accessRules;
+	public void setRanges(final List<PortRangeEntry> ranges) {
+		this.ranges = ranges;
 	}
-
-	public void setAccessRules(final AccessRules accessRules) {
-		this.accessRules = accessRules;
-	}
-
 }

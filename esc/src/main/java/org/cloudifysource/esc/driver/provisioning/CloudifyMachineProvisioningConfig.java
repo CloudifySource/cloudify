@@ -455,6 +455,10 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 		return properties.get(SERVICE_CLOUD_CONFIGURATION_KEY);
 	}
 
+	/********
+	 * Sets the serialized service network description. 
+	 * @param networkAsString the serialized network description.
+	 */
 	public void setNetworkAsString(final String networkAsString) {
 		properties.put(SERVICE_NETWORK_STRING_KEY,networkAsString);
 	}
