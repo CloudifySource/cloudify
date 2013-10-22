@@ -375,6 +375,8 @@ public class DeploymentsController extends BaseRestController {
 	public DeploymentEvent getLastDeploymentEvent(@PathVariable final String deploymentId)
 			throws Throwable {
 
+        verifyDeploymentIdExists(deploymentId);
+
         logger.fine("Received request for last deployment event for deployment " + deploymentId);
 
         EventsCacheKey key = new EventsCacheKey(deploymentId);
