@@ -12,12 +12,6 @@
  *******************************************************************************/
 package org.cloudifysource.rest.util;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyConstants.DeploymentState;
 import org.cloudifysource.dsl.internal.CloudifyConstants.USMState;
@@ -40,6 +34,12 @@ import org.openspaces.admin.pu.ProcessingUnits;
 import org.openspaces.admin.zone.Zone;
 import org.openspaces.admin.zone.Zones;
 import org.openspaces.pu.service.ServiceMonitors;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This factory class is responsible for manufacturing an application description POJO. The application description will
@@ -112,8 +112,7 @@ public class ApplicationDescriptionFactory {
 
         String applicationName = application.getName();
         final ApplicationDescription applicationDescription = new ApplicationDescription();
-    	List<ServiceDescription> serviceDescriptionList = getServicesDescription(
-                applicationName, application);
+    	List<ServiceDescription> serviceDescriptionList = getServicesDescription(application);
         logger.log(Level.FINE, "Creating application description for application " + applicationName);
         final DeploymentState applicationState = getApplicationState(serviceDescriptionList);
 
@@ -130,14 +129,11 @@ public class ApplicationDescriptionFactory {
     /**
      * Gets a list of {@link ServiceDescription} objects, representing the application's services.
      *
-     * @param applicationName
-     *            The name of the application containing the services
      * @param app
      *            The {@link Application} object of the application containing the services
      * @return a list of {@link ServiceDescription} objects, representing the application's services.
      */
-    private List<ServiceDescription> getServicesDescription(
-            final String applicationName, final Application app) {
+    private List<ServiceDescription> getServicesDescription(final Application app) {
         List<ServiceDescription> serviceDescriptionList = new ArrayList<ServiceDescription>();
         final ProcessingUnits pus = app.getProcessingUnits();
         for (final ProcessingUnit pu : pus) {
@@ -363,9 +359,7 @@ public class ApplicationDescriptionFactory {
             final int numberOfServiceInstances,
             final int plannedNumberOfInstances) {
 
-        // if the zone is found but doesn't contain an active PU, or the number of running instances is larger than
-        // the planned number of resources - the service is currently being uninstalled.
-        if (processingUnit == null || numberOfServiceInstances > plannedNumberOfInstances) {
+        if (numberOfServiceInstances > plannedNumberOfInstances) {
             return DeploymentState.IN_PROGRESS;
         }
 
