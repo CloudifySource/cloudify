@@ -339,9 +339,20 @@ public enum CloudifyErrorMessages {
 	/**
 	 * Indicates deployment ID is missing.
 	 */
-	MISSING_DEPLOYMENT_ID("deployment_id_missing", 1)
+	MISSING_DEPLOYMENT_ID("deployment_id_missing", 1),
 
-	// CHECKSTYLE:OFF
+    /**
+     * Printed when a service fails to install and self healing is disabled.
+     */
+    FAILED_TO_DEPLOY_SERVICE("failed_to_deploy_service", 1),
+
+    /**
+     * Printed when an application fails to install and self healing is disabled.
+     */
+    FAILED_TO_DEPLOY_APPLICATION("failed_to_deploy_application", 1)
+
+
+    // CHECKSTYLE:OFF
 	;
 	// CHECKSTYLE:ON
 
