@@ -122,8 +122,10 @@ public abstract class InstallationProcessInspector {
 	 * @return true if the service/application are fully running.
 	 * @throws RestClientException
 	 *             Thrown in case an error happened during a rest call.
+     * @throws CLIException
+     *             Thrown in case the CLI determined that some sort error happened.
 	 */
-	public abstract boolean lifeCycleEnded() throws RestClientException;
+	public abstract boolean lifeCycleEnded() throws RestClientException, CLIException;
 
 	/**
 	 * Query the number of running instances for a particular service.

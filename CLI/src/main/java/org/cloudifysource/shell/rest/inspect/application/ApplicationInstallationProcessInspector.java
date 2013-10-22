@@ -15,17 +15,21 @@
  *******************************************************************************/
 package org.cloudifysource.shell.rest.inspect.application;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.rest.response.ApplicationDescription;
 import org.cloudifysource.dsl.rest.response.ServiceDescription;
 import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.restclient.exceptions.RestClientException;
 import org.cloudifysource.restclient.exceptions.RestClientResponseException;
+import org.cloudifysource.restclient.messages.MessagesUtils;
+import org.cloudifysource.shell.ShellUtils;
+import org.cloudifysource.shell.exceptions.CLIException;
 import org.cloudifysource.shell.rest.inspect.InstallationProcessInspector;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created with IntelliJ IDEA.
@@ -64,15 +68,21 @@ public class ApplicationInstallationProcessInspector extends InstallationProcess
     }
 
     @Override
-    public boolean lifeCycleEnded() throws RestClientException {        
-       	boolean applicationIsInstalled = false;
+    public boolean lifeCycleEnded() throws RestClientException, CLIException {
+       	boolean applicationIsInstalled;
     	try {
             ApplicationDescription applicationDescription = restClient
                     .getApplicationDescription(applicationName);
-            
+
+            CloudifyConstants.DeploymentState applicationState = applicationDescription.getApplicationState();
+            if (applicationState.equals(CloudifyConstants.DeploymentState.FAILED)) {
+                throw new CLIException(ShellUtils.getFormattedMessage(CloudifyErrorMessages.FAILED_TO_DEPLOY_APPLICATION
+                        .getName(), applicationName));
+            }
+
             boolean allServicesInstalled = (numServices == applicationDescription.getServicesDescription().size());
             
-			boolean applicationStarted = applicationDescription.getApplicationState()
+			boolean applicationStarted = applicationState
 					.equals(CloudifyConstants.DeploymentState.STARTED);
 			
 			applicationIsInstalled = applicationStarted && allServicesInstalled; 
