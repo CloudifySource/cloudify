@@ -41,7 +41,10 @@ public class ValidateServiceOverridesFileSizeTest extends InstallServiceValidato
 
     @Test
     public void testSizeLimitExeeded() throws IOException {
-    	testValidator();
+        File serviceOverrides = File.createTempFile("serviceOverrides", "");
+        FileUtils.writeStringToFile(serviceOverrides, "I'm longer than 3 bytes !");
+        testValidator(null, null, null, null, serviceOverrides, null,
+                CloudifyMessageKeys.SERVICE_OVERRIDES_SIZE_LIMIT_EXCEEDED.getName());
         serviceOverrides.delete();
     }
 

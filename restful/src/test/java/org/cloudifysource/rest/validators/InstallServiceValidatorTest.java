@@ -28,6 +28,7 @@ import org.junit.Assert;
  */
 public abstract class InstallServiceValidatorTest {
 
+<<<<<<< HEAD
 	private InstallServiceRequest request;
 	private Cloud cloud;
 	private Service service;
@@ -38,6 +39,57 @@ public abstract class InstallServiceValidatorTest {
 	private boolean debugAll;
 	private String debugMode;
 	private String debugEvents;
+=======
+    public abstract InstallServiceValidator getValidatorInstance();
+
+    /**
+     * 
+     * @param request .
+     * @param cloud .
+     * @param service . 
+     * @param cloudOverridesFile .
+     * @param serviceOverridesFile .
+     * @param cloudConfigurationFile .
+     * @param exceptionCause .
+     */
+    public void testValidator(final InstallServiceRequest request, final Cloud cloud, final Service service,
+                              final File cloudOverridesFile, final File serviceOverridesFile,
+                              final File cloudConfigurationFile, final String exceptionCause) {
+
+        final InstallServiceValidator validator = getValidatorInstance();
+        InstallServiceValidationContext validationContext = new InstallServiceValidationContext();
+        validationContext.setCloud(cloud);
+        validationContext.setService(service);
+        validationContext.setCloudOverridesFile(cloudOverridesFile);
+        validationContext.setServiceOverridesFile(serviceOverridesFile);
+        validationContext.setCloudConfigurationFile(cloudConfigurationFile);
+        try {
+            validator.validate(validationContext);
+            if (exceptionCause != null) {
+                Assert.fail(exceptionCause + " didn't yield the expected RestErrorException.");
+            }
+        } catch (final RestErrorException e) {
+            if (exceptionCause == null) {
+                e.printStackTrace();
+                Assert.fail();
+            }
+            Assert.assertEquals(exceptionCause, e.getMessage());
+        }
+    }
+
+    public void testValidator(final InstallServiceRequest request, final Cloud cloud, final Service service,
+                              final String exceptionCause) {
+        testValidator(request, cloud, service, null, null, null, exceptionCause);
+    }
+
+    public void testValidator(final InstallServiceRequest request, final String exceptionCause) {
+        testValidator(request, null, null, null, null, null, exceptionCause);
+    }
+
+    public void testValidator(final Cloud cloud, final Service service, final String exceptionCause) {
+        testValidator(null, cloud, service, null, null, null, exceptionCause);
+    }
+>>>>>>> CLOUDIFY-2164 rearranged validations.
 
 
 	public abstract InstallServiceValidator getValidatorInstance();

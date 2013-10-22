@@ -40,7 +40,10 @@ public class ValidateCloudOverridesFileSizeTest extends InstallServiceValidatorT
 
     @Test
     public void testSizeLimitExeeded() throws IOException {
-        testValidator();
+        File cloudOverrides = File.createTempFile("cloudOverrides", "");
+        FileUtils.writeStringToFile(cloudOverrides, "I'm longer than 3 bytes !");
+        testValidator(null, null, null, cloudOverrides, null, null,
+                CloudifyMessageKeys.CLOUD_OVERRIDES_SIZE_LIMIT_EXCEEDED.getName());
         cloudOverrides.delete();
     }
 

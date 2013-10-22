@@ -37,14 +37,11 @@ public class ValidateTemplateTest extends InstallServiceValidatorTest {
     public void testMissingTemplate() throws IOException, DSLException, PackagingException {
         Cloud cloud = ServiceReader.readCloud(new File(CLOUD_FILE_PATH));
         Service service = ServiceReader.readService(new File(NOT_EXIST_TEMPLATE_SERVICE_GROOVY));
-        setCloud(cloud);
-        setService(service);
-        setExceptionCause(CloudifyMessageKeys.MISSING_TEMPLATE.getName());
-        testValidator();
+        testValidator(cloud, service, CloudifyMessageKeys.MISSING_TEMPLATE.getName());
     }
 
     @Test
-    public void testNullCompute() throws DSLException, PackagingException, IOException {
+    public void testNullCompute() throws DSLException, PackagingException {
         Service service = ServiceReader.readService(new File(NO_COMPUTE_SERVICE));
         setService(service);
         testValidator();
