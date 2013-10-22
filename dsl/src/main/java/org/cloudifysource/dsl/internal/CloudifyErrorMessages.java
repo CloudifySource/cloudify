@@ -331,16 +331,22 @@ public enum CloudifyErrorMessages {
 	 * Indicates a failure in creating REST client.
 	 */
 	FAILED_CREATE_REST_CLIENT("failed_to_create_REST_client", 1),
-	
+	/**
+	 * 
+	 */
 	MISSING_WORK_DIRECTORY_BEFORE_BOOTSTRAP_LOCALCLOUD("missing_work_directory_before_bootstrap", 1),
-	
+	/**
+	 * 
+	 */
 	FAILED_CLEANING_WORK_DIRECTORY_BEFORE_BOOTSTRAP_LOCALCLOUD("failed_cleaning_work_directory_before_bootstrap", 2),
-	
 	/**
 	 * Indicates deployment ID is missing.
 	 */
-	MISSING_DEPLOYMENT_ID("deployment_id_missing", 1),
-
+	MISSING_DEPLOYMENT_ID("deployment_id_missing", 1),	
+	/**
+	 * Indicates a failure in packing service folder.
+	 */
+	FAILED_PACKING_SERVICE_FOLDER("failed_to_pack_service_folder", 1),
     /**
      * Printed when a service fails to install and self healing is disabled.
      */

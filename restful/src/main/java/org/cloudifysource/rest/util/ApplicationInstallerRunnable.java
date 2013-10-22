@@ -29,7 +29,7 @@ import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.Service;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
+import org.cloudifysource.dsl.internal.DSLApplicationCompilationResult;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.packaging.FileAppender;
@@ -53,7 +53,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 			.getLogger(ApplicationInstallerRunnable.class.getName());
 
 	private final ServiceController controller;
-	private final DSLApplicationCompilatioResult result;
+	private final DSLApplicationCompilationResult result;
 	private final String applicationName;
 	private final File overridesFile;
 	private final String authGroups;
@@ -97,7 +97,7 @@ public class ApplicationInstallerRunnable implements Runnable {
 	 */
 	public ApplicationInstallerRunnable(
 			final ServiceController controller,
-			final DSLApplicationCompilatioResult result,
+			final DSLApplicationCompilationResult result,
 			final String applicationName,
 			final File overridesFile,
 			final String authGroups,

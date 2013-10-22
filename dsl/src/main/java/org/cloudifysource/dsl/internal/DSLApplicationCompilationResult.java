@@ -22,18 +22,24 @@ import org.cloudifysource.domain.Application;
  * @author barakme
  * 
  */
-public class DSLApplicationCompilatioResult {
+public class DSLApplicationCompilationResult {
 
 	private Application application;
 	private File applicationDir;
 	private File applicationFile;
+	private File applicationPropertiesFile;
+	private File applicationOverridesFile;
 
-	public DSLApplicationCompilatioResult(final Application application,
-			final File applicationDir, final File applicationFile) {
+
+	public DSLApplicationCompilationResult(final Application application,
+			final File applicationDir, final File applicationFile,
+			final File applicationPropertiesFile, final File applicationOverridesFile) {
 		super();
 		this.application = application;
 		this.applicationDir = applicationDir;
 		this.applicationFile = applicationFile;
+		this.applicationPropertiesFile = applicationPropertiesFile;
+		this.applicationOverridesFile = applicationOverridesFile;
 	}
 
 	public File getApplicationFile() {
@@ -59,5 +65,20 @@ public class DSLApplicationCompilatioResult {
 	public void setApplicationDir(final File applicationDir) {
 		this.applicationDir = applicationDir;
 	}
-
+	
+	public final File getApplicationPropertiesFile() {
+		return applicationPropertiesFile;
+	}
+	
+	public final void setApplicationPropertiesFile(final File applicationPropertiesFile) {
+		this.applicationPropertiesFile = applicationPropertiesFile;
+	}
+	
+	public final File getApplicationOverridesFile() {
+		return applicationOverridesFile;
+	}
+	
+	public final void setApplicationOverridesFile(final File applicationOverridesFile) {
+		this.applicationOverridesFile = applicationOverridesFile;
+	}
 }

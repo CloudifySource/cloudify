@@ -28,7 +28,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -47,10 +46,10 @@ import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
-import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
+import org.cloudifysource.dsl.internal.DSLApplicationCompilationResult;
 import org.cloudifysource.dsl.internal.DSLServiceCompilationResult;
-import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.rest.request.InstallApplicationRequest;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
 import org.cloudifysource.dsl.rest.request.SetApplicationAttributesRequest;
@@ -82,9 +81,9 @@ import org.cloudifysource.rest.ResponseConstants;
 import org.cloudifysource.rest.RestConfiguration;
 import org.cloudifysource.rest.controllers.helpers.ControllerHelper;
 import org.cloudifysource.rest.controllers.helpers.PropertiesOverridesMerger;
+import org.cloudifysource.rest.deploy.ApplicationDeployerRequest;
 import org.cloudifysource.rest.deploy.ApplicationDeployerRunnable;
 import org.cloudifysource.rest.deploy.DeploymentConfig;
-import org.cloudifysource.rest.deploy.DeploymentFileHolder;
 import org.cloudifysource.rest.deploy.ElasticDeploymentCreationException;
 import org.cloudifysource.rest.deploy.ElasticProcessingUnitDeploymentFactory;
 import org.cloudifysource.rest.deploy.ElasticProcessingUnitDeploymentFactoryImpl;
@@ -98,8 +97,6 @@ import org.cloudifysource.rest.exceptions.ResourceNotFoundException;
 import org.cloudifysource.rest.repo.UploadRepo;
 import org.cloudifysource.rest.util.ApplicationDescriptionFactory;
 import org.cloudifysource.rest.util.IsolationUtils;
-import org.cloudifysource.rest.util.LifecycleEventsContainer;
-import org.cloudifysource.rest.util.RestPollingRunnable;
 import org.cloudifysource.rest.validators.InstallApplicationValidationContext;
 import org.cloudifysource.rest.validators.InstallApplicationValidator;
 import org.cloudifysource.rest.validators.InstallServiceValidationContext;
@@ -207,6 +204,7 @@ public class DeploymentsController extends BaseRestController {
 	private final ExecutorService serviceUndeployExecutor = Executors.newFixedThreadPool(10);
 	private EventsCache eventsCache;
 	private ControllerHelper controllerHelper;
+	private File extractedFodler;
 
 	/**
 	 * Initialization.
@@ -226,6 +224,9 @@ public class DeploymentsController extends BaseRestController {
 		this.admin = restConfig.getAdmin();
 		this.eventsCache = new EventsCache(admin);
 		this.controllerHelper = new ControllerHelper(gigaSpace, admin);
+		this.extractedFodler = new File(restConfig.getRestTempFolder(), CloudifyConstants.EXTRACTED_FILES_FOLDER_NAME);
+		extractedFodler.mkdirs();
+		extractedFodler.deleteOnExit();
 	}
 
 	/**
@@ -688,30 +689,28 @@ public class DeploymentsController extends BaseRestController {
 			@PathVariable final String appName,
 			@RequestBody final InstallApplicationRequest request)
 			throws RestErrorException {
+		
 		// get the application file
 		final String applcationFileUploadKey = request.getApplcationFileUploadKey();
 		final File applicationFile = getFromRepo(applcationFileUploadKey,
-				CloudifyMessageKeys.WRONG_APPLICTION_FILE_UPLOAD_KEY.getName(),
-				appName);
+				CloudifyMessageKeys.WRONG_APPLICTION_FILE_UPLOAD_KEY.getName(), appName);
+		
 		// get the application overrides file
 		final String applicationOverridesFileKey = request.getApplicationOverridesUploadKey();
 		final File applicationOverridesFile = getFromRepo(applicationOverridesFileKey,
-				CloudifyMessageKeys.WRONG_APPLICTION_OVERRIDES_FILE_UPLOAD_KEY.getName(),
-				appName);
-
-		// read application data
-		DSLApplicationCompilatioResult result;
+				CloudifyMessageKeys.WRONG_APPLICTION_OVERRIDES_FILE_UPLOAD_KEY.getName(), appName);
+		
+		// construct application object
+		DSLApplicationCompilationResult appReaderResult;
 		try {
-			result = ServiceReader
-					.getApplicationFromFile(applicationFile,
-							applicationOverridesFile);
+			appReaderResult = ServiceReader.getApplicationFromFile(applicationFile, applicationOverridesFile);
 		} catch (final Exception e) {
-			throw new RestErrorException("Failed reading application file."
-					+ " Reason: " + e.getMessage(), e);
+			throw new RestErrorException("Failed reading application file." + " Reason: " + e.getMessage(), e);
 		}
-		Application application = result.getApplication();
+		Application application = appReaderResult.getApplication();
 		application.setName(appName);
 		
+		// perform validations
 		validateInstallApplication(application, request);
 		
 		// update effective authGroups
@@ -719,8 +718,7 @@ public class DeploymentsController extends BaseRestController {
 		request.setAuthGroups(effectiveAuthGroups);
 
 		// create install dependency order.
-		final List<Service> services = createServiceDependencyOrder(result
-				.getApplication());
+		final List<Service> services = createServiceDependencyOrder(application);
 
 		// create a deployment ID that would be used across all services.
 		final String deploymentID = UUID.randomUUID().toString();
@@ -728,15 +726,19 @@ public class DeploymentsController extends BaseRestController {
 		// remove any existing attributes for this application.
 		deleteApplicationScopeAttributes(request.getApplicationName());
 
-		final ApplicationDeployerRunnable installer =
-				new ApplicationDeployerRunnable(this,
-						request,
-						result,
-						services,
-						deploymentID,
-						applicationOverridesFile);
+		// create the installer
+		ApplicationDeployerRequest applicationDeployerRequest = new ApplicationDeployerRequest();
+		applicationDeployerRequest.setAppDir(appReaderResult.getApplicationDir());
+		applicationDeployerRequest.setAppFile(appReaderResult.getApplicationFile());
+		applicationDeployerRequest.setAppPropertiesFile(appReaderResult.getApplicationPropertiesFile());
+		applicationDeployerRequest.setAppOverridesFile(appReaderResult.getApplicationOverridesFile());
+		applicationDeployerRequest.setController(this);
+		applicationDeployerRequest.setDeploymentID(deploymentID);
+		applicationDeployerRequest.setRequest(request);
+		applicationDeployerRequest.setServices(services);
+		final ApplicationDeployerRunnable installer = new ApplicationDeployerRunnable(applicationDeployerRequest);
 
-		// start install thread.
+		// install
 		if (installer.isAsyncInstallPossibleForApplication()) {
 			installer.run();
 		} else {
@@ -752,7 +754,6 @@ public class DeploymentsController extends BaseRestController {
 		// creating response
 		final InstallApplicationResponse response = new InstallApplicationResponse();
 		response.setDeploymentID(deploymentID);
-
 		return response;
 	}
 
@@ -771,8 +772,6 @@ public class DeploymentsController extends BaseRestController {
 
 	private void validateInstallApplication(final Application application, final InstallApplicationRequest request)
 			throws RestErrorException {
-		final InstallApplicationValidationContext validationContext = new InstallApplicationValidationContext();
-		
 		
 		// get cloud overrides file
 		final File cloudOverridesFile = getFromRepo(
@@ -786,6 +785,8 @@ public class DeploymentsController extends BaseRestController {
 				CloudifyMessageKeys.WRONG_CLOUD_CONFIGURATION_UPLOAD_KEY.getName(),
 				application.getName());
 		
+		// create validation context
+		final InstallApplicationValidationContext validationContext = new InstallApplicationValidationContext();
 		validationContext.setApplication(application);
 		validationContext.setCloud(restConfig.getCloud());
 		validationContext.setAdmin(admin);
@@ -795,6 +796,7 @@ public class DeploymentsController extends BaseRestController {
 		validationContext.setDebugEvents(request.getDebugEvents());
 		validationContext.setDebugAll(request.isDebugAll());
 		
+		// call validate for each install application validator.
 		for (final InstallApplicationValidator validator : installApplicationValidators) {
 			validator.validate(validationContext);
 		}
@@ -1030,93 +1032,81 @@ public class DeploymentsController extends BaseRestController {
 			@RequestBody final InstallServiceRequest request)
 			throws RestErrorException {
 
+		logger.info("[installService] - installing service " + serviceName);
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(appName, serviceName);
 
-		logger.info("Installing service " + serviceName);
-
-		// this validation should only happen on install service.
+		// validate upload key
 		String uploadKey = request.getServiceFolderUploadKey();
 		if (StringUtils.isBlank(uploadKey)) {
 			throw new RestErrorException(CloudifyMessageKeys.UPLOAD_KEY_PARAMETER_MISSING.getName());
 		}
 		
-		// get service folder
-		final File packedFile = getFromRepo(uploadKey,
-				CloudifyMessageKeys.WRONG_SERVICE_FOLDER_UPLOAD_KEY.getName(),
-				absolutePuName);
+		// get service packed folder
+		final File servicePackedFolder = getFromRepo(uploadKey,
+				CloudifyMessageKeys.WRONG_SERVICE_FOLDER_UPLOAD_KEY.getName(), absolutePuName);
+
+		// extract the service folder and working directory
+		File serviceDir;
+		try {
+			serviceDir = ServiceReader.extractProjectFileToDir(servicePackedFolder, absolutePuName, extractedFodler);
+		} catch (final IOException e) {
+			logger.log(Level.WARNING, "Failed to extract project file [" 
+					+ servicePackedFolder.getAbsolutePath() + "] to new directory " + absolutePuName 
+					+ " [under " + extractedFodler.getAbsolutePath() + "]", e);
+			throw new RestErrorException(CloudifyMessageKeys.FAILED_TO_EXTRACT_PROJECT_FILE.getName(), absolutePuName);
+		}
+
 		// get overrides file
 		final File serviceOverridesFile = getFromRepo(request.getServiceOverridesUploadKey(),
-				CloudifyMessageKeys.WRONG_SERVICE_OVERRIDES_UPLOAD_KEY.getName(),
-				absolutePuName);
-
-		final DeploymentFileHolder fileHolder = new DeploymentFileHolder();
-		fileHolder.setPackedFile(packedFile);
-		fileHolder.setServiceOverridesFile(serviceOverridesFile);
-		fileHolder.setApplicationPropertiesFile(null); /* application properties file */
-
-		// extract the service folder
-		final File serviceDir = extractServiceDir(fileHolder.getPackedFile(), absolutePuName);
-		// get cloud overrides file
-		final File workingProjectDir = new File(serviceDir, "ext");
-
-		// get properties file from working directory
-		final File servicePropertiesFile = extractServicePropertiesFile(workingProjectDir);
-
-		// merge properties with overrides files and re-pack the service folder
-		PropertiesOverridesMerger merger = new PropertiesOverridesMerger();
-		merger.setRePackFileName(absolutePuName);
-		merger.setRePackFolder(serviceDir);
-		merger.setDestMergeFile(servicePropertiesFile);
-		// first add the application properties file. least important overrides.
-		merger.setApplicationPropertiesFile(fileHolder.getApplicationPropertiesFile());
-		// add the service properties file, second level overrides.
-		merger.setServicePropertiesFile(servicePropertiesFile);
-		// add the overrides file, most important overrides.
-		merger.setOverridesFile(fileHolder.getServiceOverridesFile());
-		// merge and get the updates packed file (or the original one if no merge needed).
-		merger.setOriginPackedFile(fileHolder.getPackedFile());
-		File updatedPackedFile = merger.merge();
-
-		// Read the service
-		final Service service = readService(workingProjectDir,
-				request,
+				CloudifyMessageKeys.WRONG_SERVICE_OVERRIDES_UPLOAD_KEY.getName(), absolutePuName);
+		
+		// read the service
+		final DSLServiceCompilationResult readServiceResult = readService(
+				new File(serviceDir, "ext"),
+				request.getServiceFileName(),
 				absolutePuName,
-				null);
-		
-		// get cloud overrides file
-		final File cloudOverridesFile = getFromRepo(
-				request.getCloudOverridesUploadKey(),
-				CloudifyMessageKeys.WRONG_CLOUD_OVERRIDES_UPLOAD_KEY.getName(),
-				absolutePuName);
+				null,
+				serviceOverridesFile);
+		Service service = readServiceResult.getService();
 
-		// get cloud configuration file and content
-		final File cloudConfigurationFile = getFromRepo(
-				request.getCloudConfigurationUploadKey(),
-				CloudifyMessageKeys.WRONG_CLOUD_CONFIGURATION_UPLOAD_KEY.getName(),
-				absolutePuName);
-		
-		// validates
+		// perform validations
 		validateInstallService(
-				absolutePuName, 
 				request, 
 				service, 
-				service.getCompute().getTemplate(), 
-				cloudOverridesFile, 
-				serviceOverridesFile, 
-				cloudConfigurationFile);
+				absolutePuName, 
+				readServiceResult.getServiceOverridesFile());
 		
-		// set the new auth groups
+		
+		// merge properties with overrides files
+		PropertiesOverridesMerger merger = new PropertiesOverridesMerger(
+				readServiceResult.getServicePropertiesFile(), 
+				null /* application properties file */,
+				readServiceResult.getServicePropertiesFile(),
+				readServiceResult.getServiceOverridesFile());
+		merger.merge();
+		
+		File updatedPackedFile = servicePackedFolder;
+		if (merger.isMerged()) {
+			// re-pack the service folder after merge
+			try {
+				updatedPackedFile = Packager.createZipFile(absolutePuName, serviceDir);
+			} catch (IOException e) {
+				logger.log(Level.WARNING, "Failed to re-pack service folder [" + serviceDir.getAbsolutePath() 
+						+ "]. Reason: " + e.getMessage());
+				throw new RestErrorException(CloudifyErrorMessages.FAILED_PACKING_SERVICE_FOLDER.getName(), serviceDir);
+			}
+		}
+
+		// set the new authentication groups
 		String effectiveAuthGroups = getEffectiveAuthGroups(request.getAuthGroups());
 		request.setAuthGroups(effectiveAuthGroups);
 
-		final String deploymentID = UUID.randomUUID().toString();
-		
 		// install the service
+		final String deploymentID = UUID.randomUUID().toString();
 		return installServiceInternal(
 				appName,
 				request,
 				deploymentID,
-				fileHolder,
 				null,
 				service,
 				updatedPackedFile);
@@ -1131,8 +1121,6 @@ public class DeploymentsController extends BaseRestController {
 	 *            Install service request.
 	 * @param deploymentID
 	 *            the application deployment ID.
-	 * @param fileHolder
-	 *            A file holder for necessary deployment files.
 	 * @param serviceProps
 	 *            service properties dependent on the application.
 	 * @param service 
@@ -1146,7 +1134,6 @@ public class DeploymentsController extends BaseRestController {
 			final String appName,
 			final InstallServiceRequest request,
 			final String deploymentID,
-			final DeploymentFileHolder fileHolder,
 			final ServiceApplicationDependentProperties serviceProps, 
 			final Service service,
 			final File packedFile)
@@ -1575,12 +1562,6 @@ public class DeploymentsController extends BaseRestController {
 		return effectiveAuthGroups;
 	}
 
-	private File extractServicePropertiesFile(final File workingProjectDir) {
-		final String propertiesFileName =
-				DSLUtils.getPropertiesFileName(workingProjectDir, DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX);
-		return new File(workingProjectDir, propertiesFileName);
-	}
-
 	private static String extractLocators(final Admin admin) {
 
 		final LookupLocator[] locatorsArray = admin.getLocators();
@@ -1626,75 +1607,33 @@ public class DeploymentsController extends BaseRestController {
 		return restConfig.getAdmin().getGridServiceManagers().iterator().next();
 	}
 
-	private void startPollingForLifecycleEvents(final UUID deploymentID, final String serviceName,
-			final String applicationName, final int plannedNumberOfInstances,
-			final boolean isServiceInstall, final int timeout,
-			final TimeUnit minutes) {
-		RestPollingRunnable restPollingRunnable;
-		logger.info("starting poll on service : " + serviceName + " app: "
-				+ applicationName);
-
-		final LifecycleEventsContainer lifecycleEventsContainer = new LifecycleEventsContainer();
-		lifecycleEventsContainer.setEventsSet(restConfig.getEventsSet());
-
-		restPollingRunnable = new RestPollingRunnable(applicationName, timeout,
-				minutes);
-		restPollingRunnable.addService(serviceName, plannedNumberOfInstances);
-		restPollingRunnable.setAdmin(restConfig.getAdmin());
-		restPollingRunnable.setIsServiceInstall(isServiceInstall);
-		restPollingRunnable.setLifecycleEventsContainer(lifecycleEventsContainer);
-		restPollingRunnable.setEndTime(timeout, TimeUnit.MINUTES);
-		restPollingRunnable.setIsSetInstances(true);
-		restConfig.getLifecyclePollingThreadContainer().put(deploymentID,
-				restPollingRunnable);
-		final ScheduledFuture<?> scheduleWithFixedDelay = restConfig.getScheduledExecutor()
-				.scheduleWithFixedDelay(restPollingRunnable, 0,
-						CloudifyConstants.LIFECYCLE_EVENT_POLLING_INTERVAL_SEC, TimeUnit.SECONDS);
-		restPollingRunnable.setFutureTask(scheduleWithFixedDelay);
-
-		logger.log(Level.INFO, "polling container UUID is "
-				+ deploymentID.toString());
-	}
-
-	private File extractServiceDir(final File srcFile, final String absolutePuName) throws RestErrorException {
-		File serviceDir = null;
-		try {
-			// unzip srcFile into a new directory named absolutePuName under baseDir.
-			final File baseDir =
-					new File(restConfig.getRestTempFolder(), CloudifyConstants.EXTRACTED_FILES_FOLDER_NAME);
-			baseDir.mkdirs();
-			baseDir.deleteOnExit();
-			serviceDir = ServiceReader.extractProjectFileToDir(srcFile, absolutePuName, baseDir);
-		} catch (final IOException e1) {
-			throw new RestErrorException(CloudifyMessageKeys.FAILED_TO_EXTRACT_PROJECT_FILE.getName(), absolutePuName);
-		}
-		return serviceDir;
-	}
-
-	private Service readService(final File workingProjectDir,
-			final InstallServiceRequest request,
+	private DSLServiceCompilationResult readService(final File workingProjectDir,
+			final String serviceFileName,
 			final String absolutePuName,
-			final ServiceApplicationDependentProperties serviceProps)
+			final ServiceApplicationDependentProperties serviceProps,
+			final File overridesFile)
 			throws RestErrorException {
-		Service service;
+		DSLServiceCompilationResult result;
 		try {
-			DSLServiceCompilationResult result;
-			if (request.getServiceFileName() != null) {
-				result = ServiceReader.getServiceFromFile(new File(
-						workingProjectDir, request.getServiceFileName()), workingProjectDir);
+			if (serviceFileName != null) {
+				result = ServiceReader.getServiceFromFile(
+						new File(workingProjectDir, serviceFileName), 
+						workingProjectDir,
+						null /* propertiesFileName */,
+						true /* isRunningInGSC */,
+						overridesFile);
 			} else {
-				result = ServiceReader.getServiceFromDirectory(workingProjectDir);
+				result = ServiceReader.getServiceFromDirectory(workingProjectDir, overridesFile);
 			}
-			service = result.getService();
+			Service service = result.getService();
 			// Setting application dependent properties
 			if (serviceProps != null) {
 				service.setDependsOn(serviceProps.getDependsOn());
-
 			}
 		} catch (final Exception e) {
 			throw new RestErrorException(CloudifyMessageKeys.FAILED_TO_READ_SERVICE.getName(), absolutePuName);
 		}
-		return service;
+		return result;
 	}
 
 	private byte[] getCloudConfigurationContent(final File serviceCloudConfigurationFile, final String absolutePuName)
@@ -1755,19 +1694,31 @@ public class DeploymentsController extends BaseRestController {
 		return file;
 	}
 
-	private void validateInstallService(final String absolutePuName, final InstallServiceRequest request,
-			final Service service, final String templateName, final File cloudOverridesFile,
-			final File serviceOverridesFile, final File cloudConfigurationFile)
+	private void validateInstallService(final InstallServiceRequest request,
+			final Service service, final String absolutePuName,
+			final File serviceOverridesFile)
 			throws RestErrorException {
+		
+		// get cloud overrides file
+		final File cloudOverridesFile = getFromRepo(
+				request.getCloudOverridesUploadKey(),
+				CloudifyMessageKeys.WRONG_CLOUD_OVERRIDES_UPLOAD_KEY.getName(), absolutePuName);
+
+		// get cloud configuration file and content
+		final File cloudConfigurationFile = getFromRepo(
+				request.getCloudConfigurationUploadKey(),
+				CloudifyMessageKeys.WRONG_CLOUD_CONFIGURATION_UPLOAD_KEY.getName(), absolutePuName);
+		
+		// create validation context
 		final InstallServiceValidationContext validationContext = new InstallServiceValidationContext();
-		validationContext.setAbsolutePuName(absolutePuName);
 		validationContext.setCloud(restConfig.getCloud());
 		validationContext.setAdmin(admin);
 		validationContext.setService(service);
-		validationContext.setTemplateName(templateName);
 		validationContext.setCloudOverridesFile(cloudOverridesFile);
 		validationContext.setServiceOverridesFile(serviceOverridesFile);
 		validationContext.setCloudConfigurationFile(cloudConfigurationFile);
+		
+		// call validate for each install service validator.
 		for (final InstallServiceValidator validator : installServiceValidators) {
 			validator.validate(validationContext);
 		}
@@ -2304,5 +2255,9 @@ public class DeploymentsController extends BaseRestController {
 			@PathVariable final String appName,
 			@PathVariable final String serviceName) {
 		throw new UnsupportedOperationException();
+	}
+	
+	public File getExtractedFodler() {
+		return this.extractedFodler;
 	}
 }

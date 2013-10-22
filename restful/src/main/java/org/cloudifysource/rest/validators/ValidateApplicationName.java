@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
  *
  */
 @Component
-public class ValidateApplicationName implements InstallApplicationValidator{
+public class ValidateApplicationName implements InstallApplicationValidator {
 
 	@Override
 	public void validate(final InstallApplicationValidationContext validationContext)

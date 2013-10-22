@@ -241,11 +241,17 @@ public abstract class BaseRestController {
     public void handleUnExpectedErrors(final HttpServletResponse response,
                                        final Throwable t) throws IOException {
 
+        Object[] messageArgs = new Object[] {t.getMessage()};
+    	String formattedMessage = 
+    			messageSource.getMessage(
+    					CloudifyErrorMessages.GENERAL_SERVER_ERROR.getName(), 
+    					messageArgs, 
+    					Locale.US);
+
         Response<Void> finalResponse = new Response<Void>();
         finalResponse.setStatus("Failed");
-        finalResponse.setMessage(t.getMessage());
-        finalResponse.setMessageId(CloudifyErrorMessages.GENERAL_SERVER_ERROR
-                .getName());
+        finalResponse.setMessage(formattedMessage);
+        finalResponse.setMessageId(CloudifyErrorMessages.GENERAL_SERVER_ERROR.getName());
         finalResponse.setResponse(null);
         finalResponse.setVerbose(ExceptionUtils.getFullStackTrace(t));
 

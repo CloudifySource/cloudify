@@ -17,7 +17,6 @@ package org.cloudifysource.rest.validators;
 
 import org.cloudifysource.dsl.internal.DSLErrorMessageException;
 import org.cloudifysource.dsl.internal.debug.DebugUtils;
-import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
 import org.cloudifysource.rest.controllers.RestErrorException;
 import org.springframework.stereotype.Component;
 
@@ -31,17 +30,12 @@ public class ValidateInstallServiceRequest implements InstallServiceValidator {
 
     @Override
     public void validate(final InstallServiceValidationContext validationContext) throws RestErrorException {
-        final InstallServiceRequest request = validationContext.getRequest();
-        if (request == null) {
-            return;
-        }
-
-        boolean debugAll = request.isDebugAll();
-        String debugEvents = request.getDebugEvents();
+        boolean debugAll = validationContext.isDebugAll();
+        String debugEvents = validationContext.getDebugEvents();
         try {
-            DebugUtils.validateDebugSettings(debugAll, debugEvents, request.getDebugMode());
+            DebugUtils.validateDebugSettings(debugAll, debugEvents, validationContext.getDebugMode());
         } catch (DSLErrorMessageException e) {
-            throw new RestErrorException(e.getErrorMessage().getName(), e.getArgs());
+            throw new RestErrorException(e.getErrorMessage().getName(), (Object[]) e.getArgs());
         }
     }
 

@@ -16,6 +16,7 @@
 package org.cloudifysource.rest.validators;
 
 import org.cloudifysource.domain.Application;
+import org.cloudifysource.domain.ComputeDetails;
 import org.cloudifysource.domain.Service;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
@@ -34,7 +35,14 @@ public class ValidateTemplate implements InstallServiceValidator, InstallApplica
     @Override
     public void validate(final InstallServiceValidationContext validationContext) throws RestErrorException {
         Cloud cloud = validationContext.getCloud();
-        String templateName = validationContext.getTemplateName();
+        Service service = validationContext.getService();
+        String templateName = null;
+        if (service != null) {
+        	ComputeDetails compute = service.getCompute();
+        	if (compute != null) {
+        		templateName = compute.getTemplate();
+        	}
+        }
         validateTemplate(templateName, cloud);
     }
 

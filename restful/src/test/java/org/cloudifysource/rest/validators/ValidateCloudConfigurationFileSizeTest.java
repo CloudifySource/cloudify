@@ -39,7 +39,7 @@ public class ValidateCloudConfigurationFileSizeTest extends InstallServiceValida
     public void testSizeLimitExeeded() throws IOException {
         File cloudConfig = File.createTempFile("cloudConfig", "");
         FileUtils.writeStringToFile(cloudConfig, "I'm longer than 3 bytes !");
-        testValidator(null, null, null, null, null, null, cloudConfig,
+        testValidator(null, null, null, null, null, cloudConfig,
                 CloudifyMessageKeys.CLOUD_CONFIGURATION_SIZE_LIMIT_EXCEEDED.getName());
         cloudConfig.delete();
     }

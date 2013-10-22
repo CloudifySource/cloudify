@@ -26,8 +26,6 @@ import org.openspaces.admin.Admin;
  * 
  */
 public class InstallServiceValidationContext {
-	private String absolutePuName;
-	private String templateName;
 	private Cloud cloud;
 	private Admin admin;
 	private Service service;
@@ -37,22 +35,6 @@ public class InstallServiceValidationContext {
 	private boolean debugAll;
 	private String debugEvents;
 	private String debugMode = DebugModes.INSTEAD.getName();
-
-	public String getAbsolutePuName() {
-		return absolutePuName;
-	}
-
-	public void setAbsolutePuName(final String absolutePuName) {
-		this.absolutePuName = absolutePuName;
-	}
-
-	public String getTemplateName() {
-		return templateName;
-	}
-
-	public void setTemplateName(final String templateName) {
-		this.templateName = templateName;
-	}
 
 	public Cloud getCloud() {
 		return cloud;

@@ -37,22 +37,19 @@ public abstract class InstallServiceValidatorTest {
      * @param request .
      * @param cloud .
      * @param service . 
-     * @param templateName . 
      * @param cloudOverridesFile .
      * @param serviceOverridesFile .
      * @param cloudConfigurationFile .
      * @param exceptionCause .
      */
     public void testValidator(final InstallServiceRequest request, final Cloud cloud, final Service service,
-                              final String templateName, final File cloudOverridesFile, final File serviceOverridesFile,
+                              final File cloudOverridesFile, final File serviceOverridesFile,
                               final File cloudConfigurationFile, final String exceptionCause) {
 
         final InstallServiceValidator validator = getValidatorInstance();
         InstallServiceValidationContext validationContext = new InstallServiceValidationContext();
-        validationContext.setRequest(request);
         validationContext.setCloud(cloud);
         validationContext.setService(service);
-        validationContext.setTemplateName(templateName);
         validationContext.setCloudOverridesFile(cloudOverridesFile);
         validationContext.setServiceOverridesFile(serviceOverridesFile);
         validationContext.setCloudConfigurationFile(cloudConfigurationFile);
@@ -72,20 +69,15 @@ public abstract class InstallServiceValidatorTest {
 
     public void testValidator(final InstallServiceRequest request, final Cloud cloud, final Service service,
                               final String exceptionCause) {
-        testValidator(request, cloud, service, null, null, null, null, exceptionCause);
+        testValidator(request, cloud, service, null, null, null, exceptionCause);
     }
 
     public void testValidator(final InstallServiceRequest request, final String exceptionCause) {
-        testValidator(request, null, null, null, null, null, null, exceptionCause);
+        testValidator(request, null, null, null, null, null, exceptionCause);
     }
 
     public void testValidator(final Cloud cloud, final Service service, final String exceptionCause) {
-        testValidator(null, cloud, service, null, null, null, null, exceptionCause);
-    }
-
-    public void testValidator(final Cloud cloud, final Service service, final String templateName,
-                              final String exceptionCause) {
-        testValidator(null, cloud, service, templateName, null, null, null, exceptionCause);
+        testValidator(null, cloud, service, null, null, null, exceptionCause);
     }
 
 }
