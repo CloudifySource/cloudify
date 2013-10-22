@@ -39,6 +39,7 @@ public abstract class InstallServiceValidatorTest {
 	private String debugMode;
 	private String debugEvents;
 
+
 	public abstract InstallServiceValidator getValidatorInstance();
 
 	public abstract void init() throws IOException;
