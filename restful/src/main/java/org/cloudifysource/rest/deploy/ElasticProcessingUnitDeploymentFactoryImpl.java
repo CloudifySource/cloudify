@@ -496,6 +496,7 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 			try {
 				final String serializedNetwork =
 						mapper.writeValueAsString(this.deploymentConfig.getService().getNetwork());
+				logger.info("Setting network string to: " + serializedNetwork);
 				config.setNetworkAsString(serializedNetwork);
 			} catch (final IOException e) {
 				throw new IllegalArgumentException(

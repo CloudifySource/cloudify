@@ -87,7 +87,8 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	private static final String AUTH_GROUPS_KEY = "auth-groups";
 	private static final String STORAGE_TEMPLATE_NAME = "storage-template-name";
 
-	private static final String SERVICE_NETWORK_STRING_KEY = "SERVICE_CLOUD_CONFIGURATION_KEY";
+	private static final String SERVICE_NETWORK_STRING_KEY = "SERVICE_NETWORK_STRING_KEY";
+	
 	private StringProperties properties = new StringProperties(new HashMap<String, String>());
 
 	/**
@@ -452,7 +453,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	}
 
 	public String getNetworkAsString() {
-		return properties.get(SERVICE_CLOUD_CONFIGURATION_KEY);
+		return properties.get(SERVICE_NETWORK_STRING_KEY);
 	}
 
 	/********
@@ -460,6 +461,6 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	 * @param networkAsString the serialized network description.
 	 */
 	public void setNetworkAsString(final String networkAsString) {
-		properties.put(SERVICE_NETWORK_STRING_KEY,networkAsString);
+		properties.put(SERVICE_NETWORK_STRING_KEY, networkAsString);
 	}
 }

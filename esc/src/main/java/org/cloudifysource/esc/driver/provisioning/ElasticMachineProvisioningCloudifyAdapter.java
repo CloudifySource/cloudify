@@ -1048,6 +1048,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private ServiceNetwork createNetworkObject() throws ElasticMachineProvisioningException {
 		final String networkAsString = this.config.getNetworkAsString();
 
+		logger.info("Network string is: " + networkAsString);
 		if (StringUtils.isBlank(networkAsString)) {
 			return null;
 		}
