@@ -355,7 +355,7 @@ public enum CloudifyErrorMessages {
      * Printed when an application fails to install and self healing is disabled.
      */
     FAILED_TO_DEPLOY_APPLICATION("failed_to_deploy_application", 1)
-
+    
     // CHECKSTYLE:OFF
 	;
 	// CHECKSTYLE:ON
