@@ -351,12 +351,10 @@ public enum CloudifyErrorMessages {
      * Printed when a service fails to install and self healing is disabled.
      */
     FAILED_TO_DEPLOY_SERVICE("failed_to_deploy_service", 1),
-
     /**
      * Printed when an application fails to install and self healing is disabled.
      */
     FAILED_TO_DEPLOY_APPLICATION("failed_to_deploy_application", 1)
-
 
     // CHECKSTYLE:OFF
 	;
