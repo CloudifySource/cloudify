@@ -497,7 +497,13 @@ public class InstallService extends AdminAwareCommand implements NewRestClientCo
         installer.setSession(session);
         installer.setPlannedNumberOfInstances(
         		nameAndPackedFileResolver.getPlannedNumberOfInstancesPerService().get(serviceName));
-        installer.install();
+
+        try {
+            installer.install();
+        } finally {
+            // drop one line
+            displayer.printEvent("");
+        }
 
         return getFormattedMessage("service_install_ended", Color.GREEN, serviceName);
 	}
