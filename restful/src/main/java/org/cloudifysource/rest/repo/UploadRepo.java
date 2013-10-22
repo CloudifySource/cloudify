@@ -49,29 +49,11 @@ public class UploadRepo {
 	private File restUploadDir;
 
 	/**
-	 * creating the upload directory and initializing scheduled thread.
-	 * 
-	 * @param restTempFolder - the temp directory to be used
-	 * @throws RestErrorException
-	 *             If failed to create upload directory.
-	 * @throws IOException
-	 *             If failed to delete the old upload directory.
+	 * Initializing scheduled thread.
 	 */
 	@PostConstruct
-	public void init(final File restTempFolder)
-			throws IOException, RestErrorException {
-		try {
-			logger.warning("***** starting uploadReop.init, setting baseDir to: " + restTempFolder);
-			this.baseDir = restTempFolder;
-			createUploadDir();
-			createScheduledExecutor();
-		} catch (IOException e) {
-			logger.log(Level.WARNING, "failed to initialize UploadRepo, got IOException: - " + e.getMessage());
-			throw e;
-		} catch (RestErrorException e) {
-			logger.log(Level.WARNING, "failed to initialize UploadRepo, got RestErrorException: - " + e.getMessage());
-			throw e;
-		}
+	public void init() {
+		createScheduledExecutor();
 	}
 
 	private void createScheduledExecutor() {
@@ -89,7 +71,7 @@ public class UploadRepo {
 	}
 
 	/**
-	 * 
+	 * destroy
 	 * @throws IOException .
 	 */
 	@PreDestroy
@@ -103,9 +85,18 @@ public class UploadRepo {
 		createScheduledExecutor();
 	}
 
-	private void createUploadDir()
+	/**
+	 * Creating the upload directory. 
+	 * 
+	 * @throws RestErrorException
+	 *             If failed to create upload directory.
+	 * @throws IOException
+	 *             If failed to delete the old upload directory.
+	 */
+	public void createUploadDir()
 			throws IOException, RestErrorException {
 		restUploadDir = new File(baseDir, CloudifyConstants.UPLOADS_FOLDER_NAME);
+		logger.warning("***** starting uploadReop, setting restUploadDir to: " + restUploadDir.getAbsolutePath());
 		restUploadDir.deleteOnExit();
 		if (restUploadDir.exists()) {
 			// TODO : noak - this is not supposed to happen, need to handle, maybe throw exception
@@ -113,6 +104,10 @@ public class UploadRepo {
 		}
 		final boolean mkdirs = restUploadDir.mkdirs();
 		final String absolutePath = restUploadDir.getAbsolutePath();
+		// TODO noak remove the following logging:
+		logger.warning("creating rest uploads directory at " + absolutePath);
+
+		
 		if (mkdirs) {
 			if (logger.isLoggable(Level.INFO)) {
 				logger.log(Level.INFO, "created rest uploads directory - " + absolutePath);
@@ -265,6 +260,7 @@ public class UploadRepo {
 	}
 
 	public void setBaseDir(final File baseDir) {
+		logger.warning("***** starting uploadReop.init, setting baseDir to: " + baseDir.getAbsolutePath());
 		this.baseDir = baseDir;
 	}
 

@@ -28,6 +28,7 @@ import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.rest.controllers.RestErrorException;
+import org.cloudifysource.rest.util.RestUtils;
 import org.cloudifysource.security.CustomPermissionEvaluator;
 import org.cloudifysource.utilitydomain.data.CloudConfigurationHolder;
 import org.cloudifysource.utilitydomain.data.reader.ComputeTemplatesReader;
@@ -132,7 +133,7 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
 				try {
 					logger.warning("***** calling createUniqueFolderName() with parent: " 
 				+ restTempFolder.getParentFile().getAbsolutePath() + " and folder name: " + restTempFolder.getName());
-					String uniqueFolderName = org.cloudifysource.esc.util.FileUtils.createUniqueFolderName(
+					String uniqueFolderName = RestUtils.createUniqueFolderName(
 							restTempFolder.getParentFile(), restTempFolder.getName(), MAX_FILE_NAME_APPENDER);
 					logger.warning("***** uniqueFolderName is: " + uniqueFolderName);
 					restTempFolder = new File(restTempFolder.getParentFile(), uniqueFolderName);

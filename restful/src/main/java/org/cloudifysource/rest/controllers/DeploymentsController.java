@@ -213,9 +213,11 @@ public class DeploymentsController extends BaseRestController {
 	public void init() throws IOException, RestErrorException {
 		gigaSpace = restConfig.getGigaSpace();
 		permissionEvaluator = restConfig.getPermissionEvaluator();
+		repo.init();
+		repo.setBaseDir(restConfig.getRestTempFolder());
 		logger.warning("***** starting DeolpymentsController, injecting rest temp folder to uploadrepo: " 
-		+ restConfig.getRestTempFolder().getAbsolutePath());
-		repo.init(restConfig.getRestTempFolder());
+				+ restConfig.getRestTempFolder().getAbsolutePath());
+		repo.createUploadDir();
 		this.admin = restConfig.getAdmin();
 		this.eventsCache = new EventsCache(admin);
 		this.controllerHelper = new ControllerHelper(gigaSpace, admin);
