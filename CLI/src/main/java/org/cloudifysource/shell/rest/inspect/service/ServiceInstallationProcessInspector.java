@@ -99,6 +99,7 @@ public class ServiceInstallationProcessInspector extends InstallationProcessInsp
     	try {
             ServiceDescription serviceDescription = restClient
                     .getServiceDescription(applicationName, serviceName);
+            logger.fine("Service description is : " + serviceDescription);
             CloudifyConstants.DeploymentState serviceState = serviceDescription.getServiceState();
             if (serviceState.equals(CloudifyConstants.DeploymentState.FAILED)) {
                 throw new CLIException(ShellUtils.getFormattedMessage(CloudifyErrorMessages.FAILED_TO_DEPLOY_SERVICE
