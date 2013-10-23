@@ -12,12 +12,6 @@
  *******************************************************************************/
 package org.cloudifysource.shell.rest.inspect;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import org.cloudifysource.dsl.rest.response.DeploymentEvent;
 import org.cloudifysource.dsl.rest.response.DeploymentEvents;
 import org.cloudifysource.restclient.RestClient;
@@ -25,6 +19,12 @@ import org.cloudifysource.restclient.exceptions.RestClientException;
 import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.exceptions.CLIException;
 import org.cloudifysource.shell.installer.CLIEventsDisplayer;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created with IntelliJ IDEA. User: elip Date: 5/29/13 Time: 1:50 PM <br>

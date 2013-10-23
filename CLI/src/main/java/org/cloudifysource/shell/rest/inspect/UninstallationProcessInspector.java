@@ -12,16 +12,16 @@
  *******************************************************************************/
 package org.cloudifysource.shell.rest.inspect;
 
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeoutException;
-
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.restclient.exceptions.RestClientException;
 import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.exceptions.CLIException;
 import org.cloudifysource.shell.installer.CLIEventsDisplayer;
+
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created with IntelliJ IDEA.
