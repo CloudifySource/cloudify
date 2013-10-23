@@ -81,7 +81,7 @@ public final class CloudifyMachineValidatorsFactory {
 		NicAddressValidator nicAddressValidator = new NicAddressValidator();
 		nicAddressValidator.setNicAddress(nicAddress);
 		agentValidatorsList.add(nicAddressValidator);
-		agentValidatorsList.add(new LusConnectionValidator());
+//		agentValidatorsList.add(new LusConnectionValidator()); TODO uncomment this once we resolve CLOUDIFY-2169
 		agentValidatorsList.add(new PortAvailabilityAgentValidator());
 	}
 	
