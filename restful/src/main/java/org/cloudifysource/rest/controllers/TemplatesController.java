@@ -839,7 +839,6 @@ public class TemplatesController extends BaseRestController {
 	 *             If failed to remove the template.
 	 */
 	@InternalMethod
-	// @PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
 	@RequestMapping(value = "internal/{templateName}", method = RequestMethod.DELETE)
 	public void
 			removeTemplateInternal(@PathVariable final String templateName)
