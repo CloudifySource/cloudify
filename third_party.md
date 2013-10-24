@@ -1,5 +1,5 @@
-GIGASPACES CLOUDIFY SOFTWARE  - OPEN SOURCE AND THIRD PARTY COMPONENTS - Cloudify 2.0
-=====================================================================
+CLOUDIFY SOFTWARE  - OPEN SOURCE AND THIRD PARTY COMPONENTS - Cloudify 2.X
+==========================================================================
 
 |Artifact|Version|License
 |--------------|--------------|--------------|
@@ -22,6 +22,7 @@ GIGASPACES CLOUDIFY SOFTWARE  - OPEN SOURCE AND THIRD PARTY COMPONENTS - Cloudif
 |dom4j|1.6.1|[BSD like](http://dom4j.sourceforge.net/dom4j-1.6.1)|
 |Dracula Graph Library|0.0.3alpha|[MIT](http://www.graphdracula.net/)|
 |FileUpload|1.2.2|[Apache2.0](http://commons.apache.org/fileupload/)|
+|GigaSpaces XAP Lite Edition |9.X| [XAP Lite License](http://www.gigaspaces.com/gigaspaces-xap-software-license-agreement-lite) |
 |Google Web Toolkit |2.4.0|[Apache2.0](http://code.google.com/webtoolkit/)|
 |gQuery (GWTQuery)|1.1.0|[Apache2.0](http://gwtquery.com)|
 |groovy|1.8.5|[Apache2.0](http://groovy.codehaus.org/)|
