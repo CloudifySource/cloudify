@@ -406,6 +406,7 @@ public final class CloudifyConstants {
 
     // install-service validators
     public static final long SERVICE_OVERRIDES_FILE_LENGTH_LIMIT_BYTES = 20 * FileUtils.ONE_KB;
+    public static final long APPLICATION_OVERRIDES_FILE_LENGTH_LIMIT_BYTES = 20 * FileUtils.ONE_KB;
     public static final long CLOUD_OVERRIDES_FILE_LENGTH_LIMIT_BYTES = 10 * FileUtils.ONE_KB;
     public static final long CLOUD_CONFIGURATION_FILE_LENGTH_LIMIT_BYTES = 10 * FileUtils.ONE_KB;
 

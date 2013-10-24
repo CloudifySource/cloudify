@@ -20,27 +20,27 @@ import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
-import org.junit.Before;
 import org.junit.Test;
 
 public class ValidateCloudOverridesFileSizeTest extends InstallServiceValidatorTest {
 
+	private File cloudOverrides;
     private ValidateCloudOverridesFileSize validator;
     private static final long TEST_FILE_SIZE_LIMIT = 3;
-
-
-    @Before
-    public void initValidator() {
+    
+    @Override
+    public void init() throws IOException {
         validator = new ValidateCloudOverridesFileSize();
         validator.setCloudOverridesFileSizeLimit(TEST_FILE_SIZE_LIMIT);
+    	cloudOverrides = File.createTempFile("cloudOverrides", "");
+    	FileUtils.writeStringToFile(cloudOverrides, "I'm longer than 3 bytes !");
+    	setCloudOverridesFile(cloudOverrides);
+    	setExceptionCause(CloudifyMessageKeys.CLOUD_OVERRIDES_SIZE_LIMIT_EXCEEDED.getName());
     }
 
     @Test
     public void testSizeLimitExeeded() throws IOException {
-        File cloudOverrides = File.createTempFile("cloudOverrides", "");
-        FileUtils.writeStringToFile(cloudOverrides, "I'm longer than 3 bytes !");
-        testValidator(null, null, null, cloudOverrides, null, null,
-                CloudifyMessageKeys.CLOUD_OVERRIDES_SIZE_LIMIT_EXCEEDED.getName());
+        testValidator();
         cloudOverrides.delete();
     }
 
@@ -48,5 +48,6 @@ public class ValidateCloudOverridesFileSizeTest extends InstallServiceValidatorT
     public InstallServiceValidator getValidatorInstance() {
         return validator;
     }
+
 
 }

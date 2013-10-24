@@ -27,20 +27,20 @@ import org.openspaces.admin.Admin;
 public abstract class InstallApplicationValidatorTest {
 
 	private Cloud cloud;
-	private Admin admin; 
+	private Admin admin;
 	private Application application;
-	private File applicationOverridesFile; 
+	private File applicationOverridesFile;
 	private File cloudConfigurationFile;
 	private File cloudOverridesFile;
 	private boolean debugAll;
-	private String debugEvents; 
+	private String debugEvents;
 	private String debugMode;
 	private String exceptionCause;
-	
-	public abstract InstallApplicationValidator getValidatorInstance();
-	public void init() {
-	}
 
+	public abstract InstallApplicationValidator getValidatorInstance();
+	public void init() throws Exception {
+	}
+	
 	public void testValidator() {
 
 		final InstallApplicationValidator validator = getValidatorInstance();
@@ -68,4 +68,85 @@ public abstract class InstallApplicationValidatorTest {
 			Assert.assertEquals(exceptionCause, e.getMessage());
 		}
 	}
+
+	public final Cloud getCloud() {
+		return cloud;
+	}
+
+	public final void setCloud(final Cloud cloud) {
+		this.cloud = cloud;
+	}
+
+	public final Admin getAdmin() {
+		return admin;
+	}
+
+	public final void setAdmin(final Admin admin) {
+		this.admin = admin;
+	}
+
+	public final Application getApplication() {
+		return application;
+	}
+
+	public final void setApplication(final Application application) {
+		this.application = application;
+	}
+
+	public final File getApplicationOverridesFile() {
+		return applicationOverridesFile;
+	}
+
+	public final void setApplicationOverridesFile(final File applicationOverridesFile) {
+		this.applicationOverridesFile = applicationOverridesFile;
+	}
+
+	public final File getCloudConfigurationFile() {
+		return cloudConfigurationFile;
+	}
+
+	public final void setCloudConfigurationFile(final File cloudConfigurationFile) {
+		this.cloudConfigurationFile = cloudConfigurationFile;
+	}
+
+	public final File getCloudOverridesFile() {
+		return cloudOverridesFile;
+	}
+
+	public final void setCloudOverridesFile(final File cloudOverridesFile) {
+		this.cloudOverridesFile = cloudOverridesFile;
+	}
+
+	public final boolean isDebugAll() {
+		return debugAll;
+	}
+
+	public final void setDebugAll(final boolean debugAll) {
+		this.debugAll = debugAll;
+	}
+
+	public final String getDebugEvents() {
+		return debugEvents;
+	}
+
+	public final void setDebugEvents(final String debugEvents) {
+		this.debugEvents = debugEvents;
+	}
+
+	public final String getDebugMode() {
+		return debugMode;
+	}
+
+	public final void setDebugMode(final String debugMode) {
+		this.debugMode = debugMode;
+	}
+
+	public final String getExceptionCause() {
+		return exceptionCause;
+	}
+
+	public final void setExceptionCause(final String exceptionCause) {
+		this.exceptionCause = exceptionCause;
+	}
+
 }

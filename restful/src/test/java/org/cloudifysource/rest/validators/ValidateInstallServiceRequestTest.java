@@ -12,59 +12,58 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
+import java.io.IOException;
+
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
-import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
 import org.junit.Test;
 
 public class ValidateInstallServiceRequestTest extends InstallServiceValidatorTest {
-
-    private static final String UPLOAD_KEY = "key";
 
     private static final String WRONG_DEBUG_MODE = "no_such_mode";
     private static final String DEBUG_EVENTS = "init,install";
     private static final String DUPLICATE_DEBUG_EVENTS = DEBUG_EVENTS + ",init";
     private static final String WRONG_DEBUG_EVENTS = DEBUG_EVENTS + ", EVENT_NOT_EXIST";
 
+    @Override
+    public void init() {
+    }
 
 	@Test
-	public void testWrongDebugEventsAndAll() {
-		final InstallServiceRequest request = new InstallServiceRequest();
-		request.setServiceFolderUploadKey(UPLOAD_KEY);
-		request.setDebugAll(true);
-		request.setDebugEvents(DEBUG_EVENTS);
-		testValidator(request, CloudifyErrorMessages.DEBUG_EVENTS_AND_ALL_SET.getName());
+	public void testWrongDebugEventsAndAll() throws IOException {
+		setDebugAll(true);
+		setDebugEvents(DEBUG_EVENTS);
+		setExceptionCause(CloudifyErrorMessages.DEBUG_EVENTS_AND_ALL_SET.getName());
+		testValidator();
 	}
 
     @Test
-    public void testWrongDebugEvents() {
-        final InstallServiceRequest request = new InstallServiceRequest();
-        request.setServiceFolderUploadKey(UPLOAD_KEY);
-        request.setDebugAll(false);
-        request.setDebugEvents(WRONG_DEBUG_EVENTS);
-        testValidator(request, CloudifyErrorMessages.DEBUG_EVENT_UNKNOWN.getName());
+    public void testWrongDebugEvents() throws IOException {
+        setDebugAll(false);
+        setDebugEvents(WRONG_DEBUG_EVENTS);
+        setExceptionCause(CloudifyErrorMessages.DEBUG_EVENT_UNKNOWN.getName());
+        testValidator();
     }
 
     @Test
-    public void testDuplicateDebugEvents() {
-        final InstallServiceRequest request = new InstallServiceRequest();
-        request.setServiceFolderUploadKey(UPLOAD_KEY);
-        request.setDebugAll(false);
-        request.setDebugEvents(DUPLICATE_DEBUG_EVENTS);
-        testValidator(request, CloudifyErrorMessages.DEBUG_EVENT_REPEATS.getName());
+    public void testDuplicateDebugEvents() throws IOException {
+        setDebugAll(false);
+        setDebugEvents(DUPLICATE_DEBUG_EVENTS);
+        setExceptionCause(CloudifyErrorMessages.DEBUG_EVENT_REPEATS.getName());
+        testValidator();
     }
 
     @Test
-    public void testWrongDebugMode() {
-        final InstallServiceRequest request = new InstallServiceRequest();
-        request.setServiceFolderUploadKey(UPLOAD_KEY);
-        request.setDebugAll(true);
-        request.setDebugMode(WRONG_DEBUG_MODE);
-        testValidator(request, CloudifyErrorMessages.DEBUG_UNKNOWN_MODE.getName());
+    public void testWrongDebugMode() throws IOException {
+        setDebugAll(true);
+        setDebugMode(WRONG_DEBUG_MODE);
+        setExceptionCause(CloudifyErrorMessages.DEBUG_UNKNOWN_MODE.getName());
+        testValidator();
     }
 
     @Override
     public InstallServiceValidator getValidatorInstance() {
         return new ValidateInstallServiceRequest();
     }
+
 
 }

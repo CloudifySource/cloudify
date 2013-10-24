@@ -36,6 +36,8 @@ public enum CloudifyMessageKeys {
 
     SERVICE_OVERRIDES_SIZE_LIMIT_EXCEEDED("service_overrides_file_size_limit_exceeded"),
 
+    APPLICATION_OVERRIDES_SIZE_LIMIT_EXCEEDED("application_overrides_file_size_limit_exceeded"),
+
     CLOUD_OVERRIDES_SIZE_LIMIT_EXCEEDED("cloud_overrides_file_size_limit_exceeded"),
 
     CLOUD_CONFIGURATION_SIZE_LIMIT_EXCEEDED("cloud_configuration_file_size_limit_exceeded"),

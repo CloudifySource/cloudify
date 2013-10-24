@@ -20,27 +20,28 @@ import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
-import org.junit.Before;
 import org.junit.Test;
 
 public class ValidateCloudConfigurationFileSizeTest extends InstallServiceValidatorTest {
 
+	private File cloudConfig;
     private ValidateCloudConfigurationFileSize validator;
     private static final long TEST_FILE_SIZE_LIMIT = 3;
 
 
-    @Before
-    public void initValidator() {
+    @Override
+    public void init() throws IOException {
         validator = new ValidateCloudConfigurationFileSize();
         validator.setCloudConfigurationFileSizeLimit(TEST_FILE_SIZE_LIMIT);
+        cloudConfig = File.createTempFile("cloudConfig", "");
+        FileUtils.writeStringToFile(cloudConfig, "I'm longer than 3 bytes !");
+        setCloudConfigurationFile(cloudConfig);
+        setExceptionCause(CloudifyMessageKeys.CLOUD_CONFIGURATION_SIZE_LIMIT_EXCEEDED.getName());
     }
 
     @Test
     public void testSizeLimitExeeded() throws IOException {
-        File cloudConfig = File.createTempFile("cloudConfig", "");
-        FileUtils.writeStringToFile(cloudConfig, "I'm longer than 3 bytes !");
-        testValidator(null, null, null, null, null, cloudConfig,
-                CloudifyMessageKeys.CLOUD_CONFIGURATION_SIZE_LIMIT_EXCEEDED.getName());
+        testValidator();
         cloudConfig.delete();
     }
 

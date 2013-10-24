@@ -20,26 +20,30 @@ import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
-import org.junit.Before;
 import org.junit.Test;
 
 public class ValidateApplicationOverridesFileSizeTest extends InstallApplicationValidatorTest {
 
     private ValidateApplicationOverridesFileSize validator;
     private static final long TEST_FILE_SIZE_LIMIT = 3;
+    
+    private File applicationOverrides;
 
-    @Before
-    public void initValidator() {
+    @Override
+    public void init() throws IOException {
         validator = new ValidateApplicationOverridesFileSize();
         validator.setApplicationOverridesFileSizeLimit(TEST_FILE_SIZE_LIMIT);
+        
+        applicationOverrides = File.createTempFile("applicationOverrides", "");
+        FileUtils.writeStringToFile(applicationOverrides, "I'm longer than 3 bytes !");
+        setApplicationOverridesFile(applicationOverrides);
+
+        setExceptionCause(CloudifyMessageKeys.APPLICATION_OVERRIDES_SIZE_LIMIT_EXCEEDED.getName());
     }
     
     @Test
     public void testSizeLimitExeeded() throws IOException {
-        File applicationOverrides = File.createTempFile("applicationOverrides", "");
-        FileUtils.writeStringToFile(applicationOverrides, "I'm longer than 3 bytes !");
-        testValidator(null, null, null, applicationOverrides, null, null, false, null, null, 
-        		CloudifyMessageKeys.APPLICATION_OVERRIDES_SIZE_LIMIT_EXCEEDED.getName());
+        testValidator();
         applicationOverrides.delete();
     }
     

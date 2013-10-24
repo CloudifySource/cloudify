@@ -20,7 +20,6 @@ import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
-import org.junit.Before;
 import org.junit.Test;
 
 public class ValidateServiceOverridesFileSizeTest extends InstallServiceValidatorTest {
@@ -28,19 +27,21 @@ public class ValidateServiceOverridesFileSizeTest extends InstallServiceValidato
     private ValidateServiceOverridesFileSize validator;
     private static final long TEST_FILE_SIZE_LIMIT = 3;
 
-
-    @Before
-    public void initValidator() {
+    private File serviceOverrides;
+    
+    @Override
+    public void init() throws IOException {
         validator = new ValidateServiceOverridesFileSize();
         validator.setServiceOverridesFileSizeLimit(TEST_FILE_SIZE_LIMIT);
+        serviceOverrides = File.createTempFile("serviceOverrides", "");
+        FileUtils.writeStringToFile(serviceOverrides, "I'm longer than 3 bytes !");
+        setServiceOverridesFile(serviceOverrides);
+        setExceptionCause(CloudifyMessageKeys.SERVICE_OVERRIDES_SIZE_LIMIT_EXCEEDED.getName());
     }
 
     @Test
     public void testSizeLimitExeeded() throws IOException {
-        File serviceOverrides = File.createTempFile("serviceOverrides", "");
-        FileUtils.writeStringToFile(serviceOverrides, "I'm longer than 3 bytes !");
-        testValidator(null, null, null, null, serviceOverrides, null,
-                CloudifyMessageKeys.SERVICE_OVERRIDES_SIZE_LIMIT_EXCEEDED.getName());
+    	testValidator();
         serviceOverrides.delete();
     }
 

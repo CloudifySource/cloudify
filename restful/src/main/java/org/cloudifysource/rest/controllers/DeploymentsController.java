@@ -190,13 +190,13 @@ public class DeploymentsController extends BaseRestController {
 	@Autowired
 	private InstallServiceValidator[] installServiceValidators = new InstallServiceValidator[0];
 	@Autowired
-	private final UninstallServiceValidator[] uninstallServiceValidators = new UninstallServiceValidator[0];
+	private UninstallServiceValidator[] uninstallServiceValidators = new UninstallServiceValidator[0];
 	@Autowired
-	private final InstallApplicationValidator[] installApplicationValidators = new InstallApplicationValidator[0];
+	private InstallApplicationValidator[] installApplicationValidators = new InstallApplicationValidator[0];
 	@Autowired
-	private final UninstallApplicationValidator[] uninstallApplicationValidators = new UninstallApplicationValidator[0];
+	private UninstallApplicationValidator[] uninstallApplicationValidators = new UninstallApplicationValidator[0];
 	@Autowired
-	private final SetServiceInstancesValidator[] setServiceInstancesValidators = new SetServiceInstancesValidator[0];
+	private SetServiceInstancesValidator[] setServiceInstancesValidators = new SetServiceInstancesValidator[0];
 
 	protected GigaSpace gigaSpace;
 	private Admin admin;
@@ -711,7 +711,7 @@ public class DeploymentsController extends BaseRestController {
 		application.setName(appName);
 		
 		// perform validations
-		validateInstallApplication(application, request);
+		validateInstallApplication(application, request, appReaderResult.getApplicationOverridesFile());
 		
 		// update effective authGroups
 		String effectiveAuthGroups = getEffectiveAuthGroups(request.getAuthGroups());
@@ -770,7 +770,10 @@ public class DeploymentsController extends BaseRestController {
 		return admin.getProcessingUnits().waitFor(absolutePuName, timeout, timeUnit) != null;
 	}
 
-	private void validateInstallApplication(final Application application, final InstallApplicationRequest request)
+	private void validateInstallApplication(
+			final Application application, 
+			final InstallApplicationRequest request, 
+			final File applicationOverridesFile)
 			throws RestErrorException {
 		
 		// get cloud overrides file
@@ -790,6 +793,7 @@ public class DeploymentsController extends BaseRestController {
 		validationContext.setApplication(application);
 		validationContext.setCloud(restConfig.getCloud());
 		validationContext.setAdmin(admin);
+		validationContext.setApplicationOverridesFile(applicationOverridesFile);
 		validationContext.setCloudConfigurationFile(cloudConfigurationFile);
 		validationContext.setCloudOverridesFile(cloudOverridesFile);
 		validationContext.setDebugMode(request.getDebugMode());
@@ -2260,4 +2264,67 @@ public class DeploymentsController extends BaseRestController {
 	public File getExtractedFodler() {
 		return this.extractedFodler;
 	}
+
+	public final RestConfiguration getRestConfig() {
+		return restConfig;
+	}
+
+	public final void setRestConfig(final RestConfiguration restConfig) {
+		this.restConfig = restConfig;
+	}
+
+	public final UploadRepo getRepo() {
+		return repo;
+	}
+
+	public final void setRepo(final UploadRepo repo) {
+		this.repo = repo;
+	}
+
+	public final InstallServiceValidator[] getInstallServiceValidators() {
+		return installServiceValidators;
+	}
+
+	public final void setInstallServiceValidators(
+			final InstallServiceValidator[] installServiceValidators) {
+		this.installServiceValidators = installServiceValidators;
+	}
+
+	public final UninstallServiceValidator[] getUninstallServiceValidators() {
+		return uninstallServiceValidators;
+	}
+
+	public final void setUninstallServiceValidators(
+			final UninstallServiceValidator[] uninstallServiceValidators) {
+		this.uninstallServiceValidators = uninstallServiceValidators;
+	}
+
+	public final InstallApplicationValidator[] getInstallApplicationValidators() {
+		return installApplicationValidators;
+	}
+
+	public final void setInstallApplicationValidators(
+			final InstallApplicationValidator[] installApplicationValidators) {
+		this.installApplicationValidators = installApplicationValidators;
+	}
+
+	public final UninstallApplicationValidator[] getUninstallApplicationValidators() {
+		return uninstallApplicationValidators;
+	}
+
+	public final void setUninstallApplicationValidators(
+			final UninstallApplicationValidator[] uninstallApplicationValidators) {
+		this.uninstallApplicationValidators = uninstallApplicationValidators;
+	}
+
+	public final SetServiceInstancesValidator[] getSetServiceInstancesValidators() {
+		return setServiceInstancesValidators;
+	}
+
+	public final void setSetServiceInstancesValidators(
+			final SetServiceInstancesValidator[] setServiceInstancesValidators) {
+		this.setServiceInstancesValidators = setServiceInstancesValidators;
+	}
+
+	
 }
