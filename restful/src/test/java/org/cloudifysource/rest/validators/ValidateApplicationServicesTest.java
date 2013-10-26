@@ -15,12 +15,39 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
+import java.io.File;
+import java.io.IOException;
+
+import org.cloudifysource.domain.Application;
+import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
+import org.cloudifysource.dsl.internal.DSLException;
+import org.cloudifysource.dsl.internal.ServiceReader;
 import org.junit.Test;
 
 public class ValidateApplicationServicesTest extends InstallApplicationValidatorTest {
-	
+    private static final String FOLDER = 
+    		"src" + File.separator + "test" + File.separator + "resources" + File.separator + "validators";
+    private static final String CLOUD_FILE_PATH = 
+    		FOLDER  + File.separator + "byon" + File.separator + "byon-cloud.groovy";
+    private static final String NO_COMPUTE_APP = FOLDER + File.separator + "simpleApp";
+    private static final String NOT_EXIST_TEMPLATE_APP = FOLDER + File.separator + "simpleAppTemplateNotExist";
+
     @Test
-    public void testServicesValidations() {
+    public void testMissingTemplate() throws IOException, DSLException {
+        Cloud cloud = ServiceReader.readCloud(new File(CLOUD_FILE_PATH));
+        setCloud(cloud);
+        Application application = 
+        		ServiceReader.getApplicationFromFile(new File(NOT_EXIST_TEMPLATE_APP)).getApplication();
+        setApplication(application);
+        setExceptionCause(CloudifyMessageKeys.MISSING_TEMPLATE.getName());
+        testValidator();
+    }
+
+    @Test
+    public void testNullCompute() throws DSLException, IOException {
+        Application application = ServiceReader.getApplicationFromFile(new File(NO_COMPUTE_APP)).getApplication();
+        setApplication(application);
         testValidator();
     }
 	

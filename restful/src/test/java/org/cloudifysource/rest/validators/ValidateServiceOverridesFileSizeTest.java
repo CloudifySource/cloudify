@@ -24,14 +24,14 @@ import org.junit.Test;
 
 public class ValidateServiceOverridesFileSizeTest extends InstallServiceValidatorTest {
 
-    private ValidateServiceOverridesFileSize validator;
+    private ValidateOverridesFileSize validator;
     private static final long TEST_FILE_SIZE_LIMIT = 3;
 
     private File serviceOverrides;
     
     @Override
     public void init() throws IOException {
-        validator = new ValidateServiceOverridesFileSize();
+        validator = new ValidateOverridesFileSize();
         validator.setServiceOverridesFileSizeLimit(TEST_FILE_SIZE_LIMIT);
         serviceOverrides = File.createTempFile("serviceOverrides", "");
         FileUtils.writeStringToFile(serviceOverrides, "I'm longer than 3 bytes !");

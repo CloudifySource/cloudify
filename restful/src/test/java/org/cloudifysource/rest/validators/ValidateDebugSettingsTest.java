@@ -17,7 +17,7 @@ import java.io.IOException;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.junit.Test;
 
-public class ValidateInstallServiceRequestTest extends InstallServiceValidatorTest {
+public class ValidateDebugSettingsTest extends InstallServiceValidatorTest {
 
     private static final String WRONG_DEBUG_MODE = "no_such_mode";
     private static final String DEBUG_EVENTS = "init,install";
@@ -62,7 +62,7 @@ public class ValidateInstallServiceRequestTest extends InstallServiceValidatorTe
 
     @Override
     public InstallServiceValidator getValidatorInstance() {
-        return new ValidateInstallServiceRequest();
+        return new ValidateDebugSettings();
     }
 
 

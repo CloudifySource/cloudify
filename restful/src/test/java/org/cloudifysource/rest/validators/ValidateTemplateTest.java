@@ -55,8 +55,4 @@ public class ValidateTemplateTest extends InstallServiceValidatorTest {
         return new ValidateTemplate();
     }
 
-	@Override
-	public void init() throws IOException {
-	}
-
 }

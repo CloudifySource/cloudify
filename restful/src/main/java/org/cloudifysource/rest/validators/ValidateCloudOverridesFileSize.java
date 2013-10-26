@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
  *
  */
 @Component
-public class ValidateCloudOverridesFileSize implements InstallServiceValidator {
+public class ValidateCloudOverridesFileSize implements InstallServiceValidator , InstallApplicationValidator {
 
     private static final long DEFAULT_CLOUD_OVERRIDES_FILE_LENGTH_LIMIT_BYTES =
             CloudifyConstants.CLOUD_OVERRIDES_FILE_LENGTH_LIMIT_BYTES;
@@ -36,14 +36,21 @@ public class ValidateCloudOverridesFileSize implements InstallServiceValidator {
 
     @Override
     public void validate(final InstallServiceValidationContext validationContext) throws RestErrorException {
-        File cloudOverridesFile = validationContext.getCloudOverridesFile();
-        if (cloudOverridesFile != null) {
-            if (cloudOverridesFile.length() > cloudOverridesFileSizeLimit) {
-                throw new RestErrorException(CloudifyMessageKeys.CLOUD_OVERRIDES_SIZE_LIMIT_EXCEEDED.getName(),
-                        cloudOverridesFile.getAbsolutePath());
-            }
-        }
+    	validateCloudOverridesFileSize(validationContext.getCloudOverridesFile());
+    }
 
+    @Override
+    public void validate(final InstallApplicationValidationContext validationContext) throws RestErrorException {
+    	validateCloudOverridesFileSize(validationContext.getCloudOverridesFile());
+    }
+    
+    private void validateCloudOverridesFileSize(final File cloudOverridesFile) throws RestErrorException {
+    	if (cloudOverridesFile != null) {
+    		if (cloudOverridesFile.length() > cloudOverridesFileSizeLimit) {
+    			throw new RestErrorException(CloudifyMessageKeys.CLOUD_OVERRIDES_SIZE_LIMIT_EXCEEDED.getName(),
+    					cloudOverridesFile.getAbsolutePath());
+    		}
+    	}
     }
 
     public long getCloudOverridesFileSizeLimit() {
@@ -53,5 +60,6 @@ public class ValidateCloudOverridesFileSize implements InstallServiceValidator {
     public void setCloudOverridesFileSizeLimit(final long cloudOverridesFileSizeLimit) {
         this.cloudOverridesFileSizeLimit = cloudOverridesFileSizeLimit;
     }
+
 
 }

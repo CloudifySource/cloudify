@@ -42,7 +42,9 @@ public abstract class InstallServiceValidatorTest {
 
 	public abstract InstallServiceValidator getValidatorInstance();
 
-	public abstract void init() throws IOException;
+	public void init() throws IOException {
+		
+	}
 
 	/**
 	 * 

@@ -28,12 +28,28 @@ import org.springframework.stereotype.Component;
  *
  */
 @Component
-public class ValidateServiceOverridesFileSize implements InstallServiceValidator {
+public class ValidateOverridesFileSize implements InstallServiceValidator, InstallApplicationValidator {
 
     private static final long DEFAULT_SERVICE_OVERRIDES_FILE_LENGTH_LIMIT_BYTES =
             CloudifyConstants.SERVICE_OVERRIDES_FILE_LENGTH_LIMIT_BYTES;
     private long serviceOverridesFileSizeLimit = DEFAULT_SERVICE_OVERRIDES_FILE_LENGTH_LIMIT_BYTES;
 
+	private static final long DEFAULT_APPLICATION_OVERRIDES_FILE_LENGTH_LIMIT_BYTES =
+			CloudifyConstants.APPLICATION_OVERRIDES_FILE_LENGTH_LIMIT_BYTES;
+	private long applicationOverridesFileSizeLimit = DEFAULT_APPLICATION_OVERRIDES_FILE_LENGTH_LIMIT_BYTES;
+
+	@Override
+	public void validate(final InstallApplicationValidationContext validationContext) throws RestErrorException {
+		final File appOverridesFile = validationContext.getApplicationOverridesFile();
+		if (appOverridesFile != null) {
+			final long length = appOverridesFile.length();
+			if (length > applicationOverridesFileSizeLimit) {
+				throw new RestErrorException(CloudifyMessageKeys.APPLICATION_OVERRIDES_SIZE_LIMIT_EXCEEDED.getName(),
+						appOverridesFile.getAbsolutePath(), length, applicationOverridesFileSizeLimit);
+			}
+		}
+	}
+	
     @Override
     public void validate(final InstallServiceValidationContext validationContext) throws RestErrorException {
         File serviceOverridesFile = validationContext.getServiceOverridesFile();
@@ -44,6 +60,14 @@ public class ValidateServiceOverridesFileSize implements InstallServiceValidator
                         serviceOverridesFile.getAbsolutePath(), length, serviceOverridesFileSizeLimit);
             }
         }
+    }
+
+    public long getApplicationOverridesFileSizeLimit() {
+    	return applicationOverridesFileSizeLimit;
+    }
+    
+    public void setApplicationOverridesFileSizeLimit(final long applicationOverridesFileSizeLimit) {
+    	this.applicationOverridesFileSizeLimit = applicationOverridesFileSizeLimit;
     }
 
     public long getServiceOverridesFileSizeLimit() {

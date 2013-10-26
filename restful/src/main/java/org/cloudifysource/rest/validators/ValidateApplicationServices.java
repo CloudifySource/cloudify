@@ -16,7 +16,6 @@
 package org.cloudifysource.rest.validators;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 import org.cloudifysource.domain.Service;
 import org.cloudifysource.rest.controllers.RestErrorException;
@@ -25,15 +24,22 @@ import org.springframework.stereotype.Component;
 
 /**
  * Validates all application's services.
+ * Uses all service's validators to validate each service.
+ * Does not perform validations that allready performed for the application:
+ * 	1. debug settings
+ * 	2. cloud configuration size limit
+ * 	3. cloud overrides size limit
+ * 	4. application overrides file size limit
+ * 	5. ESM exist
+ * 	6. GSM state
  * 
  * @author yael
+ * @since 2.7
  * 
  */
 @Component
 public class ValidateApplicationServices implements InstallApplicationValidator {
 
-	private static final Logger logger = Logger.getLogger(ValidateApplicationServices.class.getName());
-	
 	@Autowired
 	private InstallServiceValidator[] installServiceValidators = new InstallServiceValidator[0];
 	
@@ -43,16 +49,8 @@ public class ValidateApplicationServices implements InstallApplicationValidator 
 		List<Service> services = validationContext.getApplication().getServices();
 		for (Service service : services) {
 			InstallServiceValidationContext serviceValidationContext = new InstallServiceValidationContext();
-			serviceValidationContext.setAdmin(validationContext.getAdmin());
 			serviceValidationContext.setCloud(validationContext.getCloud());
-			serviceValidationContext.setCloudConfigurationFile(validationContext.getCloudConfigurationFile());
-			serviceValidationContext.setCloudOverridesFile(validationContext.getCloudOverridesFile());
-			serviceValidationContext.setDebugAll(validationContext.isDebugAll());
-			serviceValidationContext.setDebugEvents(validationContext.getDebugEvents());
-			serviceValidationContext.setDebugMode(validationContext.getDebugMode());
 			serviceValidationContext.setService(service);
-			logger.info("validating service " + service.getName() 
-					+ " for application " + validationContext.getApplication().getName());
 			// for each install service validator, perform service's validations.
 			for (InstallServiceValidator validator : installServiceValidators) {
 				validator.validate(serviceValidationContext);

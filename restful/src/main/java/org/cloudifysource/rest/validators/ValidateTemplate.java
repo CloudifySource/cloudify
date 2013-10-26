@@ -15,7 +15,6 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
-import org.cloudifysource.domain.Application;
 import org.cloudifysource.domain.ComputeDetails;
 import org.cloudifysource.domain.Service;
 import org.cloudifysource.domain.cloud.Cloud;
@@ -30,7 +29,7 @@ import org.springframework.stereotype.Component;
  *
  */
 @Component
-public class ValidateTemplate implements InstallServiceValidator, InstallApplicationValidator {
+public class ValidateTemplate implements InstallServiceValidator {
 
     @Override
     public void validate(final InstallServiceValidationContext validationContext) throws RestErrorException {
@@ -44,18 +43,6 @@ public class ValidateTemplate implements InstallServiceValidator, InstallApplica
         	}
         }
         validateTemplate(templateName, cloud);
-    }
-
-    @Override
-    public void validate(final InstallApplicationValidationContext validationContext)
-            throws RestErrorException {
-        final Application application = validationContext.getApplication();
-        final Cloud cloud = validationContext.getCloud();
-        for (Service service : application.getServices()) {
-            if (service.getCompute() != null) {
-                validateTemplate(service.getCompute().getTemplate(), cloud);
-            }
-        }
     }
 
     private void validateTemplate(final String templateName, final Cloud cloud) throws RestErrorException {
