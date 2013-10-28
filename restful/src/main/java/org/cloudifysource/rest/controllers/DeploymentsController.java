@@ -179,6 +179,7 @@ public class DeploymentsController extends BaseRestController {
 	private static final Logger logger = Logger.getLogger(DeploymentsController.class.getName());
 	private static final int MAX_NUMBER_OF_EVENTS = 100;
 	private static final int REFRESH_INTERVAL_MILLIS = 500;
+	private static final long WAIT_FOR_PU_SECONDS = 30;
 	private static final int DEPLOYMENT_TIMEOUT_SECONDS = 60;
 	private static final int WAIT_FOR_MANAGED_TIMEOUT_SECONDS = 10;
 	private static final int LOCAL_CLOUD_INSTANCE_MEMORY_MB = 512;
@@ -727,11 +728,31 @@ public class DeploymentsController extends BaseRestController {
 		} else {
 			restConfig.getExecutorService().execute(installer);
 		}
+		// we wait for the pu so that after this method returns 
+		// we would be able to poll for events safely using the deployment-id. 
+		final boolean firstPuCreated = waitForPu(appName, services.get(0).getName(),
+											WAIT_FOR_PU_SECONDS, TimeUnit.SECONDS);
+		if (!firstPuCreated) {
+			throw new RestErrorException("Failed waiting for first processing unit to be created.");
+		}
 		// creating response
 		final InstallApplicationResponse response = new InstallApplicationResponse();
 		response.setDeploymentID(deploymentID);
 
 		return response;
+	}
+
+	private boolean waitForPu(final String applicationName,
+			final String serviceName,
+			final long timeout,
+			final TimeUnit timeUnit) {
+		
+		final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("[waitForPu] waiting for processing unit with name " + absolutePuName 
+					+ " to be created.");
+		}
+		return admin.getProcessingUnits().waitFor(absolutePuName, timeout, timeUnit) != null;
 	}
 
 	private void validateInstallApplication(final Application application)
