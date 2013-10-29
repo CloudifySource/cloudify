@@ -5,7 +5,7 @@ CLOUDIFY SOFTWARE  - OPEN SOURCE AND THIRD PARTY COMPONENTS - Cloudify 2.X
 |--------------|--------------|--------------|--------------|
 |[ant](http://ant.apache.org/)|1.8.4|Apache2.0|Core|
 |[cglib](http://cglib.sourceforge.net/)|2.2.0|Apache 2.0 + dep|Core|
-|[Apache Commons](http://commons.apache.org/)|1.x|[Apache2.0]|Core|
+|[Apache Commons](http://commons.apache.org/)|1.x|Apache2.0|Core|
 |[GigaSpaces XAP Lite Edition](http://www.gigaspaces.com/xap) |9.X| [XAP Lite License](http://www.gigaspaces.com/gigaspaces-xap-software-license-agreement-lite)|Core|
 |[Google Web Toolkit](http://code.google.com/webtoolkit/) |2.4.0|Apache2.0|Web UI|
 |[gQuery (GWTQuery)](http://gwtquery.com)|1.1.0|Apache2.0|Web UI|
