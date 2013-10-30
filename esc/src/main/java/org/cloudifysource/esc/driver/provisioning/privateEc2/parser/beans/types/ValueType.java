@@ -19,6 +19,7 @@ import org.codehaus.jackson.map.annotate.JsonDeserialize;
  * Represents a value node in Amazon CloudFormation template.
  * 
  * @author victor
+ * @since 2.7.0
  * 
  */
 @JsonDeserialize(using = ValueDeserializer.class)
