@@ -22,6 +22,7 @@ import org.codehaus.jackson.map.ObjectMapper;
  * Utility class to parse JSONF.
  * 
  * @author victor
+ * @since 2.7.0
  * 
  */
 public final class ParserUtils {

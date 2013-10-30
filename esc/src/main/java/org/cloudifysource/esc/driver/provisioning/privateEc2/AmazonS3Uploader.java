@@ -38,6 +38,7 @@ import com.amazonaws.services.s3.model.S3Object;
  * Class to help uploading file to Amazon S3.
  * 
  * @author victor
+ * @since 2.7.0
  * 
  */
 public class AmazonS3Uploader {

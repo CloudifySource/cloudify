@@ -32,6 +32,7 @@ import org.codehaus.jackson.map.JsonDeserializer;
  * This class will create a specific bean for <code>AWS::EC2::Instance</code> and <code>AWS::EC2::Volume</code>.
  * 
  * @author victor
+ * @since 2.7.0
  * 
  */
 public class ResourcesDeserializer extends JsonDeserializer<List<AWSResource>> {

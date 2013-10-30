@@ -19,6 +19,7 @@ package org.cloudifysource.esc.driver.provisioning.privateEc2.parser.beans.types
  * docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-ref.html</a>
  * 
  * @author victor
+ * @since 2.7.0
  * 
  */
 public class RefValue implements ValueType {

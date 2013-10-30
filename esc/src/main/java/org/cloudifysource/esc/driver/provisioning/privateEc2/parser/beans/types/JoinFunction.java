@@ -23,6 +23,7 @@ import org.apache.commons.lang.builder.ToStringStyle;
  * http:// docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-join.html</a>
  * 
  * @author victor
+ * @since 2.7.0
  * 
  */
 public class JoinFunction implements ValueType {

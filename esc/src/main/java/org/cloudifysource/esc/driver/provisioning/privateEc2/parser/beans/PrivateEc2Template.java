@@ -24,6 +24,7 @@ import org.codehaus.jackson.map.annotate.JsonDeserialize;
  * This class represents the root node of the Amazon CloudFormation Template.
  * 
  * @author victor
+ * @since 2.7.0
  * 
  */
 public class PrivateEc2Template {
