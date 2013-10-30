@@ -42,8 +42,6 @@ public enum CloudifyMessageKeys {
 
     CLOUD_CONFIGURATION_SIZE_LIMIT_EXCEEDED("cloud_configuration_file_size_limit_exceeded"),
 
-    MISSING_TEMPLATE("missing_template"),
-
     NOT_ALL_GSM_INSTANCES_RUNNING("not_all_gsm_instances_running"),
 
     INSUFFICIENT_MEMORY("insufficient_memory"),
