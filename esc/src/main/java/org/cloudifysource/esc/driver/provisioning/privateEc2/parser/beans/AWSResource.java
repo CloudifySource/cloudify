@@ -22,6 +22,7 @@ import org.codehaus.jackson.map.annotate.JsonDeserialize;
  * A bean representing a specific type of resource must implement this class.
  * 
  * @author victor
+ * @since 2.7.0
  */
 @JsonDeserialize
 public abstract class AWSResource {
