@@ -15,15 +15,8 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-import org.cloudifysource.domain.Application;
->>>>>>> CLOUDIFY-2164 rearranged validations.
-=======
 import java.util.logging.Logger;
 
->>>>>>> CLOUDIFY-2164 Added missing validations and tests.
 import org.cloudifysource.domain.ComputeDetails;
 import org.cloudifysource.domain.Service;
 import org.cloudifysource.domain.cloud.Cloud;
@@ -53,22 +46,6 @@ public class ValidateTemplate implements InstallServiceValidator {
         	if (compute != null) {
         		templateName = compute.getTemplate();
         	}
-<<<<<<< HEAD
-=======
-        }
-        validateTemplate(templateName, cloud);
-    }
-
-    @Override
-    public void validate(final InstallApplicationValidationContext validationContext)
-            throws RestErrorException {
-        final Application application = validationContext.getApplication();
-        final Cloud cloud = validationContext.getCloud();
-        for (Service service : application.getServices()) {
-            if (service.getCompute() != null) {
-                validateTemplate(service.getCompute().getTemplate(), cloud);
-            }
->>>>>>> CLOUDIFY-2164 rearranged validations.
         }
         validateTemplate(templateName, cloud);
     }
