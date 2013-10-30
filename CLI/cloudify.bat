@@ -34,7 +34,14 @@ goto :END
 	if "%~1" == "-use-proxy" (
 		set PROXY_JAVA_OPTIONS=-Dorg.cloudifysource.cli.proxy.enable=true
 	)
-	set CLOUDIFY_JAVA_OPTIONS=-Xmx500m -Dcom.gigaspaces.logger.RollingFileHandler.debug-level=WARNING %PROXY_JAVA_OPTIONS% %EXT_JAVA_OPTIONS%
+	
+	if "%GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR%" == "" (
+		set LRMI_PORT_RANGE=7010-7110
+	) else (
+		set LRMI_PORT_RANGE=%GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR%
+	)
+	
+	set CLOUDIFY_JAVA_OPTIONS=-Xmx500m -Dcom.gigaspaces.logger.RollingFileHandler.debug-level=WARNING -Dcom.gs.transport_protocol.lrmi.bind-port=%LRMI_PORT_RANGE% %PROXY_JAVA_OPTIONS% %EXT_JAVA_OPTIONS%
 	
 goto :END
 
