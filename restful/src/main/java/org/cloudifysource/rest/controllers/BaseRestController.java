@@ -137,11 +137,12 @@ public abstract class BaseRestController {
         try {
         	formattedMessage = messageSource.getMessage(messageId, messageArgs, Locale.US);
         } catch (NoSuchMessageException ne) {
-         	if (logger.isLoggable(Level.WARNING)) {
+         	String args = Arrays.toString(messageArgs);
+			if (logger.isLoggable(Level.WARNING)) {
         		logger.warning("[handleResourceNotFoundException] - failed to get message from messageSource [" 
-        				+ "messageId " + messageId + " arguments " + Arrays.toString(messageArgs) + "]");
+        				+ "messageId " + messageId + " arguments " + args + "]");
         	}
-        	formattedMessage = messageId + " [" + Arrays.toString(messageArgs) + "]";
+        	formattedMessage = messageId + (args == null ? "" : " [" + args + "]");
         }
 
         Response<Void> finalResponse = new Response<Void>();
@@ -200,11 +201,12 @@ public abstract class BaseRestController {
         try {
         	formattedMessage = messageSource.getMessage(messageId, messageArgs, Locale.US);
         } catch (NoSuchMessageException ne) {
-        	if (logger.isLoggable(Level.FINE)) {
-        		logger.fine("[handleResourceNotFoundException] - failed to get message from messageSource [" 
-        				+ "messageId " + messageId + " arguments " + Arrays.toString(messageArgs) + "]");
+        	String args = Arrays.toString(messageArgs);
+			if (logger.isLoggable(Level.WARNING)) {
+        		logger.warning("[handleResourceNotFoundException] - failed to get message from messageSource [" 
+        				+ "messageId: " + messageId + " arguments: " + args + "]");
         	}
-        	formattedMessage = messageId + " [" + Arrays.toString(messageArgs) + "]";
+        	formattedMessage = messageId + (args == null ? "" : " [" + args + "]");
         }
 
         Response<Void> finalResponse = new Response<Void>();

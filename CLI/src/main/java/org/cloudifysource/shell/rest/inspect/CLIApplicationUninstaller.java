@@ -12,6 +12,12 @@
  *******************************************************************************/
 package org.cloudifysource.shell.rest.inspect;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
+
 import org.apache.felix.service.command.CommandSession;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
@@ -26,12 +32,6 @@ import org.cloudifysource.shell.exceptions.CLIException;
 import org.cloudifysource.shell.exceptions.CLIStatusException;
 import org.cloudifysource.shell.installer.CLIEventsDisplayer;
 import org.cloudifysource.shell.rest.inspect.application.ApplicationUninstallationProcessInspector;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.TimeoutException;
-import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -84,8 +84,8 @@ public class CLIApplicationUninstaller {
         ApplicationDescription applicationDescription;
     	try {
     		applicationDescription = restClient.getApplicationDescription(applicationName);
-            logger.fine("Retrieved application description for application " 
-            		+ applicationName + " : " + applicationDescription);
+            logger.fine("Retrieved application description for application " + applicationName 
+            		+ " : " + applicationDescription);
     	} catch (RestClientException e) {
     		if (CloudifyMessageKeys.MISSING_RESOURCE.getName().equals(e.getMessageCode())) {
     			throw MessagesUtils.createRestClientException(
