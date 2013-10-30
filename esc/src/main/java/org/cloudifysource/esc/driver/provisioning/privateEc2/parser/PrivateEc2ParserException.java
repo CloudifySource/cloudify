@@ -16,6 +16,7 @@ package org.cloudifysource.esc.driver.provisioning.privateEc2.parser;
  * Exception class for CFN parser.
  * 
  * @author victor
+ * @since 2.7.0
  * 
  */
 public class PrivateEc2ParserException extends Exception {

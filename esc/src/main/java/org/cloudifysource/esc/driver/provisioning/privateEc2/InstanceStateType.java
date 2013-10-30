@@ -18,6 +18,8 @@ package org.cloudifysource.esc.driver.provisioning.privateEc2;
  * href="http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-ItemType-InstanceStateType.html"
  * >http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-ItemType-InstanceStateType.html</a>
  * 
+ * @author victor
+ * @since 2.7.0
  */
 public enum InstanceStateType {
 	/** Pending state. */
