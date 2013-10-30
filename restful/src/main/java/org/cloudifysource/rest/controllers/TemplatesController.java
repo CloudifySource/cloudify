@@ -64,6 +64,7 @@ import org.cloudifysource.rest.validators.TemplatesValidationContext;
 import org.cloudifysource.rest.validators.TemplatesValidator;
 import org.cloudifysource.restDoclet.annotations.InternalMethod;
 import org.cloudifysource.restclient.exceptions.RestClientException;
+import org.cloudifysource.restclient.messages.MessagesUtils;
 import org.cloudifysource.security.CustomPermissionEvaluator;
 import org.cloudifysource.utilitydomain.data.reader.ComputeTemplatesReader;
 import org.openspaces.admin.Admin;
@@ -1016,8 +1017,10 @@ public class TemplatesController extends BaseRestController {
 		try {
 			return new RestClientInternal(new URL(baseUrl), "", "", apiVersion);
 		} catch (final MalformedURLException e) {
-			throw new RestClientException(CloudifyErrorMessages.FAILED_CREATE_REST_CLIENT.getName(),
-					"failed to create REST client", ExceptionUtils.getFullStackTrace(e));
+			throw MessagesUtils.createRestClientException(
+					ExceptionUtils.getFullStackTrace(e),
+					CloudifyErrorMessages.FAILED_CREATE_REST_CLIENT.getName(), 
+					ExceptionUtils.getFullStackTrace(e));
 		}
 	}
 

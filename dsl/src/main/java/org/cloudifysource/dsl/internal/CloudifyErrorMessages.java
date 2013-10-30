@@ -108,6 +108,16 @@ public enum CloudifyErrorMessages {
 	APPLICATION_NAME_INVALID_CHARS("application_name_invalid_chars", 1),
 
 	/******
+	 * The service name is missing.
+	 */
+	SERVICE_NAME_MISSING("service_name_missing", 1),
+	
+	/******
+	 * The service name is missing.
+	 */
+	INSTALL_SERVICE_REQUEST_MISSING("install_service_request_missing", 1),
+	
+	/******
 	 * The service name contains invalid chars.
 	 */
 	SERVICE_NAME_INVALID_CHARS("service_name_invalid_chars", 1),
@@ -354,6 +364,11 @@ public enum CloudifyErrorMessages {
      * Printed when an application fails to install and self healing is disabled.
      */
     FAILED_TO_DEPLOY_APPLICATION("failed_to_deploy_application", 1),
+    
+    /**
+     * Failed waiting for first processing unit to be created.
+     */
+    FAILED_WAIT_FOR_PU("failed-wait-for-pu", 1),
 
     /**
 	 * Indicates illegal prefix.

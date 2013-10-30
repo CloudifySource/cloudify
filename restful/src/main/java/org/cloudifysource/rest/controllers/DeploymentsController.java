@@ -757,10 +757,11 @@ public class DeploymentsController extends BaseRestController {
 		}
 		// we wait for the pu so that after this method returns 
 		// we would be able to poll for events safely using the deployment-id. 
-		final boolean firstPuCreated = waitForPu(appName, services.get(0).getName(),
-											WAIT_FOR_PU_SECONDS, TimeUnit.SECONDS);
+		String firstServiceName = services.get(0).getName();
+		String firstPuName = ServiceUtils.getAbsolutePUName(appName, firstServiceName);
+		final boolean firstPuCreated = waitForPu(appName, firstServiceName, WAIT_FOR_PU_SECONDS, TimeUnit.SECONDS);
 		if (!firstPuCreated) {
-			throw new RestErrorException("Failed waiting for first processing unit to be created.");
+			throw new RestErrorException(CloudifyErrorMessages.FAILED_WAIT_FOR_PU.getName(), firstPuName);
 		}
 		// creating response
 		final InstallApplicationResponse response = new InstallApplicationResponse();

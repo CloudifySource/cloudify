@@ -174,10 +174,11 @@ public class RestClient {
 			effAppName = CloudifyConstants.DEFAULT_APPLICATION_NAME;
 		}
 		if (serviceName == null) {
-			throw new RestClientException("service_name_missing", "install service is missing service name", null);
+			throw MessagesUtils.createRestClientException(CloudifyErrorMessages.SERVICE_NAME_MISSING.getName());
 		}
 		if (request == null) {
-			throw new RestClientException("request_missing", "install service is missing install request", null);
+			throw MessagesUtils.createRestClientException(
+					CloudifyErrorMessages.INSTALL_SERVICE_REQUEST_MISSING.getName());
 		}
 		final String installServiceUrl = getFormattedUrl(
 				versionedDeploymentControllerUrl, 
