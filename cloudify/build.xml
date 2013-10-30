@@ -815,7 +815,7 @@
 			<arg value="-Dput.container=${cloudify.base.container}"/>
 		</exec>
 		<if>
-			<equals arg1="${release.build}" arg2="yes"/>		
+			<equals arg1="${release.build}" arg2="true"/>		
 			<then>
 				<echo message="uploading to ${cloudify.put.community.target} "/>				
 				<exec executable="${mvn.executable}">
