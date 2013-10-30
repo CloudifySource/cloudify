@@ -1,6 +1,6 @@
 service {
 	name "simple"
-	icon "${iconName}.png"
+	icon "simpleIcon.png"
 	type "UNDEFINED"
 	  
 	lifecycle {

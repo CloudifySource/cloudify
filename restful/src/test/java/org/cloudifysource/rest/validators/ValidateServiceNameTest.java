@@ -15,19 +15,33 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
-import org.cloudifysource.rest.controllers.RestErrorException;
+import org.cloudifysource.domain.Service;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
+import org.junit.Test;
 
-/**
- * An interface for rest validator classes. Each validator must implement the validate method.
- *
- * @author yael
- * @since 2.7.0 
- */
-public interface InstallServiceValidator {
-    /**
-     *
-     * @param validationContext .
-     * @throws RestErrorException .
-     */
-    void validate(final InstallServiceValidationContext validationContext) throws RestErrorException;
+public class ValidateServiceNameTest {
+
+	@Test
+	public void testIllegalServiceNamePrefix() {
+		Service service = new Service();
+		service.setName(".name");
+		testValidator(service);
+	}
+	
+	@Test
+	public void testIllegalServiceNameSuffix() {
+		Service service = new Service();
+		service.setName("name.");
+		testValidator(service);
+	}
+	
+	private void testValidator(final Service service) {
+		InstallServiceValidationContext validationContext = new InstallServiceValidationContext();
+		validationContext.setService(service);
+		ValidatorsTestsUtils.validate(
+				new ValidateServiceName(), 
+				validationContext, 
+				CloudifyErrorMessages.ILLEGAL_SERVICE_NAME.getName());
+	}
+
 }

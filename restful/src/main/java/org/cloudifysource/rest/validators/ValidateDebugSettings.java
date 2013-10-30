@@ -12,9 +12,10 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
+import java.util.logging.Logger;
+
 import org.cloudifysource.dsl.internal.DSLErrorMessageException;
 import org.cloudifysource.dsl.internal.debug.DebugUtils;
-import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
 import org.cloudifysource.rest.controllers.RestErrorException;
 import org.springframework.stereotype.Component;
 
@@ -22,10 +23,12 @@ import org.springframework.stereotype.Component;
  * Validate all fields of {@link InstallServiceRequest}.
  * 
  * @author yael
- * 
+ * @since 2.7.0 
  */
 @Component
 public class ValidateDebugSettings implements InstallServiceValidator, InstallApplicationValidator {
+
+	private static final Logger logger = Logger.getLogger(ValidateDebugSettings.class.getName());
 
 	@Override
 	public void validate(final InstallServiceValidationContext validationContext) 
@@ -47,6 +50,7 @@ public class ValidateDebugSettings implements InstallServiceValidator, InstallAp
 
 	private void validateDebugSettings(final boolean debugAll, final String debugEvents, final String debugMode)
 			throws RestErrorException {
+		logger.info("Validating debug settings");
 		try {
 			DebugUtils.validateDebugSettings(debugAll, debugEvents, debugMode);
 		} catch (final DSLErrorMessageException e) {

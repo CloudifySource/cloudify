@@ -13,11 +13,13 @@
 package org.cloudifysource.shell.rest.inspect;
 
 import org.apache.felix.service.command.CommandSession;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.rest.response.ApplicationDescription;
 import org.cloudifysource.dsl.rest.response.ServiceDescription;
 import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.restclient.exceptions.RestClientException;
+import org.cloudifysource.restclient.messages.MessagesUtils;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.exceptions.CLIException;
@@ -82,11 +84,16 @@ public class CLIApplicationUninstaller {
         ApplicationDescription applicationDescription;
     	try {
     		applicationDescription = restClient.getApplicationDescription(applicationName);
-            logger.fine("Retrieved application description for application " + applicationName + " : " + applicationDescription);
+            logger.fine("Retrieved application description for application " 
+            		+ applicationName + " : " + applicationDescription);
     	} catch (RestClientException e) {
     		if (CloudifyMessageKeys.MISSING_RESOURCE.getName().equals(e.getMessageCode())) {
-    			throw new RestClientException("failed_to_locate_app", 
-    					"Application " + applicationName + " could not be found", e.getVerbose());
+    			throw MessagesUtils.createRestClientException(
+    					e.getVerbose(), 
+    					CloudifyErrorMessages.FAILED_TO_LOCATE_APPLICATION.getName(), 
+    					applicationName);
+//    			throw new RestClientException(CloudifyErrorMessages.FAILED_TO_LOCATE_APPLICATION.getName(), 
+//    					"Application " + applicationName + " could not be found", e.getVerbose());
     		}
     		throw e;
     	}

@@ -13,6 +13,7 @@
 package org.cloudifysource.rest.validators;
 
 import java.io.File;
+import java.util.logging.Logger;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
@@ -22,10 +23,12 @@ import org.springframework.stereotype.Component;
 /**
  * 
  * @author yael
- * 
+ * @since 2.7.0 
  */
 @Component
 public class ValidateCloudConfigurationFileSize implements InstallServiceValidator, InstallApplicationValidator {
+
+	private static final Logger logger = Logger.getLogger(ValidateCloudConfigurationFileSize.class.getName());
 
 	private static final long DEFAULT_CLOUD_CONFIGURATION_FILE_LENGTH_LIMIT_BYTES =
 			CloudifyConstants.CLOUD_CONFIGURATION_FILE_LENGTH_LIMIT_BYTES;
@@ -42,6 +45,7 @@ public class ValidateCloudConfigurationFileSize implements InstallServiceValidat
 	}
 
 	private void validateCloudConfigurationFileSize(final File cloudConfigurationFile) throws RestErrorException {
+    	logger.info("Validating cloud configuration file size");
 		if (cloudConfigurationFile != null) {
 			if (cloudConfigurationFile.length() > cloudConfigurationFileSizeLimit) {
 				throw new RestErrorException(CloudifyMessageKeys.CLOUD_CONFIGURATION_SIZE_LIMIT_EXCEEDED.getName(),

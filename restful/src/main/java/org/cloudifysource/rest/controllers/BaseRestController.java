@@ -137,8 +137,8 @@ public abstract class BaseRestController {
         try {
         	formattedMessage = messageSource.getMessage(messageId, messageArgs, Locale.US);
         } catch (NoSuchMessageException ne) {
-         	if (logger.isLoggable(Level.FINE)) {
-        		logger.fine("[handleResourceNotFoundException] - failed to get message from messageSource [" 
+         	if (logger.isLoggable(Level.WARNING)) {
+        		logger.warning("[handleResourceNotFoundException] - failed to get message from messageSource [" 
         				+ "messageId " + messageId + " arguments " + Arrays.toString(messageArgs) + "]");
         	}
         	formattedMessage = messageId + " [" + Arrays.toString(messageArgs) + "]";

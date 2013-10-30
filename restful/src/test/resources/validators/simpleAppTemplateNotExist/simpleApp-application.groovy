@@ -1,6 +1,6 @@
 
 application {
-	name = simpleApp
+	name = "simpleApp"
 	
 	service {
 		name = "simple"	

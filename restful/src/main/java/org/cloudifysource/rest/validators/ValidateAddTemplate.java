@@ -11,12 +11,10 @@
  * specific language governing permissions and limitations under the License.
  * *****************************************************************************
  */
-package org.cloudifysource.rest.controllers;
+package org.cloudifysource.rest.validators;
 
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
-import org.cloudifysource.rest.validators.AddTemplatesValidationContext;
-import org.cloudifysource.rest.validators.AddTemplatesValidator;
-import org.cloudifysource.rest.validators.ValidateTemplateOperation;
+import org.cloudifysource.rest.controllers.RestErrorException;
 import org.springframework.stereotype.Component;
 
 /**
@@ -29,14 +27,10 @@ public class ValidateAddTemplate extends ValidateTemplateOperation implements Ad
 
 	@Override
 	public void validate(final AddTemplatesValidationContext validationContext) throws RestErrorException {
-		
 		validationContext.setOperationName("add-templates");
 		super.validate(validationContext);
-		
 		if (validationContext.getRequest().getUploadKey() == null) {
 			throw new RestErrorException(CloudifyMessageKeys.UPLOAD_KEY_PARAMETER_MISSING.getName());
 		}
-
 	}
-
 }

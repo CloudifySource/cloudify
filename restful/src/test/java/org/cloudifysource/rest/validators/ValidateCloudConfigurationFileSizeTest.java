@@ -20,37 +20,46 @@ import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
-public class ValidateCloudConfigurationFileSizeTest extends InstallServiceValidatorTest {
+public class ValidateCloudConfigurationFileSizeTest {
 
-	private File cloudConfig;
+	private File cloudConfigurationFile;
     private ValidateCloudConfigurationFileSize validator;
     private static final long TEST_FILE_SIZE_LIMIT = 3;
+    private static final String ERR_MSG = CloudifyMessageKeys.CLOUD_CONFIGURATION_SIZE_LIMIT_EXCEEDED.getName();
 
-
-    @Override
-    public void init() throws IOException {
+    @Before
+    public void init() {
         validator = new ValidateCloudConfigurationFileSize();
         validator.setCloudConfigurationFileSizeLimit(TEST_FILE_SIZE_LIMIT);
-        cloudConfig = File.createTempFile("cloudConfig", "");
-        FileUtils.writeStringToFile(cloudConfig, "I'm longer than 3 bytes !");
-        setCloudConfigurationFile(cloudConfig);
-        setExceptionCause(CloudifyMessageKeys.CLOUD_CONFIGURATION_SIZE_LIMIT_EXCEEDED.getName());
+        try {
+			cloudConfigurationFile = File.createTempFile("cloudConfig", "");
+			FileUtils.writeStringToFile(cloudConfigurationFile, "I'm longer than 3 bytes !");
+		} catch (IOException e) {
+			Assert.fail(e.getLocalizedMessage());
+		}
     }
 
     @Test
-    public void testSizeLimitExeeded() throws IOException {
-        File cloudConfig = File.createTempFile("cloudConfig", "");
-        FileUtils.writeStringToFile(cloudConfig, "I'm longer than 3 bytes !");
-        testValidator(null, null, null, null, null, cloudConfig,
-                CloudifyMessageKeys.CLOUD_CONFIGURATION_SIZE_LIMIT_EXCEEDED.getName());
-        cloudConfig.delete();
+    public void testSizeLimitExeededInInstallService() {
+    	InstallServiceValidationContext context = new InstallServiceValidationContext();
+    	context.setCloudConfigurationFile(cloudConfigurationFile);
+    	ValidatorsTestsUtils.validate(validator, context, ERR_MSG);
+    }
+    
+    @Test
+    public void testSizeLimitExeededInInstallApplication() {
+    	InstallApplicationValidationContext context = new InstallApplicationValidationContext();
+    	context.setCloudConfigurationFile(cloudConfigurationFile);
+    	ValidatorsTestsUtils.validate(validator, context, ERR_MSG);
     }
 
-    @Override
-    public InstallServiceValidator getValidatorInstance() {
-        return validator;
+    @After
+    public void deleteFile() {
+        cloudConfigurationFile.delete();
     }
-
 }

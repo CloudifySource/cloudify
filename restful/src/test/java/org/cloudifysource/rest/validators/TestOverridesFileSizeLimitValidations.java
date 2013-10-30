@@ -32,10 +32,6 @@ import org.cloudifysource.rest.RestConfiguration;
 import org.cloudifysource.rest.controllers.DeploymentsController;
 import org.cloudifysource.rest.controllers.RestErrorException;
 import org.cloudifysource.rest.repo.UploadRepo;
-import org.cloudifysource.rest.validators.InstallApplicationValidator;
-import org.cloudifysource.rest.validators.InstallServiceValidator;
-import org.cloudifysource.rest.validators.ValidateApplicationOverridesFileSize;
-import org.cloudifysource.rest.validators.ValidateOverridesFileSize;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -165,7 +161,7 @@ public class TestOverridesFileSizeLimitValidations {
 		final DeploymentsController controller = new DeploymentsController();
 		controller.setRepo(mockRepo);
 		controller.setRestConfig(mockRestConfig);
-		final ValidateApplicationOverridesFileSize validator = new ValidateApplicationOverridesFileSize();
+		final ValidateOverridesFileSize validator = new ValidateOverridesFileSize();
 		InstallApplicationValidator[] installApplicationValidators = { validator };
 		validator.setApplicationOverridesFileSizeLimit(TEST_OVERRIDES_FILE_SIZE_LIMIT);
 		controller.setInstallApplicationValidators(installApplicationValidators);

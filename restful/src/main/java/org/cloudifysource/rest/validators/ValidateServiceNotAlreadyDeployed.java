@@ -12,14 +12,12 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.rest.controllers.RestErrorException;
-import org.openspaces.admin.Admin;
-import org.openspaces.admin.esm.ElasticServiceManager;
+import org.openspaces.admin.pu.ProcessingUnit;
+import org.openspaces.admin.pu.ProcessingUnits;
 import org.springframework.stereotype.Component;
 
 /**
@@ -28,30 +26,18 @@ import org.springframework.stereotype.Component;
  * @since 2.7.0 
  */
 @Component
-public class ValidateEsmExists implements InstallServiceValidator, InstallApplicationValidator {
+public class ValidateServiceNotAlreadyDeployed implements InstallServiceValidator {
 
-	private static final Logger logger = Logger.getLogger(ValidateEsmExists.class.getName());
-
-	private static final int TIMEOUT = 5000;
-
-	@Override
-	public void validate(final InstallApplicationValidationContext validationContext) throws RestErrorException {
-		validateEsmExists(validationContext.getAdmin());
-	}
+    private static final Logger logger = Logger.getLogger(ValidateServiceNotAlreadyDeployed.class.getName());
 
 	@Override
 	public void validate(final InstallServiceValidationContext validationContext) throws RestErrorException {
-		validateEsmExists(validationContext.getAdmin());
-	}
-
-	private void validateEsmExists(final Admin admin) throws RestErrorException {
-		logger.info("Validating that Esm exists");
-		if (admin != null) {
-			final ElasticServiceManager esm = admin.getElasticServiceManagers().waitForAtLeastOne(TIMEOUT,
-					TimeUnit.MILLISECONDS);
-			if (esm == null) {
-				throw new RestErrorException(CloudifyMessageKeys.ESM_MISSING.getName(), 
-						Arrays.toString(admin.getGroups()));
+		logger.info("Validating that service is not already deployed");
+		final String puName = validationContext.getPuName();
+		final ProcessingUnits pus = validationContext.getAdmin().getProcessingUnits();
+		for (ProcessingUnit pu : pus) {
+			if (pu.getName().equals(puName)) {
+				throw new RestErrorException(CloudifyErrorMessages.SERVICE_ALREADY_INSTALLED.getName(), puName);
 			}
 		}
 	}

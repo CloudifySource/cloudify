@@ -18,38 +18,38 @@ package org.cloudifysource.rest.validators;
 import java.io.File;
 import java.io.IOException;
 
+import junit.framework.Assert;
+
 import org.apache.commons.io.FileUtils;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.junit.Test;
 
-public class ValidateApplicationOverridesFileSizeTest extends InstallApplicationValidatorTest {
+public class ValidateApplicationOverridesFileSizeTest {
 
-    private ValidateApplicationOverridesFileSize validator;
-    private static final long TEST_FILE_SIZE_LIMIT = 3;
-    
-    private File applicationOverrides;
-
-    @Override
-    public void init() throws IOException {
-        validator = new ValidateApplicationOverridesFileSize();
-        validator.setApplicationOverridesFileSizeLimit(TEST_FILE_SIZE_LIMIT);
-        
-        applicationOverrides = File.createTempFile("applicationOverrides", "");
-        FileUtils.writeStringToFile(applicationOverrides, "I'm longer than 3 bytes !");
-        setApplicationOverridesFile(applicationOverrides);
-
-        setExceptionCause(CloudifyMessageKeys.APPLICATION_OVERRIDES_SIZE_LIMIT_EXCEEDED.getName());
-    }
+    private static final long TEST_FILE_SIZE_LIMIT = 3;    
     
     @Test
-    public void testSizeLimitExeeded() throws IOException {
-        testValidator();
-        applicationOverrides.delete();
+    public void testSizeLimitExeeded() {
+    	
+    	File applicationOverridesFile = null;
+    	try {
+    		applicationOverridesFile = File.createTempFile("applicationOverrides", "");
+    		FileUtils.writeStringToFile(applicationOverridesFile, "I'm longer than 3 bytes !");
+    	} catch (IOException e) {
+    		Assert.fail(e.getLocalizedMessage());
+    	}
+        
+    	ValidateOverridesFileSize validator = new ValidateOverridesFileSize();
+    	validator.setApplicationOverridesFileSizeLimit(TEST_FILE_SIZE_LIMIT);
+        InstallApplicationValidationContext context = new InstallApplicationValidationContext();
+        context.setApplicationOverridesFile(applicationOverridesFile);
+		
+        ValidatorsTestsUtils.validate(
+        		validator, 
+        		context , 
+        		CloudifyMessageKeys.APPLICATION_OVERRIDES_SIZE_LIMIT_EXCEEDED.getName());
+        
+		applicationOverridesFile.delete();
     }
-    
-	@Override
-	public InstallApplicationValidator getValidatorInstance() {
-		return validator;
-	}
 
 }

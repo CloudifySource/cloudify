@@ -11,6 +11,8 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
+import java.util.logging.Logger;
+
 import org.cloudifysource.rest.controllers.RestErrorException;
 import org.springframework.stereotype.Component;
 
@@ -22,9 +24,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class ValidateTemplateOperation implements TemplatesValidator {
 
+    private static final Logger logger = Logger.getLogger(ValidateTemplateOperation.class.getName());
+
 	@Override
 	public void validate(final TemplatesValidationContext validationContext) 
 			throws RestErrorException {
+        logger.info("Validating template operation: " + validationContext.getOperationName());
 		if (validationContext.getCloud() == null) {
 			throw new RestErrorException("local_cloud_not_support_templates_operations", 
 					validationContext.getOperationName());

@@ -12,20 +12,22 @@
  *******************************************************************************/
 package org.cloudifysource.shell.rest.inspect;
 
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
+
 import org.apache.felix.service.command.CommandSession;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
+import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.rest.response.ServiceDescription;
 import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.restclient.exceptions.RestClientException;
+import org.cloudifysource.restclient.messages.MessagesUtils;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.exceptions.CLIException;
 import org.cloudifysource.shell.exceptions.CLIStatusException;
 import org.cloudifysource.shell.installer.CLIEventsDisplayer;
 import org.cloudifysource.shell.rest.inspect.service.ServiceUninstallationProcessInspector;
-
-import java.io.IOException;
-import java.util.concurrent.TimeoutException;
-import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -38,8 +40,6 @@ public class CLIServiceUninstaller {
     private static final int DEFAULT_TIMEOUT_MINUTES = 5;
 
     private CLIEventsDisplayer displayer = new CLIEventsDisplayer();
-
-    private static final Logger logger = Logger.getLogger(CLIServiceUninstaller.class.getName());
 
     private boolean askOnTimeout = true;
     private String applicationName;
@@ -84,8 +84,21 @@ public class CLIServiceUninstaller {
         displayer.printEvent("uninstalling_service", serviceName);
         displayer.printEvent("waiting_for_lifecycle_of_service", serviceName);
 
-        ServiceDescription serviceDescription =
-        		restClient.getServiceDescription(applicationName, serviceName);
+        ServiceDescription serviceDescription;
+        try {
+        	serviceDescription = restClient.getServiceDescription(applicationName, serviceName);
+        } catch (RestClientException e) {
+        	if (CloudifyMessageKeys.MISSING_RESOURCE.getName().equals(e.getMessageCode())) {
+        		throw MessagesUtils.createRestClientException(
+        				e.getVerbose(), 
+        				CloudifyErrorMessages.FAILED_TO_LOCATE_SERVICE.getName(), 
+        				applicationName + "." + serviceName);
+//        		throw new RestClientException(CloudifyErrorMessages.FAILED_TO_LOCATE_SERVICE.getName(), 
+//        				"Service " + serviceName + " could not be found", e.getVerbose());
+        	}
+        	throw e;
+        }
+		
         String deploymentId = serviceDescription.getDeploymentId();
 
         final int lastEventIndex = restClient.getLastEvent(deploymentId).getIndex();

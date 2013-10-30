@@ -436,6 +436,12 @@ public final class CloudifyConstants {
 	 */
 	public static final String BUILT_IN_COMMAND_PREFIX = "cloudify:";
 	
+	/**
+	 * service name
+	 */
+	public static final String ILlEGAL_SERVICE_NAME_PREFIX = ".";
+	public static final String ILlEGAL_SERVICE_NAME_SUFFIX = ".";
+	
     // CHECKSTYLE:ON
 }
 

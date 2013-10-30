@@ -15,6 +15,8 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
+import java.util.logging.Logger;
+
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.rest.controllers.RestErrorException;
@@ -28,9 +30,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class ValidateApplicationName implements InstallApplicationValidator {
 
+	private static final Logger logger = Logger.getLogger(ValidateApplicationName.class.getName());
+
 	@Override
 	public void validate(final InstallApplicationValidationContext validationContext)
 			throws RestErrorException {
+		logger.info("Validating application name");
 		final String appName = validationContext.getApplication().getName();
 		final char [] invalidChars = new char[] {'{', '}', '[', ']', '(', ')'};
 		if (StringUtils.containsAny(appName, invalidChars)) {

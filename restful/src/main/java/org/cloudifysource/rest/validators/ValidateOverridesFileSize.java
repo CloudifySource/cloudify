@@ -16,6 +16,7 @@
 package org.cloudifysource.rest.validators;
 
 import java.io.File;
+import java.util.logging.Logger;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
@@ -25,10 +26,12 @@ import org.springframework.stereotype.Component;
 /**
  * Validate the service overrides file size.
  * @author yael
- *
+ * @since 2.7.0 
  */
 @Component
 public class ValidateOverridesFileSize implements InstallServiceValidator, InstallApplicationValidator {
+
+	private static final Logger logger = Logger.getLogger(ValidateOverridesFileSize.class.getName());
 
     private static final long DEFAULT_SERVICE_OVERRIDES_FILE_LENGTH_LIMIT_BYTES =
             CloudifyConstants.SERVICE_OVERRIDES_FILE_LENGTH_LIMIT_BYTES;
@@ -40,6 +43,7 @@ public class ValidateOverridesFileSize implements InstallServiceValidator, Insta
 
 	@Override
 	public void validate(final InstallApplicationValidationContext validationContext) throws RestErrorException {
+		logger.info("Validating overrides file size");
 		final File appOverridesFile = validationContext.getApplicationOverridesFile();
 		if (appOverridesFile != null) {
 			final long length = appOverridesFile.length();

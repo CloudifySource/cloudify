@@ -552,6 +552,7 @@ public class DeploymentsController extends BaseRestController {
 		validationContext.setApplicationName(applicationName);
 		validationContext.setServiceName(serviceName);
 		validationContext.setCloud(this.restConfig.getCloud());
+		validationContext.setAdmin(admin);
 		validationContext.setRequest(request);
 		validationContext.setProcessingUnit(pu);
 
@@ -1417,6 +1418,7 @@ public class DeploymentsController extends BaseRestController {
 		final UninstallApplicationValidationContext validationContext =
 				new UninstallApplicationValidationContext();
 		validationContext.setCloud(restConfig.getCloud());
+		validationContext.setAdmin(admin);
 		validationContext.setApplicationName(appName);
 		for (final UninstallApplicationValidator validator : uninstallApplicationValidators) {
 			validator.validate(validationContext);
@@ -1446,6 +1448,9 @@ public class DeploymentsController extends BaseRestController {
 			@RequestParam(required = false, defaultValue = "5") final Integer timeoutInMinutes)
 			throws ResourceNotFoundException, RestErrorException {
 
+		// validations
+		validateUninstallService(ServiceUtils.getAbsolutePUName(appName, serviceName));
+
 		final ProcessingUnit processingUnit = controllerHelper.getService(appName, serviceName);
 		final String deploymentId = processingUnit.getBeanLevelProperties()
 				.getContextProperties().getProperty(CloudifyConstants.CONTEXT_PROPERTY_DEPLOYMENT_ID);
@@ -1465,8 +1470,6 @@ public class DeploymentsController extends BaseRestController {
 			permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
 		}
 
-		// validations
-		validateUninstallService();
 
 		populateEventsCache(deploymentId, processingUnit);
 
@@ -1518,10 +1521,11 @@ public class DeploymentsController extends BaseRestController {
 		gigaSpace.takeMultiple(instanceAttributesTemplate);
 	}
 
-	private void validateUninstallService() throws RestErrorException {
+	private void validateUninstallService(final String puName) throws RestErrorException {
 		final UninstallServiceValidationContext validationContext = new UninstallServiceValidationContext();
-
 		validationContext.setCloud(restConfig.getCloud());
+		validationContext.setAdmin(admin);
+		validationContext.setPuName(puName);
 
 		for (final UninstallServiceValidator validator : uninstallServiceValidators) {
 			validator.validate(validationContext);
@@ -1720,6 +1724,7 @@ public class DeploymentsController extends BaseRestController {
 		validationContext.setCloudOverridesFile(cloudOverridesFile);
 		validationContext.setServiceOverridesFile(serviceOverridesFile);
 		validationContext.setCloudConfigurationFile(cloudConfigurationFile);
+		validationContext.setPuName(absolutePuName);
 		
 		// call validate for each install service validator.
 		for (final InstallServiceValidator validator : installServiceValidators) {

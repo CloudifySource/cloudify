@@ -15,6 +15,7 @@ package org.cloudifysource.rest.validators;
 
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.dsl.rest.request.SetServiceInstancesRequest;
+import org.openspaces.admin.Admin;
 import org.openspaces.admin.pu.ProcessingUnit;
 
 /**
@@ -27,6 +28,7 @@ import org.openspaces.admin.pu.ProcessingUnit;
 public class SetServiceInstancesValidationContext {
 
 	private Cloud cloud;
+	private Admin admin;
 	private String applicationName;
 	private String serviceName;
 	private SetServiceInstancesRequest request;
@@ -70,6 +72,14 @@ public class SetServiceInstancesValidationContext {
 
 	public void setProcessingUnit(final ProcessingUnit processingUnit) {
 		this.processingUnit = processingUnit;
+	}
+
+	public Admin getAdmin() {
+		return admin;
+	}
+
+	public void setAdmin(Admin admin) {
+		this.admin = admin;
 	}
 
 }

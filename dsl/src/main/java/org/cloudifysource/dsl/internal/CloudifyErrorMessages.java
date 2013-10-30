@@ -354,8 +354,27 @@ public enum CloudifyErrorMessages {
     /**
      * Printed when an application fails to install and self healing is disabled.
      */
-    FAILED_TO_DEPLOY_APPLICATION("failed_to_deploy_application", 1)
+    FAILED_TO_DEPLOY_APPLICATION("failed_to_deploy_application", 1),
+
+    /**
+	 * Indicates illegal prefix.
+     */
+    ILLEGAL_CUSTOM_COMMAND_PREFIX("illegal_custom_command_prefix", 2),
     
+    /**
+     * Indicates illegal service name.
+     */
+    ILLEGAL_SERVICE_NAME("illegal_service_name", 2),
+    
+    /**
+     * Indicates application does not exist.
+     */
+    FAILED_TO_LOCATE_APPLICATION("failed_to_locate_application", 1),
+    
+    /**
+     * Indicates service does not exist.
+     */
+    FAILED_TO_LOCATE_SERVICE("failed_to_locate_service", 1)
     // CHECKSTYLE:OFF
 	;
 	// CHECKSTYLE:ON

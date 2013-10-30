@@ -132,6 +132,27 @@ public final class MessagesUtils {
 						arguments),
 				null);
 	}
+	
+	/**
+	 * Creates an RestClientException with given verbose, 
+	 * messageCode and the formatted message with the given arguments (using
+	 * the {@link #messageBundle}).
+	 * 
+	 * @param verbose 
+	 * @param messageCode 
+	 * @param arguments 
+	 * @return a new RestClientException.
+	 */
+	public static RestClientException createRestClientException(
+			final String verbose, final String messageCode,
+			final Object... arguments) {
+		return new RestClientException(
+				messageCode,
+				getFormattedMessage(
+						messageCode,
+						arguments),
+						verbose);
+	}
 
 	/**
 	 * Creates an RestClientIOException with given messageCode, the formatted message with the given arguments (using

@@ -13,13 +13,14 @@
 package org.cloudifysource.rest.validators;
 
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.Service;
 import org.cloudifysource.domain.StorageDetails;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.storage.StorageTemplate;
-import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.rest.controllers.RestErrorException;
 import org.springframework.stereotype.Component;
 
@@ -32,9 +33,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class ValidateStorageTemplateExists implements InstallServiceValidator {
 
+    private static final Logger logger = Logger.getLogger(ValidateStorageTemplateExists.class.getName());
+
 	@Override
 	public void validate(final InstallServiceValidationContext validationContext)
 			throws RestErrorException {
+		logger.info("Validating storage tempalte");
 		final Service service = validationContext.getService();
 		final StorageDetails storage = service.getStorage();
 		if (storage != null) {
@@ -57,7 +61,7 @@ public class ValidateStorageTemplateExists implements InstallServiceValidator {
 			final Map<String, StorageTemplate> templates = cloud.getCloudStorage().getTemplates();
 			final StorageTemplate storageTemplate = templates.get(serviceTemplateName);
 			if (storageTemplate == null) {
-				throw new RestErrorException(CloudifyMessageKeys.MISSING_TEMPLATE.getName(), serviceTemplateName);
+				throw new RestErrorException(CloudifyErrorMessages.MISSING_TEMPLATE.getName(), serviceTemplateName);
 			}
 		}
 	}

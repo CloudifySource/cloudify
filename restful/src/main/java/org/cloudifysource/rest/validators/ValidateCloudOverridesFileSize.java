@@ -16,6 +16,7 @@
 package org.cloudifysource.rest.validators;
 
 import java.io.File;
+import java.util.logging.Logger;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
@@ -25,10 +26,12 @@ import org.springframework.stereotype.Component;
 /**
  * Validate the size of cloud overrides file.
  * @author yael
- *
+ * @since 2.7.0 
  */
 @Component
 public class ValidateCloudOverridesFileSize implements InstallServiceValidator , InstallApplicationValidator {
+
+	private static final Logger logger = Logger.getLogger(ValidateCloudOverridesFileSize.class.getName());
 
     private static final long DEFAULT_CLOUD_OVERRIDES_FILE_LENGTH_LIMIT_BYTES =
             CloudifyConstants.CLOUD_OVERRIDES_FILE_LENGTH_LIMIT_BYTES;
@@ -45,6 +48,7 @@ public class ValidateCloudOverridesFileSize implements InstallServiceValidator ,
     }
     
     private void validateCloudOverridesFileSize(final File cloudOverridesFile) throws RestErrorException {
+    	logger.info("Validating cloud overrides file size");
     	if (cloudOverridesFile != null) {
     		if (cloudOverridesFile.length() > cloudOverridesFileSizeLimit) {
     			throw new RestErrorException(CloudifyMessageKeys.CLOUD_OVERRIDES_SIZE_LIMIT_EXCEEDED.getName(),

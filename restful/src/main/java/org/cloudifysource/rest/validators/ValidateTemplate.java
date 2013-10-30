@@ -16,27 +16,35 @@
 package org.cloudifysource.rest.validators;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import org.cloudifysource.domain.Application;
 >>>>>>> CLOUDIFY-2164 rearranged validations.
+=======
+import java.util.logging.Logger;
+
+>>>>>>> CLOUDIFY-2164 Added missing validations and tests.
 import org.cloudifysource.domain.ComputeDetails;
 import org.cloudifysource.domain.Service;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
-import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.rest.controllers.RestErrorException;
 import org.springframework.stereotype.Component;
 
 /**
  *
  * @author yael
- *
+ * @since 2.7.0 
  */
 @Component
 public class ValidateTemplate implements InstallServiceValidator {
+    
+	private static final Logger logger = Logger.getLogger(ValidateTemplateOperation.class.getName());
 
     @Override
     public void validate(final InstallServiceValidationContext validationContext) throws RestErrorException {
+    	logger.info("Validating tempalte");
         Cloud cloud = validationContext.getCloud();
         Service service = validationContext.getService();
         String templateName = null;
@@ -74,7 +82,7 @@ public class ValidateTemplate implements InstallServiceValidator {
         // validate that the template exist at cloud's template list
         final ComputeTemplate template = cloud.getCloudCompute().getTemplates().get(templateName);
         if (template == null) {
-            throw new RestErrorException(CloudifyMessageKeys.MISSING_TEMPLATE.getName(), templateName);
+            throw new RestErrorException(CloudifyErrorMessages.MISSING_TEMPLATE.getName(), templateName);
         }
     }
 }
