@@ -1,7 +1,10 @@
 CLOUDIFY SOFTWARE  - OPEN SOURCE AND THIRD PARTY COMPONENTS - Cloudify 2.X
 ==========================================================================
 
+<<<<<<< Updated upstream
 <<<<<<< HEAD
+=======
+>>>>>>> Stashed changes
 |Artifact|Version|License|Used in Component|
 |--------------|--------------|--------------|--------------|
 |[ant](http://ant.apache.org/)|1.8.4|Apache 2.0|Core|
@@ -37,6 +40,7 @@ CLOUDIFY SOFTWARE  - OPEN SOURCE AND THIRD PARTY COMPONENTS - Cloudify 2.X
 |[Spring Framework (core + modules)](http://www.springframework.org)|3.x|Apache 2.0|Core|
 |[Velocity](http://velocity.apache.org/)|1.5|Apache 2.0|Core|
 |[windows-azure-java](https://github.com/WindowsAzure/azure-sdk-for-java)|2.0.2.v20110627_1009|Apache 2.0|Cloud Driver|
+<<<<<<< Updated upstream
 =======
 |Artifact|Version|License
 |--------------|--------------|--------------|
@@ -117,3 +121,5 @@ CLOUDIFY SOFTWARE  - OPEN SOURCE AND THIRD PARTY COMPONENTS - Cloudify 2.X
 |xerces|2.9.0|[Apache2.0](http://xml.apache.org/ )|
 |spring annotation|1.0.0|[Apache2.0](http://www.springframework.org/about)|
 >>>>>>> third_party.md
+=======
+>>>>>>> Stashed changes
