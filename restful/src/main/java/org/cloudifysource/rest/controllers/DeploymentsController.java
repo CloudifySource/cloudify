@@ -357,7 +357,10 @@ public class DeploymentsController extends BaseRestController {
 
 			// return the events. this MAY or MAY NOT be the complete set of events requested.
 			// request for specific events is treated as best effort. no guarantees all events are returned.
-			return EventsUtils.extractDesiredEvents(value.getEvents(), from, actualTo);
+            DeploymentEvents deploymentEvents = EventsUtils.extractDesiredEvents(value.getEvents(), from, actualTo);
+            logger.finest("Returning events " + deploymentEvents + " for deployment id " + deploymentId + " to the " +
+                    "client");
+            return deploymentEvents;
 		}
 	}
 

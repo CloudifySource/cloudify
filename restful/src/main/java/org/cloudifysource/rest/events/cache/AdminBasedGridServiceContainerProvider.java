@@ -24,6 +24,7 @@ import org.openspaces.admin.zone.Zone;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -37,6 +38,8 @@ import java.util.Set;
  */
 public class AdminBasedGridServiceContainerProvider implements GridServiceContainerProvider {
 
+    private static final Logger logger = Logger.getLogger(AdminBasedGridServiceContainerProvider.class.getName());
+
     private final Admin admin;
 
     public AdminBasedGridServiceContainerProvider(final Admin admin) {
@@ -45,6 +48,8 @@ public class AdminBasedGridServiceContainerProvider implements GridServiceContai
 
     @Override
     public Set<GridServiceContainer> getContainersForDeployment(final String deploymentId) {
+
+        logger.fine("Searching for processing units with deployment id " + deploymentId);
 
         Set<ProcessingUnit> processingUnitsForDeploymentId = new HashSet<ProcessingUnit>();
         Set<GridServiceContainer> containers = new HashSet<GridServiceContainer>();
@@ -55,10 +60,22 @@ public class AdminBasedGridServiceContainerProvider implements GridServiceContai
                 processingUnitsForDeploymentId.add(pu);
             }
         }
+
         for (ProcessingUnit pu : processingUnitsForDeploymentId) {
+            logger.fine("Retrieving containers for processing unit " + pu.getName());
             containers.addAll(getContainersForProcessingUnit(pu));
         }
+
+        logger.fine("Found containers " + toUidAndZone(containers) + " for deployment id " + deploymentId);
         return containers;
+    }
+
+    private Set<String> toUidAndZone(final Set<GridServiceContainer> containers) {
+        Set<String> humanReadable = new HashSet<String>();
+        for (GridServiceContainer container : containers) {
+            humanReadable.add(container.getUid()  + container.getExactZones().getZones());
+        }
+        return humanReadable;
     }
 
     private Set<GridServiceContainer> getContainersForProcessingUnit(final ProcessingUnit pu) {
