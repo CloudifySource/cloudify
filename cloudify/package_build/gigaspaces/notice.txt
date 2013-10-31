@@ -6,7 +6,7 @@ GIGASPACES CLOUDIFY SOFTWARE � OPEN SOURCE AND THIRD PARTY COMPONENTS
 http://karaf.apache.org/
 ======================================================================================
 
-� 2008-2011 The Apache Software Foundation. All Rights Reserved
+(c) 2008-2011 The Apache Software Foundation. All Rights Reserved
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. 
 
@@ -30,7 +30,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 http://commons.apache.org/
 ======================================================================================
 
-Copyright � 2011 The Apache Software Foundation. All Rights Reserved
+Copyright (c) 2011 The Apache Software Foundation. All Rights Reserved
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. 
 
@@ -56,26 +56,26 @@ Unless required by applicable law or agreed to in writing, software distributed 
 http://hc.apache.org/
 ======================================================================================
 
-Copyright � 2005- 2011 The Apache Software Foundation. All Rights Reserved
+Copyright (c) 2005- 2011 The Apache Software Foundation. All Rights Reserved
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. 
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 ======================================================================================
-9.	Ant/1.8.2  (under the Apache License, Version 2.0) 
+6.	Ant/1.8.2  (under the Apache License, Version 2.0) 
 
 http://ant.apache.org/
 ======================================================================================
 
-Copyright �  2012 The Apache Software Foundation. All Rights Reserved
+Copyright (c)  2012 The Apache Software Foundation. All Rights Reserved
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. 
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  
 ======================================================================================
-11.	Jsch/0.1.44-1 (under BSD style License)
+7.	Jsch/0.1.44-1 (under BSD style License)
 
 http://www.jcraft.com/jsch/
 ======================================================================================
@@ -95,49 +95,49 @@ THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES, INC
 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ======================================================================================
-12.	Jclouds/1.3.0 (under the Apache License, Version 2.0)
+8.	Jclouds/1.3.0 (under the Apache License, Version 2.0)
 
 http://www.jclouds.org/
 ======================================================================================
 
-Copyright �2011 jclouds, Inc
+Copyright (C) 2011 jclouds, Inc
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. 
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 ======================================================================================
-15.	org.soyatec:windows-azure-java (under the Apache License, Version 2.0)
+9.	org.soyatec:windows-azure-java (under the Apache License, Version 2.0)
 
 http://www.windowsazure4j.org/
 http://www.windowsazure4j.org/license/
 ======================================================================================
 
-� 2012 Soyatec. All Rights reserved 
+(c) 2012 Soyatec. All Rights reserved 
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. 
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 ======================================================================================
-18.	James Mime4J (under the Apache License, Version 2.0)
+10.	James Mime4J (under the Apache License, Version 2.0)
 
 http://james.apache.org/mime4j/
 ======================================================================================
 
-Copyright �  2006- 2012 The Apache Software Foundation. All Rights Reserved
+Copyright (c)  2006- 2012 The Apache Software Foundation. All Rights Reserved
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. 
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 ======================================================================================
-27.	Log4J (under the Apache License, Version 2.0)
+11.	Log4J (under the Apache License, Version 2.0)
 
 http://logging.apache.org/log4j/1.2/
 ======================================================================================
 
-� 1999-2010 Apache Software Foundation. All Rights Reserved
+(c) 1999-2010 Apache Software Foundation. All Rights Reserved
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. 
 
@@ -145,7 +145,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 
 ======================================================================================
-38.	Spring (under the Apache License, Version 2.0) 
+12.	Spring (under the Apache License, Version 2.0) 
 
 http://www.springframework.org/about
 http://www.apache.org/licenses/LICENSE-2.0.html
@@ -158,20 +158,20 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 ======================================================================================
-39.	Velocity (under the Apache License, Version 2.0)
+13.	Velocity (under the Apache License, Version 2.0)
 
 http://velocity.apache.org/
 http://www.apache.org/licenses/LICENSE-2.0.html
 ======================================================================================
 
-Copyright � 2010 The Apache Software Foundation
+Copyright (c) 2010 The Apache Software Foundation
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. 
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 ======================================================================================
-42.	Jetty (under dual licensed under the Apache License 2.0 and Eclipse Public License 1.0)
+14.	Jetty (under dual licensed under the Apache License 2.0 and Eclipse Public License 1.0)
 
 http://www.mortbay.org/jetty/ 
 http://www.eclipse.org/jetty/licenses.php
@@ -193,9 +193,9 @@ The javax.servlet package used was sourced from the Apache Software Foundation a
 The UnixCrypt.java code implements the one way cryptography used by Unix systems for simple password protection.  Copyright 1996 Aki Yoshida, modified April 2001 by Iris Van den Broeke, Daniel Deville. Permission to use, copy, modify and distribute UnixCrypt for non-commercial or commercial purposes and without fee is granted provided that the copyright notice appears in all copies.
 
 ======================================================================================
-44.	Groovy (under the Apache License, Version 2.0)   
+15.	Groovy (under the Apache License, Version 2.0)   
 
-� 2011 Codehaus Foundation 
+(c) 2011 Codehaus Foundation 
 
 http://groovy.codehaus.org/
 http://svn.codehaus.org/groovy/trunk/groovy/groovy-core/LICENSE.txt
@@ -206,7 +206,7 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 ======================================================================================
-45.	Sigar (under the Apache License, Version 2.0)    
+16.	Sigar (under the Apache License, Version 2.0)    
 
 http://support.hyperic.com/display/SIGAR/Home
 http://support.hyperic.com/display/SIGAR/Home#Home-license
@@ -219,13 +219,13 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 ======================================================================================
-57.	Google Web Toolkit (under the Apache License, v. 2.0)
+17.	Google Web Toolkit (under the Apache License, v. 2.0)
 
 http://code.google.com/webtoolkit/
 http://code.google.com/webtoolkit/terms.html
 ======================================================================================
 
-�2011 Google
+(c) 2011 Google
 
 The Google Web Toolkit software and sample code developed by Google is licensed under the Apache License, v. 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
@@ -262,34 +262,34 @@ webkit.org
 
 
 ======================================================================================
-58.	Highcharts � (under OEM license)
+18.	Highcharts (c) (under OEM license)
 
 http://www.highcharts.com/
 http://www.highcharts.com/license
 ======================================================================================
 
 ======================================================================================
-59.	GWT Ext (under Sencha Commercial Software License Agreement)
+19.	GWT Ext (under Sencha Commercial Software License Agreement)
 
 http://www.sencha.com/products/gwt/
 http://www.sencha.com/store/gwt/license.php
 ======================================================================================
 
 ======================================================================================
-63.	gwtupload (under the Apache License, Version 2.0)
+20.	gwtupload (under the Apache License, Version 2.0)
 
 http://www.apache.org/licenses/LICENSE-2.0
 http://code.google.com/p/gwtupload/
 ======================================================================================
 
-�2009-2012 Manolo Carrasco Monino
+(c) 2009-2012 Manolo Carrasco Monino
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. 
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 ======================================================================================
-66.	gQuery / GwtQuery (jQuery GWT) (under the Apache License, v. 2.0)
+21.	gQuery / GwtQuery (jQuery GWT) (under the Apache License, v. 2.0)
 
 Copyright 2011, The GwtQuery team
 
@@ -301,7 +301,7 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 ======================================================================================
-67.	Dracula Graph Library (under MIT License)
+22.	Dracula Graph Library (under MIT License)
 
 http://www.graphdracula.net/
 http://www.opensource.org/licenses/mit-license.php
@@ -323,27 +323,63 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ======================================================================================
-68.	Raphael � JavaScript Vector Library (under MIT License)
+23.	Raphael JavaScript Vector Library (under MIT License)
 
 http://raphaeljs.com 
 http://raphaeljs.com/license.html   
 ======================================================================================
 
-Copyright � 2008 Dmitry Baranovskiy
+Copyright (c) 2008 Dmitry Baranovskiy
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the �Software�), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-THE SOFTWARE IS PROVIDED �AS IS�, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED AS IS, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ======================================================================================
-69.	jQuery 
+24.	jQuery 
 
 http://jquery.com/
 http://jquery.org/license/   
 ======================================================================================
 
-� 2010 The jQuery Project
+(c) 2010 The jQuery Project
 You may use any jQuery project under the terms of either the MIT License or the GNU General Public License (GPL) Version 2.
 The MIT License is recommended for most projects. It is simple and easy to understand and it places almost no restrictions on what you can do with a jQuery project.
 If the GPL suits your project better you are also free to use a jQuery project under that license.
 You don�t have to do anything special to choose one license or the other and you don�t have to notify anyone which license you are using. You are free to use a jQuery project in commercial projects as long as the copyright header is left intact.
 GigaSpaces is following the terms and conditions of MIT license.
+
+======================================================================================
+25.	
+
+http://cglib.sourceforge.net/
+http://www.apache.org/licenses/LICENSE-2.0.txt
+======================================================================================
+
+======================================================================================
+26.	GigaSpaces XAP Lite Edition 
+
+http://gigaspaces.com/xap
+http://www.cloudifysource.org/cloudify_xap_license_terms.html
+======================================================================================
+
+Copyright (c) 2012 GigaSpaces Technologies Ltd. 
+
+As part of the license to the open source Cloudify software, and subject to compliance with the terms of such license, GigaSpaces grants you a non-exclusive, non-transferable, royalty-free license to these XAP components solely as incorporated into such Cloudify software. Please note that GigaSpaces intends to replace the XAP components of the Cloudify software with open source components of substantially the same functionality, at which time your license to the XAP components will expire and be replaced by a Apache 2.0 based license to the replacement open source components.
+
+======================================================================================
+27.	GWT Simile Timeline  
+
+https://code.google.com/p/gwtsimiletimeline/
+http://www.apache.org/licenses/LICENSE-2.0
+======================================================================================
+
+======================================================================================
+28.	Simile Timeline  
+
+http://www.simile-widgets.org/timeline/
+http://simile.mit.edu/license.html
+======================================================================================
+
+
+
+
