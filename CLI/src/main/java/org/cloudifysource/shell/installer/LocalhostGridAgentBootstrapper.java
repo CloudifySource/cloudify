@@ -124,7 +124,7 @@ public class LocalhostGridAgentBootstrapper {
 			"gsa.gsm_lus", "0", "gsa.global.esm", "0", "gsa.esm", "0" };
 	// localcloud management agent starts 1 esm, 1 gsm,1 lus
 	private static final String[] LOCALCLOUD_LINUX_MANAGEMENT_ARGUMENTS = new String[] { "start",
-			"\"com.gigaspaces.start.services=\\\"LH,GSM,GSA,ESM\\\"\"", "gsa.global.lus", "0", "gsa.lus", "0",
+			"\\\"LH,GSM,GSA,ESM\\\"", "gsa.global.lus", "0", "gsa.lus", "0",
 			"gsa.gsc", "0", "gsa.global.gsm", "0", "gsa.gsm_lus", "0", "gsa.global.esm", "0", "gsa.esm", "0" };
 
 	private static final String[] AGENT_ARGUMENTS = new String[] { "gsa.global.lus", "0", "gsa.gsc", "0",
