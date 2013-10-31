@@ -4,8 +4,9 @@ CLOUDIFY SOFTWARE  - OPEN SOURCE AND THIRD PARTY COMPONENTS - Cloudify 2.X
 |Artifact|Version|License|Used in Component|
 |--------------|--------------|--------------|--------------|
 |[ant](http://ant.apache.org/)|1.8.4|Apache 2.0|Core|
-|[cglib](http://cglib.sourceforge.net/)|2.2.0|Apache 2.0|Core|
 |[Apache Commons](http://commons.apache.org/)|1.x|Apache 2.0|Core|
+|[cglib](http://cglib.sourceforge.net/)|2.2.0|Apache 2.0|Core|
+|[Dracula Graph Library](http://www.graphdracula.net/)|0.0.3|MIT|Web UI|
 |[GigaSpaces XAP Lite Edition](http://www.gigaspaces.com/xap) |9.X| [XAP Lite License](http://www.cloudifysource.org/cloudify_xap_license_terms.html)|Core|
 |[Google Web Toolkit](http://code.google.com/webtoolkit/) |2.4.0|Apache 2.0|Web UI|
 |[gQuery (GWTQuery)](http://gwtquery.com)|1.1.0|Apache 2.0|Web UI|
