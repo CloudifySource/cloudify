@@ -26,6 +26,7 @@ import org.cloudifysource.rest.events.EventsUtils;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.openspaces.admin.gsc.GridServiceContainer;
+import org.openspaces.admin.zone.config.ExactZonesConfig;
 
 import java.util.*;
 
@@ -112,6 +113,7 @@ public class EventsCacheLoaderTest {
                     .thenReturn(mockLogEntries);
             Mockito.when(mockContainer.getUid()).thenReturn(UUID.randomUUID().toString());
             Mockito.when(mockContainer.isDiscovered()).thenReturn(true);
+            Mockito.when(mockContainer.getExactZones()).thenReturn(new ExactZonesConfig());
             return mockContainer;
         }
 
