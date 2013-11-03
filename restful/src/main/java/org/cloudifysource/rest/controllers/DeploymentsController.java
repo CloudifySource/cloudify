@@ -12,7 +12,35 @@
  *******************************************************************************/
 package org.cloudifysource.rest.controllers;
 
+import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_INVOKE_INSTANCE;
+import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_LUS;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.annotation.PostConstruct;
+
 import net.jini.core.discovery.LookupLocator;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.Application;
@@ -44,6 +72,8 @@ import org.cloudifysource.dsl.rest.response.GetServiceAttributesResponse;
 import org.cloudifysource.dsl.rest.response.GetServiceInstanceAttributesResponse;
 import org.cloudifysource.dsl.rest.response.InstallApplicationResponse;
 import org.cloudifysource.dsl.rest.response.InstallServiceResponse;
+import org.cloudifysource.dsl.rest.response.InvokeInstanceCommandResponse;
+import org.cloudifysource.dsl.rest.response.InvokeServiceCommandResponse;
 import org.cloudifysource.dsl.rest.response.ServiceDescription;
 import org.cloudifysource.dsl.rest.response.ServiceDetails;
 import org.cloudifysource.dsl.rest.response.ServiceInstanceDetails;
@@ -101,7 +131,9 @@ import org.openspaces.admin.AdminException;
 import org.openspaces.admin.gsc.GridServiceContainer;
 import org.openspaces.admin.gsm.GridServiceManager;
 import org.openspaces.admin.internal.admin.InternalAdmin;
+import org.openspaces.admin.internal.pu.DefaultProcessingUnitInstance;
 import org.openspaces.admin.internal.pu.InternalProcessingUnit;
+import org.openspaces.admin.internal.pu.InternalProcessingUnitInstance;
 import org.openspaces.admin.internal.pu.elastic.GridServiceContainerConfig;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
@@ -125,29 +157,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import javax.annotation.PostConstruct;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_LUS;
 
 /**
  * This controller is responsible for retrieving information about deployments. It is also the entry point for deploying
@@ -182,6 +191,7 @@ public class DeploymentsController extends BaseRestController {
 	private static final long WAIT_FOR_PU_SECONDS = 30;
 	private static final int DEPLOYMENT_TIMEOUT_SECONDS = 60;
 	private static final int WAIT_FOR_MANAGED_TIMEOUT_SECONDS = 10;
+	private static final int PU_DISCOVERY_TIMEOUT_SEC = 8;
 	private static final int LOCAL_CLOUD_INSTANCE_MEMORY_MB = 512;
 
 	@Autowired
@@ -2255,4 +2265,244 @@ public class DeploymentsController extends BaseRestController {
 			@PathVariable final String serviceName) {
 		throw new UnsupportedOperationException();
 	}
+	
+	
+	/**
+	 * Invokes a custom command on all of the specified service instances. Custom parameters are passed as a map using
+	 * the POST method and contain the command name and parameter values for the specified command.
+	 *
+	 * @param applicationName
+	 *            The application name.
+	 * @param serviceName
+	 *            The service name.
+	 * @param beanName
+	 *            deprecated.
+	 * @param params
+	 *            The command parameters.
+	 * @return a Map containing the result of each invocation on a service instance.
+	 * @throws RestErrorException
+	 *             When the invocation failed.
+	 * @throws ResourceNotFoundException
+	 *             When failed to locate service/service instance.
+	 */
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/beans/{beanName}/invoke",
+			method = RequestMethod.POST)
+	@PreAuthorize("isFullyAuthenticated()")
+	public InvokeServiceCommandResponse invoke(@PathVariable final String applicationName,
+			@PathVariable final String serviceName,
+			@PathVariable final String beanName,
+			@RequestBody final Map<String, Object> params)
+			throws RestErrorException, ResourceNotFoundException {
+		
+		InvokeServiceCommandResponse response = new InvokeServiceCommandResponse();
+		
+		final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+		if (logger.isLoggable(Level.FINER)) {
+			logger.finer("received request to invoke bean " + beanName
+					+ " of service " + absolutePuName + " of application "
+					+ applicationName);
+		}
+
+		// Get the PU
+		final ProcessingUnit pu = admin.getProcessingUnits().waitFor(
+				absolutePuName, PU_DISCOVERY_TIMEOUT_SEC, TimeUnit.SECONDS);
+		if (pu == null) {
+			// TODO: Consider telling the user he might be using the wrong
+			// application name.
+			logger.severe("Could not find service " + absolutePuName);
+			
+			// TODO noak: is this ok?			
+			throw new ResourceNotFoundException(absolutePuName);
+		}
+
+		if (permissionEvaluator != null) {
+			final String puAuthGroups = pu.getBeanLevelProperties().getContextProperties().
+					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
+			final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			final CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
+			permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
+		}
+
+		// result, mapping service instances to results
+		// final Map<String, Object> invocationResult = new HashMap<String, Object>();
+		final ProcessingUnitInstance[] instances = pu.getInstances();
+
+		if (instances.length == 0) {
+			throw new RestErrorException(
+					ResponseConstants.NO_PROCESSING_UNIT_INSTANCES_FOUND_FOR_INVOCATION,
+					serviceName);
+		}
+
+		// Why a map? TODO: Use an array here instead.
+		// map between service name and its future
+		final Map<String, Future<Object>> futures = new HashMap<String, Future<Object>>(
+				instances.length);
+		for (final ProcessingUnitInstance instance : instances) {
+			// key includes instance ID and host name
+			final String serviceInstanceName = buildServiceInstanceName(instance);
+			try {
+				final Future<Object> future = ((DefaultProcessingUnitInstance) instance)
+						.invoke(beanName, params);
+				futures.put(serviceInstanceName, future);
+			} catch (final Exception e) {
+				logger.severe("Error invoking service "
+						+ serviceName
+						+ ":"
+						+ instance.getInstanceId()
+						+ " on host "
+						+ instance.getVirtualMachine().getMachine().getHostName());
+				response.setInvocationResult(serviceInstanceName, "pu_instance_invocation_failure");
+			}
+		}
+
+		for (final Map.Entry<String, Future<Object>> entry : futures.entrySet()) {
+			String serviceInstanceName = entry.getKey();
+			try {
+				Object invocationResult = entry.getValue().get();
+				// use only tostring of collection values, to avoid
+				// serialization problems
+				invocationResult = postProcessInvocationResult(invocationResult, entry.getKey());
+				response.setInvocationResult(serviceInstanceName, invocationResult);
+
+			} catch (final Exception e) {
+				response.setInvocationResult(serviceInstanceName, "Invocation failure: " + e.getMessage());
+			}
+		}
+
+		return response;
+		//return successStatus(invocationResult);
+	}
+	
+	
+	/**
+	 * Invokes a custom command on a specific service instance. Custom parameters are passed as a map using POST method
+	 * and contain the command name and parameter values for the specified command.
+	 *
+	 * @param applicationName
+	 *            The application name.
+	 * @param serviceName
+	 *            The service name
+	 * @param instanceId
+	 *            The service instance number to be invoked.
+	 * @param beanName
+	 *            depreciated
+	 * @param params
+	 *            a Map containing the result of each invocation on a service instance.
+	 * @return a Map containing the invocation result on the specified instance.
+	 * @throws RestErrorException
+	 *             When the invocation failed.
+	 * @throws ResourceNotFoundException
+	 *             When failed to locate service/service instance.
+	 */
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances"
+			+ "/{instanceId}/beans/{beanName}/invoke", method = RequestMethod.POST)
+	@PreAuthorize("isFullyAuthenticated()")
+	public InvokeInstanceCommandResponse invokeInstance(
+			@PathVariable final String applicationName,
+			@PathVariable final String serviceName,
+			@PathVariable final int instanceId,
+			@PathVariable final String beanName,
+			@RequestBody final Map<String, Object> params)
+			throws RestErrorException, ResourceNotFoundException {
+		
+		InvokeInstanceCommandResponse response = new InvokeInstanceCommandResponse();
+		final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+		if (logger.isLoggable(Level.FINER)) {
+			logger.finer("received request to invoke bean " + beanName
+					+ " of service " + serviceName + " of application "
+					+ applicationName);
+		}
+
+		// Get PU
+		final ProcessingUnit pu = admin.getProcessingUnits().waitFor(
+				absolutePuName, PU_DISCOVERY_TIMEOUT_SEC, TimeUnit.SECONDS);
+
+		if (pu == null) {
+			// TODO: Consider telling the user he might be using the wrong
+			// application name.
+			logger.severe("Could not find service " + absolutePuName);
+			
+			// TODO noak: is this ok?			
+			throw new ResourceNotFoundException(absolutePuName);
+		}
+
+		if (permissionEvaluator != null) {
+			final String puAuthGroups = pu.getBeanLevelProperties().getContextProperties().
+					getProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS);
+			final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			final CloudifyAuthorizationDetails authDetails = new CloudifyAuthorizationDetails(authentication);
+			permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
+		}
+
+		final InternalProcessingUnitInstance pui = findInstanceById(pu, instanceId);
+		if (pui == null) {
+			logger.severe("Could not find service instance " + instanceId
+					+ " for service " + absolutePuName);
+			throw new RestErrorException(
+					ResponseConstants.SERVICE_INSTANCE_UNAVAILABLE,
+					applicationName, absolutePuName,
+					Integer.toString(instanceId));
+		}
+		
+		final String instanceName = buildServiceInstanceName(pui);
+		
+		// Invoke the remote service
+		try {
+			final Future<?> future = pui.invoke(beanName, params);
+			final Object invocationResult = future.get();
+			final Object finalResult = postProcessInvocationResult(invocationResult, instanceName);
+			response.setInvocationResult(finalResult);
+		} catch (final Exception e) {
+			logger.severe("Error invoking pu instance " + absolutePuName + ":"
+					+ instanceId + " on host "
+					+ pui.getVirtualMachine().getMachine().getHostName());
+			throw new RestErrorException(FAILED_TO_INVOKE_INSTANCE,
+					absolutePuName, Integer.toString(instanceId),
+					e.getMessage());
+		}
+		
+		return response;
+	}
+
+	
+	
+	private Object postProcessInvocationResult(final Object result,
+			final String instanceName) {
+		Object formattedResult;
+		if (result instanceof Map<?, ?>) {
+			final Map<String, String> modifiedMap = new HashMap<String, String>();
+			@SuppressWarnings("unchecked")
+			final Set<Entry<String, Object>> entries = ((Map<String, Object>) result).entrySet();
+			for (final Entry<String, Object> subEntry : entries) {
+				modifiedMap.put(subEntry.getKey(),
+						subEntry.getValue() == null ? null : subEntry
+								.getValue().toString());
+			}
+			modifiedMap.put(CloudifyConstants.INVOCATION_RESPONSE_INSTANCE_NAME, instanceName);
+			formattedResult = modifiedMap;
+		} else {
+			formattedResult = result.toString();
+		}
+		return formattedResult;
+	}
+	
+	
+	private String buildServiceInstanceName(
+			final ProcessingUnitInstance instance) {
+		return "instance #" + instance.getInstanceId() + "@"
+				+ instance.getVirtualMachine().getMachine().getHostName();
+	}
+	
+	
+	private InternalProcessingUnitInstance findInstanceById(
+			final ProcessingUnit pu, final int id) {
+		final ProcessingUnitInstance[] instances = pu.getInstances();
+		for (final ProcessingUnitInstance instance : instances) {
+			if (instance.getInstanceId() == id) {
+				return (InternalProcessingUnitInstance) instance;
+			}
+		}
+		return null;
+	}
+	
 }
