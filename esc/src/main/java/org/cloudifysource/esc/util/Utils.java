@@ -214,7 +214,7 @@ public final class Utils {
 
 		// Create a copy of managementOnly files and mutate
 		final List<String> managementOnlyFiles = new ArrayList<String>(cloud.getProvider().getManagementOnlyFiles());
-		if (template.getKeyFile() != null && isManagement) {
+		if (template.getKeyFile() != null) {
 			// keyFile, if used, is always a management file.
 			managementOnlyFiles.add(template.getKeyFile());
 		}
