@@ -36,7 +36,6 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -80,11 +79,14 @@ public class UploadControllerTest extends ControllerTest {
 
 
     @Before
-    public void init() throws NoSuchMethodException {
+    public void init() throws NoSuchMethodException, RestErrorException, IOException {
         String version = PlatformVersion.getVersion();
         versionedUploadUri = "/" + version + UPLOAD_URI;
         controller = applicationContext.getBean(UploadController.class);
         uploadRepo = applicationContext.getBean(UploadRepo.class);
+        uploadRepo.init();
+        uploadRepo.setBaseDir(new File(CloudifyConstants.REST_FOLDER));
+        uploadRepo.createUploadDir();
         controllerMapping = new HashMap<String, HashMap<RequestMethod, HandlerMethod>>();
         HashMap<RequestMethod, HandlerMethod> map = new HashMap<RequestMethod, HandlerMethod>();
         HandlerMethod method = new HandlerMethod(controller, "upload", String.class, MultipartFile.class);
@@ -121,7 +123,6 @@ public class UploadControllerTest extends ControllerTest {
     }
 
     @Test
-    @Ignore
     public void testUpload() throws Exception {
         File file = new File(TEST_FILE_PATH);
         UploadResponse uploadResponse = uploadFile(file, "testUpload");
@@ -132,7 +133,6 @@ public class UploadControllerTest extends ControllerTest {
     }
 
     @Test
-    @Ignore
     public void testUploadDifferentName() throws Exception {
         File file = new File(TEST_FILE1_PATH);
         UploadResponse uploadResponse = uploadFile(file, "testUploadDifferentName");
@@ -142,7 +142,6 @@ public class UploadControllerTest extends ControllerTest {
     }
 
     @Test
-    @Ignore
     public void testUploadExceededSizeLimitFile() throws Exception {
     	logger.log(Level.FINE, "set the upload size limit to " + TEST_UPLOAD_SIZE_LIMIT_BYTES + " bytes.");
         uploadRepo.setUploadSizeLimitBytes(TEST_UPLOAD_SIZE_LIMIT_BYTES);
@@ -174,7 +173,6 @@ public class UploadControllerTest extends ControllerTest {
     }
 
     @Test
-    @Ignore
     public void testUploadTimeout() throws Exception {
     	int cleanupTimeoutMillis = uploadRepo.getCleanupTimeoutMillis();
         logger.log(Level.FINE, "setting the cleanup timeout " + TEST_CLEANUP_TIMOUT_MILLIS + " millis.");
@@ -204,7 +202,6 @@ public class UploadControllerTest extends ControllerTest {
     }
 
     @Test
-    @Ignore
     public void testUplaodFileNotExist() {
         File file = new File("notExist.zip");
         try {
