@@ -96,4 +96,16 @@ public class ServiceDescription {
 		this.deploymentId = deploymentId;
 	}
 
+    @Override
+    public String toString() {
+        return "ServiceDescription{" +
+                "serviceName='" + serviceName + '\'' +
+                ", instanceCount=" + instanceCount +
+                ", plannedInstances=" + plannedInstances +
+                ", instancesDescription=" + instancesDescription +
+                ", applicationName='" + applicationName + '\'' +
+                ", serviceState=" + serviceState +
+                ", deploymentId='" + deploymentId + '\'' +
+                '}';
+    }
 }

@@ -385,7 +385,6 @@ public class InstallApplication extends AdminAwareCommand implements NewRestClie
 		request.setSelfHealing(!disableSelfHealing);
 		request.setTimeoutInMillis(TimeUnit.MINUTES.toMillis(timeoutInMinutes));
 
-
         //install application
         final InstallApplicationResponse installApplicationResponse =
         		newRestClient.installApplication(applicationName, request);
@@ -405,14 +404,19 @@ public class InstallApplication extends AdminAwareCommand implements NewRestClie
         installer.setInitialTimeout(timeoutInMinutes);
         installer.setRestClient(newRestClient);
         installer.setSession(session);
+        try {
         installer.install();
+        } finally {
+            // drop one line
+            displayer.printEvent("");
+            if (!applicationFile.isFile()) {
+                final boolean delete = FileUtils.deleteQuietly(packedFile);
+                if (!delete) {
+                    logger.info("Failed to delete application file: " + packedFile.getAbsolutePath());
+                }
+            }
+        }
 
-		if (!applicationFile.isFile()) {
-			final boolean delete = packedFile.delete();
-			if (!delete) {
-				logger.info("Failed to delete application file: " + packedFile.getAbsolutePath());
-			}
-		}
 
 		//set the active application in the CLI.
 		session.put(Constants.ACTIVE_APP, applicationName);

@@ -33,6 +33,7 @@ import net.jini.core.discovery.LookupLocator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.cloudifysource.domain.ServiceNetwork;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.FileTransferModes;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
@@ -60,6 +61,7 @@ import org.cloudifysource.esc.util.InstallationDetailsBuilder;
 import org.cloudifysource.esc.util.ProvisioningDriverClassBuilder;
 import org.cloudifysource.esc.util.Utils;
 import org.cloudifysource.utilitydomain.data.reader.ComputeTemplatesReader;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
 import org.openspaces.admin.bean.BeanConfigurationException;
@@ -92,15 +94,12 @@ import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticGridServiceAge
 import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticMachineProvisioningException;
 
 /****************************
- * <<<<<<< HEAD An ESM machine provisioning implementation used by the Cloudify cloud driver. All calls to start/stop a
- * machine are delegated to the CloudifyProvisioning implementation. If the started machine does not have an agent
- * running, this class will install gigaspaces and start the agent using the Agent-less Installer process. ======= An
- * ESM machine provisioning implementation used by the Cloudify cloud driver. All calls to start/stop a machine are
+ * An ESM machine provisioning implementation used by the Cloudify cloud driver. All calls to start/stop a machine are
  * delegated to the CloudifyProvisioning implementation. If the started machine does not have an agent running, this
- * class will install gigaspaces and start the agent using the Agent-less Installer process. >>>>>>> CLOUDIFY-1837 Scan
- * all agents for GSA with both required host address and reservation ID
+ * class will install gigaspaces and start the agent using the Agent-less Installer process.
  * 
  * @author barakme
+ * @since 2.0
  * 
  */
 public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachineProvisioning, Bean {
@@ -236,7 +235,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		for (final ProcessingUnit pu : admin.getProcessingUnits()) {
 			for (final ProcessingUnitInstance instance : pu.getInstances()) {
 				final GridServiceContainer container = instance.getGridServiceContainer();
-				if (container.getAgentId() != -1 && container.getGridServiceAgent() == null) {
+				// If the instance's GSC was not discovered (i.e. is null), or the GSA is null -
+				// add the PUI name to a map for future logging.
+				if (container == null	 
+						|| (container.getAgentId() != -1 && container.getGridServiceAgent() == null)) {
 					undiscoveredAgentsContianersPerProcessingUnitInstanceName.put(
 							instance.getProcessingUnitInstanceName(), container);
 				}
@@ -252,8 +254,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				.entrySet()) {
 			final GridServiceContainer container = entry.getValue();
 			final String processingUnitInstanceName = entry.getKey();
-			builder.append("GridServiceContainer[uid=" + container.getUid() + "] agentId=[" + container.getAgentId()
-					+ "] processingUnitInstanceName=[" + processingUnitInstanceName + "]");
+			if (container == null) {
+				builder.append("GridServiceContainer is null");
+			} else {
+				builder.append("GridServiceContainer[uid=" + container.getUid() + "] agentId=["
+						+ container.getAgentId() + "]");
+			}
+			builder.append(" processingUnitInstanceName=[" + processingUnitInstanceName + "]");
 			builder.append(",");
 		}
 		return builder.toString();
@@ -344,7 +351,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		} catch (final CloudProvisioningException e) {
 			throw new ElasticMachineProvisioningException("Failed to configure cloud driver for first use: "
 					+ e.getMessage(), e);
-		} catch (StorageProvisioningException e) {
+		} catch (final StorageProvisioningException e) {
 			throw new ElasticMachineProvisioningException("Failed to configure storage driver for first use: "
 					+ e.getMessage(), e);
 		}
@@ -574,11 +581,14 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 			logger.info("Stopping machine " + machineIp
 					+ ", DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE");
-			boolean stoppedMachine = this.cloudifyProvisioning.stopMachine(machineDetails.getPrivateAddress(),
+			final boolean stoppedMachine = this.cloudifyProvisioning.stopMachine(machineDetails.getPrivateAddress(),
 					DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE, TimeUnit.MINUTES);
 			if (!stoppedMachine) {
-				throw new ElasticMachineProvisioningException("Attempt to stop machine " + machineIp
-						+ " has failed. Cloud driver claims machine was already stopped, however it was just recently started.");
+				throw new ElasticMachineProvisioningException(
+						"Attempt to stop machine "
+								+ machineIp
+								+ " has failed. Cloud driver claims machine was already stopped, "
+								+ "however it was just recently started.");
 			}
 
 		} catch (final Exception e) {
@@ -670,7 +680,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		final ProvisioningContextImpl ctx = new ProvisioningContextImpl();
 		ctx.setLocationId(locationId);
 		ctx.setCloudFile(cloudDslFile);
-		
+
 		final InstallationDetailsBuilder builder = ctx.getInstallationDetailsBuilder();
 		builder.setReservationId(reservationId);
 		builder.setAdmin(globalAdminInstance);
@@ -713,7 +723,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 		for (final GridServiceAgent gridServiceAgent : allAgents) {
 			if (IPUtils.isSameIpAddress(gridServiceAgent.getMachine().getHostAddress(), machineIp)
-					|| 	gridServiceAgent.getMachine().getHostName().equals(machineIp)) {
+					|| gridServiceAgent.getMachine().getHostName().equals(machineIp)) {
 				// Check if the reservation ID of the located machine is the one we expect.
 				// This handles the rare error where the Admin for some reason caches an entry for an old
 				// GSA running on the same IP (for a machine that was previously shut down_
@@ -801,7 +811,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			logger.fine("Cloudify Adapter is shutting down machine with ip: " + machineIp);
 			final boolean machineStopped = this.cloudifyProvisioning.stopMachine(machineIp, duration, unit);
 			logger.fine("Shutdown result of machine: " + machineIp + " was: " + machineStopped);
-			
+
 			if (machineStopped) {
 				final MachineStoppedEvent machineStoppedEvent = new MachineStoppedEvent();
 				machineStoppedEvent.setHostAddress(machineIp);
@@ -825,12 +835,11 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 					}
 				}
-			}
-			else if (failedToShutdownAgentException == null) {
-				//machineStopped == false means machine was already stopped
-				//failedToShutdownAgentException == null means we just recently stopped the agent.
+			} else if (failedToShutdownAgentException == null) {
+				// machineStopped == false means machine was already stopped
+				// failedToShutdownAgentException == null means we just recently stopped the agent.
 				throw new ElasticMachineProvisioningException("Attempt to shutdown machine with IP: " + machineIp
-						+ " for agent with UID: " + agent.getUid() + " has failed. Cloud driver claims machine was " 
+						+ " for agent with UID: " + agent.getUid() + " has failed. Cloud driver claims machine was "
 						+ "already stopped, however we just recently stopped the agent process on that machine.");
 			}
 
@@ -868,6 +877,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	/**
 	 * exposes the storage API of the cloud to agent machines.
+	 * 
 	 * @see {@link org.cloudifysource.domain.context.blockstorage.StorageFacade}
 	 * 
 	 *      <<<<<<< HEAD DO NOT refactor this method's name since it is called via reflection by the ESM. ======= DO NOT
@@ -880,7 +890,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	 * @return The storage driver.
 	 */
 	public RemoteStorageProvisioningDriverAdapter getStorageImpl() throws ElasticMachineProvisioningException,
-	  InterruptedException {
+			InterruptedException {
 		// configure drivers if this is first time (occurs when using the management machine for storage,
 		// so create machine is not called earlier)
 		try {
@@ -888,7 +898,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		} catch (final CloudProvisioningException e) {
 			throw new ElasticMachineProvisioningException("Failed to configure cloud driver for first use: "
 					+ e.getMessage(), e);
-		} catch (StorageProvisioningException e) {
+		} catch (final StorageProvisioningException e) {
 			throw new ElasticMachineProvisioningException("Failed to configure storage driver for first use: "
 					+ e.getMessage(), e);
 		}
@@ -1004,7 +1014,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	/********
 	 * Synchronized method verified that the setConfig() methods of cloud driver instances is called exactly once, the
 	 * first time they are needed.
-	 * @throws StorageProvisioningException 
+	 * 
+	 * @throws StorageProvisioningException
 	 * 
 	 * @throws InterruptedException .
 	 * @throws ElasticMachineProvisioningException .
@@ -1025,6 +1036,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		configuration.setManagement(false);
 		configuration.setServiceName(serviceName);
 
+		final ServiceNetwork network = createNetworkObject();
+		configuration.setNetwork(network);
+
 		this.cloudifyProvisioning.setConfig(configuration);
 
 		// initialize the storage driver
@@ -1037,6 +1051,26 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		}
 
 		this.driversConfigured = true;
+	}
+
+	private ServiceNetwork createNetworkObject() throws ElasticMachineProvisioningException {
+		final String networkAsString = this.config.getNetworkAsString();
+
+		logger.info("Network string is: " + networkAsString);
+		if (StringUtils.isBlank(networkAsString)) {
+			return null;
+		}
+
+		final ObjectMapper mapper = new ObjectMapper();
+
+		try {
+			final ServiceNetwork network = mapper.readValue(networkAsString, ServiceNetwork.class);
+			return network;
+		} catch (final IOException e) {
+			throw new ElasticMachineProvisioningException(
+					"Failed to deserialize json string into service network description: " + e.getMessage(), e);
+		}
+
 	}
 
 	private String findCloudConfigDirectoryPath() {
@@ -1119,7 +1153,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 			logger.info("Setting service cloud configuration in cloud driver to: " + serviceCloudConfigurationFile);
 			this.cloudifyProvisioning.setCustomDataFile(serviceCloudConfigurationFile);
-			
+
 		}
 	}
 

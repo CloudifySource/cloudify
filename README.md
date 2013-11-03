@@ -26,7 +26,7 @@ Build Instructions
 2. In command line, run the following commands:    
 ```
 git clone https://github.com/CloudifySource/cloudify.git
-cd cloudify
+cd cloudify/cloudify
 ant cloudify.zip
 ```
 

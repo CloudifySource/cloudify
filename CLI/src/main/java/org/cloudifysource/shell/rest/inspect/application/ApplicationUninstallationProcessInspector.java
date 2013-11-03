@@ -47,7 +47,7 @@ public class ApplicationUninstallationProcessInspector extends UninstallationPro
         super(restClient, deploymentId, verbose, initWithZeros(currentRunningInstancesPerService.keySet()), 
         		currentRunningInstancesPerService);
         this.applicationName = applicationName;
-        setEventIndex(nextEventId);
+        setLastEventIndex(nextEventId);
     }
 
     public void setServiceDescriptionList(final List<ServiceDescription> serviceDescriptionList) {

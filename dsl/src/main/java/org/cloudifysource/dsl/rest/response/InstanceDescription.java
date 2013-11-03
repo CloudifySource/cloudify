@@ -86,4 +86,14 @@ public class InstanceDescription {
 		this.hostAddress = hostAddress;
 	}
 
+    @Override
+    public String toString() {
+        return "InstanceDescription{" +
+                "instanceName='" + instanceName + '\'' +
+                ", instanceStatus='" + instanceStatus + '\'' +
+                ", instanceId=" + instanceId +
+                ", hostName='" + hostName + '\'' +
+                ", hostAddress='" + hostAddress + '\'' +
+                '}';
+    }
 }

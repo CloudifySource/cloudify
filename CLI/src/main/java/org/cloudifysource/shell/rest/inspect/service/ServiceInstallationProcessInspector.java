@@ -15,15 +15,18 @@
  *******************************************************************************/
 package org.cloudifysource.shell.rest.inspect.service;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.rest.response.ServiceDescription;
 import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.restclient.exceptions.RestClientException;
 import org.cloudifysource.restclient.exceptions.RestClientResponseException;
+import org.cloudifysource.shell.ShellUtils;
+import org.cloudifysource.shell.exceptions.CLIException;
 import org.cloudifysource.shell.rest.inspect.InstallationProcessInspector;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
@@ -90,13 +93,19 @@ public class ServiceInstallationProcessInspector extends InstallationProcessInsp
      * @throws RestClientException Indicates a failure to get events from the server.
      */
     @Override
-    public boolean lifeCycleEnded() throws RestClientException {
+    public boolean lifeCycleEnded() throws RestClientException, CLIException {
 
-    	boolean serviceIsInstalled = false;
+    	boolean serviceIsInstalled;
     	try {
             ServiceDescription serviceDescription = restClient
                     .getServiceDescription(applicationName, serviceName);
-            serviceIsInstalled = serviceDescription.getServiceState().equals(CloudifyConstants.DeploymentState.STARTED);
+            logger.fine("Service description is : " + serviceDescription);
+            CloudifyConstants.DeploymentState serviceState = serviceDescription.getServiceState();
+            if (serviceState.equals(CloudifyConstants.DeploymentState.FAILED)) {
+                throw new CLIException(ShellUtils.getFormattedMessage(CloudifyErrorMessages.FAILED_TO_DEPLOY_SERVICE
+                        .getName(), serviceName));
+            }
+            serviceIsInstalled = serviceState.equals(CloudifyConstants.DeploymentState.STARTED);
     	} catch (final RestClientResponseException e) {
     		if (e.getStatusCode() == RESOURCE_NOT_FOUND_EXCEPTION_CODE) {
         		// the service is not available yet

@@ -12,32 +12,7 @@
  *******************************************************************************/
 package org.cloudifysource.rest.controllers;
 
-import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_LUS;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.annotation.PostConstruct;
-
 import net.jini.core.discovery.LookupLocator;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.Application;
@@ -123,6 +98,7 @@ import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.traverse.TopologicalOrderIterator;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
+import org.openspaces.admin.gsc.GridServiceContainer;
 import org.openspaces.admin.gsm.GridServiceManager;
 import org.openspaces.admin.internal.admin.InternalAdmin;
 import org.openspaces.admin.internal.pu.InternalProcessingUnit;
@@ -149,6 +125,29 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import javax.annotation.PostConstruct;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_LUS;
 
 /**
  * This controller is responsible for retrieving information about deployments. It is also the entry point for deploying
@@ -180,6 +179,7 @@ public class DeploymentsController extends BaseRestController {
 	private static final Logger logger = Logger.getLogger(DeploymentsController.class.getName());
 	private static final int MAX_NUMBER_OF_EVENTS = 100;
 	private static final int REFRESH_INTERVAL_MILLIS = 500;
+	private static final long WAIT_FOR_PU_SECONDS = 30;
 	private static final int DEPLOYMENT_TIMEOUT_SECONDS = 60;
 	private static final int WAIT_FOR_MANAGED_TIMEOUT_SECONDS = 10;
 	private static final int LOCAL_CLOUD_INSTANCE_MEMORY_MB = 512;
@@ -210,9 +210,14 @@ public class DeploymentsController extends BaseRestController {
 	 * Initialization.
 	 */
 	@PostConstruct
-	public void init() {
+	public void init() throws IOException, RestErrorException {
 		gigaSpace = restConfig.getGigaSpace();
 		permissionEvaluator = restConfig.getPermissionEvaluator();
+		repo.init();
+		repo.setBaseDir(restConfig.getRestTempFolder());
+		logger.fine("starting DeolpymentsController, injecting rest temp folder to uploadrepo: " 
+				+ restConfig.getRestTempFolder().getAbsolutePath());
+		repo.createUploadDir();
 		this.admin = restConfig.getAdmin();
 		this.eventsCache = new EventsCache(admin);
 		this.controllerHelper = new ControllerHelper(gigaSpace, admin);
@@ -316,11 +321,10 @@ public class DeploymentsController extends BaseRestController {
 	 *             Thrown in case of any error.
 	 */
 	@RequestMapping(value = "{deploymentId}/events", method = RequestMethod.GET)
-	public DeploymentEvents getDeploymentEvents(
-			@PathVariable final String deploymentId,
-			@RequestParam(required = false, defaultValue = "0") final int from,
-			@RequestParam(required = false, defaultValue = "-1") final int to)
-			throws Throwable {
+	public DeploymentEvents getDeploymentEvents(@PathVariable final String deploymentId,
+			                                    @RequestParam(required = false, defaultValue = "1") final int from,
+			                                    @RequestParam(required = false, defaultValue = "-1") final int to)
+			                                    throws Throwable {
 
 		if (deploymentId == null) {
 			throw new RestErrorException(CloudifyErrorMessages.MISSING_DEPLOYMENT_ID.getName(), "getDeploymentEvents");
@@ -334,11 +338,10 @@ public class DeploymentsController extends BaseRestController {
 		}
 
 		EventsCacheKey key = new EventsCacheKey(deploymentId);
-		logger.fine(EventsUtils.getThreadId()
-				+ " Received request for events [" + from + "]-[" + to + "] . key : " + key);
+		logger.fine(EventsUtils.getThreadId() + " Received request for events [" + from + "]-[" + to + "] . key : " +
+                key);
 		EventsCacheValue value;
 		try {
-			logger.fine(EventsUtils.getThreadId() + " Retrieving events from cache for key : " + key);
 			value = eventsCache.get(key);
 		} catch (final ExecutionException e) {
 			throw e.getCause();
@@ -350,7 +353,6 @@ public class DeploymentsController extends BaseRestController {
 				// enforce time restriction on refresh operations.
 				long now = System.currentTimeMillis();
 				if (now - value.getLastRefreshedTimestamp() > REFRESH_INTERVAL_MILLIS) {
-					logger.fine(EventsUtils.getThreadId() + " Some events are missing from cache. Refreshing...");
 					// refresh the cache for this deployment.
 					eventsCache.refresh(key);
 				}
@@ -360,7 +362,10 @@ public class DeploymentsController extends BaseRestController {
 
 			// return the events. this MAY or MAY NOT be the complete set of events requested.
 			// request for specific events is treated as best effort. no guarantees all events are returned.
-			return EventsUtils.extractDesiredEvents(value.getEvents(), from, actualTo);
+            DeploymentEvents deploymentEvents = EventsUtils.extractDesiredEvents(value.getEvents(), from, actualTo);
+            logger.finest("Returning events " + deploymentEvents + " for deployment id " + deploymentId + " to the " +
+                    "client");
+            return deploymentEvents;
 		}
 	}
 
@@ -374,35 +379,32 @@ public class DeploymentsController extends BaseRestController {
 	 *             in case of an error while retrieving events.
 	 */
 	@RequestMapping(value = "{deploymentId}/events/last", method = RequestMethod.GET)
-	public DeploymentEvents getLastDeploymentEvent(
-			@PathVariable final String deploymentId)
+	public DeploymentEvent getLastDeploymentEvent(@PathVariable final String deploymentId)
 			throws Throwable {
 
-		if (deploymentId == null) {
-			throw new RestErrorException(CloudifyErrorMessages.MISSING_DEPLOYMENT_ID.getName(), 
-					"getLastDeploymentEvent");
-		}
-		verifyDeploymentIdExists(deploymentId);
-		
-		EventsCacheKey key = new EventsCacheKey(deploymentId);
-		logger.fine(EventsUtils.getThreadId()
-				+ " Received request for last event of key : " + key);
-		EventsCacheValue value;
-		try {
-			logger.fine(EventsUtils.getThreadId() + " Retrieving events from cache for key : " + key);
-			value = eventsCache.get(key);
-		} catch (final ExecutionException e) {
-			throw e.getCause();
-		}
+        verifyDeploymentIdExists(deploymentId);
 
-		// we don't want another request to modify our object during this calculation.
-		synchronized (value.getMutex()) {
-			eventsCache.refresh(key);
-			int lastEventId = value.getLastEventIndex();
-			// return the events. this MAY or MAY NOT be the complete set of events requested.
-			// request for specific events is treated as best effort. no guarantees all events are returned.
-			return EventsUtils.extractDesiredEvents(value.getEvents(), lastEventId, lastEventId);
-		}
+        logger.fine("Received request for last deployment event for deployment " + deploymentId);
+
+        EventsCacheKey key = new EventsCacheKey(deploymentId);
+        EventsCacheValue value = eventsCache.get(key);
+        int lastEventIndex = value.getLastEventIndex();
+        List<DeploymentEvent> events =
+                getDeploymentEvents(deploymentId, lastEventIndex, lastEventIndex + 1).getEvents();
+        switch (events.size()) {
+            case 0:
+                // no events. return empty
+                return new DeploymentEvent();
+            case 1:
+                // we only have the old last event. return this one.
+                return events.get(0);
+            case 2:
+                // we have the old last event plus a new one. return the new one.
+                return events.get(1);
+            default:
+                throw new IllegalStateException("Unexpected event list size for request of events [" + lastEventIndex +
+                        "]-[" + (lastEventIndex + 1) + "] : " + events.size());
+        }
 	}
 
 	private void verifyDeploymentIdExists(final String deploymentId) 
@@ -431,10 +433,6 @@ public class DeploymentsController extends BaseRestController {
 				if (deploymentId.equals(puDeploymentId)) {
 					return;
 				}
-			}
-			if (logger.isLoggable(Level.WARNING)) {
-				logger.warning("[validateDeploymentIdExists] - " 
-						+ "There is no processing unit with the given deployment id [" + deploymentId + "]");
 			}
 			throw new ResourceNotFoundException("Deployment id " + deploymentId);
 		}
@@ -498,7 +496,6 @@ public class DeploymentsController extends BaseRestController {
 			@RequestBody final SetServiceInstancesRequest request)
 			throws RestErrorException, ResourceNotFoundException {
 
-		//TODO noak: set authGroups in the request and change the annotation to use request.getAuthGroups()
 		if (logger.isLoggable(Level.INFO)) {
 			logger.info("Scaling request for service: " + applicationName + "." + serviceName
 					+ " to " + request.getCount() + " instances");
@@ -738,11 +735,31 @@ public class DeploymentsController extends BaseRestController {
 		} else {
 			restConfig.getExecutorService().execute(installer);
 		}
+		// we wait for the pu so that after this method returns 
+		// we would be able to poll for events safely using the deployment-id. 
+		final boolean firstPuCreated = waitForPu(appName, services.get(0).getName(),
+											WAIT_FOR_PU_SECONDS, TimeUnit.SECONDS);
+		if (!firstPuCreated) {
+			throw new RestErrorException("Failed waiting for first processing unit to be created.");
+		}
 		// creating response
 		final InstallApplicationResponse response = new InstallApplicationResponse();
 		response.setDeploymentID(deploymentID);
 
 		return response;
+	}
+
+	private boolean waitForPu(final String applicationName,
+			final String serviceName,
+			final long timeout,
+			final TimeUnit timeUnit) {
+		
+		final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("[waitForPu] waiting for processing unit with name " + absolutePuName 
+					+ " to be created.");
+		}
+		return admin.getProcessingUnits().waitFor(absolutePuName, timeout, timeUnit) != null;
 	}
 
 	private void validateInstallApplication(final Application application)
@@ -805,7 +822,6 @@ public class DeploymentsController extends BaseRestController {
 	@RequestMapping(value = "/applications/description", method = RequestMethod.GET)
 	@PostFilter("hasPermission(filterObject, 'view')")
 	public List<ApplicationDescription> getApplicationDescriptions() {
-		//TODO noak: handle auth groups (postFilter)
 		final ApplicationDescriptionFactory appDescriptionFactory =
 				new ApplicationDescriptionFactory(restConfig.getAdmin());
 
@@ -989,7 +1005,7 @@ public class DeploymentsController extends BaseRestController {
 
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(appName, serviceName);
 
-		logger.info("[installService] - installing service " + serviceName);
+		logger.info("Installing service " + serviceName);
 
 		// this validation should only happen on install service.
 		String uploadKey = request.getServiceFolderUploadKey();
@@ -1265,8 +1281,11 @@ public class DeploymentsController extends BaseRestController {
 				appName);
 		final String deploymentId = uninstallOrder.get(0).getBeanLevelProperties()
 				.getContextProperties().getProperty(CloudifyConstants.CONTEXT_PROPERTY_DEPLOYMENT_ID);
-		// TODO: Add timeout.
-		FutureTask<Boolean> undeployTask = null;
+
+        logger.info("Uninstalling application " + appName + " . DeploymentId is " + deploymentId);
+        logger.fine("Uninstall order is " + orderToNames(uninstallOrder));
+
+		FutureTask<Boolean> undeployTask;
 		logger.log(Level.INFO, "Starting to poll for" + appName + " uninstall lifecycle events.");
 		if (uninstallOrder.size() > 0) {
 
@@ -1285,8 +1304,8 @@ public class DeploymentsController extends BaseRestController {
 							permissionEvaluator.verifyPermission(authDetails, puAuthGroups, "deploy");
 						}
 
-						final long undeployTimeout = TimeUnit.MINUTES.toMillis(timeoutInMinutes)
-								- (System.currentTimeMillis() - startTime);
+						final long undeployTimeout =
+                                startTime + TimeUnit.MINUTES.toMillis(timeoutInMinutes) - System.currentTimeMillis();
 						try {
 							if (processingUnit.waitForManaged(WAIT_FOR_MANAGED_TIMEOUT_SECONDS,
 									TimeUnit.SECONDS) == null) {
@@ -1294,12 +1313,13 @@ public class DeploymentsController extends BaseRestController {
 										"Failed to locate GSM that is managing Processing Unit "
 												+ processingUnit.getName());
 							} else {
-								logger.log(Level.INFO,
-										"Undeploying Processing Unit "
-												+ processingUnit.getName());
+								logger.log(Level.INFO, "Undeploying Processing Unit " + processingUnit.getName()
+                                    + " . Timeout is " + undeployTimeout);
 								populateEventsCache(deploymentId, processingUnit);
-								processingUnit.undeployAndWait(undeployTimeout,
+                                processingUnit.undeployAndWait(undeployTimeout,
 										TimeUnit.MILLISECONDS);
+                                logger.log(Level.INFO, "Processing Unit " + processingUnit.getName() + " was " +
+                                        "undeployed successfully");
 								final String serviceName = ServiceUtils.getApplicationServiceName(
 										processingUnit.getName(), appName);
 								logger.info("Removing application service scope attributes for service " + serviceName);
@@ -1321,8 +1341,7 @@ public class DeploymentsController extends BaseRestController {
 					DeploymentEvent undeployFinishedEvent = new DeploymentEvent();
 					undeployFinishedEvent.setDescription(CloudifyConstants.UNDEPLOYED_SUCCESSFULLY_EVENT);
 					eventsCache.add(new EventsCacheKey(deploymentId), undeployFinishedEvent);
-					logger.log(Level.INFO, "Application " + appName
-							+ " undeployment complete");
+					logger.log(Level.INFO, "Application " + appName + " uninstalled successfully");
 				}
 			}, Boolean.TRUE);
 
@@ -1339,6 +1358,15 @@ public class DeploymentsController extends BaseRestController {
 		}
 		throw new RestErrorException(errors);
 	}
+
+    private List<String> orderToNames(List<ProcessingUnit> order) {
+
+        List<String> names = new ArrayList<String>();
+        for (ProcessingUnit pu : order) {
+            names.add(pu.getName());
+        }
+        return names;
+    }
 
 	private void deleteApplicationScopeAttributes(final String applicationName) {
 		final ApplicationCloudifyAttribute applicationAttributeTemplate =
@@ -1462,9 +1490,8 @@ public class DeploymentsController extends BaseRestController {
 		}
 	}
 
-	private void populateEventsCache(
-			final String deploymentId,
-			final ProcessingUnit processingUnit) {
+	private void populateEventsCache(final String deploymentId,
+			                         final ProcessingUnit processingUnit) {
 		EventsCacheKey key = new EventsCacheKey(deploymentId);
 		EventsCacheValue value = eventsCache.getIfExists(key);
 		if (value == null) {
@@ -1475,13 +1502,17 @@ public class DeploymentsController extends BaseRestController {
 		} else {
 			// a value already exists for this deployment id.
 			// just add the reference for the current pu.
+            logger.fine("Adding processing unit " + processingUnit.getName() + " to events cache value with " +
+                    "deployment id " + deploymentId);
 			value.getProcessingUnits().add(processingUnit);
 		}
 		
 		final AdminBasedGridServiceContainerProvider provider = new AdminBasedGridServiceContainerProvider(admin);
 		// save reference to the containers if exits.
 		// will exist only if this is uninstall process.
-		value.getContainers().addAll(provider.getContainersForDeployment(deploymentId));
+        Set<GridServiceContainer> containersForDeployment = provider.getContainersForDeployment(deploymentId);
+        logger.fine("Adding containers " + containersForDeployment + " for events cache key with deployment id " + deploymentId);
+        value.getContainers().addAll(containersForDeployment);
 	}
 
 	private String getEffectiveAuthGroups(final String authGroups) {

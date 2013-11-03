@@ -42,6 +42,7 @@ import org.cloudifysource.esc.driver.provisioning.CloudifyMachineProvisioningCon
 import org.cloudifysource.rest.RestConfiguration;
 import org.cloudifysource.rest.controllers.ElasticScaleConfigFactory;
 import org.cloudifysource.rest.util.IsolationUtils;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.openspaces.admin.pu.elastic.ElasticStatefulProcessingUnitDeployment;
 import org.openspaces.admin.pu.elastic.ElasticStatelessProcessingUnitDeployment;
 import org.openspaces.admin.pu.elastic.config.AutomaticCapacityScaleConfig;
@@ -116,7 +117,7 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 				.singleMachineDeployment();
 		ManualCapacityScaleConfig scaleConfig;
 		if (isLocalcloud()) {
-			Integer memoryCapacity = puSla.getMemoryCapacity();
+			final Integer memoryCapacity = puSla.getMemoryCapacity();
 			scaleConfig = new ManualCapacityScaleConfigurer()
 					.memoryCapacity(memoryCapacity,
 							MemoryUnit.MEGABYTES).create();
@@ -144,10 +145,10 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 	// TODO - temp files should be created in shared temp location, as read from restConfig
 	private File getBinaryFromPackedRecipe(final File packedService, final String binaryName) throws
 			IOException {
-		File tempFile = File.createTempFile(binaryName, "");
+		final File tempFile = File.createTempFile(binaryName, "");
 		tempFile.delete();
 		ZipUtils.unzip(packedService, tempFile);
-		File destFile = new File(tempFile, "ext/" + binaryName);
+		final File destFile = new File(tempFile, "ext/" + binaryName);
 		if (!destFile.exists()) {
 			throw new FileNotFoundException("deployment file/folder " + binaryName + " could not be found");
 		}
@@ -300,10 +301,10 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 				cloudExternalProcessMemoryInMB = calculateExternalProcessMemory();
 			} else {
 				cloudExternalProcessMemoryInMB = IsolationUtils.getInstanceMemoryMB(service);
-				long usmRequiredMemoryInMB = MemoryUnit.toMegaBytes(
+				final long usmRequiredMemoryInMB = MemoryUnit.toMegaBytes(
 						deploymentConfig.getCloud().getConfiguration().getComponents().getUsm().getMaxMemory());
 				if (usmRequiredMemoryInMB > cloudExternalProcessMemoryInMB) {
-					throw new IllegalStateException("the usm required memory " 
+					throw new IllegalStateException("the usm required memory "
 							+ usmRequiredMemoryInMB
 							+ " can not be more then the total memory defined for a service instance "
 							+ cloudExternalProcessMemoryInMB);
@@ -357,9 +358,9 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 	}
 
 	private File createExpectedFile(final File packedFile) {
-		String packedFileName = packedFile.getName();
+		final String packedFileName = packedFile.getName();
 		String fileType = "";
-		String[] split = packedFileName.split("\\.");
+		final String[] split = packedFileName.split("\\.");
 		if (split.length > 1) {
 			fileType = "." + split[split.length - 1];
 		}
@@ -483,7 +484,26 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 
 		config.setLocator(deploymentConfig.getLocators());
 
+		// adds the serialized network configuration to the config object
+		addNetworkConfigurationToConfig(config);
+
 		return config;
+	}
+
+	private void addNetworkConfigurationToConfig(final CloudifyMachineProvisioningConfig config) {
+		if (this.deploymentConfig.getService().getNetwork() != null) {
+			final ObjectMapper mapper = new ObjectMapper();
+			try {
+				final String serializedNetwork =
+						mapper.writeValueAsString(this.deploymentConfig.getService().getNetwork());
+				logger.info("Setting network string to: " + serializedNetwork);
+				config.setNetworkAsString(serializedNetwork);
+			} catch (final IOException e) {
+				throw new IllegalArgumentException(
+						"Failed to serialize service network description into a JSON string", e);
+			}
+
+		}
 	}
 
 	private void addCloudConfigurationCostants(
@@ -614,10 +634,10 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 				+ "cloudExternalProcessMemoryInMB = cloud.machineMemoryMB - "
 				+ "cloud.reservedMemoryCapacityPerMachineInMB" + " = "
 				+ cloudExternalProcessMemoryInMB);
-		
-		//USM can not require more memory then the maximum total memory available.
-		long usmRequiredMemoryInMB = MemoryUnit.toMegaBytes(
-										cloud.getConfiguration().getComponents().getUsm().getMaxMemory());
+
+		// USM can not require more memory then the maximum total memory available.
+		final long usmRequiredMemoryInMB = MemoryUnit.toMegaBytes(
+				cloud.getConfiguration().getComponents().getUsm().getMaxMemory());
 		cloudExternalProcessMemoryInMB = Math.max(cloudExternalProcessMemoryInMB, usmRequiredMemoryInMB);
 		return cloudExternalProcessMemoryInMB;
 	}
@@ -634,7 +654,7 @@ public class ElasticProcessingUnitDeploymentFactoryImpl implements ElasticProces
 	private Properties createServiceContextProperties() {
 
 		final Properties contextProperties = new Properties();
-		
+
 		contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_APPLICATION_NAME,
 				deploymentConfig.getApplicationName());
 		contextProperties.setProperty(CloudifyConstants.CONTEXT_PROPERTY_AUTH_GROUPS,

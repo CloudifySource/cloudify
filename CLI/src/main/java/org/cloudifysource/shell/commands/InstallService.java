@@ -459,7 +459,7 @@ public class InstallService extends AdminAwareCommand implements NewRestClientCo
 
 	@Override
 	public Object doExecuteNewRestClient() throws Exception {
-		logger.info("install-service using the new rest client");
+		logger.fine("Installing service " + serviceName + " using the new rest client");
 		RestClient newRestClient = ((RestAdminFacade) getRestAdminFacade()).getNewRestClient();
         NameAndPackedFileResolver nameAndPackedFileResolver = getResolver(recipe);
         serviceName = nameAndPackedFileResolver.getName();
@@ -497,7 +497,13 @@ public class InstallService extends AdminAwareCommand implements NewRestClientCo
         installer.setSession(session);
         installer.setPlannedNumberOfInstances(
         		nameAndPackedFileResolver.getPlannedNumberOfInstancesPerService().get(serviceName));
-        installer.install();
+
+        try {
+            installer.install();
+        } finally {
+            // drop one line
+            displayer.printEvent("");
+        }
 
         return getFormattedMessage("service_install_ended", Color.GREEN, serviceName);
 	}

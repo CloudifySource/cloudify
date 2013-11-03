@@ -103,6 +103,7 @@ public class TemplatesController extends BaseRestController {
 	private CustomPermissionEvaluator permissionEvaluator;
 	private File cloudConfigurationDir;
 
+
 	/**
 	 * Initialization.
 	 */
@@ -114,6 +115,7 @@ public class TemplatesController extends BaseRestController {
 		permissionEvaluator = restConfig.getPermissionEvaluator();
 		cloudConfigurationDir = restConfig.getCloudConfigurationDir();
 	}
+
 
 	/**
 	 * Add templates from templates folder to the cloud. Returns a response in case of success or partial failure.
@@ -135,6 +137,7 @@ public class TemplatesController extends BaseRestController {
 	public AddTemplatesResponse addTemplates(@RequestBody final AddTemplatesRequest request)
 			throws RestErrorException, IOException, DSLException, AddTemplatesException {
 		log(Level.INFO, "[addTemplates] - starting add templates.");
+
 		// validate
 		validateAddTemplates(request);
 		File templatesZippedFolder = null;
@@ -462,7 +465,7 @@ public class TemplatesController extends BaseRestController {
 	 */
 	@InternalMethod
 	@RequestMapping(value = "internal", method = RequestMethod.POST)
-	private AddTemplatesInternalResponse
+	public AddTemplatesInternalResponse
 			addTemplatesInternal(
 					@RequestBody final AddTemplatesInternalRequest request)
 					throws IOException, RestErrorException {
@@ -593,6 +596,8 @@ public class TemplatesController extends BaseRestController {
 			} catch (final IOException e) {
 				failedToAddTemplates.put(templateName, "failed to rename template's file. error: " + e.getMessage());
 				// rename failed - delete the file so it wont be added to the additional templates folder.
+				log(Level.WARNING, "[renameTemplateFileIfNeeded] - Failed to rename template's file."
+						+ " The file [" + originalTemplateFileName + "] will be deleted.", e);
 				new File(templatesFolder, originalTemplateFileName).delete();
 				continue;
 			}
@@ -660,40 +665,37 @@ public class TemplatesController extends BaseRestController {
 		final String propertiesFileName = holder.getPropertiesFileName();
 		final String overridesFileName = holder.getOverridesFileName();
 
-		try {
-			String newName = DSLUtils.renameCloudTemplateFileNameIfNeeded(templateFile, templateName,
-					DSLUtils.TEMPLATE_DSL_FILE_NAME_SUFFIX);
-			if (newName != null) {
-				log(Level.INFO, "[renameTemplateFileIfNeeded] - Renamed template file name from "
-						+ templateFileName + " to " + newName + ".");
-			}
-			if (propertiesFileName != null) {
-				final File propertiesFile = new File(templatesFolder, propertiesFileName);
-				newName = DSLUtils.renameCloudTemplateFileNameIfNeeded(propertiesFile, templateName,
-						DSLUtils.TEMPLATES_PROPERTIES_FILE_NAME_SUFFIX);
-				if (newName != null) {
-					log(Level.INFO, "[renameTemplateFileIfNeeded] - Renamed template's properties file name from"
-							+ " " + propertiesFileName + " to " + newName + ".");
-				}
-			}
-			if (overridesFileName != null) {
-				final File overridesFile = new File(templatesFolder, overridesFileName);
-				newName = DSLUtils.renameCloudTemplateFileNameIfNeeded(overridesFile, templateName,
-						DSLUtils.TEMPLATES_OVERRIDES_FILE_NAME_SUFFIX);
-				if (newName != null) {
-					log(Level.INFO, "[renameTemplateFileIfNeeded] - Renamed template's overrides file name from "
-							+ overridesFileName + " to " + newName + ".");
-				}
-			}
-		} catch (final IOException e) {
-			log(Level.WARNING, "[renameTemplateFileIfNeeded] - Failed to rename template file name ["
-					+ templateFile.getName() + "] to "
-					+ templateName + DSLUtils.TEMPLATE_DSL_FILE_NAME_SUFFIX
-					+ ". The file will be deleted.", e);
-			// delete the groovy file to ensure the template file wont be copied.
-			templateFile.delete();
-			throw e;
+		log(Level.FINE, "[renameTemplateFileIfNeeded] - Renaming template files [template name = " 
+				+ templateName + "]");
+		
+		// rename groovy file if needed
+		String newName = DSLUtils.renameCloudTemplateFileNameIfNeeded(templateFile, templateName,
+				DSLUtils.TEMPLATE_DSL_FILE_NAME_SUFFIX);
+		if (newName != null) {
+			log(Level.FINE, "[renameTemplateFileIfNeeded] - Renamed template file name from "
+					+ templateFileName + " to " + newName + ".");
 		}
+		// rename properties file if needed
+		if (propertiesFileName != null) {
+			final File propertiesFile = new File(templatesFolder, propertiesFileName);
+			newName = DSLUtils.renameCloudTemplateFileNameIfNeeded(propertiesFile, templateName,
+					DSLUtils.TEMPLATES_PROPERTIES_FILE_NAME_SUFFIX);
+			if (newName != null) {
+				log(Level.FINE, "[renameTemplateFileIfNeeded] - Renamed template's properties file name from"
+						+ " " + propertiesFileName + " to " + newName + ".");
+			}
+		}
+		// rename overrides file if needed
+		if (overridesFileName != null) {
+			final File overridesFile = new File(templatesFolder, overridesFileName);
+			newName = DSLUtils.renameCloudTemplateFileNameIfNeeded(overridesFile, templateName,
+					DSLUtils.TEMPLATES_OVERRIDES_FILE_NAME_SUFFIX);
+			if (newName != null) {
+				log(Level.FINE, "[renameTemplateFileIfNeeded] - Renamed template's overrides file name from "
+						+ overridesFileName + " to " + newName + ".");
+			}
+		}
+		
 	}
 
 	/**
@@ -837,7 +839,6 @@ public class TemplatesController extends BaseRestController {
 	 *             If failed to remove the template.
 	 */
 	@InternalMethod
-	// @PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
 	@RequestMapping(value = "internal/{templateName}", method = RequestMethod.DELETE)
 	public void
 			removeTemplateInternal(@PathVariable final String templateName)
@@ -1031,4 +1032,5 @@ public class TemplatesController extends BaseRestController {
 			logger.log(level, content, thrown);
 		}
 	}
+
 }

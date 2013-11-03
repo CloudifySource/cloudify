@@ -44,32 +44,16 @@ public class UploadRepo {
 
 	private int uploadSizeLimitBytes = CloudifyConstants.DEFAULT_UPLOAD_SIZE_LIMIT_BYTES;
 	private int cleanupTimeoutMillis = CloudifyConstants.DEFAULT_UPLOAD_TIMEOUT_MILLIS;
-	private File baseDir = new File(CloudifyConstants.REST_FOLDER);
+	private File baseDir;
 	private ScheduledExecutorService executor;
 	private File restUploadDir;
 
 	/**
-	 * creating the upload directory and initializing scheduled thread.
-	 * 
-	 * @throws RestErrorException
-	 *             If failed to create upload directory.
-	 * 
-	 * @throws IOException
-	 *             If failed to delete the old upload directory.
+	 * Initializing scheduled thread.
 	 */
 	@PostConstruct
-	public void init()
-			throws IOException, RestErrorException {
-		try {
-		createUploadDir();
+	public void init() {
 		createScheduledExecutor();
-		} catch (IOException e) {
-			logger.log(Level.WARNING, "failed to initialize UploadRepo, got IOException: - " + e.getMessage());
-			throw e;
-		} catch (RestErrorException e) {
-			logger.log(Level.WARNING, "failed to initialize UploadRepo, got RestErrorException: - " + e.getMessage());
-			throw e;
-		}
 	}
 
 	private void createScheduledExecutor() {
@@ -87,7 +71,7 @@ public class UploadRepo {
 	}
 
 	/**
-	 * 
+	 * destroy.
 	 * @throws IOException .
 	 */
 	@PreDestroy
@@ -101,14 +85,26 @@ public class UploadRepo {
 		createScheduledExecutor();
 	}
 
-	private void createUploadDir()
+	/**
+	 * Creating the upload directory. 
+	 * 
+	 * @throws RestErrorException
+	 *             If failed to create upload directory.
+	 * @throws IOException
+	 *             If failed to delete the old upload directory.
+	 */
+	public void createUploadDir()
 			throws IOException, RestErrorException {
 		restUploadDir = new File(baseDir, CloudifyConstants.UPLOADS_FOLDER_NAME);
+		logger.fine("starting uploadReop, setting restUploadDir to: " + restUploadDir.getAbsolutePath());
+		restUploadDir.deleteOnExit();
 		if (restUploadDir.exists()) {
 			FileUtils.deleteDirectory(restUploadDir);
 		}
 		final boolean mkdirs = restUploadDir.mkdirs();
 		final String absolutePath = restUploadDir.getAbsolutePath();
+
+		
 		if (mkdirs) {
 			if (logger.isLoggable(Level.INFO)) {
 				logger.log(Level.INFO, "created rest uploads directory - " + absolutePath);

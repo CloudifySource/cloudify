@@ -12,16 +12,16 @@
  *******************************************************************************/
 package org.cloudifysource.shell.rest.inspect;
 
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeoutException;
-
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.restclient.exceptions.RestClientException;
 import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.exceptions.CLIException;
 import org.cloudifysource.shell.installer.CLIEventsDisplayer;
+
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created with IntelliJ IDEA.
@@ -93,7 +93,7 @@ public abstract class UninstallationProcessInspector extends InstallationProcess
                     if (currentRunningInstances < lastUpdatedRunningInstances) {
                         // a new instance is now running
                         displayer.printEvent(serviceName 
-                        		+ ": installed " + currentRunningInstances + " planned " + entry.getValue());
+                        		+ " : Installed " + currentRunningInstances + " Planned " + entry.getValue());
                         currentRunningInstancesPerService.put(serviceName, currentRunningInstances);
                     }
                 }
@@ -108,7 +108,7 @@ public abstract class UninstallationProcessInspector extends InstallationProcess
 			String serviceName = entry.getKey();
 			int numberOfRunningInstances = currentRunningInstancesPerService.get(serviceName);
             displayer.printEvent(serviceName 
-            		+ ": installed " + numberOfRunningInstances + " planned " + entry.getValue());
+            		+ ": Installed " + numberOfRunningInstances + " Planned " + entry.getValue());
 		}
 	}
 

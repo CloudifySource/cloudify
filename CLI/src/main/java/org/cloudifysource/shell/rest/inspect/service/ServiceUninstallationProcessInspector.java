@@ -45,7 +45,7 @@ public class ServiceUninstallationProcessInspector extends UninstallationProcess
 				currentNumberOfRunningInstance));
 		this.applicationName = applicationName;
 		this.serviceName = serviceName;
-		setEventIndex(nextEventIndex);
+		setLastEventIndex(nextEventIndex);
 	}
 
 	public ServiceUninstallationProcessInspector(final RestClient restClient,
@@ -61,7 +61,7 @@ public class ServiceUninstallationProcessInspector extends UninstallationProcess
 				createOneEntryMap(serviceName, currentNumberOfRunningInstance));
 		this.applicationName = applicationName;
 		this.serviceName = serviceName;
-		setEventIndex(nextEventIndex);
+		setLastEventIndex(nextEventIndex);
 	}
 
 	private static Map<String, Integer> createOneEntryMap(final String serviceName, final int numberOfInstances) {

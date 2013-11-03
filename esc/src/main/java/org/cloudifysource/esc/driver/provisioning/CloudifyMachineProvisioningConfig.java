@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning;
 
@@ -85,33 +82,41 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 
 	private static final String LOCATOR_KEY = "locator";
 	private static final String SERVICE_CLOUD_CONFIGURATION_KEY = "SERVICE_CLOUD_CONFIGURATION_KEY";
-	
+
 	private static final String AUTH_GROUPS_DEFAULT = null;
 	private static final String AUTH_GROUPS_KEY = "auth-groups";
 	private static final String STORAGE_TEMPLATE_NAME = "storage-template-name";
 
+	private static final String SERVICE_NETWORK_STRING_KEY = "SERVICE_NETWORK_STRING_KEY";
+	
 	private StringProperties properties = new StringProperties(new HashMap<String, String>());
 
 	/**
 	 * 
-	 * @param cloud .
-	 * @param template .
-	 * @param cloudTemplateName .
-	 * @param managementTemplateRemoteDirectory .
-	 * @param management - true if the deployment
+	 * @param cloud
+	 *            .
+	 * @param template
+	 *            .
+	 * @param cloudTemplateName
+	 *            .
+	 * @param managementTemplateRemoteDirectory
+	 *            .
+	 * @param management
+	 *            - true if the deployment
 	 */
 	public CloudifyMachineProvisioningConfig(final Cloud cloud, final ComputeTemplate template,
-			final String cloudTemplateName, final String managementTemplateRemoteDirectory, 
+			final String cloudTemplateName, final String managementTemplateRemoteDirectory,
 			final String storageTemplateName) {
-		
+
 		if (!StringUtils.isEmpty(storageTemplateName)) {
 			setStorageTemplateName(storageTemplateName);
 		}
 		setMinimumNumberOfCpuCoresPerMachine(template.getNumberOfCores());
 
 		setReservedMemoryCapacityPerMachineInMB(cloud.getProvider().getReservedMemoryCapacityPerMachineInMB());
-		setReservedMemoryCapacityPerManagementMachineInMB(cloud.getProvider().getReservedMemoryCapacityPerManagementMachineInMB());
-		
+		setReservedMemoryCapacityPerManagementMachineInMB(cloud.getProvider()
+				.getReservedMemoryCapacityPerManagementMachineInMB());
+
 		String remoteDir = managementTemplateRemoteDirectory;
 		logger.log(Level.FINE, "Original remote directory is: " + remoteDir);
 		if (template.getFileTransfer() == FileTransferModes.CIFS) {
@@ -125,12 +130,12 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 
 	private void setStorageTemplateName(final String storageTemplateName) {
 		this.properties.put(STORAGE_TEMPLATE_NAME, storageTemplateName);
-		
+
 	}
-	
+
 	public String getStorageTemplateName() {
 		return this.properties.get(STORAGE_TEMPLATE_NAME);
-		
+
 	}
 
 	private String getWindowsRemoteDirPath(String remoteDirectory) {
@@ -152,7 +157,8 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	/**************
 	 * .
 	 * 
-	 * @param properties .
+	 * @param properties
+	 *            .
 	 */
 	public CloudifyMachineProvisioningConfig(final Map<String, String> properties) {
 		this.properties = new StringProperties(properties);
@@ -182,31 +188,34 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	/**********
 	 * Setter.
 	 * 
-	 * @param minimumCpuCoresPerMachine .
+	 * @param minimumCpuCoresPerMachine
+	 *            .
 	 */
 	public final void setMinimumNumberOfCpuCoresPerMachine(final double minimumCpuCoresPerMachine) {
 		properties.putDouble(
 				NUMBER_OF_CPU_CORES_PER_MACHINE_KEY, minimumCpuCoresPerMachine);
 	}
-	
+
 	/**
 	 * 
-	 * @param cloudOverrides 
-	 * 			a string representation of cloudify overrides.
+	 * @param cloudOverrides
+	 *            a string representation of cloudify overrides.
 	 */
 	public final void setCloudOverridesPerService(final String cloudOverrides) {
 		properties.put(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_OVERRIDES_PER_SERVICE, cloudOverrides);
 	}
-	
+
 	/**
 	 * 
-	 * @param cloudOverrides .
-	 * @throws IOException 
+	 * @param cloudOverrides
+	 *            .
+	 * @throws IOException
 	 */
 	public final void setCloudOverridesPerService(final File cloudOverrides) throws IOException {
-		properties.put(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_OVERRIDES_PER_SERVICE, FileUtils.readFileToString(cloudOverrides));
+		properties.put(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_OVERRIDES_PER_SERVICE,
+				FileUtils.readFileToString(cloudOverrides));
 	}
-	
+
 	public String getCloudOverridesPerService() {
 		return properties.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_OVERRIDES_PER_SERVICE, "");
 	}
@@ -218,7 +227,8 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	/***************
 	 * Setter.
 	 * 
-	 * @param cloudTemplateName .
+	 * @param cloudTemplateName
+	 *            .
 	 */
 	public final void setCloudTemplateName(final String cloudTemplateName) {
 		properties.put(
@@ -232,7 +242,8 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	/***************
 	 * Setter.
 	 * 
-	 * @param cloudConfigurationDirectory .
+	 * @param cloudConfigurationDirectory
+	 *            .
 	 */
 	public final void setCloudConfigurationDirectory(final String cloudConfigurationDirectory) {
 		properties.put(
@@ -242,14 +253,16 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	@Override
 	public CapacityRequirements getReservedCapacityPerMachine() {
 		final List<CapacityRequirement> requirements = createReservedCapacityPerMachine(false);
-		CapacityRequirements capacityRequirements = new CapacityRequirements(requirements.toArray(new CapacityRequirement[requirements.size()]));
+		CapacityRequirements capacityRequirements =
+				new CapacityRequirements(requirements.toArray(new CapacityRequirement[requirements.size()]));
 		return capacityRequirements;
 	}
 
 	@Override
 	public CapacityRequirements getReservedCapacityPerManagementMachine() {
 		final List<CapacityRequirement> requirements = createReservedCapacityPerMachine(true);
-		CapacityRequirements capacityRequirements = new CapacityRequirements(requirements.toArray(new CapacityRequirement[requirements.size()]));
+		CapacityRequirements capacityRequirements =
+				new CapacityRequirements(requirements.toArray(new CapacityRequirement[requirements.size()]));
 		return capacityRequirements;
 	}
 
@@ -280,7 +293,8 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	/**********
 	 * Setter.
 	 * 
-	 * @param reservedCpu .
+	 * @param reservedCpu
+	 *            .
 	 */
 	public void setReservedCpuCapacityPerMachineInMB(final double reservedCpu) {
 		this.properties.putDouble(
@@ -304,11 +318,11 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 				RESERVED_MEMORY_CAPACITY_PER_MANAGEMENT_MACHINE_MEGABYTES_DEFAULT);
 	}
 
-
 	/*************
 	 * Setter.
 	 * 
-	 * @param reservedInMB .
+	 * @param reservedInMB
+	 *            .
 	 */
 	public final void setReservedMemoryCapacityPerMachineInMB(final long reservedInMB) {
 		this.properties.putLong(
@@ -317,8 +331,9 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 
 	/*************
 	 * Setter.
-	 *
-	 * @param reservedInMB .
+	 * 
+	 * @param reservedInMB
+	 *            .
 	 */
 	public final void setReservedMemoryCapacityPerManagementMachineInMB(
 			final int reservedInMB) {
@@ -340,7 +355,8 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	/************
 	 * Setter.
 	 * 
-	 * @param zones .
+	 * @param zones
+	 *            .
 	 */
 	public void setGridServiceAgentZones(final String[] zones) {
 		this.properties.putArray(
@@ -356,7 +372,8 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	/************
 	 * Setter.
 	 * 
-	 * @param value .
+	 * @param value
+	 *            .
 	 */
 	public void setDedicatedManagementMachines(final boolean value) {
 		properties.putBoolean(
@@ -371,7 +388,8 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	/***********
 	 * Setter.
 	 * 
-	 * @param locator .
+	 * @param locator
+	 *            .
 	 */
 	public void setLocator(final String locator) {
 		properties.put(
@@ -385,7 +403,8 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 	/************
 	 * Setter.
 	 * 
-	 * @param serviceCloudConfiguration .
+	 * @param serviceCloudConfiguration
+	 *            .
 	 */
 	public void setServiceCloudConfiguration(final byte[] serviceCloudConfiguration) {
 		final String encodedResult = jcifs.util.Base64.encode(serviceCloudConfiguration);
@@ -408,7 +427,6 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 		return decodedFile;
 
 	}
-	
 
 	public void setAuthGroups(String authGroups) {
 		properties.putStringWrapperObject(AUTH_GROUPS_KEY, authGroups);
@@ -432,5 +450,17 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 			requirements.add(new DriveCapacityRequirement(drive, entry.getValue()));
 		}
 		return requirements;
+	}
+
+	public String getNetworkAsString() {
+		return properties.get(SERVICE_NETWORK_STRING_KEY);
+	}
+
+	/********
+	 * Sets the serialized service network description. 
+	 * @param networkAsString the serialized network description.
+	 */
+	public void setNetworkAsString(final String networkAsString) {
+		properties.put(SERVICE_NETWORK_STRING_KEY, networkAsString);
 	}
 }

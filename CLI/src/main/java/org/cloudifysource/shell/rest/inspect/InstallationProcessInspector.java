@@ -12,12 +12,6 @@
  *******************************************************************************/
 package org.cloudifysource.shell.rest.inspect;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import org.cloudifysource.dsl.rest.response.DeploymentEvent;
 import org.cloudifysource.dsl.rest.response.DeploymentEvents;
 import org.cloudifysource.restclient.RestClient;
@@ -25,6 +19,13 @@ import org.cloudifysource.restclient.exceptions.RestClientException;
 import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.exceptions.CLIException;
 import org.cloudifysource.shell.installer.CLIEventsDisplayer;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA. User: elip Date: 5/29/13 Time: 1:50 PM <br>
@@ -35,7 +36,9 @@ import org.cloudifysource.shell.installer.CLIEventsDisplayer;
  */
 public abstract class InstallationProcessInspector {
 
-	private static final int POLLING_INTERVAL_MILLI_SECONDS = 500;
+    protected Logger logger = Logger.getLogger(InstallationProcessInspector.class.getName());
+
+    private static final int POLLING_INTERVAL_MILLI_SECONDS = 500;
 	protected static final int RESOURCE_NOT_FOUND_EXCEPTION_CODE = 404;
 
 	protected RestClient restClient;
@@ -122,8 +125,10 @@ public abstract class InstallationProcessInspector {
 	 * @return true if the service/application are fully running.
 	 * @throws RestClientException
 	 *             Thrown in case an error happened during a rest call.
+     * @throws CLIException
+     *             Thrown in case the CLI determined that some sort error happened.
 	 */
-	public abstract boolean lifeCycleEnded() throws RestClientException;
+	public abstract boolean lifeCycleEnded() throws RestClientException, CLIException;
 
 	/**
 	 * Query the number of running instances for a particular service.
@@ -154,7 +159,7 @@ public abstract class InstallationProcessInspector {
 
 		List<String> eventsStrings = new ArrayList<String>();
 
-		DeploymentEvents events = restClient.getDeploymentEvents(deploymentId, lastEventIndex, -1);
+		DeploymentEvents events = restClient.getDeploymentEvents(deploymentId, lastEventIndex + 1, -1);
 		if (events == null || events.getEvents().isEmpty()) {
 			return eventsStrings;
 		}
@@ -162,7 +167,7 @@ public abstract class InstallationProcessInspector {
 		for (DeploymentEvent event : events.getEvents()) {
 			eventsStrings.add(event.getDescription());
 		}
-		lastEventIndex = events.getEvents().get(events.getEvents().size() - 1).getIndex() + 1;
+		lastEventIndex = events.getEvents().get(events.getEvents().size() - 1).getIndex();
 		return eventsStrings;
 	}
 
@@ -181,7 +186,7 @@ public abstract class InstallationProcessInspector {
 				.timeoutErrorMessage(getTimeoutErrorMessage());
 	}
 
-	public void setEventIndex(final int eventIndex) {
+	public void setLastEventIndex(final int eventIndex) {
 		this.lastEventIndex = eventIndex;
 	}
 }

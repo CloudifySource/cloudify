@@ -12,23 +12,24 @@
  *******************************************************************************/
 package org.cloudifysource.rest.events.cache;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.logging.Logger;
-
-import org.cloudifysource.dsl.rest.response.DeploymentEvent;
-import org.cloudifysource.dsl.rest.response.DeploymentEvents;
-import org.cloudifysource.rest.events.EventsUtils;
-import org.cloudifysource.rest.events.LogEntryMatcherProvider;
-import org.cloudifysource.rest.events.LogEntryMatcherProviderKey;
-import org.openspaces.admin.gsc.GridServiceContainer;
-
 import com.gigaspaces.log.LogEntries;
 import com.gigaspaces.log.LogEntry;
 import com.gigaspaces.log.LogEntryMatcher;
 import com.google.common.cache.CacheLoader;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import org.cloudifysource.dsl.rest.response.DeploymentEvent;
+import org.cloudifysource.dsl.rest.response.DeploymentEvents;
+import org.cloudifysource.rest.events.EventsUtils;
+import org.cloudifysource.rest.events.LogEntryMatcherProvider;
+import org.cloudifysource.rest.events.LogEntryMatcherProviderKey;
+import org.openspaces.admin.gsc.GridServiceContainer;
+import org.openspaces.admin.pu.ProcessingUnit;
+import org.openspaces.admin.pu.ProcessingUnitInstance;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -68,29 +69,39 @@ public class EventsCacheLoader extends CacheLoader<EventsCacheKey, EventsCacheVa
 
         // initial load. no events are present in the cache for this deployment.
         // iterate over all container and retrieve logs from logs cache.
-        Set<GridServiceContainer> containersForDeployment = containerProvider.getContainersForDeployment(
-                key.getDeploymentId());
+        Set<GridServiceContainer> containersForDeployment = containerProvider
+                .getContainersForDeployment(key.getDeploymentId());
 
-        int index = -1;
+        Set<ProcessingUnit> processingUnitsForDeployment = new HashSet<ProcessingUnit>();
+
+        int index = 0;
         for (GridServiceContainer container : containersForDeployment) {
+
+            ProcessingUnitInstance[] processingUnitInstances = container.getProcessingUnitInstances();
+            if (processingUnitInstances != null && processingUnitInstances.length > 0) {
+                processingUnitsForDeployment.add(processingUnitInstances[0].getProcessingUnit());
+            }
 
             LogEntryMatcherProviderKey logEntryMatcherProviderKey = createKey(container, key);
 
-            LogEntries logEntries = container.logEntries(matcherProvider.get(logEntryMatcherProviderKey));
-            for (LogEntry logEntry : logEntries) {
-                if (logEntry.isLog()) {
-                    DeploymentEvent event = EventsUtils.logToEvent(logEntry,
-                            logEntries.getHostName(), logEntries.getHostAddress());
-                    event.setIndex(++index);
-                    events.getEvents().add(event);
+            if (container.isDiscovered()) {
+                LogEntries logEntries = container.logEntries(matcherProvider.get(logEntryMatcherProviderKey));
+                for (LogEntry logEntry : logEntries) {
+                    if (logEntry.isLog()) {
+                        DeploymentEvent event = EventsUtils.logToEvent(logEntry,
+                                logEntries.getHostName(), logEntries.getHostAddress());
+                        event.setIndex(++index);
+                        events.getEvents().add(event);
+                    }
                 }
             }
-
         }
 
         EventsCacheValue value = new EventsCacheValue();
         value.setLastEventIndex(index);
         value.setEvents(events);
+        value.getProcessingUnits().addAll(processingUnitsForDeployment);
+        value.setContainers(containersForDeployment);
         value.setLastRefreshedTimestamp(System.currentTimeMillis());
         return value;
     }
@@ -103,37 +114,40 @@ public class EventsCacheLoader extends CacheLoader<EventsCacheKey, EventsCacheVa
         logger.fine(EventsUtils.getThreadId() + "Reloading events cache entry for key " + key);
 
         // pickup any new containers along with the old ones
-        Set<GridServiceContainer> containersForDeployment = new HashSet<GridServiceContainer>();
-        Set<GridServiceContainer> containers = oldValue.getContainers();
-        
-        if (containers.isEmpty()) {
-        	containersForDeployment.addAll(containerProvider.getContainersForDeployment(key.getDeploymentId()));
-        } else {
-        	// uninstall process is taking place.
-        	containersForDeployment.addAll(containers);
-        }
-        if (!containersForDeployment.isEmpty()) {
-            int index = oldValue.getLastEventIndex() + 1;
-            for (GridServiceContainer container : containersForDeployment) {
+        oldValue.getContainers().addAll(containerProvider.getContainersForDeployment(key.getDeploymentId()));
+
+        if (!oldValue.getContainers().isEmpty()) {
+            int index = oldValue.getLastEventIndex();
+            for (GridServiceContainer container : oldValue.getContainers()) {
 
                 // this will give us just the new logs.
                 LogEntryMatcherProviderKey logEntryMatcherProviderKey = createKey(container, key);
                 LogEntryMatcher matcher = matcherProvider.get(logEntryMatcherProviderKey);
-                LogEntries logEntries = container.logEntries(matcher);
-
-                for (LogEntry logEntry : logEntries) {
-                    if (logEntry.isLog()) {
-                        DeploymentEvent event = EventsUtils.logToEvent(
-                                logEntry, logEntries.getHostName(), logEntries.getHostAddress());
-                        event.setIndex(index++);
-                        oldValue.getEvents().getEvents().add(event);
+                if (container.isDiscovered()) {
+                    // don't fetch logs from undiscovered containers
+                    logger.fine(EventsUtils.getThreadId() + "Retrieving logs from container " + container.getUid() +
+                            container.getExactZones().getZones());
+                    LogEntries logEntries = container.logEntries(matcher);
+                    for (LogEntry logEntry : logEntries) {
+                        if (logEntry.isLog()) {
+                            logger.finest(EventsUtils.getThreadId() + "Found log " + logEntry.getText() + " for " +
+                                    "deployment id " + key.getDeploymentId() + " from container "
+                                    + container.getUid() + container.getExactZones().getZones());
+                            DeploymentEvent event = EventsUtils.logToEvent(
+                                    logEntry, logEntries.getHostName(), logEntries.getHostAddress());
+                            event.setIndex(++index);
+                            oldValue.getEvents().getEvents().add(event);
+                        }
                     }
+                } else {
+                    logger.fine(EventsUtils.getThreadId() + "Not retrieving logs from container " + container.getUid()
+                            + container.getExactZones().getZones() + " since it is not discovered by the admin");
                 }
             }
 
             // update refresh time.
             oldValue.setLastRefreshedTimestamp(System.currentTimeMillis());
-            oldValue.setLastEventIndex(index - 1);
+            oldValue.setLastEventIndex(index);
         }
         return Futures.immediateFuture(oldValue);
     }

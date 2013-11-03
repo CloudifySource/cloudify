@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -82,9 +82,10 @@ public class ServiceParsingTest {
 	private static final String TEST_PARSING_RESOURCE_BASE = "src/test/resources/services/";
 	private static final String TEST_PARSING_AMP_MERGE_RESOURCE_PATH3 = "src/test/resources/inheritance/";
 	private static final String TEST_PARSING_DEBUG = "src/test/resources/debug/printContext";
+	private static final String TEST_PARSING_NETWORK = "src/test/resources/services/network/network-service";
 
 	/**
-	 *
+	 * 
 	 * @throws DSLException .
 	 * @throws UnknownHostException .
 	 */
@@ -107,7 +108,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 *
+	 * 
 	 * @throws DSLException .
 	 * @throws UnknownHostException .
 	 */
@@ -130,7 +131,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 *
+	 * 
 	 * @throws DSLException .
 	 */
 	@Test
@@ -149,7 +150,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 *
+	 * 
 	 * @throws DSLException .
 	 */
 	@Test
@@ -168,7 +169,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 *
+	 * 
 	 * @throws DSLException .
 	 */
 	@Test
@@ -190,7 +191,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 *
+	 * 
 	 * @throws DSLException .
 	 */
 	@Test
@@ -270,7 +271,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 *
+	 * 
 	 * @throws DSLException .
 	 */
 	@Test
@@ -326,7 +327,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 *
+	 * 
 	 * @throws DSLException .
 	 * @throws UnknownHostException .
 	 */
@@ -390,18 +391,18 @@ public class ServiceParsingTest {
 		Assert.assertNotNull(lowThreshold.getValue());
 		Assert.assertNotNull(lowThreshold.getInstancesDecrease());
 
-//		Assert.assertEquals(((ServiceStatisticsDetails) scalingRules.get(1)
-//				.getServiceStatistics()).getMetric(), serviceStatistics.get(0)
-//				.getMetric());
-//		Assert.assertEquals(((ServiceStatisticsDetails) scalingRules.get(1)
-//				.getServiceStatistics()).getInstancesStatistics()
-//				.createInstancesStatistics(), serviceStatistics.get(0)
-//				.getInstancesStatistics().createInstancesStatistics());
-//		Assert.assertEquals(((ServiceStatisticsDetails) scalingRules.get(1)
-//				.getServiceStatistics()).getTimeStatistics()
-//				.createTimeWindowStatistics(1, TimeUnit.MINUTES),
-//				serviceStatistics.get(0).getTimeStatistics()
-//						.createTimeWindowStatistics(1, TimeUnit.MINUTES));
+		// Assert.assertEquals(((ServiceStatisticsDetails) scalingRules.get(1)
+		// .getServiceStatistics()).getMetric(), serviceStatistics.get(0)
+		// .getMetric());
+		// Assert.assertEquals(((ServiceStatisticsDetails) scalingRules.get(1)
+		// .getServiceStatistics()).getInstancesStatistics()
+		// .createInstancesStatistics(), serviceStatistics.get(0)
+		// .getInstancesStatistics().createInstancesStatistics());
+		// Assert.assertEquals(((ServiceStatisticsDetails) scalingRules.get(1)
+		// .getServiceStatistics()).getTimeStatistics()
+		// .createTimeWindowStatistics(1, TimeUnit.MINUTES),
+		// serviceStatistics.get(0).getTimeStatistics()
+		// .createTimeWindowStatistics(1, TimeUnit.MINUTES));
 		Assert.assertEquals(((ServiceStatisticsDetails) scalingRules.get(1)
 				.getServiceStatistics()).getMovingTimeRangeInSeconds(),
 				serviceStatistics.get(0).getMovingTimeRangeInSeconds());
@@ -411,7 +412,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 *
+	 * 
 	 * @throws DSLException .
 	 */
 	@Test
@@ -434,7 +435,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 *
+	 * 
 	 * @throws Exception .
 	 */
 	@Test
@@ -457,7 +458,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 *
+	 * 
 	 * @throws Exception .
 	 */
 	@Test
@@ -475,7 +476,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 *
+	 * 
 	 * @throws Exception .
 	 */
 	@Test
@@ -490,7 +491,7 @@ public class ServiceParsingTest {
 	}
 
 	/**
-	 *
+	 * 
 	 * @throws Exception .
 	 */
 	@Test
@@ -613,13 +614,12 @@ public class ServiceParsingTest {
 
 		try {
 			Service service = ServiceReader.getServiceFromDirectory(serviceDir).getService();
-			System.out.println(service);
-			System.out.println("retries: " + service.getRetries());
 			Assert.fail("Expected parsing to fail");
 		} catch (Exception e) {
 			Assert.assertTrue("Invalid error message", e.getMessage().contains("Error converting from"));
 		}
 	}
+
 	@Test
 	public void testInvalidPropertiesFile() {
 
@@ -632,4 +632,17 @@ public class ServiceParsingTest {
 			Assert.assertTrue("Invalid error message: " + e.getMessage(), e.getMessage().contains("unexpected char"));
 		}
 	}
+
+	@Test
+	public void testNetworkService() throws Exception {
+		final File serviceDir = new File(TEST_PARSING_NETWORK);
+		final Service service = ServiceReader.getServiceFromDirectory(serviceDir).getService();
+
+		Assert.assertNotNull(service.getNetwork());
+		Assert.assertNotNull(service.getNetwork().getAccessRules() != null);
+		Assert.assertNotNull(service.getNetwork().getAccessRules().getIncoming() != null);
+		Assert.assertEquals(service.getNetwork().getAccessRules().getIncoming().get(0).getPortRange(), "80");
+
+	}
+
 }

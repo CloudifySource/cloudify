@@ -18,6 +18,8 @@ public enum CloudifyMessageKeys {
     
     UPLOAD_DIRECTORY_CREATION_FAILED("failed_creating_upload_directory"),
     
+    UNIQUE_FOLDER_NAME_GENERATION_FAILED("failed_to_generate_unique_folder_name"),
+    
     UPLOAD_FILE_SIZE_LIMIT_EXCEEDED("upload_file_size_limit_exceeded"),
 
     UPLOAD_FAILED("failed_to_upload_file"),

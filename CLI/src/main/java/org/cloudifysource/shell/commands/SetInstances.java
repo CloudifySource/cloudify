@@ -12,20 +12,13 @@
  *******************************************************************************/
 package org.cloudifysource.shell.commands;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.rest.request.SetServiceInstancesRequest;
-import org.cloudifysource.dsl.rest.response.DeploymentEvents;
 import org.cloudifysource.dsl.rest.response.ServiceDescription;
 import org.cloudifysource.restclient.RestClient;
-import org.cloudifysource.restclient.exceptions.RestClientException;
 import org.cloudifysource.shell.Constants;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.exceptions.CLIException;
@@ -36,6 +29,11 @@ import org.cloudifysource.shell.rest.RestLifecycleEventsLatch;
 import org.cloudifysource.shell.rest.inspect.service.SetInstancesScaledownInstallationProcessInspector;
 import org.cloudifysource.shell.rest.inspect.service.SetInstancesScaleupInstallationProcessInspector;
 import org.fusesource.jansi.Ansi.Color;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /************
  * Manually sets the number of instances for a specific service.
@@ -142,7 +140,7 @@ public class SetInstances extends AdminAwareCommand implements NewRestClientComm
 			return getFormattedMessage("num_instances_already_met", count);
 		}
 
-		final int nextEventId = getNextEventId(newRestClient, deploymentId);
+		final int lastEventIndex = newRestClient.getLastEvent(deploymentId).getIndex();
 
 		final SetServiceInstancesRequest request = new SetServiceInstancesRequest();
 		request.setCount(count);
@@ -153,10 +151,10 @@ public class SetInstances extends AdminAwareCommand implements NewRestClientComm
 
 		if (count > initialNumberOfInstances) {
 
-			return waitForScaleOut(deploymentId, count, nextEventId,
+			return waitForScaleOut(deploymentId, count, lastEventIndex,
 					initialNumberOfInstances);
 		}
-		return waitForScaleIn(deploymentId, count, nextEventId, initialNumberOfInstances);
+		return waitForScaleIn(deploymentId, count, lastEventIndex, initialNumberOfInstances);
 
 	}
 
@@ -166,16 +164,6 @@ public class SetInstances extends AdminAwareCommand implements NewRestClientComm
 			applicationName = CloudifyConstants.DEFAULT_APPLICATION_NAME;
 		}
 		return applicationName;
-	}
-
-	private int getNextEventId(final RestClient client, final String deploymentId) 
-			throws RestClientException {
-		int lastEventId = 0;
-		final DeploymentEvents lastDeploymentEvents = client.getLastEvent(deploymentId);
-		if (!lastDeploymentEvents.getEvents().isEmpty()) {
-			lastEventId = lastDeploymentEvents.getEvents().iterator().next().getIndex();
-		}
-		return lastEventId + 1;
 	}
 
 	private String waitForScaleOut(final String deploymentID, final int plannedNumberOfInstnaces,

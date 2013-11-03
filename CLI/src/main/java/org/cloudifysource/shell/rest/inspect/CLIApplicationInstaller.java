@@ -12,10 +12,6 @@
  *******************************************************************************/
 package org.cloudifysource.shell.rest.inspect;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.TimeoutException;
-
 import org.apache.felix.service.command.CommandSession;
 import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.shell.Constants;
@@ -24,6 +20,10 @@ import org.cloudifysource.shell.exceptions.CLIException;
 import org.cloudifysource.shell.exceptions.CLIStatusException;
 import org.cloudifysource.shell.installer.CLIEventsDisplayer;
 import org.cloudifysource.shell.rest.inspect.application.ApplicationInstallationProcessInspector;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created with IntelliJ IDEA.
@@ -80,6 +80,9 @@ public class CLIApplicationInstaller {
      */
     public void install() throws CLIException, InterruptedException, IOException {
 
+        displayer.printEvent("installing_application", applicationName);
+        displayer.printEvent("waiting_for_lifecycle_of_application", applicationName);
+
         ApplicationInstallationProcessInspector inspector = new ApplicationInstallationProcessInspector(
                 restClient,
                 deploymentId,
@@ -89,16 +92,11 @@ public class CLIApplicationInstaller {
 
         int actualTimeout = initialTimeout;
         boolean isDone = false;
-        displayer.printEvent("installing_application", applicationName);
-        displayer.printEvent("waiting_for_lifecycle_of_application", applicationName);
         while (!isDone) {
             try {
-
                 inspector.waitForLifeCycleToEnd(actualTimeout);
                 isDone = true;
-
             } catch (final TimeoutException e) {
-
                 // if non interactive, throw exception
                 if (!askOnTimeout || !(Boolean) session.get(Constants.INTERACTIVE_MODE)) {
                     throw new CLIException(e.getMessage(), e);

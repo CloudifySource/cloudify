@@ -69,4 +69,13 @@ public class ApplicationDescription {
 		return this.applicationState;
 	}
 
+    @Override
+    public String toString() {
+        return "ApplicationDescription{" +
+                "servicesDescription=" + servicesDescription +
+                ", applicationName='" + applicationName + '\'' +
+                ", authGroups='" + authGroups + '\'' +
+                ", applicationState=" + applicationState +
+                '}';
+    }
 }

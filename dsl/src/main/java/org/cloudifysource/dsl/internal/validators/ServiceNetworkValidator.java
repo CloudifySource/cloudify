@@ -37,17 +37,17 @@ public class ServiceNetworkValidator implements DSLValidator {
 	@DSLValidation
 	public void checkPortValue(final DSLValidationContext validationContext)
 			throws DSLValidationException {
-		if (this.entity.getPort() <= 0) {
-			throw new DSLValidationException("The port value of the network block must be a positive integer.");
-		}
+//		if (this.entity.getPort() <= 0) {
+//			throw new DSLValidationException("The port value of the network block must be a positive integer.");
+//		}
 	}
 
 	@DSLValidation
 	public void checkDescription(final DSLValidationContext validationContext)
 			throws DSLValidationException {
-		if (this.entity.getProtocolDescription() == null) {
-			throw new DSLValidationException("The protocol description can't be an empty value");
-		}
+//		if (this.entity.getProtocolDescription() == null) {
+//			throw new DSLValidationException("The protocol description can't be an empty value");
+//		}
 
 		
 	}

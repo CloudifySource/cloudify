@@ -76,6 +76,8 @@ import org.cloudifysource.domain.cloud.storage.CloudStorage;
 import org.cloudifysource.domain.cloud.storage.StorageTemplate;
 import org.cloudifysource.domain.entry.ExecutableDSLEntry;
 import org.cloudifysource.domain.internal.CloudifyDSLEntity;
+import org.cloudifysource.domain.network.AccessRule;
+import org.cloudifysource.domain.network.AccessRules;
 import org.cloudifysource.domain.scalingrules.HighThresholdDetails;
 import org.cloudifysource.domain.scalingrules.LowThresholdDetails;
 import org.cloudifysource.domain.scalingrules.ScalingRuleDetails;
@@ -620,6 +622,8 @@ public abstract class BaseDslScript extends Script {
 
 			addObjectInitializerForClass(dslObjectInitializersByName, ComputeDetails.class);
 			addObjectInitializerForClass(dslObjectInitializersByName, Sla.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, AccessRules.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, AccessRule.class);
 
 			dslObjectInitializersByName.put("userInterface", new DSLObjectInitializerData("userInterface",
 					UserInterface.class, true, true, "service"));

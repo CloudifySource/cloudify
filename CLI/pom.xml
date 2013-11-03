@@ -44,6 +44,12 @@
 			<groupId>com.gigaspaces</groupId>
 			<artifactId>gs-openspaces</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>org.cloudifysource</groupId>
+            <artifactId>version</artifactId>
+            <version>${cloudifyVersion}</version>
+            <scope>provided</scope>
+        </dependency>
 		<dependency>
 			<groupId>org.apache.karaf.shell</groupId>
 			<artifactId>org.apache.karaf.shell.console</artifactId>
