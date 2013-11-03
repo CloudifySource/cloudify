@@ -53,8 +53,7 @@ public class InvocationResult implements Comparable<InvocationResult> {
 	 *            execution and result details
 	 * @return InvocationResult consisting of the data in the given map.
 	 */
-	public static InvocationResult createInvocationResult(
-			final Map<String, String> map) {
+	public static InvocationResult createInvocationResult(final Map<String, String> map) {
 
 		InvocationResult res = new InvocationResult();
 		res.commandName = map

@@ -12,6 +12,24 @@
  ******************************************************************************/
 package org.cloudifysource.restclient;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.Scheme;
@@ -29,6 +47,7 @@ import org.cloudifysource.dsl.rest.AddTemplatesException;
 import org.cloudifysource.dsl.rest.request.AddTemplatesRequest;
 import org.cloudifysource.dsl.rest.request.InstallApplicationRequest;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
+import org.cloudifysource.dsl.rest.request.InvokeCustomCommandRequest;
 import org.cloudifysource.dsl.rest.request.SetServiceInstancesRequest;
 import org.cloudifysource.dsl.rest.response.AddTemplatesResponse;
 import org.cloudifysource.dsl.rest.response.ApplicationDescription;
@@ -37,6 +56,8 @@ import org.cloudifysource.dsl.rest.response.DeploymentEvents;
 import org.cloudifysource.dsl.rest.response.GetTemplateResponse;
 import org.cloudifysource.dsl.rest.response.InstallApplicationResponse;
 import org.cloudifysource.dsl.rest.response.InstallServiceResponse;
+import org.cloudifysource.dsl.rest.response.InvokeInstanceCommandResponse;
+import org.cloudifysource.dsl.rest.response.InvokeServiceCommandResponse;
 import org.cloudifysource.dsl.rest.response.ListTemplatesResponse;
 import org.cloudifysource.dsl.rest.response.Response;
 import org.cloudifysource.dsl.rest.response.ServiceDescription;
@@ -49,23 +70,6 @@ import org.cloudifysource.restclient.messages.RestClientMessageKeys;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * This class performs all the calls to the REST API, 
@@ -97,6 +101,9 @@ public class RestClient {
 	private static final String GET_TEMPALTE_URL_FORMAT = "%s";
 	private static final String LIST_TEMPALTES_URL_FORMAT = "";
 	private static final String REMOVE_TEMPALTE_URL_FORMAT = "%s";
+	private static final String INVOKE_SERVICE_COMMAND_URL_FORMAT = "applications/%s/services/%s/beans/%s/invoke";
+	private static final String INVOKE_INSTANCE_COMMAND_URL_FORMAT = 
+			"applications/%s/services/%s/instances/%s/beans/%s/invoke";
 
 	private static final String SET_INSTANCES_URL_FORMAT = "%s/services/%s/count";
 	private static final String GET_LAST_EVENT_URL_FORMAT = "%s/events/last/";
@@ -418,7 +425,103 @@ public class RestClient {
 				);
 
 	}
+	
+	
+	/**
+	 * Invokes the command specified in the request on all the instances of the given service.
+	 * @param applicationName
+	 *            the service's application name.
+	 * @param serviceName
+	 *            the service's name.
+	 * @param beanName
+	 *            deprecated
+	 * @param request
+	 *            the InvokeCustomCommandRequest containing the command and parameters
+	 * @return InvokeServiceCommandResponse
+	 *            the response holding the results of the command invocation per service
+	 * @throws RestClientException
+	 *            when the invocation failed or the service/instance were not found.
+	 */
+	public InvokeServiceCommandResponse invokeServiceCommand(final String applicationName, 
+			final String serviceName, final String beanName, final InvokeCustomCommandRequest request)
+					throws RestClientException {
+		if (request == null) {
+			throw new IllegalArgumentException("request may not be null");
+		}
 
+		InvokeServiceCommandResponse result = null;
+		try {
+			final String invokeCommandUrl = getFormattedUrl(
+					versionedDeploymentControllerUrl, 
+					INVOKE_SERVICE_COMMAND_URL_FORMAT, 
+					applicationName, 
+					serviceName,
+					beanName);
+			
+			result = executor.postObject(
+					invokeCommandUrl,
+					request,
+					new TypeReference<Response<InvokeServiceCommandResponse>>() {
+					}
+					);
+		} catch (final RestClientException e) {
+			// TODO noak: handle
+		}
+		
+		return result;
+	}
+	
+	
+	/**
+	 * Invokes the command specified in the request on the specified instance of the given service.
+	 * @param applicationName
+	 *            the service's application name.
+	 * @param serviceName
+	 *            the service's name.
+	 * @param instanceId
+	 *            the relevant instance id
+	 * @param beanName
+	 *            deprecated
+	 * @param request
+	 *            the InvokeCustomCommandRequest containing the command and parameters
+	 * @return InvokeServiceCommandResponse
+	 *            the response holding the results of the command invocation per service
+	 * @throws RestClientException
+	 *            when the invocation failed or the service/instance were not found.
+	 */
+	public InvokeInstanceCommandResponse invokeInstanceCommand(final String applicationName, 
+			final String serviceName, final int instanceId, final String beanName,
+			final InvokeCustomCommandRequest request) throws RestClientException {
+		if (request == null) {
+			throw new IllegalArgumentException("request may not be null");
+		}
+		
+		String instanceIdStr = String.valueOf(instanceId);
+
+		InvokeInstanceCommandResponse result = null;
+		try {
+			final String invokeCommandUrl = getFormattedUrl(
+					versionedDeploymentControllerUrl, 
+					INVOKE_INSTANCE_COMMAND_URL_FORMAT, 
+					applicationName, 
+					serviceName,
+					instanceIdStr,
+					beanName);
+			
+			result = executor.postObject(
+					invokeCommandUrl,
+					request,
+					new TypeReference<Response<InvokeInstanceCommandResponse>>() {
+					}
+					);
+		} catch (final RestClientException e) {
+			// TODO noak: handle
+		}
+		
+		return result;
+	}
+
+	
 	/********
 	 * Retrieves last event indes for this deployment id.
 	 * 
@@ -668,5 +771,6 @@ public class RestClient {
 				removeTempalteUrl, 
 				new TypeReference<Response<Void>>() { });
 	}
+
 
 }
