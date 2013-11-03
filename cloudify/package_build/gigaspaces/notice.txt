@@ -6,7 +6,11 @@ GIGASPACES CLOUDIFY SOFTWARE � OPEN SOURCE AND THIRD PARTY COMPONENTS
 http://karaf.apache.org/
 ======================================================================================
 
+<<<<<<< HEAD
 (c) 2008-2011 The Apache Software Foundation. All Rights Reserved
+=======
+� 2008-2011 The Apache Software Foundation. All Rights Reserved
+>>>>>>> fix line endings
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. 
 
@@ -30,7 +34,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 http://commons.apache.org/
 ======================================================================================
 
+<<<<<<< HEAD
 Copyright (c) 2011 The Apache Software Foundation. All Rights Reserved
+=======
+Copyright � 2011 The Apache Software Foundation. All Rights Reserved
+>>>>>>> fix line endings
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. 
 
@@ -56,26 +64,42 @@ Unless required by applicable law or agreed to in writing, software distributed 
 http://hc.apache.org/
 ======================================================================================
 
+<<<<<<< HEAD
 Copyright (c) 2005- 2011 The Apache Software Foundation. All Rights Reserved
+=======
+Copyright � 2005- 2011 The Apache Software Foundation. All Rights Reserved
+>>>>>>> fix line endings
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. 
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 ======================================================================================
+<<<<<<< HEAD
 6.	Ant/1.8.2  (under the Apache License, Version 2.0) 
+=======
+9.	Ant/1.8.2  (under the Apache License, Version 2.0) 
+>>>>>>> fix line endings
 
 http://ant.apache.org/
 ======================================================================================
 
+<<<<<<< HEAD
 Copyright (c)  2012 The Apache Software Foundation. All Rights Reserved
+=======
+Copyright �  2012 The Apache Software Foundation. All Rights Reserved
+>>>>>>> fix line endings
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. 
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  
 ======================================================================================
+<<<<<<< HEAD
 7.	Jsch/0.1.44-1 (under BSD style License)
+=======
+11.	Jsch/0.1.44-1 (under BSD style License)
+>>>>>>> fix line endings
 
 http://www.jcraft.com/jsch/
 ======================================================================================
@@ -95,49 +119,81 @@ THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES, INC
 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ======================================================================================
+<<<<<<< HEAD
 8.	Jclouds/1.3.0 (under the Apache License, Version 2.0)
+=======
+12.	Jclouds/1.3.0 (under the Apache License, Version 2.0)
+>>>>>>> fix line endings
 
 http://www.jclouds.org/
 ======================================================================================
 
+<<<<<<< HEAD
 Copyright (C) 2011 jclouds, Inc
+=======
+Copyright �2011 jclouds, Inc
+>>>>>>> fix line endings
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. 
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 ======================================================================================
+<<<<<<< HEAD
 9.	org.soyatec:windows-azure-java (under the Apache License, Version 2.0)
+=======
+15.	org.soyatec:windows-azure-java (under the Apache License, Version 2.0)
+>>>>>>> fix line endings
 
 http://www.windowsazure4j.org/
 http://www.windowsazure4j.org/license/
 ======================================================================================
 
+<<<<<<< HEAD
 (c) 2012 Soyatec. All Rights reserved 
+=======
+� 2012 Soyatec. All Rights reserved 
+>>>>>>> fix line endings
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. 
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 ======================================================================================
+<<<<<<< HEAD
 10.	James Mime4J (under the Apache License, Version 2.0)
+=======
+18.	James Mime4J (under the Apache License, Version 2.0)
+>>>>>>> fix line endings
 
 http://james.apache.org/mime4j/
 ======================================================================================
 
+<<<<<<< HEAD
 Copyright (c)  2006- 2012 The Apache Software Foundation. All Rights Reserved
+=======
+Copyright �  2006- 2012 The Apache Software Foundation. All Rights Reserved
+>>>>>>> fix line endings
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. 
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 ======================================================================================
+<<<<<<< HEAD
 11.	Log4J (under the Apache License, Version 2.0)
+=======
+27.	Log4J (under the Apache License, Version 2.0)
+>>>>>>> fix line endings
 
 http://logging.apache.org/log4j/1.2/
 ======================================================================================
 
+<<<<<<< HEAD
 (c) 1999-2010 Apache Software Foundation. All Rights Reserved
+=======
+� 1999-2010 Apache Software Foundation. All Rights Reserved
+>>>>>>> fix line endings
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. 
 
@@ -145,7 +201,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 
 ======================================================================================
+<<<<<<< HEAD
 12.	Spring (under the Apache License, Version 2.0) 
+=======
+38.	Spring (under the Apache License, Version 2.0) 
+>>>>>>> fix line endings
 
 http://www.springframework.org/about
 http://www.apache.org/licenses/LICENSE-2.0.html
@@ -158,20 +218,32 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 ======================================================================================
+<<<<<<< HEAD
 13.	Velocity (under the Apache License, Version 2.0)
+=======
+39.	Velocity (under the Apache License, Version 2.0)
+>>>>>>> fix line endings
 
 http://velocity.apache.org/
 http://www.apache.org/licenses/LICENSE-2.0.html
 ======================================================================================
 
+<<<<<<< HEAD
 Copyright (c) 2010 The Apache Software Foundation
+=======
+Copyright � 2010 The Apache Software Foundation
+>>>>>>> fix line endings
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. 
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 ======================================================================================
+<<<<<<< HEAD
 14.	Jetty (under dual licensed under the Apache License 2.0 and Eclipse Public License 1.0)
+=======
+42.	Jetty (under dual licensed under the Apache License 2.0 and Eclipse Public License 1.0)
+>>>>>>> fix line endings
 
 http://www.mortbay.org/jetty/ 
 http://www.eclipse.org/jetty/licenses.php
@@ -193,9 +265,15 @@ The javax.servlet package used was sourced from the Apache Software Foundation a
 The UnixCrypt.java code implements the one way cryptography used by Unix systems for simple password protection.  Copyright 1996 Aki Yoshida, modified April 2001 by Iris Van den Broeke, Daniel Deville. Permission to use, copy, modify and distribute UnixCrypt for non-commercial or commercial purposes and without fee is granted provided that the copyright notice appears in all copies.
 
 ======================================================================================
+<<<<<<< HEAD
 15.	Groovy (under the Apache License, Version 2.0)   
 
 (c) 2011 Codehaus Foundation 
+=======
+44.	Groovy (under the Apache License, Version 2.0)   
+
+� 2011 Codehaus Foundation 
+>>>>>>> fix line endings
 
 http://groovy.codehaus.org/
 http://svn.codehaus.org/groovy/trunk/groovy/groovy-core/LICENSE.txt
@@ -206,7 +284,11 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 ======================================================================================
+<<<<<<< HEAD
 16.	Sigar (under the Apache License, Version 2.0)    
+=======
+45.	Sigar (under the Apache License, Version 2.0)    
+>>>>>>> fix line endings
 
 http://support.hyperic.com/display/SIGAR/Home
 http://support.hyperic.com/display/SIGAR/Home#Home-license
@@ -219,13 +301,21 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 ======================================================================================
+<<<<<<< HEAD
 17.	Google Web Toolkit (under the Apache License, v. 2.0)
+=======
+57.	Google Web Toolkit (under the Apache License, v. 2.0)
+>>>>>>> fix line endings
 
 http://code.google.com/webtoolkit/
 http://code.google.com/webtoolkit/terms.html
 ======================================================================================
 
+<<<<<<< HEAD
 (c) 2011 Google
+=======
+�2011 Google
+>>>>>>> fix line endings
 
 The Google Web Toolkit software and sample code developed by Google is licensed under the Apache License, v. 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
@@ -262,34 +352,54 @@ webkit.org
 
 
 ======================================================================================
+<<<<<<< HEAD
 18.	Highcharts (c) (under OEM license)
+=======
+58.	Highcharts � (under OEM license)
+>>>>>>> fix line endings
 
 http://www.highcharts.com/
 http://www.highcharts.com/license
 ======================================================================================
 
 ======================================================================================
+<<<<<<< HEAD
 19.	GWT Ext (under Sencha Commercial Software License Agreement)
+=======
+59.	GWT Ext (under Sencha Commercial Software License Agreement)
+>>>>>>> fix line endings
 
 http://www.sencha.com/products/gwt/
 http://www.sencha.com/store/gwt/license.php
 ======================================================================================
 
 ======================================================================================
+<<<<<<< HEAD
 20.	gwtupload (under the Apache License, Version 2.0)
+=======
+63.	gwtupload (under the Apache License, Version 2.0)
+>>>>>>> fix line endings
 
 http://www.apache.org/licenses/LICENSE-2.0
 http://code.google.com/p/gwtupload/
 ======================================================================================
 
+<<<<<<< HEAD
 (c) 2009-2012 Manolo Carrasco Monino
+=======
+�2009-2012 Manolo Carrasco Monino
+>>>>>>> fix line endings
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. 
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 ======================================================================================
+<<<<<<< HEAD
 21.	gQuery / GwtQuery (jQuery GWT) (under the Apache License, v. 2.0)
+=======
+66.	gQuery / GwtQuery (jQuery GWT) (under the Apache License, v. 2.0)
+>>>>>>> fix line endings
 
 Copyright 2011, The GwtQuery team
 
@@ -301,7 +411,11 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 ======================================================================================
+<<<<<<< HEAD
 22.	Dracula Graph Library (under MIT License)
+=======
+67.	Dracula Graph Library (under MIT License)
+>>>>>>> fix line endings
 
 http://www.graphdracula.net/
 http://www.opensource.org/licenses/mit-license.php
@@ -323,12 +437,17 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ======================================================================================
+<<<<<<< HEAD
 23.	Raphael JavaScript Vector Library (under MIT License)
+=======
+68.	Raphael � JavaScript Vector Library (under MIT License)
+>>>>>>> fix line endings
 
 http://raphaeljs.com 
 http://raphaeljs.com/license.html   
 ======================================================================================
 
+<<<<<<< HEAD
 Copyright (c) 2008 Dmitry Baranovskiy
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the �Software�), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
@@ -336,17 +455,31 @@ THE SOFTWARE IS PROVIDED AS IS, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED
 
 ======================================================================================
 24.	jQuery 
+=======
+Copyright � 2008 Dmitry Baranovskiy
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the �Software�), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED �AS IS�, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+======================================================================================
+69.	jQuery 
+>>>>>>> fix line endings
 
 http://jquery.com/
 http://jquery.org/license/   
 ======================================================================================
 
+<<<<<<< HEAD
 (c) 2010 The jQuery Project
+=======
+� 2010 The jQuery Project
+>>>>>>> fix line endings
 You may use any jQuery project under the terms of either the MIT License or the GNU General Public License (GPL) Version 2.
 The MIT License is recommended for most projects. It is simple and easy to understand and it places almost no restrictions on what you can do with a jQuery project.
 If the GPL suits your project better you are also free to use a jQuery project under that license.
 You don�t have to do anything special to choose one license or the other and you don�t have to notify anyone which license you are using. You are free to use a jQuery project in commercial projects as long as the copyright header is left intact.
 GigaSpaces is following the terms and conditions of MIT license.
+<<<<<<< HEAD
 
 ======================================================================================
 25.	
@@ -383,3 +516,5 @@ http://simile.mit.edu/license.html
 
 
 
+=======
+>>>>>>> fix line endings
