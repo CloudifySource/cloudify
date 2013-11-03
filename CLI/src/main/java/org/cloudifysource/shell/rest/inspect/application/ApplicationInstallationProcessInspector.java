@@ -15,6 +15,10 @@
  *******************************************************************************/
 package org.cloudifysource.shell.rest.inspect.application;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.rest.response.ApplicationDescription;
@@ -22,14 +26,9 @@ import org.cloudifysource.dsl.rest.response.ServiceDescription;
 import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.restclient.exceptions.RestClientException;
 import org.cloudifysource.restclient.exceptions.RestClientResponseException;
-import org.cloudifysource.restclient.messages.MessagesUtils;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.exceptions.CLIException;
 import org.cloudifysource.shell.rest.inspect.InstallationProcessInspector;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Created with IntelliJ IDEA.

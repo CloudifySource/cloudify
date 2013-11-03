@@ -70,11 +70,10 @@ public abstract class UninstallationProcessInspector extends InstallationProcess
         			} else {
         				displayer.printNoChange();
         			}
-        			printUnInstalledInstances();
-//        			if (waitForCloudResourcesRelease) {
-//        				displayer.printEvent("releasing cloud resources...");
-//        				return ended;
-//        			}
+        			// it is hard to determin exactly when the PUI was terminated,
+        			// since PUIs are terminated almost instantly after calling the uninstall command.
+//        			printUnInstalledInstances();
+        			
         			return ended;
         		} catch (final RestClientException e) {
         			String message = e.getMessageFormattedText();
@@ -85,6 +84,9 @@ public abstract class UninstallationProcessInspector extends InstallationProcess
         		}
         	}
 
+        	// this method will yeild 0 puis almost instantly after the uninstall command was invoked
+        	// and will not return the true service instance state.
+        	// The proper way would be to count service STOP events.
             private void printUnInstalledInstances() throws RestClientException {
                 for (Map.Entry<String, Integer> entry : plannedNumberOfInstancesPerService.entrySet()) {
                     String serviceName = entry.getKey();
