@@ -214,9 +214,12 @@ public class DeploymentsController extends BaseRestController {
 		gigaSpace = restConfig.getGigaSpace();
 		permissionEvaluator = restConfig.getPermissionEvaluator();
 		repo.init();
-		repo.setBaseDir(restConfig.getRestTempFolder());
-		logger.fine("starting DeolpymentsController, injecting rest temp folder to uploadrepo: " 
-				+ restConfig.getRestTempFolder().getAbsolutePath());
+		if (restConfig.getCloud() != null) {
+			// working on an actual cloud (not localcloud)
+			repo.setBaseDir(restConfig.getRestTempFolder());
+			logger.fine("starting DeolpymentsController, injecting rest temp folder to uploadrepo: " 
+					+ restConfig.getRestTempFolder().getAbsolutePath());
+		}
 		repo.createUploadDir();
 		this.admin = restConfig.getAdmin();
 		this.eventsCache = new EventsCache(admin);
