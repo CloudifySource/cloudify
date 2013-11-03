@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -49,16 +49,17 @@ import org.codehaus.groovy.control.customizers.ImportCustomizer;
 
 /*******
  * Generic Cloudify DSL Reader.
- *
+ * 
  * @author barakme
- *
+ * 
  */
 
 public class DSLReader {
 
 	public DSLReader() {
-		
+
 	}
+
 	// Groovy DSL prefix, used for handling print and println correctly
 	private static final String GROOVY_SERVICE_PREFIX =
 			"Object.metaClass.println = {x->this.println(x)}; Object.metaClass.print =  {x->this.print(x)};";
@@ -70,7 +71,6 @@ public class DSLReader {
 	private static Logger dslLogger = Logger.getLogger(DSL_LOGGER_NAME);
 
 	private boolean loadUsmLib = true;
-
 
 	private ServiceContext context;
 
@@ -110,7 +110,7 @@ public class DSLReader {
 	private GroovyClassLoader dslClassLoader;
 
 	private static final String[] STAR_IMPORTS = new String[] {
-			org.cloudifysource.domain.Service.class.getPackage().getName(), 
+			org.cloudifysource.domain.Service.class.getPackage().getName(),
 			FileTransferModes.class.getName(),
 			RemoteExecutionModes.class.getName(),
 			ScriptLanguages.class.getName() };
@@ -120,8 +120,8 @@ public class DSLReader {
 			FileTransferModes.class.getName(),
 			RemoteExecutionModes.class.getName(),
 			ScriptLanguages.class.getName()
-//			,
-//			"org.cloudifysource.debug.DebugHook"
+			// ,
+			// "org.cloudifysource.debug.DebugHook"
 	};
 
 	/******
@@ -172,7 +172,7 @@ public class DSLReader {
 	/***********
 	 * Search the directory for a file with the specified suffix. Assuming there is exactly one file with that suffix in
 	 * the directory.
-	 *
+	 * 
 	 * @param fileNameSuffix
 	 *            The suffix.
 	 * @param dir
@@ -181,7 +181,7 @@ public class DSLReader {
 	 */
 	public static File findDefaultDSLFile(final String fileNameSuffix, final File dir) {
 
-		File[] files = findDefaultDSLFiles(fileNameSuffix, dir);
+		final File[] files = findDefaultDSLFiles(fileNameSuffix, dir);
 
 		if (files == null || files.length == 0) {
 			throw new IllegalArgumentException("Cannot find configuration file in " + dir.getAbsolutePath() + "/*"
@@ -197,7 +197,7 @@ public class DSLReader {
 
 	/***********
 	 * Search the directory for files with the specified suffix.
-	 *
+	 * 
 	 * @param fileNameSuffix
 	 *            The suffix.
 	 * @param directory
@@ -224,7 +224,7 @@ public class DSLReader {
 	}
 
 	/**
-	 *
+	 * 
 	 * @param fileNameSuffix
 	 *            .
 	 * @param dir
@@ -236,7 +236,7 @@ public class DSLReader {
 		File found = null;
 		try {
 			found = findDefaultDSLFile(fileNameSuffix, dir);
-		} catch (IllegalArgumentException e) {
+		} catch (final IllegalArgumentException e) {
 			if (e.getMessage().contains("Found multiple configuration files")) {
 				throw e;
 			}
@@ -277,14 +277,14 @@ public class DSLReader {
 	}
 
 	private Map<String, Object> createApplicationProperties() throws IOException {
-		File externalPropertiesFile = getFileIfExist(null, DSLUtils.APPLICATION_PROPERTIES_FILE_NAME);
-		Map<String, Object> externalProperties = new HashMap<String, Object>();
+		final File externalPropertiesFile = getFileIfExist(null, DSLUtils.APPLICATION_PROPERTIES_FILE_NAME);
+		final Map<String, Object> externalProperties = new HashMap<String, Object>();
 		createDSLOverrides(externalPropertiesFile, null, externalProperties);
-		File externalOverridesFile = getFileIfExist(null, DSLUtils.APPLICATION_OVERRIDES_FILE_NAME);
-		Map<String, Object> externalOverrides = new HashMap<String, Object>();
+		final File externalOverridesFile = getFileIfExist(null, DSLUtils.APPLICATION_OVERRIDES_FILE_NAME);
+		final Map<String, Object> externalOverrides = new HashMap<String, Object>();
 		createDSLOverrides(externalOverridesFile, null, externalOverrides);
 		if (externalOverrides != null) {
-			for (Entry<String, Object> entry : externalOverrides.entrySet()) {
+			for (final Entry<String, Object> entry : externalOverrides.entrySet()) {
 				externalProperties.put(entry.getKey(), entry.getValue());
 			}
 		}
@@ -293,7 +293,7 @@ public class DSLReader {
 
 	/*********
 	 * Executes the current DSL reader, returning the required Object type.
-	 *
+	 * 
 	 * @param clazz
 	 *            the expected class type returned from the DSL file.
 	 * @param <T>
@@ -353,12 +353,12 @@ public class DSLReader {
 			String canonicalPath = null;
 			try {
 				canonicalPath = workDir.getCanonicalPath();
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				throw new DSLException("Failed to get canonical path of work directory: " + workDir + ". Error was: "
 						+ e.getMessage(), e);
 			}
 			if (this.context == null) {
-					this.context = new BaseServiceContext(canonicalPath);
+				this.context = new BaseServiceContext(canonicalPath);
 			}
 		}
 
@@ -377,16 +377,19 @@ public class DSLReader {
 								+ "Set the 'createServiceContext' option to false if you do not need a service conext");
 			}
 
-			((BaseServiceContext)this.context).init((Service) result);
+			((BaseServiceContext) this.context).init((Service) result);
 		}
 
 		this.dslClassLoader = gs.getClassLoader();
+		// this.dslClassLoader.clearCache();
+		// GroovySystem.getMetaClassRegistry().removeMetaClass(Script.class);
+		org.codehaus.groovy.reflection.ClassInfo.clearModifiedExpandos();
 		return result;
 
 	}
 
 	/**
-	 *
+	 * 
 	 * @param properties
 	 *            the properties to add to
 	 * @throws IOException
@@ -395,20 +398,20 @@ public class DSLReader {
 		if (applicationProperties == null) {
 			applicationProperties = createApplicationProperties();
 		}
-		for (Entry<String, Object> entry : applicationProperties.entrySet()) {
+		for (final Entry<String, Object> entry : applicationProperties.entrySet()) {
 			properties.put(entry.getKey(), entry.getValue());
 		}
 	}
 
 	/**
-	 *
+	 * 
 	 * @param properties
 	 *            the properties to override
 	 */
 	private void overrideProperties(final LinkedHashMap<Object, Object> properties) {
-		for (Entry<String, Object> entry : overrideProperties.entrySet()) {
-			String key = entry.getKey();
-			Object propertyValue = entry.getValue();
+		for (final Entry<String, Object> entry : overrideProperties.entrySet()) {
+			final String key = entry.getKey();
+			final Object propertyValue = entry.getValue();
 			// overrides existing property or add a new one.
 			properties.put(key, propertyValue);
 		}
@@ -423,7 +426,7 @@ public class DSLReader {
 
 		if (this.dslContents == null) {
 
-			//FileReader reader = null;
+			// FileReader reader = null;
 			SequenceInputStream sis = null;
 			try {
 
@@ -431,7 +434,7 @@ public class DSLReader {
 				final ByteArrayInputStream bis =
 						new ByteArrayInputStream(GROOVY_SERVICE_PREFIX.getBytes());
 				sis = new SequenceInputStream(bis, fis);
-				//reader = new FileReader(dslFile);
+				// reader = new FileReader(dslFile);
 				// using a deprecated method here as we do not have a multireader in the dependencies
 				// and not really worth another jar just for this.
 				result = gs.evaluate(sis, "dslEntity");
@@ -443,7 +446,10 @@ public class DSLReader {
 				throw new IllegalArgumentException("Could not resolve DSL entry with name: " + e.getProperty(), e);
 			} catch (final DSLValidationRuntimeException e) {
 				throw e.getDSLValidationException();
-			} finally {
+			} catch(final CompilationFailedException e) {
+				throw new IllegalArgumentException("Could not parse " + dslFile + ": " + e.getMessage(), e);
+			}
+			finally {
 				if (sis != null) {
 					try {
 						sis.close();
@@ -579,10 +585,8 @@ public class DSLReader {
 
 		final GroovyShell gs = new GroovyShell(ServiceReader.class.getClassLoader(), binding, cc);
 
-
 		return gs;
 	}
-
 
 	private static CompilerConfiguration createCompilerConfiguration(final String baseClassName,
 			final List<String> extraJarFileNames) {
@@ -593,10 +597,11 @@ public class DSLReader {
 
 		ic.addImports(CLASS_IMPORTS);
 
-		ic.addStaticImport("Statistics", org.cloudifysource.domain.statistics.AbstractStatisticsDetails.class.getName(),
+		ic.addStaticImport("Statistics",
+				org.cloudifysource.domain.statistics.AbstractStatisticsDetails.class.getName(),
 				"STATISTICS_FACTORY");
 		cc.addCompilationCustomizers(ic);
-		//cc.addCompilationCustomizers(ic, new ASTTransformationCustomizer(new DebugHookTransformar()));
+		// cc.addCompilationCustomizers(ic, new ASTTransformationCustomizer(new DebugHookTransformar()));
 
 		cc.setScriptBaseClass(baseClassName);
 
@@ -633,8 +638,8 @@ public class DSLReader {
 		binding.setVariable(DSLUtils.DSL_FILE_PATH_PROPERTY_NAME, dslFile == null ? null : dslFile.getPath());
 		binding.setVariable(DSLReader.DSL_LOGGER_NAME, dslLogger);
 
-//		MethodClosure printlnClosure = new MethodClosure(this, "println");
-		//binding.setVariable("println", printlnClosure);
+		// MethodClosure printlnClosure = new MethodClosure(this, "println");
+		// binding.setVariable("println", printlnClosure);
 
 		return binding;
 	}
@@ -735,7 +740,7 @@ public class DSLReader {
 
 	/**********
 	 * .
-	 *
+	 * 
 	 * @param key
 	 *            .
 	 * @param value
