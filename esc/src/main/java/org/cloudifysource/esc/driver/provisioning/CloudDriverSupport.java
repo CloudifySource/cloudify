@@ -1,17 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 
 package org.cloudifysource.esc.driver.provisioning;
@@ -22,33 +19,28 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
-import net.jini.core.discovery.LookupLocator;
-
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.openspaces.admin.Admin;
-import org.openspaces.admin.AdminFactory;
 
 /**************
  * An abstract class with some commonly used code for custom cloud drivers.
- *
+ * 
  * @author barakme
  * @since 2.1
- *
+ * 
  */
 @Deprecated
 public abstract class CloudDriverSupport implements ProvisioningDriver {
 
 	protected final List<ProvisioningDriverListener> listeners = new LinkedList<ProvisioningDriverListener>();
-	protected Admin singleThreadedAdmin;
 	private Admin multiThreadedAdmin;
 	protected Cloud cloud;
 	protected boolean management;
 	protected String templateName;
 	protected ComputeTemplate template;
 
-	
 	// maps ip to time when last shut down request for that machine was sent
 	private final Map<String, Long> stoppingMachines = new ConcurrentHashMap<String, Long>();
 
@@ -63,41 +55,24 @@ public abstract class CloudDriverSupport implements ProvisioningDriver {
 
 	@Override
 	public void setAdmin(final Admin admin) {
-		this.singleThreadedAdmin = admin;
+		this.multiThreadedAdmin = admin;
 	}
 
-	
 	/***********
 	 * Returns a multithreaded admin instance, which can be used for blocking operations without blocking the shared
 	 * Admin instance provided by the ESM. The method is synchronized to prevent several threads initializing the multi
 	 * threaded admin.
-	 *
+	 * 
 	 * TODO: allow loading multi threaded admin into ESM context.
-	 *
+	 * 
 	 * @return the multi threaded admin instance.
 	 */
 	protected synchronized Admin getMultiThreadedAdmin() {
-		if (this.multiThreadedAdmin != null) {
-			return this.multiThreadedAdmin;
-		}
-
-		final AdminFactory factory = new AdminFactory();
-		final String[] groups = singleThreadedAdmin.getGroups();
-		for (final String group : groups) {
-			factory.addGroup(group);
-		}
-
-		final LookupLocator[] locators = singleThreadedAdmin.getLocators();
-		for (final LookupLocator lookupLocator : locators) {
-			factory.addLocator(lookupLocator.toString());
-		}
-
-		this.multiThreadedAdmin = factory.createAdmin();
 		return this.multiThreadedAdmin;
 	}
 
 	@Override
-	public void setConfig(final Cloud cloud, final String templateName, final boolean management, 
+	public void setConfig(final Cloud cloud, final String templateName, final boolean management,
 			final String serviceName) {
 
 		this.cloud = cloud;
@@ -121,10 +96,11 @@ public abstract class CloudDriverSupport implements ProvisioningDriver {
 		}
 	}
 
-
 	/*********
 	 * Checks if a stop request for this machine was already requested recently.
-	 * @param ip the IP address of the machine.
+	 * 
+	 * @param ip
+	 *            the IP address of the machine.
 	 * @return true if there was a recent request, false otherwise.
 	 */
 	protected boolean isStopRequestRecent(final String ip) {
