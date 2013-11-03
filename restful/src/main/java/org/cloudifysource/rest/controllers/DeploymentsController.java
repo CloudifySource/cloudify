@@ -215,7 +215,7 @@ public class DeploymentsController extends BaseRestController {
 		permissionEvaluator = restConfig.getPermissionEvaluator();
 		repo.init();
 		repo.setBaseDir(restConfig.getRestTempFolder());
-		logger.warning("***** starting DeolpymentsController, injecting rest temp folder to uploadrepo: " 
+		logger.fine("starting DeolpymentsController, injecting rest temp folder to uploadrepo: " 
 				+ restConfig.getRestTempFolder().getAbsolutePath());
 		repo.createUploadDir();
 		this.admin = restConfig.getAdmin();
@@ -496,7 +496,6 @@ public class DeploymentsController extends BaseRestController {
 			@RequestBody final SetServiceInstancesRequest request)
 			throws RestErrorException, ResourceNotFoundException {
 
-		//TODO noak: set authGroups in the request and change the annotation to use request.getAuthGroups()
 		if (logger.isLoggable(Level.INFO)) {
 			logger.info("Scaling request for service: " + applicationName + "." + serviceName
 					+ " to " + request.getCount() + " instances");
@@ -823,7 +822,6 @@ public class DeploymentsController extends BaseRestController {
 	@RequestMapping(value = "/applications/description", method = RequestMethod.GET)
 	@PostFilter("hasPermission(filterObject, 'view')")
 	public List<ApplicationDescription> getApplicationDescriptions() {
-		//TODO noak: handle auth groups (postFilter)
 		final ApplicationDescriptionFactory appDescriptionFactory =
 				new ApplicationDescriptionFactory(restConfig.getAdmin());
 

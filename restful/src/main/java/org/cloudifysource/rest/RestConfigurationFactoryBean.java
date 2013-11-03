@@ -77,14 +77,12 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
      * Initialize all needed fields in RestConfiguration.
      */
     public void initRestConfiguration() throws RestErrorException {
-    	logger.warning("***** starting RestConfigurationFactoryBean.initRestConfiguration");
         logger.info("Initializing cloud configuration");
         config.setGigaSpace(gigaSpace);
         config.setAdmin(admin);
         config.setPermissionEvaluator(permissionEvaluator);
         Cloud cloud = readCloud();
         if (cloud != null) {
-        	logger.warning("***** cloud is not null");
         	config.setCloud(cloud);
             initCloudTemplates();
             CloudCompute cloudCompute = cloud.getCloudCompute();
@@ -98,7 +96,6 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
             String managementTemplateName = cloud.getConfiguration().getManagementMachineTemplate();
             config.setManagementTemplateName(managementTemplateName);
             config.setManagementTemplate(cloudCompute.getTemplates().get(managementTemplateName));
-            logger.warning("***** calling createRestTempFolder()");
 			config.setRestTempFolder(createRestTempFolder());
         } else {
             logger.info("running in local cloud mode");
@@ -107,7 +104,6 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
     
 	
     private File createRestTempFolder() throws RestErrorException {
-    	logger.warning("***** starting createRestTempFolder()");
     	String restTempFolderName = "";
     	if (!StringUtils.isEmpty(temporaryFolder)) {
     		restTempFolderName = temporaryFolder;
@@ -115,15 +111,12 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
 			restTempFolderName = CloudifyConstants.REST_FOLDER;
 		}
     	
-    	logger.warning("***** restTempFolderName is: " + restTempFolderName);
-    	
     	File restTempFolder = new File(restTempFolderName);
     	
     	// if the temp folder exists (left over of an unexpected shutdown) - delete it
     	// if deletion fails - create another temp folder next to it (cloudify1, cloudify2...)
         if (restTempFolder.exists()) {
         	try {
-        		logger.warning("***** attempting to delete: " + restTempFolder.getAbsolutePath());
 				FileUtils.deleteDirectory(restTempFolder);
 			} catch (IOException e) {
 				logger.warning("failed to delete rest template folder [" + restTempFolder.getAbsolutePath() + "], "
@@ -131,16 +124,11 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
 				e.printStackTrace();
 				
 				try {
-					logger.warning("***** calling createUniqueFolderName() with parent: " 
-				+ restTempFolder.getParentFile().getAbsolutePath() + " and folder name: " + restTempFolder.getName());
 					String uniqueFolderName = RestUtils.createUniqueFolderName(
 							restTempFolder.getParentFile(), restTempFolder.getName(), MAX_FILE_NAME_APPENDER);
-					logger.warning("***** uniqueFolderName is: " + uniqueFolderName);
+					logger.fine("Rest configuration unique folder is: " + uniqueFolderName);
 					restTempFolder = new File(restTempFolder.getParentFile(), uniqueFolderName);
 				} catch (IOException ioe) {
-					//TODO noak: improve this error handling?
-					logger.warning("***** failed to create unique folder name, IOE message is: "
-							+ ioe.getMessage());
 					ioe.printStackTrace();
 	    			throw new RestErrorException(
 	    					CloudifyMessageKeys.UPLOAD_DIRECTORY_CREATION_FAILED.getName(), ioe.getMessage());
@@ -148,7 +136,6 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
 			}
         }
         
-        logger.warning("***** attempting to create the new folder");
         restTempFolder.deleteOnExit();
         final boolean mkdirs = restTempFolder.mkdirs();
         final String absolutePath = restTempFolder.getAbsolutePath();

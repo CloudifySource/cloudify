@@ -71,7 +71,7 @@ public class UploadRepo {
 	}
 
 	/**
-	 * destroy
+	 * destroy.
 	 * @throws IOException .
 	 */
 	@PreDestroy
@@ -96,16 +96,13 @@ public class UploadRepo {
 	public void createUploadDir()
 			throws IOException, RestErrorException {
 		restUploadDir = new File(baseDir, CloudifyConstants.UPLOADS_FOLDER_NAME);
-		logger.warning("***** starting uploadReop, setting restUploadDir to: " + restUploadDir.getAbsolutePath());
+		logger.fine("starting uploadReop, setting restUploadDir to: " + restUploadDir.getAbsolutePath());
 		restUploadDir.deleteOnExit();
 		if (restUploadDir.exists()) {
-			// TODO : noak - this is not supposed to happen, need to handle, maybe throw exception
 			FileUtils.deleteDirectory(restUploadDir);
 		}
 		final boolean mkdirs = restUploadDir.mkdirs();
 		final String absolutePath = restUploadDir.getAbsolutePath();
-		// TODO noak remove the following logging:
-		logger.warning("creating rest uploads directory at " + absolutePath);
 
 		
 		if (mkdirs) {
@@ -260,7 +257,6 @@ public class UploadRepo {
 	}
 
 	public void setBaseDir(final File baseDir) {
-		logger.warning("***** starting uploadReop.init, setting baseDir to: " + baseDir.getAbsolutePath());
 		this.baseDir = baseDir;
 	}
 

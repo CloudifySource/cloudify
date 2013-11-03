@@ -53,7 +53,7 @@ public class UploadRepoTest {
     public void init() 
     		throws IOException, RestErrorException {
         repo = new UploadRepo();
-        repo.init(new File(CloudifyConstants.REST_FOLDER));
+        repo.init();
     }
 
     @After
