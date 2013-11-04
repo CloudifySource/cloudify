@@ -66,9 +66,12 @@ public enum CloudifyMessageKeys {
 
     APPLICATION_NAME_CONTAINS_INVALID_CHARS("application_name_contains_invalid_chars"),
 
-    WRONG_TEMPLATES_UPLOAD_KEY("wrong_templates_upload_key");
+    WRONG_TEMPLATES_UPLOAD_KEY("wrong_templates_upload_key"),
 
+    SHUTDOWN_MANAGERS_INITIATED("shutdown_managers_initiated"),
     
+	SHUTDOWN_MANAGERS_SUCCESS("shutdown_managers_completed");
+
     private final String name;
 
     CloudifyMessageKeys(final String name) {

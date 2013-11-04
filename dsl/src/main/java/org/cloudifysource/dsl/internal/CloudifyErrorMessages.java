@@ -228,12 +228,6 @@ public enum CloudifyErrorMessages {
 	 * Post bootstrap validations failed to find a required management service (SPACE/WEB-UI/REST).
 	 */
 	POST_BOOTSTRAP_MISSING_MGMT_SERVICE("post_bootstrap_missing_mgmt_service", 1),	
-
-	/**
-	 * 
-	 */
-	MANAGEMENT_SERVERS_WAITING_FOR_SHUTDOWN("shutdown_managers_initiated", 1),
-
 	/**
 	 * 
 	 */
@@ -242,12 +236,7 @@ public enum CloudifyErrorMessages {
 	/**
 	 * 
 	 */
-	MANAGEMENT_SERVERS_SHUTDOWN_SUCCESS("shutdown_managers_completed", 0),
-
-	/**
-	 * 
-	 */
-	MANAGEMENT_SERVERS_SHUTDOWN_FAIL("shutdown_managers_timeout", 0),
+	SHUTDOWN_MANAGERS_TIMEOUT("shutdown_managers_timeout", 0),
 
 	/**
 	 * 
