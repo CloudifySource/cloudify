@@ -24,7 +24,6 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.io.FileUtils;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
-import org.jclouds.ContextBuilder;
 import org.jclouds.cloudstack.domain.EncryptedPasswordAndPrivateKey;
 import org.jclouds.cloudstack.functions.WindowsLoginCredentialsFromEncryptedData;
 import org.jclouds.compute.ComputeServiceContext;
