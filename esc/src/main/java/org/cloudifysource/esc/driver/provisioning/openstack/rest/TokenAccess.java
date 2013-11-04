@@ -10,53 +10,40 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  ******************************************************************************/
-package org.cloudifysource.esc.driver.provisioning.openstack;
+package org.cloudifysource.esc.driver.provisioning.openstack.rest;
+
+import java.util.List;
+
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 
 /**
- * 
- * An exception class used when API interactions with the openstack cloud controller fail.
- * 
- * @author barakme
- * @since 2.1.0
+ * @author victor
+ * @since 2.7.0
  */
-public class OpenstackException extends Exception {
+public class TokenAccess {
+	private TokenInfo token;
 
-	/**
-	 * .
-	 */
-	private static final long serialVersionUID = 1L;
+	private List<TokenServiceCatalog> serviceCatalog;
 
-	/**
-	 * 
-	 */
-	public OpenstackException() {
+	public TokenInfo getToken() {
+		return token;
 	}
 
-	/**
-	 * @param message
-	 *            .
-	 */
-	public OpenstackException(final String message) {
-		super(message);
+	public void setToken(final TokenInfo token) {
+		this.token = token;
 	}
 
-	/**
-	 * @param cause
-	 *            .
-	 */
-	public OpenstackException(final Throwable cause) {
-		super(cause);
+	public List<TokenServiceCatalog> getServiceCatalog() {
+		return serviceCatalog;
 	}
 
-	/**
-	 * @param message
-	 *            .
-	 * @param cause
-	 *            .
-	 */
-	public OpenstackException(final String message, final Throwable cause) {
-		super(message, cause);
-
+	public void setServiceCatalog(final List<TokenServiceCatalog> serviceCatalog) {
+		this.serviceCatalog = serviceCatalog;
 	}
 
+	@Override
+	public String toString() {
+		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+	}
 }
