@@ -60,6 +60,10 @@
 					<artifactId>ant</artifactId>
 					<groupId>ant</groupId>
 				</exclusion>
+                <exclusion>
+                    <groupId>commons-httpclient</groupId>
+                    <artifactId>commons-httpclient</artifactId>
+                </exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
