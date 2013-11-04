@@ -108,6 +108,7 @@ public class DSLReader {
 	private Map<Object, Object> variables;
 
 	private GroovyClassLoader dslClassLoader;
+	private static final Object dslSingleton = new Object();
 
 	private static final String[] STAR_IMPORTS = new String[] {
 			org.cloudifysource.domain.Service.class.getPackage().getName(),
@@ -381,9 +382,13 @@ public class DSLReader {
 		}
 
 		this.dslClassLoader = gs.getClassLoader();
-		// this.dslClassLoader.clearCache();
-		// GroovySystem.getMetaClassRegistry().removeMetaClass(Script.class);
-		org.codehaus.groovy.reflection.ClassInfo.clearModifiedExpandos();
+
+		// The call below is required to clear cached class entries. Without it, a PermGen error will eventually occur.
+		// A synchronized block may be required as this call MAY not be thread safe. 
+		// More info available here: http://jira.codehaus.org/browse/GROOVY-5121
+		synchronized(dslSingleton ) {
+			org.codehaus.groovy.reflection.ClassInfo.clearModifiedExpandos();
+		}
 		return result;
 
 	}
