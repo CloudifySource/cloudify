@@ -1077,7 +1077,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		String cloudConfigDirectoryPath = properties
 				.get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_CONFIGURATION_DIRECTORY);
 		if (cloudConfigDirectoryPath == null) {
-			logger.severe("Missing cloud configuration property. Properties are: " + this.properties);
+			logger.severe("[findCloudConfigDirectoryPath] - Missing cloud configuration property. Properties are: " + this.properties);
 			throw new IllegalArgumentException("Cloud configuration directory was not set!");
 		}
 		if (ServiceUtils.isWindows()) {
@@ -1088,19 +1088,25 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	}
 
 	private void addTemplatesToCloud(final File cloudConfigDirectory) {
-		logger.info("addTemplatesToCloud - adding templates from directory " + cloudConfigDirectory.getAbsolutePath());
-		final File additionalTemplatesFolder = new File(cloudConfigDirectory,
+		File additionalTemplatesParentFolder = cloudConfigDirectory;
+		String persistentStoragePath = cloud.getConfiguration().getPersistentStoragePath();
+		if(persistentStoragePath != null) {
+			logger.severe("[addTemplatesToCloud] - using the persistent storage path as the additional templates parentFolder.");
+			additionalTemplatesParentFolder = new File(persistentStoragePath);
+		}
+		logger.info("[addTemplatesToCloud] - adding templates from directory " + additionalTemplatesParentFolder.getAbsolutePath());
+		final File additionalTemplatesFolder = new File(additionalTemplatesParentFolder,
 				CloudifyConstants.ADDITIONAL_TEMPLATES_FOLDER_NAME);
 		if (!additionalTemplatesFolder.exists()) {
-			logger.info("addTemplatesToCloud - no additional templates to add from directory "
-					+ cloudConfigDirectory.getAbsolutePath());
+			logger.info("[addTemplatesToCloud] - no additional templates to add from directory "
+					+ additionalTemplatesParentFolder.getAbsolutePath());
 			return;
 		}
 		final File[] listFiles = additionalTemplatesFolder.listFiles();
-		logger.info("addTemplatesToCloud - found files: " + Arrays.toString(listFiles));
+		logger.info("[addTemplatesToCloud] - found files: " + Arrays.toString(listFiles));
 		final ComputeTemplatesReader reader = new ComputeTemplatesReader();
 		final List<ComputeTemplate> addedTemplates = reader.addAdditionalTemplates(cloud, listFiles);
-		logger.info("addTemplatesToCloud - Added " + addedTemplates.size() + " templates to the cloud: "
+		logger.info("[addTemplatesToCloud] - Added " + addedTemplates.size() + " templates to the cloud: "
 				+ addedTemplates);
 	}
 
