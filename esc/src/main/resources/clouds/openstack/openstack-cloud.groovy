@@ -1,10 +1,6 @@
 /***************
- * Cloud configuration file for the Amazon ec2 cloud. Uses the default jclouds-based cloud driver.
- * See org.cloudifysource.domain.cloud.Cloud for more details.
- * @author barakme
- *
+ * Cloud configuration file for the Openstack cloud. *
  */
-
 cloud {
 	// Mandatory. The name of the cloud, as it will appear in the Cloudify UI.
 	name = "openstack"
@@ -14,7 +10,7 @@ cloud {
 	 */
 	configuration {
 		// Optional. The cloud implementation class. Defaults to the build in jclouds-based provisioning driver.
-		className "org.cloudifysource.esc.driver.provisioning.jclouds.DefaultProvisioningDriver"
+		className "org.cloudifysource.esc.driver.provisioning.openstack.OpenStackCloudifyDriver"
 		// Optional. The template name for the management machines. Defaults to the first template in the templates section below.
 		managementMachineTemplate "SMALL_LINUX"
 		// Optional. Indicates whether internal cluster communications should use the machine private IP. Defaults to true.
@@ -39,7 +35,7 @@ cloud {
 		// different HTTP server instead.
 		// IMPORTANT: the default linux bootstrap script appends '.tar.gz' to the url whereas the default windows script appends '.zip'.
 		// Therefore, if setting a custom URL, make sure to leave out the suffix.
-		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.7.0-5988-M5/gigaspaces-cloudify-2.7.0-m5-b5988.zip"
+		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.7.0-5988-M5/gigaspaces-cloudify-2.7.0-m5-b5988"
 
 
 		// Mandatory. The prefix for new machines started for servies.
@@ -55,7 +51,7 @@ cloud {
 		sshLoggingLevel "WARNING"
 
 		// Mandatory. Name of the new machine/s started as cloudify management machines. Names are case-insensitive.
-		managementGroup "cloudify-manager"
+		managementGroup "cloudify-manager-"
 		// Mandatory. Number of management machines to start on bootstrap-cloud. In production, should be 2. Can be 1 for dev.
 		numberOfManagementMachines 1
 
@@ -86,12 +82,11 @@ cloud {
 		 * Cloud machine templates available with this cloud.
 		 */
 		templates ([
-					// Mandatory. Template Name.
 					SMALL_LINUX : computeTemplate{
 						// Mandatory. Image ID.
 						imageId linuxImageId
 						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
-						remoteDirectory "/home/root/gs-files"
+						remoteDirectory "/home/nour/gs-files"
 						// Mandatory. Amount of RAM available to machine.
 						machineMemoryMB 1600
 						// Mandatory. Hardware ID.
@@ -101,15 +96,17 @@ cloud {
 						// Optional. Name of key file to use for authenticating to the remot machine. Remove this line if key files
 						// are not used.
 						keyFile keyFile
+						// file transfer protocol
+						fileTransfer org.cloudifysource.domain.cloud.FileTransferModes.SCP
+						// javaUrl "NO_INSTALL"
 	
 						username "root"
 						// Additional template options.
 						// When used with the default driver, the option names are considered
 						// method names invoked on the TemplateOptions object with the value as the parameter.
 						options ([
-									"securityGroupNames" : [securityGroup]as String[],
 									"keyPairName" : keyPair,
-									"generateKeyPair": false
+									"quantumVersion": "v2.0"
 								])
 	
 						// Optional. Overrides to default cloud driver behavior.
@@ -123,10 +120,7 @@ cloud {
 	
 						// optional. A native command line to be executed before the cloudify agent is started.
 						// initializationCommand "echo Cloudify agent is about to start"
-	
-					}
-	
-	
+					}	
 				])
 	
 	}

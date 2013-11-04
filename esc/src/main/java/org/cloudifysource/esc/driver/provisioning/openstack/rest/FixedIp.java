@@ -10,53 +10,40 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  ******************************************************************************/
-package org.cloudifysource.esc.driver.provisioning.openstack;
+package org.cloudifysource.esc.driver.provisioning.openstack.rest;
+
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
- * 
- * An exception class used when API interactions with the openstack cloud controller fail.
- * 
- * @author barakme
- * @since 2.1.0
+ * @author victor
+ * @since 2.7.0
  */
-public class OpenstackException extends Exception {
+public class FixedIp {
+	@JsonProperty("subnet_id")
+	private String subnetId;
+	@JsonProperty("ip_address")
+	private String ipAddress;
 
-	/**
-	 * .
-	 */
-	private static final long serialVersionUID = 1L;
-
-	/**
-	 * 
-	 */
-	public OpenstackException() {
+	public String getSubnetId() {
+		return subnetId;
 	}
 
-	/**
-	 * @param message
-	 *            .
-	 */
-	public OpenstackException(final String message) {
-		super(message);
+	public void setSubnetId(final String subnetId) {
+		this.subnetId = subnetId;
 	}
 
-	/**
-	 * @param cause
-	 *            .
-	 */
-	public OpenstackException(final Throwable cause) {
-		super(cause);
+	public String getIpAddress() {
+		return ipAddress;
 	}
 
-	/**
-	 * @param message
-	 *            .
-	 * @param cause
-	 *            .
-	 */
-	public OpenstackException(final String message, final Throwable cause) {
-		super(message, cause);
-
+	public void setIpAddress(final String ipAddress) {
+		this.ipAddress = ipAddress;
 	}
 
+	@Override
+	public String toString() {
+		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+	}
 }

@@ -10,53 +10,47 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  ******************************************************************************/
-package org.cloudifysource.esc.driver.provisioning.openstack;
+package org.cloudifysource.esc.driver.provisioning.openstack.rest;
+
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 
 /**
- * 
- * An exception class used when API interactions with the openstack cloud controller fail.
- * 
- * @author barakme
- * @since 2.1.0
+ * @author victor
+ * @since 2.7.0
  */
-public class OpenstackException extends Exception {
+public class NovaServerAddress {
 
-	/**
-	 * .
-	 */
-	private static final long serialVersionUID = 1L;
+	private String name;
+	private String version;
+	private String addr;
 
-	/**
-	 * 
-	 */
-	public OpenstackException() {
+	public String getName() {
+		return name;
 	}
 
-	/**
-	 * @param message
-	 *            .
-	 */
-	public OpenstackException(final String message) {
-		super(message);
+	public void setName(final String name) {
+		this.name = name;
 	}
 
-	/**
-	 * @param cause
-	 *            .
-	 */
-	public OpenstackException(final Throwable cause) {
-		super(cause);
+	public String getVersion() {
+		return version;
 	}
 
-	/**
-	 * @param message
-	 *            .
-	 * @param cause
-	 *            .
-	 */
-	public OpenstackException(final String message, final Throwable cause) {
-		super(message, cause);
-
+	public void setVersion(final String version) {
+		this.version = version;
 	}
 
+	public String getAddr() {
+		return addr;
+	}
+
+	public void setAddr(final String addr) {
+		this.addr = addr;
+	}
+
+	@Override
+	public String toString() {
+		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+	}
 }
