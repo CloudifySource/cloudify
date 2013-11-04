@@ -813,4 +813,26 @@ public class RestClient {
 		}
 	}
 
+	/**
+	 * Executes a rest API call to shutdown the managers of the current cloud.
+	 * @return ShutdownManagementResponse
+	 * @throws RestClientException 
+	 */
+	public ShutdownManagementResponse shutdownManagers() throws RestClientException {
+		final String shutdownManagersUrl = getFormattedUrl(
+				shutdownManagersControllerUrl, 
+				SHUTDOWN_MANAGERS_URL_FORMAT);
+		log(Level.FINE, "[shutdownManagers] - sending DELETE request to REST [" 
+				+ shutdownManagersUrl + "]");
+		return executor.delete(
+				shutdownManagersUrl, 
+				new TypeReference<Response<ShutdownManagementResponse>>() { });
+	}
+
+	private void log(final Level level, final String msg) {
+		if (logger.isLoggable(level)) {
+			logger.log(level, msg);
+		}
+	}
+
 }
