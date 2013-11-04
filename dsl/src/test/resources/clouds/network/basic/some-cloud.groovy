@@ -76,87 +76,165 @@ cloud {
 
 	}
 
+	/********************
+	 * Cloud networking configuration.
+	 */
 	cloudNetwork {
-		
+
+		// Details of the management network, which is shared among all instances of the Cloudify Cluster.
 		management {
-			network {
+			networkConfiguration {
+				// The network name
 				name  "Cloudify-Management-Network"
-				ranges (["10.0.0.0/24", "10.0.1.0/24"])
+
+				// Subnets
+				subnets ([
+					subnet {
+						range "10.0.0.0/24"
+						options ([
+							"gateway" : "10.5.5.1"
+						])
+					},
+					subnet {
+						range "10.0.0.1/24"
+						options ([
+							"gateway" : "10.5.5.2"
+						])
+					}
+				])
+
+				custom ([
+					"management.network.custom.setting" : "Some value"
+				])
+
 			}
+
 		}
+
+		// Templates for networks which applications may use
+		// Onle service isntances belonging to an application will be attached to this network.
+		templates ([
+			"APPLICATION_NET" : networkConfiguration {
+				name  "Cloudify-Management-Network"
+				subnets {
+					subnet {
+						range "10.0.0.0/24"
+						options { gateway "10.5.7.1" }
+					}
+					subnet {
+						range "10.1.0.0/24"
+						options ([
+							"gateway" : "10.5.8.1"
+						])
+					}
+				}
+
+				custom ([
+					"application.network.custom.setting" : "Some other value"
+				])
+
+			},
 		
-		templates {
-			"NET1" : network {
-				
-			}
-			
+		 "APPLICATION_NET2" : networkConfiguration {
+			name  "Cloudify-Management-Network"
+			subnets ([
+				subnet {
+					range "10.0.0.0/24"
+					options { gateway "10.5.7.1" }
+				},
+				subnet {
+					range "10.1.0.0/24"
+					options ([
+						"gateway" : "10.5.8.1"
+					])
+				},
+				subnet {
+					range "10.2.0.0/24"
+					options ([
+						"gateway" : "10.5.8.1"
+					])
+				}
+			])
+
+			custom ([
+				"application.network.custom.setting" : "Some other value"
+			])
+
 		}
-		
+
+		])
+
+		custom ([
+			"global.network.custom.setting" : "Some other other value"
+		])
+
+
 	}
 
 	cloudCompute {
-		
+
 		/***********
 		 * Cloud machine templates available with this cloud.
 		 */
 		templates ([
-					// Mandatory. Template Name.
-					SMALL_LINUX : computeTemplate{
-						computeNetwork {
-							networks (["FIXED-NET1", "FIXED-NET2"])
-						}
-						
-						fileTransfer "CIFS"
-						// Mandatory. Image ID.
-						imageId "XXXXX"
-						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
-						remoteDirectory "/home/ec2-user/gs-files"
-						// Mandatory. Amount of RAM available to machine.
-						machineMemoryMB 1600
-						// Mandatory. Hardware ID.
-						hardwareId "XXXXX"
-						// Optional. Location ID.
-						locationId "XXXXX"
-						// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
-						localDirectory "upload"
-	
-						username "ec2-user"
-						// Additional template options.
-						// When used with the default driver, the option names are considered
-						// method names invoked on the TemplateOptions object with the value as the parameter.
-						options ([
-									"securityGroups" : ["default"]as String[],
-									"keyPair" : "XXXXX"
-								])
-	
-						// Optional. Overrides to default cloud driver behavior.
-						// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
-						overrides (["jclouds.ec2.ami-query":"",
-									"jclouds.ec2.cc-ami-query":""])
-	
-						// enable sudo.
-						privileged true
-						installer {
+			// Mandatory. Template Name.
+			SMALL_LINUX : computeTemplate{
 
-							connectionTestRouteResolutionTimeoutMillis 5000
-							connectionTestIntervalMillis 5000
-							connectionTestConnectTimeoutMillis 5000
+				computeNetwork {
+					networks (["FIXED-NET1", "FIXED-NET2"])
+				}
 
-							fileTransferConnectionTimeoutMillis 5000
-							fileTransferRetries 5
-							fileTransferPort 5000
-							fileTransferConnectionRetryIntervalMillis 5000
+				fileTransfer "CIFS"
+				// Mandatory. Image ID.
+				imageId "XXXXX"
+				// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
+				remoteDirectory "/home/ec2-user/gs-files"
+				// Mandatory. Amount of RAM available to machine.
+				machineMemoryMB 1600
+				// Mandatory. Hardware ID.
+				hardwareId "XXXXX"
+				// Optional. Location ID.
+				locationId "XXXXX"
+				// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
+				localDirectory "upload"
 
-							remoteExecutionPort 5000
-							remoteExecutionConnectionTimeoutMillis 5000
-
-						}
-	
-					}
-	
+				username "ec2-user"
+				// Additional template options.
+				// When used with the default driver, the option names are considered
+				// method names invoked on the TemplateOptions object with the value as the parameter.
+				options ([
+					"securityGroups" : ["default"]as String[],
+					"keyPair" : "XXXXX"
 				])
-	
-		
+
+				// Optional. Overrides to default cloud driver behavior.
+				// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
+				overrides (["jclouds.ec2.ami-query":"",
+					"jclouds.ec2.cc-ami-query":""])
+
+				// enable sudo.
+				privileged true
+				installer {
+
+					connectionTestRouteResolutionTimeoutMillis 5000
+					connectionTestIntervalMillis 5000
+					connectionTestConnectTimeoutMillis 5000
+
+					fileTransferConnectionTimeoutMillis 5000
+					fileTransferRetries 5
+					fileTransferPort 5000
+					fileTransferConnectionRetryIntervalMillis 5000
+
+					remoteExecutionPort 5000
+					remoteExecutionConnectionTimeoutMillis 5000
+
+				}
+
+			}
+
+		])
+
+
 	}
 	/*****************
 	 * Optional. Custom properties used to extend existing drivers or create new ones.

@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -72,6 +72,11 @@ import org.cloudifysource.domain.cloud.UsmComponent;
 import org.cloudifysource.domain.cloud.WebuiComponent;
 import org.cloudifysource.domain.cloud.compute.CloudCompute;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplateNetwork;
+import org.cloudifysource.domain.cloud.network.CloudNetwork;
+import org.cloudifysource.domain.cloud.network.ManagementNetwork;
+import org.cloudifysource.domain.cloud.network.NetworkConfiguration;
+import org.cloudifysource.domain.cloud.network.Subnet;
 import org.cloudifysource.domain.cloud.storage.CloudStorage;
 import org.cloudifysource.domain.cloud.storage.StorageTemplate;
 import org.cloudifysource.domain.entry.ExecutableDSLEntry;
@@ -90,10 +95,10 @@ import org.cloudifysource.dsl.utils.RecipePathResolver;
 
 /*************
  * Base class for DSL files.
- *
+ * 
  * @author barakme
  * @since 1.0
- *
+ * 
  */
 public abstract class BaseDslScript extends Script {
 
@@ -116,6 +121,10 @@ public abstract class BaseDslScript extends Script {
 	// used by the 'print' groovy method. Entries are buffered until a println is called.
 	private final StringBuilder printBuilder = new StringBuilder();
 
+	// the current active DSL entity - an active object may be a list or a map
+	// but the active entity is always a DSL entity or null
+	protected Object activeEntity;
+
 	/********
 	 * syntactic sigar for an empty list that process locator implementations can use to specify an empty process IDs
 	 * list.
@@ -128,6 +137,7 @@ public abstract class BaseDslScript extends Script {
 	public BaseDslScript() {
 		BeanUtilsBean.getInstance().getConvertUtils().register(true, false, 0);
 	}
+
 	@Override
 	public void setProperty(final String name, final Object value) {
 
@@ -148,7 +158,6 @@ public abstract class BaseDslScript extends Script {
 		}
 
 	}
-
 
 	private boolean isDuplicatePropertyAllowed(final Object value) {
 		// Application allows duplicate service values.
@@ -172,6 +181,12 @@ public abstract class BaseDslScript extends Script {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void applyPropertyToObject(final Object object, final String name, final Object value) {
+
+		if (object instanceof Map<?, ?>) {
+			Map<Object, Object> map = (Map<Object, Object>) object;
+			map.put(name, value);
+			return;
+		}
 
 		if (!isProperyExistsInBean(object, name)) {
 			throw new IllegalArgumentException("Could not find property: " + name + " on Object: " + object);
@@ -239,7 +254,7 @@ public abstract class BaseDslScript extends Script {
 	/**
 	 * Convert the value to an ExecutableDSLEntry object if object's property type is ExecutableDSLEntry or
 	 * ExecutableEntriesMap. Returns value otherwise.
-	 *
+	 * 
 	 * @param workDirectory
 	 *            workDirectory
 	 * @param object
@@ -266,12 +281,12 @@ public abstract class BaseDslScript extends Script {
 		final PropertyDescriptor descriptor = PropertyUtils.getPropertyDescriptor(object, name);
 		final Class<?> propertyType = descriptor.getPropertyType();
 		if (propertyType.equals(ExecutableDSLEntry.class)) {
-			ExecutableDSLEntry entry = ExecutableDSLEntryFactory.createEntry(value, name, workDirectory);
-//			if (entry.getEntryType() == ExecutableDSLEntryType.STRING) {
-//
-//				handleDebugEntry(entry);
-//
-//			}
+			final ExecutableDSLEntry entry = ExecutableDSLEntryFactory.createEntry(value, name, workDirectory);
+			// if (entry.getEntryType() == ExecutableDSLEntryType.STRING) {
+			//
+			// handleDebugEntry(entry);
+			//
+			// }
 
 			return entry;
 		} else if (propertyType.equals(ExecutableEntriesMap.class)) {
@@ -296,6 +311,7 @@ public abstract class BaseDslScript extends Script {
 		beforeHandleInvokeMethod(name, arg);
 
 		final Object[] arr = (Object[]) arg;
+		
 		final Object param = arr[0];
 		// check if this is an object declaration
 		if (param instanceof Closure<?>) {
@@ -308,9 +324,18 @@ public abstract class BaseDslScript extends Script {
 				throw new IllegalArgumentException("Failed to  set: " + name, e);
 			}
 
+			if(retval == null) {
+				final Object targetMap = getMapOrListProperty(name, retval);
+				if(targetMap != null) {
+					retval = targetMap;
+				}
+			}
+			
+		
 			if (retval != null) {
 				if (this.rootObject == null) {
 					this.rootObject = retval;
+					
 				}
 				swapActiveObject(closure, retval);
 				if (isValidateObjects()) {
@@ -341,16 +366,45 @@ public abstract class BaseDslScript extends Script {
 		} catch (final DSLException e) {
 			throw new IllegalArgumentException("Failed to set " + name + ": " + e.getMessage(), e);
 		}
-
+		
 		// not an object declaration
 		setProperty(name, arg);
 		return null;
 
 	}
 
+	private Object getMapOrListProperty(final String name, Object retval) {
+		// check for a map initializer
+		if (this.activeObject != null) {
+			try {
+				PropertyDescriptor descriptor = PropertyUtils.getPropertyDescriptor(this.activeObject, name);
+				if(descriptor == null) {
+					return null;
+				}
+				if (Map.class.isAssignableFrom(descriptor.getPropertyType()) ||
+						List.class.isAssignableFrom(descriptor.getPropertyType())) {
+					final Object target = PropertyUtils.getProperty(this.activeObject, name);
+					if(target == null) {
+						throw new IllegalStateException("The field " + name + " in entity " + this.activeObject.getClass()
+								+ " was not initialized. It should be initialized to an empty list/map!");
+					}
+					return target;
+				}
+			} catch (IllegalAccessException e) {
+				throw new IllegalStateException(e);
+			} catch (InvocationTargetException e) {
+				throw new IllegalStateException(e);
+			} catch (NoSuchMethodException e) {
+				throw new IllegalStateException(e);
+			}
+
+		}
+		return null;
+	}
+
 	/*************
 	 * Loads an object from an external file.
-	 *
+	 * 
 	 * @param fileName
 	 *            the filename, relative to the current file.
 	 * @return the object.
@@ -404,7 +458,6 @@ public abstract class BaseDslScript extends Script {
 		return result;
 	}
 
-	 
 	private void validateObject(final Object entity)
 			throws DSLValidationException {
 
@@ -590,7 +643,7 @@ public abstract class BaseDslScript extends Script {
 
 	/***********
 	 * Returns the DSL Meta-data required to translate DSL elements into POJOs.
-	 *
+	 * 
 	 * @return DSL meta-data.
 	 */
 	public static synchronized Map<String, DSLObjectInitializerData> getDSLInitializers() {
@@ -659,6 +712,11 @@ public abstract class BaseDslScript extends Script {
 			addObjectInitializerForClass(dslObjectInitializersByName, AgentComponent.class);
 
 			addObjectInitializerForClass(dslObjectInitializersByName, CloudTemplateInstallerConfiguration.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, CloudNetwork.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, ManagementNetwork.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, NetworkConfiguration.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, Subnet.class);
+			addObjectInitializerForClass(dslObjectInitializersByName, ComputeTemplateNetwork.class);
 
 		}
 		return dslObjectInitializersByName;
@@ -689,13 +747,12 @@ public abstract class BaseDslScript extends Script {
 				final String parentElement = data.getParentElement();
 				if (parentElement != null && !parentElement.isEmpty()) {
 					final DSLObjectInitializerData parentType = getDSLInitializers().get(parentElement);
-					if (parentType == null) {
-						throw new IllegalStateException("The DSL type " + name + " has a declared parent type of "
-								+ parentElement + " which is not a known type. This should not happen.");
-					}
-					if (!parentType.getClazz().isAssignableFrom(this.activeObject.getClass())) {
-						throw new DSLException("The type: " + name + " may only be nested under elements of type "
-								+ parentType.getName());
+					if (parentType != null) {
+						// element must be nested under a specific parent type
+						if (!parentType.getClazz().isAssignableFrom(this.activeEntity.getClass())) {
+							throw new DSLException("The type: " + name + " may only be nested under elements of type "
+									+ parentType.getName());
+						}
 					}
 
 				}
@@ -772,9 +829,6 @@ public abstract class BaseDslScript extends Script {
 
 	}
 
-
-
-
 	@Override
 	public void print(final Object obj) {
 		if (obj != null) {
@@ -785,15 +839,30 @@ public abstract class BaseDslScript extends Script {
 	private void swapActiveObject(final Closure<Object> closure, final Object obj) {
 		final Object prevObject = this.activeObject;
 		final Set<String> prevSet = this.usedProperties;
+		final Object prevEntity = this.activeEntity;
 
 		this.activeObject = obj;
 		this.usedProperties = new HashSet<String>();
 
+		if( !(obj instanceof List<?>) && !(obj instanceof Map<?, ?>)) {
+			this.activeEntity = obj;
+		}
+		
 		closure.setResolveStrategy(Closure.OWNER_FIRST);
 		closure.call();
 
 		activeObject = prevObject;
 		this.usedProperties = prevSet;
+		this.activeEntity = prevEntity;
+		
+		
+		// this is a bit of a hack, but it's the only way to populate dsl entities
+		// into a list inside a closure
+		if (this.activeObject instanceof List<?>) {
+			@SuppressWarnings("unchecked")
+			List<Object> list = (List<Object>) this.activeObject;
+			list.add(obj);
+		}
 	}
 
 	// //////////////////////////////////////////////////////////////////////////////////
