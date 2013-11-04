@@ -142,9 +142,12 @@ public class ScpFileTransfer implements FileTransfer {
 
 						// convert windows separator to linux
 						relativePath = relativePath.replace("\\", "/");
+						
+						// this condition will never be satisfied and should be removed.
 						if (excludedFiles.contains(relativePath)) {
 							return false;
 						}
+						
 						return true;
 					}
 				});
@@ -152,7 +155,9 @@ public class ScpFileTransfer implements FileTransfer {
 				// uploading local directory to remote directory
 				File[] files = localDirectory.listFiles();
 				for (File file : files) {
-					uploadClient.copy(new FileSystemFile(file), details.getRemoteDir());
+					if (!excludedFiles.contains(file.getName())) {
+						uploadClient.copy(new FileSystemFile(file), details.getRemoteDir());
+					}
 				}
 
 				// uploading additional files to remote directory
