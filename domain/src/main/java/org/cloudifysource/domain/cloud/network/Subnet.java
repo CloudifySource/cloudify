@@ -10,34 +10,47 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.domain.cloud.compute;
+package org.cloudifysource.domain.cloud.network;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.cloudifysource.domain.internal.CloudifyDSLEntity;
 
-/***********
- * Network settings for a compute template.
- * @author barakme
+/*******
+ * Details of a subnet in Cloudify.
+ * 
  * @since 2.7.0
- *
+ * @author barakme
  */
-@CloudifyDSLEntity(name = "computeNetwork", clazz = ComputeTemplateNetwork.class,
-		allowInternalNode = true, allowRootNode = true, parent = "computeTemplate")
-public class ComputeTemplateNetwork {
+@CloudifyDSLEntity(name = "subnet", clazz = Subnet.class,
+		allowInternalNode = true, allowRootNode = true, parent = "networkConfiguration")
+public class Subnet {
+	private String range = null;
+	private Map<String, String> options = new LinkedHashMap<String, String>();
+	private String name;
 
-	private List<String> networks = new LinkedList<String>();
-
-	public ComputeTemplateNetwork() {
-
+	public String getRange() {
+		return range;
 	}
 
-	public List<String> getNetworks() {
-		return networks;
+	public void setRange(final String range) {
+		this.range = range;
 	}
 
-	public void setNetworks(final List<String> networks) {
-		this.networks = networks;
+	public Map<String, String> getOptions() {
+		return options;
+	}
+
+	public void setOptions(final Map<String, String> options) {
+		this.options = options;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(final String name) {
+		this.name = name;
 	}
 }

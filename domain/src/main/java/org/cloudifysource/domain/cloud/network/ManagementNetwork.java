@@ -10,34 +10,29 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.domain.cloud.compute;
 
-import java.util.LinkedList;
-import java.util.List;
+package org.cloudifysource.domain.cloud.network;
 
 import org.cloudifysource.domain.internal.CloudifyDSLEntity;
 
-/***********
- * Network settings for a compute template.
- * @author barakme
+/*******
+ * Details of the management network, shared between all Cloudify compute instances.
+ * 
  * @since 2.7.0
- *
+ * @author barakme
  */
-@CloudifyDSLEntity(name = "computeNetwork", clazz = ComputeTemplateNetwork.class,
-		allowInternalNode = true, allowRootNode = true, parent = "computeTemplate")
-public class ComputeTemplateNetwork {
 
-	private List<String> networks = new LinkedList<String>();
+@CloudifyDSLEntity(name = "management", clazz = ManagementNetwork.class, allowInternalNode = true, allowRootNode = true,
+		parent = "Network")
+public class ManagementNetwork {
+		private NetworkConfiguration networkConfiguration = new NetworkConfiguration();
 
-	public ComputeTemplateNetwork() {
+		public NetworkConfiguration getNetworkConfiguration() {
+			return networkConfiguration;
+		}
 
-	}
-
-	public List<String> getNetworks() {
-		return networks;
-	}
-
-	public void setNetworks(final List<String> networks) {
-		this.networks = networks;
-	}
+		public void setNetworkConfiguration(NetworkConfiguration networkConfiguration) {
+			this.networkConfiguration = networkConfiguration;
+		}
+	
 }

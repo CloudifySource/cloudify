@@ -1,17 +1,14 @@
 /*******************************************************************************
-' * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * ' * Copyright (c) 2011 GigaSpaces Technologies Ltd. All rights reserved
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.domain.cloud;
 
@@ -20,14 +17,15 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.cloudifysource.domain.cloud.compute.CloudCompute;
+import org.cloudifysource.domain.cloud.network.CloudNetwork;
 import org.cloudifysource.domain.cloud.storage.CloudStorage;
 import org.cloudifysource.domain.internal.CloudifyDSLEntity;
 
 /***********
  * Cloud domain object. Includes all of the details required for the cloud driver to use a cloud provider.
- *
+ * 
  * @author barakme
- *
+ * 
  */
 @CloudifyDSLEntity(name = "cloud", clazz = Cloud.class, allowInternalNode = false, allowRootNode = true)
 public class Cloud {
@@ -39,6 +37,7 @@ public class Cloud {
 	private Map<String, Object> custom = new HashMap<String, Object>();
 	private CloudCompute cloudCompute = new CloudCompute();
 	private CloudStorage cloudStorage = new CloudStorage();
+	private CloudNetwork cloudNetwork = new CloudNetwork();
 
 	public CloudStorage getCloudStorage() {
 		return cloudStorage;
@@ -105,12 +104,10 @@ public class Cloud {
 				+ configuration + ", cloudCompute=" + cloudCompute + ", custom=" + custom + "]";
 	}
 
-
-
 	// moved this into template object
 	/**
 	 * This validation method runs both locally and on the remote server.
-	 *
+	 * 
 	 * @throws DSLValidationException
 	 */
 	// @DSLValidation
@@ -160,8 +157,9 @@ public class Cloud {
 	/****************
 	 * Given a path of the type /C$/PATH - indicating an absolute CIFS path, returns /PATH. If the string does not
 	 * match, returns the original unmodified string.
-	 *
-	 * @param path the input path.
+	 * 
+	 * @param path
+	 *            the input path.
 	 * @return the input path, adjusted to remove the CIFS drive letter, if it exists, or the original path if the drive
 	 *         letter is not present.
 	 */
@@ -174,6 +172,14 @@ public class Cloud {
 			return drive + ":\\" + path.substring("/c$/".length()).replace('/', '\\');
 		}
 		return path;
+	}
+
+	public CloudNetwork getCloudNetwork() {
+		return cloudNetwork;
+	}
+
+	public void setCloudNetwork(final CloudNetwork cloudNetwork) {
+		this.cloudNetwork = cloudNetwork;
 	}
 
 	// private boolean isKeyFileFoundOnRemoteMachinePath(final CloudTemplate template) {
