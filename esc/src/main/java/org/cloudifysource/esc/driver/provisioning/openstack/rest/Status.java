@@ -10,12 +10,25 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  ******************************************************************************/
-package org.cloudifysource.esc.driver.provisioning.openstack;
+package org.cloudifysource.esc.driver.provisioning.openstack.rest;
 
-/**********************************
- * Cloud Driver implementation for openstack.
- * 
- * The driver uses jersey for REST and jackson for JSON parsing
- * 
+/**
+ * @author victor
+ * @since 2.7.0
  */
+public enum Status {
 
+	ACTIVE, BUILD, REBUILD, SUSPENDED, PAUSED, RESIZE, VERIFY_RESIZE, REVERT_RESIZE, PASSWORD, REBOOT, HARD_REBOOT, DELETED, UNKNOWN, ERROR, STOPPED, UNRECOGNIZED;
+
+	public String value() {
+		return name();
+	}
+
+	public static Status fromValue(final String v) {
+		try {
+			return valueOf(v.replaceAll("\\(.*", ""));
+		} catch (IllegalArgumentException e) {
+			return UNRECOGNIZED;
+		}
+	}
+}
