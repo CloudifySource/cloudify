@@ -26,6 +26,7 @@ import org.apache.commons.lang.StringUtils;
 
 import org.cloudifysource.domain.cloud.RemoteExecutionModes;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.CustomNode;
@@ -619,8 +620,8 @@ public class ByonDeployer {
 				unresolvedNodes));
 		
 		logger.info("Setting initial pools for template: " + templateName + ". "
-				+ "Free nodes: " + getNodesListForPrint(freeNodesPool)
-				+ "Invalid nodes: " + getNodesListForPrint(invalidNodesPool));
+				+ CloudifyConstants.NEW_LINE + "Free nodes: " + getNodesListForPrint(freeNodesPool)
+				+ CloudifyConstants.NEW_LINE + "Invalid nodes: " + getNodesListForPrint(invalidNodesPool));
 
 		templateLists.put(NODES_LIST_FREE, freeNodesPool);
 		templateLists.put(NODES_LIST_ALLOCATED, new ArrayList<CustomNode>());
@@ -698,8 +699,14 @@ public class ByonDeployer {
 	public String getNodesListForPrint(final List<CustomNode> nodesToPrint) {
 		
 		StringBuilder nodesStr = new StringBuilder();
+		boolean first = true;
 		for (CustomNode node : nodesToPrint) {
-			nodesStr.append(node.toShortString());
+			if (first) {
+				nodesStr.append("CustomNode[" + node.toShortString() + "]");
+				first = false;
+			} else {
+				nodesStr.append(", CustomNode[" + node.toShortString() + "]");
+			}
 		}
 		
 		return nodesStr.toString();

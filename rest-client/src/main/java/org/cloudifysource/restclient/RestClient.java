@@ -61,6 +61,7 @@ import org.cloudifysource.dsl.rest.response.InvokeServiceCommandResponse;
 import org.cloudifysource.dsl.rest.response.ListTemplatesResponse;
 import org.cloudifysource.dsl.rest.response.Response;
 import org.cloudifysource.dsl.rest.response.ServiceDescription;
+import org.cloudifysource.dsl.rest.response.ShutdownManagementResponse;
 import org.cloudifysource.dsl.rest.response.UninstallApplicationResponse;
 import org.cloudifysource.dsl.rest.response.UninstallServiceResponse;
 import org.cloudifysource.dsl.rest.response.UploadResponse;
@@ -88,6 +89,7 @@ public class RestClient {
 	private static final String UPLOAD_CONTROLLER_URL = "/upload/";
 	private static final String DEPLOYMENT_CONTROLLER_URL = "/deployments/";
 	private static final String TEMPLATES_CONTROLLER_URL = "/templates/";
+	private static final String SHUTDOWN_MANAGERS_CONTROLLER_URL = "/management/";
 
 	private static final String INSTALL_SERVICE_URL_FORMAT = "%s/services/%s";
 	private static final String INSTALL_APPLICATION_URL_FORMAT = "%s";
@@ -107,10 +109,14 @@ public class RestClient {
 	private static final String SET_INSTANCES_URL_FORMAT = "%s/services/%s/count";
 	private static final String GET_LAST_EVENT_URL_FORMAT = "%s/events/last/";
 
+	private static final String SHUTDOWN_MANAGERS_URL_FORMAT = "controllers";
+
+
 	protected final RestClientExecutor executor;
 	private String versionedDeploymentControllerUrl;
 	protected String versionedUploadControllerUrl;
 	protected String versionedTemplatesControllerUrl;
+	protected String shutdownManagersControllerUrl;
 
 	public RestClient(final URL url,
 			final String username,
@@ -120,6 +126,7 @@ public class RestClient {
 		versionedDeploymentControllerUrl = apiVersion + DEPLOYMENT_CONTROLLER_URL;
 		versionedUploadControllerUrl = apiVersion + UPLOAD_CONTROLLER_URL;
 		versionedTemplatesControllerUrl = apiVersion + TEMPLATES_CONTROLLER_URL;
+		shutdownManagersControllerUrl = apiVersion + SHUTDOWN_MANAGERS_CONTROLLER_URL;
 		this.executor = createExecutor(url, apiVersion);
 
 		setCredentials(username, password);
@@ -130,7 +137,9 @@ public class RestClient {
 	 * @throws RestClientException .
 	 */
 	public void connect() throws RestClientException {
-		executor.get(versionedDeploymentControllerUrl + "testrest", new TypeReference<Response<Void>>() {
+		String url = versionedDeploymentControllerUrl + "testrest";
+		log(Level.FINE, "[connect] - sending GET request to REST [" + url + "]");
+		executor.get(url, new TypeReference<Response<Void>>() {
 		});
 	}
 
@@ -175,6 +184,8 @@ public class RestClient {
 				INSTALL_SERVICE_URL_FORMAT, 
 				effAppName,
 				serviceName);
+		
+		log(Level.FINE, "[installService] - sending POST request to REST [" + installServiceUrl + "]");
 		return executor.postObject(installServiceUrl, request, new TypeReference<Response<InstallServiceResponse>>() {
 		});
 	}
@@ -196,6 +207,8 @@ public class RestClient {
 				versionedDeploymentControllerUrl, 
 				INSTALL_APPLICATION_URL_FORMAT, 
 				applicationName);
+		
+		log(Level.FINE, "[installApplication] - sending POST request to REST [" + installApplicationUrl + "]");
 		return executor.postObject(installApplicationUrl, request,
 				new TypeReference<Response<InstallApplicationResponse>>() {
 		});
@@ -225,6 +238,7 @@ public class RestClient {
 		final Map<String, String> requestParams = new HashMap<String, String>();
 		requestParams.put(CloudifyConstants.REQ_PARAM_TIMEOUT_IN_MINUTES, String.valueOf(timeoutInMinutes));
 
+		log(Level.FINE, "[uninstallService] - sending DELETE request to REST [" + url + "]");
 		return executor.delete(url, requestParams, new TypeReference<Response<UninstallServiceResponse>>() {
 		});
 	}
@@ -246,7 +260,8 @@ public class RestClient {
 		final String url = versionedDeploymentControllerUrl + applicationName;
 		final Map<String, String> requestParams = new HashMap<String, String>();
 		requestParams.put(CloudifyConstants.REQ_PARAM_TIMEOUT_IN_MINUTES, String.valueOf(timeoutInMinutes));
-
+		
+		log(Level.FINE, "[uninstallApplication] - sending DELETE request to REST [" + url + "]");
 		return executor.delete(url, requestParams, new TypeReference<Response<UninstallApplicationResponse>>() {
 		});
 	}
@@ -265,13 +280,15 @@ public class RestClient {
 		validateFile(file);
 		final String finalFileName = fileName == null ? file.getName() : fileName;
         if (logger.isLoggable(Level.FINE)) {
-        	logger.fine("uploading file " + file.getAbsolutePath() + " with name " + finalFileName);
+        	logger.fine("[getDeploymentEvents] - uploading file " 
+        			+ file.getAbsolutePath() + " with name " + finalFileName);
         }
 		final String uploadUrl = getFormattedUrl(
 				versionedUploadControllerUrl, 
 				UPLOAD_URL_FORMAT, 
 				finalFileName);	
 		
+		log(Level.FINE, "[upload] - sending POST request to REST [" + uploadUrl + "]");
 		final UploadResponse response = 
 				executor.postFile(
 						uploadUrl, 
@@ -303,6 +320,7 @@ public class RestClient {
 				deploymentId, 
 				String.valueOf(from), 
 				String.valueOf(to));
+		log(Level.FINE, "[getDeploymentEvents] - sending GET request to REST [" + url + "]");
 		return executor.get(url, new TypeReference<Response<DeploymentEvents>>() {
 		});
 	}
@@ -330,7 +348,8 @@ public class RestClient {
 				versionedDeploymentControllerUrl, 
 				GET_SERVICE_DESCRIPTION_URL_FORMAT, 
 				appName,
-				serviceName);		
+				serviceName);	
+		log(Level.FINE, "[getServiceDescription] - sending GET request to REST [" + url + "]");
 		return executor.get(url, new TypeReference<Response<ServiceDescription>>() {
 		});
 	}
@@ -350,6 +369,7 @@ public class RestClient {
 				versionedDeploymentControllerUrl, 
 				GET_SERVICES_DESCRIPTION_URL_FORMAT, 
 				deploymentId);
+		log(Level.FINE, "[getServiceDescriptions] - sending GET request to REST [" + url + "]");
 		return executor.get(url, new TypeReference<Response<List<ServiceDescription>>>() {
 		});
 	}
@@ -366,6 +386,7 @@ public class RestClient {
 				versionedDeploymentControllerUrl,
 				GET_APPLICATION_DESCRIPTION_URL_FORMAT,
 				appName);
+		log(Level.FINE, "[getApplicationDescription] - sending GET request to REST [" + url + "]");
 		return executor.get(url, new TypeReference<Response<ApplicationDescription>>() {
 		});
 	}
@@ -379,6 +400,7 @@ public class RestClient {
 		String url = getFormattedUrl(
 				versionedDeploymentControllerUrl, 
 				GET_APPLICATION_DESCRIPTIONS_URL_FORMAT);
+		log(Level.FINE, "[getApplicationDescriptionsList] - sending GET request to REST [" + url + "]");
 		return executor.get(url, new TypeReference<Response<List<ApplicationDescription>>>() {
 		});
 	}
@@ -416,6 +438,7 @@ public class RestClient {
 				SET_INSTANCES_URL_FORMAT, 
 				applicationName, 
 				serviceName);
+		log(Level.FINE, "[setServiceInstances] - sending POST request to REST [" + setInstancesUrl + "]");
 		executor.postObject(
 				setInstancesUrl,
 				request,
@@ -523,6 +546,7 @@ public class RestClient {
 				versionedDeploymentControllerUrl, 
 				GET_LAST_EVENT_URL_FORMAT, 
 				deploymentId);
+		log(Level.FINE, "[getLastEvent] - sending GET request to REST [" + url + "]");
 		return executor.get(url, new TypeReference<Response<DeploymentEvent>>() {
 		});
 
@@ -662,11 +686,13 @@ public class RestClient {
 	 */
 	public GetTemplateResponse getTemplate(final String templateName) 
 			throws RestClientException {
-		final String listTempaltesInternalUrl = getFormattedUrl(
+		final String getTempalteInternalUrl = getFormattedUrl(
 				versionedTemplatesControllerUrl, 
 				GET_TEMPALTE_URL_FORMAT,
 				templateName);
-		return executor.get(listTempaltesInternalUrl,
+		log(Level.FINE, "[getTemplate] - sending GET request to REST [" 
+				+ getTempalteInternalUrl + "]");
+		return executor.get(getTempalteInternalUrl,
 				new TypeReference<Response<GetTemplateResponse>>() { });
 	}
 	
@@ -680,6 +706,8 @@ public class RestClient {
 		final String listTempaltesInternalUrl = getFormattedUrl(
 				versionedTemplatesControllerUrl, 
 				LIST_TEMPALTES_URL_FORMAT);
+		log(Level.FINE, "[listTemplates] - sending GET request to REST [" 
+				+ listTempaltesInternalUrl + "]");
 		return executor.get(listTempaltesInternalUrl,
 				new TypeReference<Response<ListTemplatesResponse>>() { });
 	}
@@ -700,6 +728,8 @@ public class RestClient {
 				ADD_TEMPALTES_URL_FORMAT);
 		AddTemplatesResponse response = null;
 		try {
+			log(Level.FINE, "[addTemplates] - sending POST request to REST [" 
+					+ addTempaltesUrl + "]");
 			return executor.postObject(
 					addTempaltesUrl, 
 					request, 
@@ -753,10 +783,33 @@ public class RestClient {
 				versionedTemplatesControllerUrl, 
 				REMOVE_TEMPALTE_URL_FORMAT,
 				templateName);
+		log(Level.FINE, "[removeTemplate] - sending DELETE request to REST [" 
+				+ removeTempalteUrl + "]");
 		executor.delete(
 				removeTempalteUrl, 
 				new TypeReference<Response<Void>>() { });
 	}
+	
+	/**
+	 * Executes a rest API call to shutdown the managers of the current cloud.
+	 * @return ShutdownManagementResponse
+	 * @throws RestClientException 
+	 */
+	public ShutdownManagementResponse shutdownManagers() throws RestClientException {
+		final String shutdownManagersUrl = getFormattedUrl(
+				shutdownManagersControllerUrl, 
+				SHUTDOWN_MANAGERS_URL_FORMAT);
+		log(Level.FINE, "[shutdownManagers] - sending DELETE request to REST [" 
+				+ shutdownManagersUrl + "]");
+		return executor.delete(
+				shutdownManagersUrl, 
+				new TypeReference<Response<ShutdownManagementResponse>>() { });
+	}
 
+	private void log(final Level level, final String msg) {
+		if (logger.isLoggable(level)) {
+			logger.log(level, msg);
+		}
+	}
 
 }
