@@ -32,8 +32,6 @@ public enum CloudifyMessageKeys {
 
     WRONG_CLOUD_OVERRIDES_UPLOAD_KEY("wrong_cloud_overrides_upload_key"),
 
-    UPLOAD_KEY_PARAMETER_MISSING("upload_key_is_missing"),
-
     SERVICE_OVERRIDES_SIZE_LIMIT_EXCEEDED("service_overrides_file_size_limit_exceeded"),
 
     APPLICATION_OVERRIDES_SIZE_LIMIT_EXCEEDED("application_overrides_file_size_limit_exceeded"),

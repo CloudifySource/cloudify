@@ -1043,7 +1043,7 @@ public class DeploymentsController extends BaseRestController {
 		// validate upload key
 		String uploadKey = request.getServiceFolderUploadKey();
 		if (StringUtils.isBlank(uploadKey)) {
-			throw new RestErrorException(CloudifyMessageKeys.UPLOAD_KEY_PARAMETER_MISSING.getName());
+			throw new RestErrorException(CloudifyErrorMessages.UPLOAD_KEY_PARAMETER_MISSING.getName());
 		}
 		
 		// get service packed folder

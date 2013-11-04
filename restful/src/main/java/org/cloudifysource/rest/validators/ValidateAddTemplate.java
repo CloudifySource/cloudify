@@ -13,7 +13,7 @@
  */
 package org.cloudifysource.rest.validators;
 
-import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.rest.controllers.RestErrorException;
 import org.springframework.stereotype.Component;
 
@@ -30,7 +30,7 @@ public class ValidateAddTemplate extends ValidateTemplateOperation implements Ad
 		validationContext.setOperationName("add-templates");
 		super.validate(validationContext);
 		if (validationContext.getRequest().getUploadKey() == null) {
-			throw new RestErrorException(CloudifyMessageKeys.UPLOAD_KEY_PARAMETER_MISSING.getName());
+			throw new RestErrorException(CloudifyErrorMessages.UPLOAD_KEY_PARAMETER_MISSING.getName());
 		}
 	}
 }

@@ -55,7 +55,7 @@ public class ValidateTemplateTest {
     }
     
     @Test
-    public void testMissingTemplate() throws DSLException, PackagingException {
+    public void testMissingTemplateOnInstallService() throws DSLException, PackagingException {
         Service service = ServiceReader.readService(new File(NOT_EXIST_TEMPLATE_SERVICE_GROOVY));        
         InstallServiceValidationContext validationContext = new InstallServiceValidationContext();
         validationContext.setCloud(cloud);
@@ -64,7 +64,7 @@ public class ValidateTemplateTest {
     }
 
     @Test
-    public void testNullCompute() throws DSLException, PackagingException {
+    public void testNullComputeOnInstallService() throws DSLException, PackagingException {
         Service service = ServiceReader.readService(new File(NO_COMPUTE_SERVICE));
         InstallServiceValidationContext validationContext = new InstallServiceValidationContext();
         validationContext.setCloud(cloud);

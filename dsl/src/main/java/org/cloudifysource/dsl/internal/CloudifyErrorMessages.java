@@ -96,6 +96,11 @@ public enum CloudifyErrorMessages {
 	 * If partly failed to add templates (some added successfully).
 	 */
 	PARTLY_FAILED_TO_ADD_TEMPLATES("partly_failed_to_add_templates", 2),
+	
+	/**
+	 * If the upload key is missing.
+	 */
+    UPLOAD_KEY_PARAMETER_MISSING("upload_key_is_missing", 0),
 
 	/******
 	 * The application name contains invalid chars.
@@ -327,6 +332,11 @@ public enum CloudifyErrorMessages {
 	 * Indicates a failure in removing template from at least one REST instance.
 	 */
 	FAILED_REMOVE_TEMPLATE("failed_to_remove_template", 2),
+	/**
+	 * Indicates an attempt to perform template operation on localcloud.
+	 */
+	ILLEGAL_TEMPLATE_OPERATION_ON_LOCAL_CLOUD("local_cloud_not_support_templates_operations", 1),
+	
 	/**
 	 * Indicates a failure in creating REST client.
 	 */
