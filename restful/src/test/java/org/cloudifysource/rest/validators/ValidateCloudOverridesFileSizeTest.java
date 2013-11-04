@@ -20,33 +20,50 @@ import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
+import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ValidateCloudOverridesFileSizeTest extends InstallServiceValidatorTest {
+public class ValidateCloudOverridesFileSizeTest {
 
+	private File cloudOverridesFile;
     private ValidateCloudOverridesFileSize validator;
     private static final long TEST_FILE_SIZE_LIMIT = 3;
+    private static final String ERR_MSG = CloudifyMessageKeys.CLOUD_OVERRIDES_SIZE_LIMIT_EXCEEDED.getName();
 
-
+    
     @Before
-    public void initValidator() {
+    public void init() {
         validator = new ValidateCloudOverridesFileSize();
         validator.setCloudOverridesFileSizeLimit(TEST_FILE_SIZE_LIMIT);
+    	try {
+    		cloudOverridesFile = File.createTempFile("cloudOverrides", "");
+			FileUtils.writeStringToFile(cloudOverridesFile, "I'm longer than 3 bytes !");
+		} catch (IOException e) {
+			Assert.fail(e.getLocalizedMessage());
+		}
     }
 
     @Test
-    public void testSizeLimitExeeded() throws IOException {
-        File cloudOverrides = File.createTempFile("cloudOverrides", "");
-        FileUtils.writeStringToFile(cloudOverrides, "I'm longer than 3 bytes !");
-        testValidator(null, null, null, null, cloudOverrides, null, null,
-                CloudifyMessageKeys.CLOUD_OVERRIDES_SIZE_LIMIT_EXCEEDED.getName());
-        cloudOverrides.delete();
+    public void testSizeLimitExeededInInstallService() {
+    	InstallServiceValidationContext context = new InstallServiceValidationContext();
+    	context.setCloudOverridesFile(cloudOverridesFile);
+    	ValidatorsTestsUtils.validate(validator, context, ERR_MSG);
+    }
+    
+    @Test
+    public void testSizeLimitExeededInInstallApplication() {
+    	InstallApplicationValidationContext context = new InstallApplicationValidationContext();
+    	context.setCloudOverridesFile(cloudOverridesFile);
+    	ValidatorsTestsUtils.validate(validator, context, ERR_MSG);
+    }
+    
+    
+    @After
+    public void deleteFile() {
+    	cloudOverridesFile.delete();    	
     }
 
-    @Override
-    public InstallServiceValidator getValidatorInstance() {
-        return validator;
-    }
 
 }

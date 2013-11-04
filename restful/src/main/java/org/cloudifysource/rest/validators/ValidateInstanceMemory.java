@@ -15,6 +15,8 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
+import java.util.logging.Logger;
+
 import org.cloudifysource.domain.Service;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
@@ -25,14 +27,17 @@ import org.springframework.stereotype.Component;
 /**
  * 
  * @author yael
- *
+ * @since 2.7.0 
  */
 @Component
 public class ValidateInstanceMemory implements InstallServiceValidator {
 
+	private static final Logger logger = Logger.getLogger(ValidateInstanceMemory.class.getName());
+
     @Override
     public void validate(final InstallServiceValidationContext validationContext) throws RestErrorException {
-        final Service service = validationContext.getService();
+    	logger.info("Validating isntance memory");
+    	final Service service = validationContext.getService();
         final Cloud cloud = validationContext.getCloud();
         if (service == null) {
             return;

@@ -37,4 +37,11 @@ public class DeploymentEvents {
     public void setEvents(final List<DeploymentEvent> events) {
         this.events = events;
     }
+
+    @Override
+    public String toString() {
+        return "DeploymentEvents{" +
+                "events=" + events +
+                '}';
+    }
 }

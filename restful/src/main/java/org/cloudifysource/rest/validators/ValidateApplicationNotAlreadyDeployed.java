@@ -15,12 +15,12 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
+import java.util.logging.Logger;
+
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.rest.controllers.RestErrorException;
-import org.openspaces.admin.Admin;
 import org.openspaces.admin.application.Application;
 import org.openspaces.admin.application.Applications;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -31,15 +31,15 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ValidateApplicationNotAlreadyDeployed implements InstallApplicationValidator {
-
-	@Autowired(required = true)
-	private Admin admin;
 	
+	private static final Logger logger = Logger.getLogger(ValidateApplicationNotAlreadyDeployed.class.getName());
+
 	@Override
 	public void validate(final InstallApplicationValidationContext validationContext)
 			throws RestErrorException {
+		logger.info("Validating that application is not already deployed");
 		final String appName = validationContext.getApplication().getName();
-		final Applications apps = admin.getApplications();
+		final Applications apps = validationContext.getAdmin().getApplications();
 		for (Application application : apps) {
 			if (application.getName().equals(appName)) {
 				throw new RestErrorException(CloudifyMessageKeys.APPLICATION_NAME_IS_ALREADY_IN_USE.getName(), appName);

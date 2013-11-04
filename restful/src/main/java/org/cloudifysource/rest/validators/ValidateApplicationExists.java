@@ -22,9 +22,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.cloudifysource.rest.controllers.RestErrorException;
-import org.openspaces.admin.Admin;
 import org.openspaces.admin.application.Application;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -36,21 +34,18 @@ import org.springframework.stereotype.Component;
 @Component
 public class ValidateApplicationExists implements UninstallApplicationValidator {
 	
-	private static final Logger logger = Logger.getLogger(ValidateGsmState.class.getName());
-	
-	@Autowired(required = true)
-	private Admin admin;
+	private static final Logger logger = Logger.getLogger(ValidateApplicationExists.class.getName());
 	
 	@Override
 	public void validate(final UninstallApplicationValidationContext validationContext)
 			throws RestErrorException {
+		logger.info("Validating that application exists");
 		final String appName = validationContext.getApplicationName();
-		final Application app = this.admin.getApplications().waitFor(
+		final Application app = validationContext.getAdmin().getApplications().waitFor(
 				validationContext.getApplicationName(), 10, TimeUnit.SECONDS);
 		if (app == null) {
-			logger.log(Level.INFO, "Cannot uninstall application "
-					+ appName
-					+ " since it has not been discovered yet.");
+			logger.log(Level.INFO, "Cannot uninstall application " 
+					+ appName + " since it has not been discovered yet.");
 			throw new RestErrorException(FAILED_TO_LOCATE_APP, appName);
 		}
 	}

@@ -83,6 +83,8 @@ public class ServiceParsingTest {
 	private static final String TEST_PARSING_AMP_MERGE_RESOURCE_PATH3 = "src/test/resources/inheritance/";
 	private static final String TEST_PARSING_DEBUG = "src/test/resources/debug/printContext";
 	private static final String TEST_PARSING_NETWORK = "src/test/resources/services/network/network-service";
+	private static final String TEST_SYNTAX_ERROR_IN_SERVICE = "src/test/resources/services/bad-services/syntax-error";
+	private static final String TEST_SYNTAX_ERROR_IN_APPLICATION = "src/test/resources/applications/bad-applications/syntax-error-in-service";
 
 	/**
 	 * 
@@ -644,5 +646,34 @@ public class ServiceParsingTest {
 		Assert.assertEquals(service.getNetwork().getAccessRules().getIncoming().get(0).getPortRange(), "80");
 
 	}
+	
+	@Test
+	public void testSyntaxErrorInService() throws Exception {
+		final File serviceDir = new File(TEST_SYNTAX_ERROR_IN_SERVICE);
+		try {
+			ServiceReader.getServiceFromDirectory(serviceDir).getService();
+		} catch(final Exception e) {
+			Assert.assertTrue("Expected name of file in error message", e.getMessage().contains("nothing-service.groovy"));
+			return;
+		}
+		
+		Assert.fail("Expected parsing compilation error");
 
+	}
+
+	@Test
+	public void testSyntaxErrorInApplication() throws Exception {
+		final File applicationDir = new File(TEST_SYNTAX_ERROR_IN_APPLICATION);
+		try {
+			ServiceReader.getApplicationFromFile(applicationDir);
+		} catch(final Exception e) {
+			Assert.assertTrue("Expected name of file in error message", e.getMessage().contains("nothing-service.groovy"));
+			return;
+		}
+		
+		Assert.fail("Expected parsing compilation error");
+
+	}
+
+	
 }

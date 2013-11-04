@@ -91,6 +91,7 @@ public final class ComputeDriverProvisioningAdapter extends BaseComputeDriver {
 	public void setConfig(final ComputeDriverConfiguration configuration) throws CloudProvisioningException {
 		provisioningDriver.setConfig(configuration.getCloud(), configuration.getCloudTemplate(),
 				configuration.isManagement(), configuration.getServiceName());
+		provisioningDriver.setAdmin(configuration.getAdmin());
 	}
 
 	@Override

@@ -15,6 +15,7 @@ package org.cloudifysource.rest;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
@@ -23,8 +24,11 @@ import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.compute.CloudCompute;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.rest.controllers.RestErrorException;
+import org.cloudifysource.rest.util.RestUtils;
 import org.cloudifysource.security.CustomPermissionEvaluator;
 import org.cloudifysource.utilitydomain.data.CloudConfigurationHolder;
 import org.cloudifysource.utilitydomain.data.reader.ComputeTemplatesReader;
@@ -45,8 +49,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class RestConfigurationFactoryBean implements FactoryBean<RestConfiguration> {
 
-    private static final Logger logger = Logger.getLogger(RestConfigurationFactoryBean.class.getName());
-
+	private static final int MAX_FILE_NAME_APPENDER = 99;
+	private static final Logger logger = Logger.getLogger(RestConfigurationFactoryBean.class.getName());
+    
     private RestConfiguration config;
 
     @GigaSpaceContext(name = "gigaSpace")
@@ -71,7 +76,7 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
     /**
      * Initialize all needed fields in RestConfiguration.
      */
-    public void initRestConfiguration() {
+    public void initRestConfiguration() throws RestErrorException {
         logger.info("Initializing cloud configuration");
         config.setGigaSpace(gigaSpace);
         config.setAdmin(admin);
@@ -96,24 +101,58 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
             logger.info("running in local cloud mode");
         }
     }
+    
 	
-    private File createRestTempFolder() {
-		File restTempFolder;
+    private File createRestTempFolder() throws RestErrorException {
+    	String restTempFolderName = "";
     	if (!StringUtils.isEmpty(temporaryFolder)) {
-        	restTempFolder = new File(temporaryFolder);
+    		restTempFolderName = temporaryFolder;
 		} else {
-			restTempFolder = new File(CloudifyConstants.REST_FOLDER);
+			restTempFolderName = CloudifyConstants.REST_FOLDER;
 		}
+    	
+    	File restTempFolder = new File(restTempFolderName);
+    	
+    	// if the temp folder exists (left over of an unexpected shutdown) - delete it
+    	// if deletion fails - create another temp folder next to it (cloudify1, cloudify2...)
         if (restTempFolder.exists()) {
         	try {
 				FileUtils.deleteDirectory(restTempFolder);
 			} catch (IOException e) {
-				logger.warning("failed to delete rest template folder [" + restTempFolder.getAbsolutePath() + "]");
+				logger.warning("failed to delete rest template folder [" + restTempFolder.getAbsolutePath() + "], "
+						+ "attempting to create a new folder for this purpose");
 				e.printStackTrace();
+				
+				try {
+					String uniqueFolderName = RestUtils.createUniqueFolderName(
+							restTempFolder.getParentFile(), restTempFolder.getName(), MAX_FILE_NAME_APPENDER);
+					logger.fine("Rest configuration unique folder is: " + uniqueFolderName);
+					restTempFolder = new File(restTempFolder.getParentFile(), uniqueFolderName);
+				} catch (IOException ioe) {
+					ioe.printStackTrace();
+	    			throw new RestErrorException(
+	    					CloudifyMessageKeys.UPLOAD_DIRECTORY_CREATION_FAILED.getName(), ioe.getMessage());
+				}
 			}
         }
-        restTempFolder.mkdirs();
+        
         restTempFolder.deleteOnExit();
+        final boolean mkdirs = restTempFolder.mkdirs();
+        final String absolutePath = restTempFolder.getAbsolutePath();
+        
+        if (mkdirs) {
+			if (logger.isLoggable(Level.WARNING)) {
+				logger.log(Level.INFO, "created rest temp directory - " + absolutePath);
+			}
+		} else {
+			if (logger.isLoggable(Level.WARNING)) {
+				logger.warning("failed to create rest temp directory at " + absolutePath);
+			}
+			throw new RestErrorException(
+					CloudifyMessageKeys.UPLOAD_DIRECTORY_CREATION_FAILED.getName(), absolutePath);
+		}
+        
+        
         return restTempFolder;
 	}
 

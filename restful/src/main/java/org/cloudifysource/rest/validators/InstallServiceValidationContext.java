@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2013 GigaSpaces Technologies Ltd. All rights reserved
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -16,96 +16,105 @@ import java.io.File;
 
 import org.cloudifysource.domain.Service;
 import org.cloudifysource.domain.cloud.Cloud;
-import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
+import org.cloudifysource.dsl.internal.debug.DebugModes;
 import org.openspaces.admin.Admin;
 
 /**
  * A POJO for holding install-service validator's parameters.
- *
+ * 
  * @author yael
- *
+ * @since 2.7.0 
  */
 public class InstallServiceValidationContext {
-    private String absolutePuName;
-    private String templateName;
-    private Cloud cloud;
-    private Admin admin;
-    private Service service;
-    private InstallServiceRequest request;
-    private File cloudOverridesFile;
-    private File serviceOverridesFile;
-    private File cloudConfigurationFile;
+	private Cloud cloud;
+	private Admin admin;
+	private Service service;
+	private File cloudOverridesFile;
+	private File serviceOverridesFile;
+	private File cloudConfigurationFile;
+	private boolean debugAll;
+	private String debugEvents;
+	private String debugMode = DebugModes.INSTEAD.getName();
+	private String puName;
 
-    public String getAbsolutePuName() {
-        return absolutePuName;
-    }
+	public Cloud getCloud() {
+		return cloud;
+	}
 
-    public void setAbsolutePuName(final String absolutePuName) {
-        this.absolutePuName = absolutePuName;
-    }
+	public void setCloud(final Cloud cloud) {
+		this.cloud = cloud;
+	}
 
-    public String getTemplateName() {
-        return templateName;
-    }
+	public Admin getAdmin() {
+		return admin;
+	}
 
-    public void setTemplateName(final String templateName) {
-        this.templateName = templateName;
-    }
+	public void setAdmin(final Admin admin) {
+		this.admin = admin;
+	}
 
-    public Cloud getCloud() {
-        return cloud;
-    }
+	public Service getService() {
+		return service;
+	}
 
-    public void setCloud(final Cloud cloud) {
-        this.cloud = cloud;
-    }
+	public void setService(final Service service) {
+		this.service = service;
+	}
 
-    public Admin getAdmin() {
-        return admin;
-    }
+	public File getCloudOverridesFile() {
+		return cloudOverridesFile;
+	}
 
-    public void setAdmin(final Admin admin) {
-        this.admin = admin;
-    }
+	public void setCloudOverridesFile(final File cloudOverridesFile) {
+		this.cloudOverridesFile = cloudOverridesFile;
+	}
 
-    public Service getService() {
-        return service;
-    }
+	public File getServiceOverridesFile() {
+		return serviceOverridesFile;
+	}
 
-    public void setService(final Service service) {
-        this.service = service;
-    }
+	public void setServiceOverridesFile(final File serviceOverridesFile) {
+		this.serviceOverridesFile = serviceOverridesFile;
+	}
 
-    public InstallServiceRequest getRequest() {
-        return request;
-    }
+	public File getCloudConfigurationFile() {
+		return cloudConfigurationFile;
+	}
 
-    public void setRequest(final InstallServiceRequest request) {
-        this.request = request;
-    }
+	public void setCloudConfigurationFile(final File cloudConfigurationFile) {
+		this.cloudConfigurationFile = cloudConfigurationFile;
+	}
 
-    public File getCloudOverridesFile() {
-        return cloudOverridesFile;
-    }
+	public boolean isDebugAll() {
+		return debugAll;
+	}
 
-    public void setCloudOverridesFile(final File cloudOverridesFile) {
-        this.cloudOverridesFile = cloudOverridesFile;
-    }
+	public void setDebugAll(final boolean debugAll) {
+		this.debugAll = debugAll;
+	}
 
-    public File getServiceOverridesFile() {
-        return serviceOverridesFile;
-    }
+	public String getDebugEvents() {
+		return debugEvents;
+	}
 
-    public void setServiceOverridesFile(final File serviceOverridesFile) {
-        this.serviceOverridesFile = serviceOverridesFile;
-    }
+	public void setDebugEvents(final String debugEvents) {
+		this.debugEvents = debugEvents;
+	}
 
-    public File getCloudConfigurationFile() {
-        return cloudConfigurationFile;
-    }
+	public String getDebugMode() {
+		return debugMode;
+	}
 
-    public void setCloudConfigurationFile(final File cloudConfigurationFile) {
-        this.cloudConfigurationFile = cloudConfigurationFile;
-    }
+	public void setDebugMode(final String debugMode) {
+		this.debugMode = debugMode;
+	}
+
+	public String getPuName() {
+		return puName;
+	}
+
+	public void setPuName(final String puName) {
+		this.puName = puName;
+	}
 
 }

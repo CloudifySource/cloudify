@@ -14,8 +14,16 @@ function setEnv() {
 }
 
 function setCloudifyJavaOptions() {
+
+	if [ "${GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR}" == "" ]; then
+		LRMI_PORT_RANGE=7010-7110
+	else
+		LRMI_PORT_RANGE=${GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR}
+	fi
+	
 	CLOUDIFY_DEBUG_OPTIONS="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9000 -Xnoagent -Djava.compiler=NONE"
-	CLOUDIFY_JAVA_OPTIONS="-Xmx500m -Dcom.gigaspaces.logger.RollingFileHandler.debug-level=WARNING ${EXT_JAVA_OPTIONS}"
+	CLOUDIFY_JAVA_OPTIONS="-Xmx500m -Dcom.gigaspaces.logger.RollingFileHandler.debug-level=WARNING -Dcom.gs.transport_protocol.lrmi.bind-port=${LRMI_PORT_RANGE} ${EXT_JAVA_OPTIONS}"
+
 }
 
 function setCloudifyClassPath() {

@@ -22,7 +22,7 @@ import java.util.Map;
 
 import org.cloudifysource.domain.Application;
 import org.cloudifysource.domain.Service;
-import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
+import org.cloudifysource.dsl.internal.DSLApplicationCompilationResult;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
@@ -84,7 +84,7 @@ public class PreparedApplicationPackageResolver implements NameAndPackedFileReso
             final File applicationFolder = ServiceReader.extractProjectFile(packedFile);
             applicationFile = DSLReader
             				.findDefaultDSLFile(DSLUtils.APPLICATION_DSL_FILE_NAME_SUFFIX, applicationFolder);
-            final DSLApplicationCompilatioResult result = ServiceReader.getApplicationFromFile(applicationFile, 
+            final DSLApplicationCompilationResult result = ServiceReader.getApplicationFromFile(applicationFile, 
             																		this.overridesFile);
             this.application = result.getApplication();
     	} catch (final IOException e) {

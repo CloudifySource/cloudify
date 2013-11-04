@@ -150,6 +150,21 @@ public final class ServiceReader {
 		return ServiceReader.getServiceFromFile(null, dir, null, true, null /* overrides file */);
 	}
 
+	/****************
+	 * Reads a service object from a groovy DSL file placed in the given directory. The file name must be of the format
+	 * *-service.groovy, and there must be exactly one file in the directory with a name that matches this format.
+	 *
+	 * @param dir
+	 *            the directory to scan for the DSL file.
+	 * @param overridesFile .
+	 * @return the service .
+	 * @throws DSLException .
+	 */
+	public static DSLServiceCompilationResult getServiceFromDirectory(final File dir, final File overridesFile)
+			throws DSLException {
+		return ServiceReader.getServiceFromFile(null, dir, null, true, overridesFile);
+	}
+	
 	/**
 	 * Reads a service object from the given groovy DSL file (dslFile) or placed in the given directory. The file name
 	 * must be of the format *-service.groovy, and there must be exactly one file in the directory with a name that
@@ -230,7 +245,13 @@ public final class ServiceReader {
 
 		final Service service = dslReader.readDslEntity(Service.class);
 
-		return new DSLServiceCompilationResult(service, dslReader.getContext(), dslFile);
+		return new DSLServiceCompilationResult(
+				service, 
+				dslReader.getContext(), 
+				null /* cloud */, 
+				dslFile, 
+				dslReader.getPropertiesFile(), 
+				dslReader.getOverridesFile());
 	}
 
 	/**
@@ -307,7 +328,7 @@ public final class ServiceReader {
 	 * @throws DSLException
 	 *             DSLException.
 	 */
-	public static DSLApplicationCompilatioResult getApplicationFromFile(
+	public static DSLApplicationCompilationResult getApplicationFromFile(
 			final File inputFile) throws IOException, DSLException {
 		return getApplicationFromFile(inputFile, null);
 	}
@@ -324,7 +345,7 @@ public final class ServiceReader {
 	 * @throws DSLException
 	 *             DSLException.
 	 */
-	public static DSLApplicationCompilatioResult getApplicationFromFile(
+	public static DSLApplicationCompilationResult getApplicationFromFile(
 			final File inputFile, final File overridesFile)
 			throws IOException, DSLException {
 
@@ -352,8 +373,8 @@ public final class ServiceReader {
 
 		final Application application = dslReader.readDslEntity(Application.class);
 
-		return new DSLApplicationCompilatioResult(application, actualApplicationDslFile.getParentFile(),
-				actualApplicationDslFile);
+		return new DSLApplicationCompilationResult(application, actualApplicationDslFile.getParentFile(),
+				actualApplicationDslFile, dslReader.getPropertiesFile(), dslReader.getOverridesFile());
 
 	}
 

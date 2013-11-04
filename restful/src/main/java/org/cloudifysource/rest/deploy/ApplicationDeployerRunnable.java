@@ -24,7 +24,6 @@ import java.util.logging.Level;
 
 import org.apache.commons.io.FileUtils;
 import org.cloudifysource.domain.Service;
-import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.packaging.Packager;
@@ -32,7 +31,7 @@ import org.cloudifysource.dsl.rest.request.InstallApplicationRequest;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.rest.controllers.DeploymentsController;
-import org.cloudifysource.rest.controllers.RestErrorException;
+import org.cloudifysource.rest.controllers.helpers.PropertiesOverridesMerger;
 
 import com.j_spaces.kernel.Environment;
 
@@ -48,14 +47,15 @@ public class ApplicationDeployerRunnable implements Runnable {
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(ApplicationDeployerRunnable.class.getName());
 
-	private final DeploymentsController controller;
-	private final InstallApplicationRequest request;
+	private final InstallApplicationRequest installApplicationRequest;
+	private final File appFile;
+	private final File appDir;
 	private final String applicationName;
-	private final File overridesFile;
 	private final List<Service> services;
-	private final DSLApplicationCompilatioResult result;
-	//a list of deployment IDs, one for each service.
 	private final String deploymentID;
+	private final File applicationPropertiesFile;
+	private final File applicationOverridesFile;
+	private DeploymentsController controller;
 
 	/**
 	 * Constructor.
@@ -69,21 +69,17 @@ public class ApplicationDeployerRunnable implements Runnable {
 	 * 		the list of services.
 	 * @param overridesFile
 	 * 		application overrides file.
-	 * @throws org.cloudifysource.rest.controllers.RestErrorException
 	 */
-	public ApplicationDeployerRunnable(final DeploymentsController controller, 
-						final InstallApplicationRequest request, 
-						final DSLApplicationCompilatioResult result, 
-						final List<Service> services,
-						final String deploymentID,
-						final File overridesFile) throws RestErrorException {
-		this.request = request;
-		this.controller = controller;
-		this.result = result;
-		this.services = services;
-		this.deploymentID = deploymentID;
-		this.applicationName = request.getApplicationName();
-		this.overridesFile = overridesFile;
+	public ApplicationDeployerRunnable(final ApplicationDeployerRequest request) {
+		this.installApplicationRequest = request.getRequest();
+		this.appFile = request.getAppFile();
+		this.appDir = request.getAppDir();
+		this.applicationName = installApplicationRequest.getApplicationName();
+		this.services = request.getServices();
+		this.deploymentID = request.getDeploymentID();
+		this.applicationPropertiesFile = request.getAppPropertiesFile();
+		this.applicationOverridesFile = request.getAppOverridesFile();
+		this.controller = request.getController();
 	}
 
 	@Override
@@ -102,66 +98,57 @@ public class ApplicationDeployerRunnable implements Runnable {
 	private void installServices(final boolean async)
 			throws IOException {
 
-		final File appDir = result.getApplicationDir();
-		
 		logger.info("Installing services for application: " + applicationName 
 				+ ". Async install: " + async + ". Number of services: " + this.services.size());
-		for (final Service service : services) {
-			logger.info("Installing service: " + service.getName() + " for application: " + applicationName);
-			service.getCustomProperties().put("usmJarPath",
-					Environment.getHomeDirectory() + "/lib/platform/usm");
-
+		
+		for (final Service service : services) {			
 			final String serviceName = service.getName();
-			final String absolutePUName = ServiceUtils.getAbsolutePUName(
-					applicationName, serviceName);
-			final File serviceDirectory = new File(appDir, serviceName);
+			final String absolutePUName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
+			logger.info("Installing service: " + absolutePUName);
 
+			service.getCustomProperties().put("usmJarPath", Environment.getHomeDirectory() + "/lib/platform/usm");
 			boolean found = false;
-			
 			try {
-				// lookup application properties file
-				final File applicationPropertiesFile =
-						DSLReader.findDefaultDSLFileIfExists(DSLUtils.APPLICATION_PROPERTIES_FILE_NAME, appDir);
-				// lookup overrides file
-				File actualOverridesFile = overridesFile;
-				if (actualOverridesFile == null) {
-					// when using the CLI, the application overrides file is inside the directory
-					actualOverridesFile =
-							DSLReader.findDefaultDSLFileIfExists(DSLUtils.APPLICATION_OVERRIDES_FILE_NAME, appDir);
-				}
+				final File serviceDir = new File(appDir, serviceName);
+				final File servicePropertiesFile = DSLReader.findDefaultDSLFileIfExists(
+						DSLUtils.SERVICE_PROPERTIES_FILE_NAME_SUFFIX, serviceDir);
+				
+				// merge service properties with application properties and overrides files 
+				// merge into service's properties file
+				PropertiesOverridesMerger merger = new PropertiesOverridesMerger(
+						servicePropertiesFile, 
+						applicationPropertiesFile, 
+						servicePropertiesFile, 
+						applicationOverridesFile);
+				merger.merge();
+				
 				// Pack the folder and name it absolutePuName
 				final File packedFile = Packager.pack(service, 
-													serviceDirectory, 
-													absolutePUName, 
-													null);
-				result.getApplicationFile().delete();
+						serviceDir, 
+						absolutePUName, 
+						null /* additionalServiceFiles */);
+				appFile.delete();
 				packedFile.deleteOnExit();
+
 				// Deployment will be done using the service's absolute PU name.
 				final InstallServiceRequest installServiceReq = createInstallServiceRequest();
-				final String appName = this.request.getApplicationName();
-
-				final DeploymentFileHolder fileHolder = new DeploymentFileHolder();
-				fileHolder.setPackedFile(packedFile);
-				fileHolder.setServiceOverridesFile(actualOverridesFile);
-				fileHolder.setApplicationPropertiesFile(applicationPropertiesFile);
 				
 				final ServiceApplicationDependentProperties serviceProps = new ServiceApplicationDependentProperties();
 				serviceProps.setDependsOn(service.getDependsOn());
-				
+						
 				controller.installServiceInternal(
-						appName, 
-						serviceName, 
+						applicationName, 
 						installServiceReq, 
 						deploymentID,
-						fileHolder,
-						serviceProps);
+						serviceProps,
+						service,
+						packedFile);
 				try {
 					FileUtils.deleteDirectory(packedFile.getParentFile());
 				} catch (final IOException ioe) {
 					// sometimes this delete fails. Not sure why. Maybe deploy
 					// is async?
-					logger.warning("Failed to delete temporary directory: "
-							+ packedFile.getParentFile());
+					logger.warning("Failed to delete temporary directory: " + packedFile.getParentFile());
 				}
 
 				if (!async) {
@@ -214,13 +201,13 @@ public class ApplicationDeployerRunnable implements Runnable {
 
 	InstallServiceRequest createInstallServiceRequest() {
 		final InstallServiceRequest installServiceReq = new InstallServiceRequest();
-		installServiceReq.setCloudOverridesUploadKey(request.getCloudOverridesUploadKey());
-		installServiceReq.setCloudConfigurationUploadKey(request.getCloudConfigurationUploadKey());
-		installServiceReq.setAuthGroups(this.request.getAuthGroups());
-		installServiceReq.setDebugAll(this.request.isDebugAll());
-		installServiceReq.setDebugEvents(this.request.getDebugEvents());
-		installServiceReq.setDebugMode(this.request.getDebugMode());
-		installServiceReq.setSelfHealing(this.request.isSelfHealing());
+		installServiceReq.setCloudOverridesUploadKey(installApplicationRequest.getCloudOverridesUploadKey());
+		installServiceReq.setCloudConfigurationUploadKey(installApplicationRequest.getCloudConfigurationUploadKey());
+		installServiceReq.setAuthGroups(installApplicationRequest.getAuthGroups());
+		installServiceReq.setDebugAll(installApplicationRequest.isDebugAll());
+		installServiceReq.setDebugEvents(installApplicationRequest.getDebugEvents());
+		installServiceReq.setDebugMode(installApplicationRequest.getDebugMode());
+		installServiceReq.setSelfHealing(installApplicationRequest.isSelfHealing());
 		installServiceReq.setServiceFileName(null);
 		installServiceReq.setTimeoutInMillis(0);
 

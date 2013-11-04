@@ -18,6 +18,8 @@ public enum CloudifyMessageKeys {
     
     UPLOAD_DIRECTORY_CREATION_FAILED("failed_creating_upload_directory"),
     
+    UNIQUE_FOLDER_NAME_GENERATION_FAILED("failed_to_generate_unique_folder_name"),
+    
     UPLOAD_FILE_SIZE_LIMIT_EXCEEDED("upload_file_size_limit_exceeded"),
 
     UPLOAD_FAILED("failed_to_upload_file"),
@@ -30,15 +32,13 @@ public enum CloudifyMessageKeys {
 
     WRONG_CLOUD_OVERRIDES_UPLOAD_KEY("wrong_cloud_overrides_upload_key"),
 
-    UPLOAD_KEY_PARAMETER_MISSING("upload_key_is_missing"),
-
     SERVICE_OVERRIDES_SIZE_LIMIT_EXCEEDED("service_overrides_file_size_limit_exceeded"),
+
+    APPLICATION_OVERRIDES_SIZE_LIMIT_EXCEEDED("application_overrides_file_size_limit_exceeded"),
 
     CLOUD_OVERRIDES_SIZE_LIMIT_EXCEEDED("cloud_overrides_file_size_limit_exceeded"),
 
     CLOUD_CONFIGURATION_SIZE_LIMIT_EXCEEDED("cloud_configuration_file_size_limit_exceeded"),
-
-    MISSING_TEMPLATE("missing_template"),
 
     NOT_ALL_GSM_INSTANCES_RUNNING("not_all_gsm_instances_running"),
 
@@ -57,8 +57,6 @@ public enum CloudifyMessageKeys {
     WRONG_APPLICTION_FILE_UPLOAD_KEY("wrong_application_file_upload_key"),
 
     WRONG_APPLICTION_OVERRIDES_FILE_UPLOAD_KEY("wrong_application_overrides_file_upload_key"),
-
-    DEST_MERGE_FILE_MISSING("destination_merge_file_is_missing"),
 
     REPACKED_MERGE_FOLDER_MISSING("repacked_folder_is_missing"),
     

@@ -6,6 +6,7 @@ import org.cloudifysource.rest.events.cache.EventsCacheKey;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.openspaces.admin.gsc.GridServiceContainer;
+import org.openspaces.admin.zone.config.ExactZonesConfig;
 
 /**
  * Created with IntelliJ IDEA.
@@ -77,6 +78,7 @@ public class LogEntryMatcherProviderTest {
     private GridServiceContainer createMockContainer(final String containerUid) {
         GridServiceContainer mockContainer = Mockito.mock(GridServiceContainer.class);
         Mockito.when(mockContainer.getUid()).thenReturn(containerUid);
+        Mockito.when(mockContainer.getExactZones()).thenReturn(new ExactZonesConfig());
         return mockContainer;
     }
 

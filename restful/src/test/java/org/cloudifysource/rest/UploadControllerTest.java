@@ -79,11 +79,14 @@ public class UploadControllerTest extends ControllerTest {
 
 
     @Before
-    public void init() throws NoSuchMethodException {
+    public void init() throws NoSuchMethodException, RestErrorException, IOException {
         String version = PlatformVersion.getVersion();
         versionedUploadUri = "/" + version + UPLOAD_URI;
         controller = applicationContext.getBean(UploadController.class);
         uploadRepo = applicationContext.getBean(UploadRepo.class);
+        uploadRepo.init();
+        uploadRepo.setBaseDir(new File(CloudifyConstants.REST_FOLDER));
+        uploadRepo.createUploadDir();
         controllerMapping = new HashMap<String, HashMap<RequestMethod, HandlerMethod>>();
         HashMap<RequestMethod, HandlerMethod> map = new HashMap<RequestMethod, HandlerMethod>();
         HandlerMethod method = new HandlerMethod(controller, "upload", String.class, MultipartFile.class);

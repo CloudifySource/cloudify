@@ -22,7 +22,6 @@ import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.rest.controllers.RestErrorException;
 import org.openspaces.admin.Admin;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -37,43 +36,39 @@ public class ValidateGsmState implements
         UninstallServiceValidator,
         InstallApplicationValidator,
         UninstallApplicationValidator,
-        SetServiceInstancesValidator{
+        SetServiceInstancesValidator {
 
     private static final Logger logger = Logger.getLogger(ValidateGsmState.class.getName());
 
 
-    @Autowired(required = true)
-    private Admin admin;
-
     @Override
     public void validate(final InstallServiceValidationContext validationContext) throws RestErrorException {
-        validateGsmState(validationContext.getCloud());
+        validateGsmState(validationContext.getCloud(), validationContext.getAdmin());
     }
 
     @Override
     public void validate(final UninstallServiceValidationContext validationContext) throws RestErrorException {
-        validateGsmState(validationContext.getCloud());
+        validateGsmState(validationContext.getCloud(), validationContext.getAdmin());
     }
 
     @Override
     public void validate(final InstallApplicationValidationContext validationContext) throws RestErrorException {
-
-        validateGsmState(validationContext.getCloud());
+        validateGsmState(validationContext.getCloud(), validationContext.getAdmin());
     }
 
     @Override
     public void validate(final UninstallApplicationValidationContext validationContext)
             throws RestErrorException {
-        validateGsmState(validationContext.getCloud());
+        validateGsmState(validationContext.getCloud(), validationContext.getAdmin());
     }
 
     @Override
     public void validate(final SetServiceInstancesValidationContext validationContext) throws RestErrorException {
-        validateGsmState(validationContext.getCloud());
+        validateGsmState(validationContext.getCloud(), validationContext.getAdmin());
 
     }
 
-    void validateGsmState(final Cloud cloud) throws RestErrorException {
+    void validateGsmState(final Cloud cloud, final Admin admin) throws RestErrorException {
         //When a manager is down and persistence is used along with HA, install/uninstall/scaling should be disabled.
         logger.info("Validating Gsm state.");
         if (cloud != null) {

@@ -15,32 +15,35 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
-import org.cloudifysource.domain.Service;
-import org.cloudifysource.domain.StorageDetails;
 import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
+import org.cloudifysource.dsl.rest.request.AddTemplatesRequest;
 import org.cloudifysource.rest.controllers.RestErrorException;
-import org.springframework.stereotype.Component;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * validate storage templates for all of the services in an application.
  * 
- * @author adaml
+ * @author yael
  *
  */
-@Component
-public class ValidateApplicationServicesStorageTemplate implements InstallApplicationValidator {
-
-	@Override
-	public void validate(final InstallApplicationValidationContext validationContext)
-			throws RestErrorException {
-		final Cloud cloud = validationContext.getCloud();
-		final ValidateStorageTemplateExists validator = new ValidateStorageTemplateExists();
-		for (Service service : validationContext.getApplication().getServices()) {
-			final StorageDetails storage = service.getStorage();
-			if (storage != null) {
-				final String serviceTemplateName = storage.getTemplate();
-				validator.validateStorageTemplateExists(serviceTemplateName, cloud);
-			}
+public class ValidateAddTemplateTest {
+	
+	@Test
+	public void testMissingUploadKey() {
+		AddTemplatesValidationContext validationContext = new AddTemplatesValidationContext();
+		validationContext.setCloud(new Cloud());
+		validationContext.setOperationName("add-templates");
+		AddTemplatesRequest request = new AddTemplatesRequest();
+		request.setUploadKey(null);
+		validationContext.setRequest(request);
+		
+		ValidateAddTemplate validator = new ValidateAddTemplate();
+		try {
+			validator.validate(validationContext);
+			Assert.fail("RestErrorException expected");
+		} catch (RestErrorException e) {
+			Assert.assertEquals(CloudifyErrorMessages.UPLOAD_KEY_PARAMETER_MISSING.getName(), e.getMessage());
 		}
 	}
 }

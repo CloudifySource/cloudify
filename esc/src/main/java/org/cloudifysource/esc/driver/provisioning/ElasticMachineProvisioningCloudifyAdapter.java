@@ -235,7 +235,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		for (final ProcessingUnit pu : admin.getProcessingUnits()) {
 			for (final ProcessingUnitInstance instance : pu.getInstances()) {
 				final GridServiceContainer container = instance.getGridServiceContainer();
-				if (container.getAgentId() != -1 && container.getGridServiceAgent() == null) {
+				// If the instance's GSC was not discovered (i.e. is null), or the GSA is null -
+				// add the PUI name to a map for future logging.
+				if (container == null	 
+						|| (container.getAgentId() != -1 && container.getGridServiceAgent() == null)) {
 					undiscoveredAgentsContianersPerProcessingUnitInstanceName.put(
 							instance.getProcessingUnitInstanceName(), container);
 				}
@@ -251,8 +254,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				.entrySet()) {
 			final GridServiceContainer container = entry.getValue();
 			final String processingUnitInstanceName = entry.getKey();
-			builder.append("GridServiceContainer[uid=" + container.getUid() + "] agentId=[" + container.getAgentId()
-					+ "] processingUnitInstanceName=[" + processingUnitInstanceName + "]");
+			if (container == null) {
+				builder.append("GridServiceContainer is null");
+			} else {
+				builder.append("GridServiceContainer[uid=" + container.getUid() + "] agentId=["
+						+ container.getAgentId() + "]");
+			}
+			builder.append(" processingUnitInstanceName=[" + processingUnitInstanceName + "]");
 			builder.append(",");
 		}
 		return builder.toString();

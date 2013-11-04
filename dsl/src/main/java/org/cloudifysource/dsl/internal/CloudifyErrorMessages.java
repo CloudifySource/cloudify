@@ -96,6 +96,11 @@ public enum CloudifyErrorMessages {
 	 * If partly failed to add templates (some added successfully).
 	 */
 	PARTLY_FAILED_TO_ADD_TEMPLATES("partly_failed_to_add_templates", 2),
+	
+	/**
+	 * If the upload key is missing.
+	 */
+    UPLOAD_KEY_PARAMETER_MISSING("upload_key_is_missing", 0),
 
 	/******
 	 * The application name contains invalid chars.
@@ -328,30 +333,58 @@ public enum CloudifyErrorMessages {
 	 */
 	FAILED_REMOVE_TEMPLATE("failed_to_remove_template", 2),
 	/**
+	 * Indicates an attempt to perform template operation on localcloud.
+	 */
+	ILLEGAL_TEMPLATE_OPERATION_ON_LOCAL_CLOUD("local_cloud_not_support_templates_operations", 1),
+	
+	/**
 	 * Indicates a failure in creating REST client.
 	 */
 	FAILED_CREATE_REST_CLIENT("failed_to_create_REST_client", 1),
-	
+	/**
+	 * 
+	 */
 	MISSING_WORK_DIRECTORY_BEFORE_BOOTSTRAP_LOCALCLOUD("missing_work_directory_before_bootstrap", 1),
-	
+	/**
+	 * 
+	 */
 	FAILED_CLEANING_WORK_DIRECTORY_BEFORE_BOOTSTRAP_LOCALCLOUD("failed_cleaning_work_directory_before_bootstrap", 2),
-	
 	/**
 	 * Indicates deployment ID is missing.
 	 */
-	MISSING_DEPLOYMENT_ID("deployment_id_missing", 1),
-
+	MISSING_DEPLOYMENT_ID("deployment_id_missing", 1),	
+	/**
+	 * Indicates a failure in packing service folder.
+	 */
+	FAILED_PACKING_SERVICE_FOLDER("failed_to_pack_service_folder", 1),
     /**
      * Printed when a service fails to install and self healing is disabled.
      */
     FAILED_TO_DEPLOY_SERVICE("failed_to_deploy_service", 1),
-
     /**
      * Printed when an application fails to install and self healing is disabled.
      */
-    FAILED_TO_DEPLOY_APPLICATION("failed_to_deploy_application", 1)
+    FAILED_TO_DEPLOY_APPLICATION("failed_to_deploy_application", 1),
 
-
+    /**
+	 * Indicates illegal prefix.
+     */
+    ILLEGAL_CUSTOM_COMMAND_PREFIX("illegal_custom_command_prefix", 2),
+    
+    /**
+     * Indicates illegal service name.
+     */
+    ILLEGAL_SERVICE_NAME("illegal_service_name", 2),
+    
+    /**
+     * Indicates application does not exist.
+     */
+    FAILED_TO_LOCATE_APPLICATION("failed_to_locate_application", 1),
+    
+    /**
+     * Indicates service does not exist.
+     */
+    FAILED_TO_LOCATE_SERVICE("failed_to_locate_service", 1)
     // CHECKSTYLE:OFF
 	;
 	// CHECKSTYLE:ON

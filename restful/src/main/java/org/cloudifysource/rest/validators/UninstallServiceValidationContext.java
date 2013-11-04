@@ -13,6 +13,7 @@
 package org.cloudifysource.rest.validators;
 
 import org.cloudifysource.domain.cloud.Cloud;
+import org.openspaces.admin.Admin;
 
 /**
  * A POJO for holding uninstall-service validator's parameters.
@@ -22,6 +23,8 @@ import org.cloudifysource.domain.cloud.Cloud;
 public class UninstallServiceValidationContext {
 
 	private Cloud cloud;
+	private Admin admin;
+	private String PuName;
 
 	public Cloud getCloud() {
 		return cloud;
@@ -30,6 +33,21 @@ public class UninstallServiceValidationContext {
 	public void setCloud(final Cloud cloud) {
 		this.cloud = cloud;
 	}
-	
+
+	public Admin getAdmin() {
+		return admin;
+	}
+
+	public void setAdmin(final Admin admin) {
+		this.admin = admin;
+	}
+
+	public String getPuName() {
+		return PuName;
+	}
+
+	public void setPuName(final String puName) {
+		PuName = puName;
+	}
 
 }

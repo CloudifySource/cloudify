@@ -125,15 +125,23 @@ public class EventsCacheLoader extends CacheLoader<EventsCacheKey, EventsCacheVa
                 LogEntryMatcher matcher = matcherProvider.get(logEntryMatcherProviderKey);
                 if (container.isDiscovered()) {
                     // don't fetch logs from undiscovered containers
+                    logger.fine(EventsUtils.getThreadId() + "Retrieving logs from container " + container.getUid() +
+                            container.getExactZones().getZones());
                     LogEntries logEntries = container.logEntries(matcher);
                     for (LogEntry logEntry : logEntries) {
                         if (logEntry.isLog()) {
+                            logger.finest(EventsUtils.getThreadId() + "Found log " + logEntry.getText() + " for " +
+                                    "deployment id " + key.getDeploymentId() + " from container "
+                                    + container.getUid() + container.getExactZones().getZones());
                             DeploymentEvent event = EventsUtils.logToEvent(
                                     logEntry, logEntries.getHostName(), logEntries.getHostAddress());
                             event.setIndex(++index);
                             oldValue.getEvents().getEvents().add(event);
                         }
                     }
+                } else {
+                    logger.fine(EventsUtils.getThreadId() + "Not retrieving logs from container " + container.getUid()
+                            + container.getExactZones().getZones() + " since it is not discovered by the admin");
                 }
             }
 

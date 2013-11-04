@@ -15,27 +15,35 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
+import java.util.logging.Logger;
+
 import org.cloudifysource.domain.ExecutableEntriesMap;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.rest.controllers.RestErrorException;
+import org.springframework.stereotype.Component;
 /**
  * used to validate the service does not define any custom command with the prefix '.cloudify'.
  * 
  * @author adaml
  *
  */
+@Component
 public class ValidateCustomCommandName implements InstallServiceValidator {
 	
+	private static final Logger logger = Logger.getLogger(ValidateCustomCommandName.class.getName());
+
 	private String reservedPrefix = CloudifyConstants.BUILT_IN_COMMAND_PREFIX;
 	
 	@Override
 	public void validate(final InstallServiceValidationContext validationContext)
 			throws RestErrorException {
+		logger.info("Validating custom command name");
 		ExecutableEntriesMap customCommands = validationContext.getService().getCustomCommands();
 		for (String key : customCommands.keySet()) {
 			if (key.startsWith(reservedPrefix)) {
-				throw new RestErrorException("custom command name:" 
-									+ key + " should not start with " + reservedPrefix);
+				throw new RestErrorException(CloudifyErrorMessages.ILLEGAL_CUSTOM_COMMAND_PREFIX.getName(), 
+						key, reservedPrefix);
 			}
 		}
 	}

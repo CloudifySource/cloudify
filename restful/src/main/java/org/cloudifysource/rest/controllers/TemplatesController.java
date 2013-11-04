@@ -103,6 +103,7 @@ public class TemplatesController extends BaseRestController {
 	private CustomPermissionEvaluator permissionEvaluator;
 	private File cloudConfigurationDir;
 
+
 	/**
 	 * Initialization.
 	 */
@@ -114,6 +115,7 @@ public class TemplatesController extends BaseRestController {
 		permissionEvaluator = restConfig.getPermissionEvaluator();
 		cloudConfigurationDir = restConfig.getCloudConfigurationDir();
 	}
+
 
 	/**
 	 * Add templates from templates folder to the cloud. Returns a response in case of success or partial failure.
@@ -135,6 +137,7 @@ public class TemplatesController extends BaseRestController {
 	public AddTemplatesResponse addTemplates(@RequestBody final AddTemplatesRequest request)
 			throws RestErrorException, IOException, DSLException, AddTemplatesException {
 		log(Level.INFO, "[addTemplates] - starting add templates.");
+
 		// validate
 		validateAddTemplates(request);
 		File templatesZippedFolder = null;
@@ -462,7 +465,7 @@ public class TemplatesController extends BaseRestController {
 	 */
 	@InternalMethod
 	@RequestMapping(value = "internal", method = RequestMethod.POST)
-	private AddTemplatesInternalResponse
+	public AddTemplatesInternalResponse
 			addTemplatesInternal(
 					@RequestBody final AddTemplatesInternalRequest request)
 					throws IOException, RestErrorException {
@@ -836,7 +839,6 @@ public class TemplatesController extends BaseRestController {
 	 *             If failed to remove the template.
 	 */
 	@InternalMethod
-	// @PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
 	@RequestMapping(value = "internal/{templateName}", method = RequestMethod.DELETE)
 	public void
 			removeTemplateInternal(@PathVariable final String templateName)
@@ -1030,4 +1032,5 @@ public class TemplatesController extends BaseRestController {
 			logger.log(level, content, thrown);
 		}
 	}
+
 }

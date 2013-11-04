@@ -21,7 +21,7 @@ import org.cloudifysource.rest.controllers.RestErrorException;
  * An interface for rest validator classes. Each validator must implement the validate method.
  *
  * @author yael
- *
+ * @since 2.7.0 
  */
 public interface InstallServiceValidator {
     /**

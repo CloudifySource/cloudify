@@ -13,6 +13,7 @@
 package org.cloudifysource.rest.validators;
 
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.rest.ResponseConstants;
@@ -28,9 +29,12 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ValidateElasticServiceValidator implements SetServiceInstancesValidator {
+	
+	private static final Logger logger = Logger.getLogger(ValidateElasticServiceValidator.class.getName());
 
 	@Override
 	public void validate(final SetServiceInstancesValidationContext validationContext) throws RestErrorException {
+		logger.info("Validating elastic service");
 		final ProcessingUnit pu = validationContext.getProcessingUnit();
 		final Properties contextProperties = pu.getBeanLevelProperties()
 				.getContextProperties();

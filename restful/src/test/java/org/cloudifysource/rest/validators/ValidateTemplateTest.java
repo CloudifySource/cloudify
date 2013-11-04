@@ -16,40 +16,86 @@
 package org.cloudifysource.rest.validators;
 
 import java.io.File;
-import java.io.IOException;
 
+import org.cloudifysource.domain.Application;
 import org.cloudifysource.domain.Service;
 import org.cloudifysource.domain.cloud.Cloud;
-import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
-public class ValidateTemplateTest extends InstallServiceValidatorTest {
+public class ValidateTemplateTest {
 
-    private static final String FOLDER = "src/test/resources/validators";
-    private static final String CLOUD_FILE_PATH = FOLDER + "/byon/byon-cloud.groovy";
-    private static final String NO_COMPUTE_SERVICE = FOLDER + "/simple.groovy";
-    private static final String NOT_EXIST_TEMPLATE_SERVICE_GROOVY = FOLDER + "/template5service.groovy";
+    private static final String CLOUD_FILE_PATH = ValidatorsTestsUtils.FOLDER + "/byon/byon-cloud.groovy";
+    private static final String NO_COMPUTE_SERVICE = ValidatorsTestsUtils.FOLDER + "/simple.groovy";
+    private static final String NOT_EXIST_TEMPLATE_SERVICE_GROOVY = 
+    		ValidatorsTestsUtils.FOLDER + "/template5service.groovy";
+	private static final String ERR_MSG = CloudifyErrorMessages.MISSING_TEMPLATE.getName();
+	
+    private ValidateTemplate validateTempalte;
+	private ValidateApplicationServices validateApplicationServices;
+	private Cloud cloud;
 
+    @Before
+    public void init() {
+    	validateTempalte = new ValidateTemplate();
+    	validateApplicationServices = new ValidateApplicationServices();
+    	InstallServiceValidator[] installServiceValidators = {validateTempalte};
+		validateApplicationServices.setInstallServiceValidators(installServiceValidators);
+		
+        try {
+			cloud = ServiceReader.readCloud(new File(CLOUD_FILE_PATH));
+		} catch (Exception e) {
+			Assert.fail(e.getLocalizedMessage());
+		}
+    }
+    
     @Test
-    public void testMissingTemplate() throws IOException, DSLException, PackagingException {
-        Cloud cloud = ServiceReader.readCloud(new File(CLOUD_FILE_PATH));
-        Service service = ServiceReader.readService(new File(NOT_EXIST_TEMPLATE_SERVICE_GROOVY));
-        testValidator(cloud, service, service.getCompute().getTemplate(),
-                CloudifyMessageKeys.MISSING_TEMPLATE.getName());
+    public void testMissingTemplateOnInstallService() throws DSLException, PackagingException {
+        Service service = ServiceReader.readService(new File(NOT_EXIST_TEMPLATE_SERVICE_GROOVY));        
+        InstallServiceValidationContext validationContext = new InstallServiceValidationContext();
+        validationContext.setCloud(cloud);
+        validationContext.setService(service);
+		ValidatorsTestsUtils.validate(validateTempalte, validationContext, ERR_MSG);
     }
 
     @Test
-    public void testNullCompute() throws IOException, DSLException, PackagingException {
+    public void testNullComputeOnInstallService() throws DSLException, PackagingException {
         Service service = ServiceReader.readService(new File(NO_COMPUTE_SERVICE));
-        testValidator(null, service, null);
+        InstallServiceValidationContext validationContext = new InstallServiceValidationContext();
+        validationContext.setCloud(cloud);
+        validationContext.setService(service);
+		ValidatorsTestsUtils.validate(validateTempalte, validationContext, null);
     }
 
-    @Override
-    public InstallServiceValidator getValidatorInstance() {
-        return new ValidateTemplate();
+    @Test
+    public void testMissingTemplateOnInstallApplication() throws DSLException, PackagingException {
+        Service service = ServiceReader.readService(new File(NOT_EXIST_TEMPLATE_SERVICE_GROOVY));      
+        
+        InstallApplicationValidationContext validationContext = new InstallApplicationValidationContext();
+        validationContext.setCloud(cloud);
+        Application application = new Application();
+        application.setService(service);
+		validationContext.setApplication(application);
+		
+		ValidatorsTestsUtils.validate(validateApplicationServices, validationContext, ERR_MSG);
+    }
+
+    @Test
+    public void testNullComputeOnInstallApplication() throws DSLException, PackagingException {
+        Service service = ServiceReader.readService(new File(NO_COMPUTE_SERVICE));
+        
+        InstallApplicationValidationContext validationContext = new InstallApplicationValidationContext();
+        validationContext.setCloud(cloud);
+        Application application = new Application();
+        application.setService(service);
+		validationContext.setApplication(application);
+		
+		ValidatorsTestsUtils.validate(validateApplicationServices, validationContext, null);
     }
 
 }

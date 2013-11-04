@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA. User: elip Date: 5/29/13 Time: 1:50 PM <br>
@@ -35,7 +36,9 @@ import java.util.concurrent.TimeoutException;
  */
 public abstract class InstallationProcessInspector {
 
-	private static final int POLLING_INTERVAL_MILLI_SECONDS = 500;
+    protected Logger logger = Logger.getLogger(InstallationProcessInspector.class.getName());
+
+    private static final int POLLING_INTERVAL_MILLI_SECONDS = 500;
 	protected static final int RESOURCE_NOT_FOUND_EXCEPTION_CODE = 404;
 
 	protected RestClient restClient;

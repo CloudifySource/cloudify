@@ -54,6 +54,8 @@ public class UploadRepoTest {
     		throws IOException, RestErrorException {
         repo = new UploadRepo();
         repo.init();
+		repo.setBaseDir(new File(CloudifyConstants.REST_FOLDER));
+		repo.createUploadDir();
     }
 
     @After

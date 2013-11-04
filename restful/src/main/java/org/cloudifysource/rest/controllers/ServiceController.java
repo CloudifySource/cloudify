@@ -88,7 +88,7 @@ import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
-import org.cloudifysource.dsl.internal.DSLApplicationCompilatioResult;
+import org.cloudifysource.dsl.internal.DSLApplicationCompilationResult;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLServiceCompilationResult;
@@ -2159,7 +2159,7 @@ public class ServiceController implements ServiceDetailsProvider {
 			final String authGroups, final int timeout, final boolean selfHealing, final File cloudOverrides,
 			final boolean debugAll, final String debugEvents, final String debugModeString) throws IOException,
 			DSLException, RestErrorException {
-		final DSLApplicationCompilatioResult result = ServiceReader
+		final DSLApplicationCompilationResult result = ServiceReader
 				.getApplicationFromFile(applicationFile,
 						applicationOverridesFile);
 

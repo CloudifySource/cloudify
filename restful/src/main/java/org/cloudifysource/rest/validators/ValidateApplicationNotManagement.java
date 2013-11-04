@@ -16,15 +16,15 @@
 package org.cloudifysource.rest.validators;
 
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_APP;
+
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.rest.ResponseConstants;
 import org.cloudifysource.rest.controllers.RestErrorException;
-import org.openspaces.admin.Admin;
 import org.openspaces.admin.application.Application;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -35,18 +35,16 @@ import org.springframework.stereotype.Component;
  *
  */
 @Component
-public class ValidateApplicationNotManagement implements UninstallApplicationValidator{
+public class ValidateApplicationNotManagement implements UninstallApplicationValidator {
 	
-	private static final Logger logger = Logger.getLogger(ValidateGsmState.class.getName());
-	
-	@Autowired(required = true)
-	private Admin admin;
+	private static final Logger logger = Logger.getLogger(ValidateApplicationNotManagement.class.getName());
 	
 	@Override
 	public void validate(final UninstallApplicationValidationContext validationContext)
 			throws RestErrorException {
+		logger.info("Validating that application is not management");
 		final String appName = validationContext.getApplicationName();
-		final Application app = this.admin.getApplications().waitFor(
+		final Application app = validationContext.getAdmin().getApplications().waitFor(
 				appName, 10, TimeUnit.SECONDS);
 		if (app == null) {
 			logger.log(Level.INFO, "Cannot uninstall application "

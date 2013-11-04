@@ -70,6 +70,14 @@ public final class DSLUtils {
 	 * Default file name suffix for service files.
 	 */
 	public static final String SERVICE_DSL_FILE_NAME_SUFFIX = "-service.groovy";
+	/**
+	 * The expected file name suffix for service properties file e.g. <code>*-service.properties</code>.
+	 */
+	public static final String SERVICE_PROPERTIES_FILE_NAME_SUFFIX = "-service.properties";
+	/**
+	 * The expected file name suffix for service overrides file e.g. <code>*-service.overrides</code>.
+	 */
+	public static final String SERVICE_OVERRIDES_FILE_NAME_SUFFIX = "-service.overrides";
 
 	/**
 	 * Default file name suffix for template files.

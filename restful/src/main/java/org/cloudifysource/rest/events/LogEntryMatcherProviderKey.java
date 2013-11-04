@@ -67,7 +67,7 @@ public class LogEntryMatcherProviderKey {
 
     @Override
     public String toString() {
-        return "LogEntryMatcherProviderKey{" + "container=" + container
+        return "LogEntryMatcherProviderKey{" + "container=" + container.getUid() + container.getExactZones().getZones()
                 + ", deploymentId='" + deploymentId + '\'' + '}';
     }
 }

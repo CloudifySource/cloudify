@@ -45,14 +45,15 @@ public abstract class AbstractClientSideExceptionHandler implements ClientSideEx
     @Override
     public String getMessage(final boolean verbose) {
 
-        if (verbose) {
+        String formattedMessage = getFormattedMessage();
+		if (verbose) {
             // display the stack trace if present
             final String stackTrace = getVerbose();
             if (stackTrace != null) {
-                return getFormattedMessage() + " : " + stackTrace;
+                return formattedMessage + " : " + stackTrace;
             }
-			return getFormattedMessage();
+			return formattedMessage;
         }
-		return getFormattedMessage();
+		return formattedMessage;
     }
 }

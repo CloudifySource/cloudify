@@ -406,6 +406,7 @@ public final class CloudifyConstants {
 
     // install-service validators
     public static final long SERVICE_OVERRIDES_FILE_LENGTH_LIMIT_BYTES = 20 * FileUtils.ONE_KB;
+    public static final long APPLICATION_OVERRIDES_FILE_LENGTH_LIMIT_BYTES = 20 * FileUtils.ONE_KB;
     public static final long CLOUD_OVERRIDES_FILE_LENGTH_LIMIT_BYTES = 10 * FileUtils.ONE_KB;
     public static final long CLOUD_CONFIGURATION_FILE_LENGTH_LIMIT_BYTES = 10 * FileUtils.ONE_KB;
 
@@ -434,6 +435,12 @@ public final class CloudifyConstants {
 	 * built-in command prefix
 	 */
 	public static final String BUILT_IN_COMMAND_PREFIX = "cloudify:";
+	
+	/**
+	 * service name
+	 */
+	public static final String ILlEGAL_SERVICE_NAME_PREFIX = ".";
+	public static final String ILlEGAL_SERVICE_NAME_SUFFIX = ".";
 	
     // CHECKSTYLE:ON
 }

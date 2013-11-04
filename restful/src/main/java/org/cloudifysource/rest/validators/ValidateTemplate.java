@@ -15,39 +15,39 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
-import org.cloudifysource.domain.Application;
+import java.util.logging.Logger;
+
+import org.cloudifysource.domain.ComputeDetails;
 import org.cloudifysource.domain.Service;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
-import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.rest.controllers.RestErrorException;
 import org.springframework.stereotype.Component;
 
 /**
  *
  * @author yael
- *
+ * @since 2.7.0 
  */
 @Component
-public class ValidateTemplate implements InstallServiceValidator, InstallApplicationValidator {
+public class ValidateTemplate implements InstallServiceValidator {
+    
+	private static final Logger logger = Logger.getLogger(ValidateTemplateOperation.class.getName());
 
     @Override
     public void validate(final InstallServiceValidationContext validationContext) throws RestErrorException {
+    	logger.info("Validating tempalte");
         Cloud cloud = validationContext.getCloud();
-        String templateName = validationContext.getTemplateName();
-        validateTemplate(templateName, cloud);
-    }
-
-    @Override
-    public void validate(final InstallApplicationValidationContext validationContext)
-            throws RestErrorException {
-        final Application application = validationContext.getApplication();
-        final Cloud cloud = validationContext.getCloud();
-        for (Service service : application.getServices()) {
-            if (service.getCompute() != null) {
-                validateTemplate(service.getCompute().getTemplate(), cloud);
-            }
+        Service service = validationContext.getService();
+        String templateName = null;
+        if (service != null) {
+        	ComputeDetails compute = service.getCompute();
+        	if (compute != null) {
+        		templateName = compute.getTemplate();
+        	}
         }
+        validateTemplate(templateName, cloud);
     }
 
     private void validateTemplate(final String templateName, final Cloud cloud) throws RestErrorException {
@@ -59,7 +59,7 @@ public class ValidateTemplate implements InstallServiceValidator, InstallApplica
         // validate that the template exist at cloud's template list
         final ComputeTemplate template = cloud.getCloudCompute().getTemplates().get(templateName);
         if (template == null) {
-            throw new RestErrorException(CloudifyMessageKeys.MISSING_TEMPLATE.getName(), templateName);
+            throw new RestErrorException(CloudifyErrorMessages.MISSING_TEMPLATE.getName(), templateName);
         }
     }
 }

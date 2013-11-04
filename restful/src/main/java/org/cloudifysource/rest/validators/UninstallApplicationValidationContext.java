@@ -16,6 +16,7 @@
 package org.cloudifysource.rest.validators;
 
 import org.cloudifysource.domain.cloud.Cloud;
+import org.openspaces.admin.Admin;
 
 /**
  * An un-install application validation context containing all necessary
@@ -27,7 +28,7 @@ import org.cloudifysource.domain.cloud.Cloud;
 public class UninstallApplicationValidationContext {
 
 	private Cloud cloud;
-
+	private Admin admin;
 	private String applicationName;
 
 	public Cloud getCloud() {
@@ -44,5 +45,13 @@ public class UninstallApplicationValidationContext {
 
 	public void setApplicationName(final String applicationName) {
 		this.applicationName = applicationName;
+	}
+
+	public Admin getAdmin() {
+		return admin;
+	}
+
+	public void setAdmin(Admin admin) {
+		this.admin = admin;
 	}
 }
