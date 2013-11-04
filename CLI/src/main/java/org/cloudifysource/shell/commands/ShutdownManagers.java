@@ -73,7 +73,6 @@ public class ShutdownManagers extends AbstractGSCommand implements NewRestClient
 	 */
 	@Override
 	protected Object doExecute() throws Exception {
-
 		validateManagersFilePath();
 
 		if (this.adminFacade == null) {
@@ -101,6 +100,7 @@ public class ShutdownManagers extends AbstractGSCommand implements NewRestClient
 
 	private void waitForShutdown(final List<ControllerDetails> managers, final int port)
 			throws CLIException, InterruptedException, TimeoutException {
+
 		logger.fine("[waitForShutdown] -  waiting for shutdown of all manaement machines [total " 
 			+ managers.size() + " managers]");
 
@@ -146,7 +146,9 @@ public class ShutdownManagers extends AbstractGSCommand implements NewRestClient
 	}
 
 	private void writeManagersToFile(final List<ControllerDetails> managers) throws IOException {
+		
 		logger.fine("[writeManagersToFile] -  writing managers to file [" + existingManagersFile + "]");
+
 		if (this.existingManagersFile != null) {
 			final ObjectMapper mapper = new ObjectMapper();
 			final String managersAsString = mapper.writeValueAsString(managers);
