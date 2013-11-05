@@ -31,7 +31,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -56,6 +55,7 @@ import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.rest.request.InstallApplicationRequest;
 import org.cloudifysource.dsl.rest.request.InstallServiceRequest;
+import org.cloudifysource.dsl.rest.request.InvokeCustomCommandRequest;
 import org.cloudifysource.dsl.rest.request.SetApplicationAttributesRequest;
 import org.cloudifysource.dsl.rest.request.SetServiceAttributesRequest;
 import org.cloudifysource.dsl.rest.request.SetServiceInstanceAttributesRequest;
@@ -2348,31 +2348,27 @@ public class DeploymentsController extends BaseRestController {
 	 *            The application name.
 	 * @param serviceName
 	 *            The service name.
-	 * @param beanName
-	 *            deprecated.
-	 * @param params
-	 *            The command parameters.
+	 * @param request
+	 *            InvokeCustomCommandRequest the request containing the relevant parameters.
 	 * @return a Map containing the result of each invocation on a service instance.
 	 * @throws RestErrorException
 	 *             When the invocation failed.
 	 * @throws ResourceNotFoundException
 	 *             When failed to locate service/service instance.
 	 */
-	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/beans/{beanName}/invoke",
+	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/invoke",
 			method = RequestMethod.POST)
 	@PreAuthorize("isFullyAuthenticated()")
 	public InvokeServiceCommandResponse invoke(@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
-			@PathVariable final String beanName,
-			@RequestBody final Map<String, Object> params)
+			@RequestBody final InvokeCustomCommandRequest request)
 			throws RestErrorException, ResourceNotFoundException {
 		
 		InvokeServiceCommandResponse response = new InvokeServiceCommandResponse();
 		
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		if (logger.isLoggable(Level.FINER)) {
-			logger.finer("received request to invoke bean " + beanName
-					+ " of service " + absolutePuName + " of application "
+			logger.finer("received request to invoke command of service " + absolutePuName + " of application "
 					+ applicationName);
 		}
 
@@ -2383,8 +2379,7 @@ public class DeploymentsController extends BaseRestController {
 			// TODO: Consider telling the user he might be using the wrong
 			// application name.
 			logger.severe("Could not find service " + absolutePuName);
-			
-			// TODO noak: is this ok?			
+						
 			throw new ResourceNotFoundException(absolutePuName);
 		}
 
@@ -2415,7 +2410,7 @@ public class DeploymentsController extends BaseRestController {
 			final String serviceInstanceName = buildServiceInstanceName(instance);
 			try {
 				final Future<Object> future = ((DefaultProcessingUnitInstance) instance)
-						.invoke(beanName, params);
+						.invoke(CloudifyConstants.INVOCATION_PARAMETER_BEAN_NAME_USM, request.getParameters());
 				futures.put(serviceInstanceName, future);
 			} catch (final Exception e) {
 				logger.severe("Error invoking service "
@@ -2457,10 +2452,8 @@ public class DeploymentsController extends BaseRestController {
 	 *            The service name
 	 * @param instanceId
 	 *            The service instance number to be invoked.
-	 * @param beanName
-	 *            depreciated
-	 * @param params
-	 *            a Map containing the result of each invocation on a service instance.
+	 * @param request
+	 *            InvokeCustomCommandRequest the request containing the relevant parameters.
 	 * @return a Map containing the invocation result on the specified instance.
 	 * @throws RestErrorException
 	 *             When the invocation failed.
@@ -2468,21 +2461,19 @@ public class DeploymentsController extends BaseRestController {
 	 *             When failed to locate service/service instance.
 	 */
 	@RequestMapping(value = "applications/{applicationName}/services/{serviceName}/instances"
-			+ "/{instanceId}/beans/{beanName}/invoke", method = RequestMethod.POST)
+			+ "/{instanceId}/invoke", method = RequestMethod.POST)
 	@PreAuthorize("isFullyAuthenticated()")
 	public InvokeInstanceCommandResponse invokeInstance(
 			@PathVariable final String applicationName,
 			@PathVariable final String serviceName,
 			@PathVariable final int instanceId,
-			@PathVariable final String beanName,
-			@RequestBody final Map<String, Object> params)
+			@RequestBody final InvokeCustomCommandRequest request)
 			throws RestErrorException, ResourceNotFoundException {
 		
 		InvokeInstanceCommandResponse response = new InvokeInstanceCommandResponse();
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 		if (logger.isLoggable(Level.FINER)) {
-			logger.finer("received request to invoke bean " + beanName
-					+ " of service " + serviceName + " of application "
+			logger.finer("received request to invoke command of service " + serviceName + " of application "
 					+ applicationName);
 		}
 
@@ -2494,8 +2485,7 @@ public class DeploymentsController extends BaseRestController {
 			// TODO: Consider telling the user he might be using the wrong
 			// application name.
 			logger.severe("Could not find service " + absolutePuName);
-			
-			// TODO noak: is this ok?			
+					
 			throw new ResourceNotFoundException(absolutePuName);
 		}
 
@@ -2521,7 +2511,8 @@ public class DeploymentsController extends BaseRestController {
 		
 		// Invoke the remote service
 		try {
-			final Future<?> future = pui.invoke(beanName, params);
+			final Future<?> future = pui.invoke(CloudifyConstants.INVOCATION_PARAMETER_BEAN_NAME_USM, 
+					request.getParameters());
 			final Object invocationResult = future.get();
 			final Object finalResult = postProcessInvocationResult(invocationResult, instanceName);
 			response.setInvocationResult(finalResult);
