@@ -23,7 +23,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
@@ -48,7 +47,7 @@ import org.cloudifysource.shell.rest.RestAdminFacade;
  *        Optional arguments: beanname - Bean name instanceid - If provided, the command will be invoked only on that
  *        specific instance
  * 
- *        Command syntax: invoke [-beanname beanname] [-instanceid instanceid] service-name command-name params
+ *        Command syntax: invoke [-instanceid instanceid] service-name command-name params
  */
 @Command(scope = "cloudify", name = "invoke", description = "invokes a custom command")
 public class Invoke extends AdminAwareCommand implements NewRestClientCommand {
@@ -59,16 +58,15 @@ public class Invoke extends AdminAwareCommand implements NewRestClientCommand {
 	@Argument(index = 1, name = "command-name", required = true, description = "the name of the command to invoke")
 	private String commandName;
 
-	@Option(name = "-beanname", description = "bean name")
-	private final String beanName = "universalServiceManagerBean";
-
 	@Option(name = "-instanceid", description = "If provided, the command will be invoked only on that specific "
 			+ "instance")
 	private Integer instanceId;
 
 	@Argument(index = 2, multiValued = true, name = "params", required = false, description = "Command Custom "
 			+ "parameters.")
+
 	private final List<String> params = new ArrayList<String>();
+
 
 	/**
 	 * {@inheritDoc}
@@ -94,7 +92,7 @@ public class Invoke extends AdminAwareCommand implements NewRestClientCommand {
 		final StringBuilder invocationFailedStringBuilder = new StringBuilder();
 		if (instanceId == null) { // Invoking command on all of the service's instances.
 			final Map<String, InvocationResult> result = adminFacade.invokeServiceCommand(applicationName,
-					serviceName, beanName, commandName, paramsMap);
+					serviceName, CloudifyConstants.INVOCATION_PARAMETER_BEAN_NAME_USM, commandName, paramsMap);
 
 			final Collection<InvocationResult> values = result.values();
 			final List<InvocationResult> valuesList = new ArrayList<InvocationResult>(values);
@@ -116,7 +114,7 @@ public class Invoke extends AdminAwareCommand implements NewRestClientCommand {
 		} else { // instanceID specified. invoking command on specific instance.
 
 			final InvocationResult invocationResult = adminFacade.invokeInstanceCommand(applicationName, serviceName,
-					beanName, instanceId, commandName, paramsMap);
+					CloudifyConstants.INVOCATION_PARAMETER_BEAN_NAME_USM, instanceId, commandName, paramsMap);
 			if (invocationResult.isSuccess()) {
 				final String successMessage = getFormattedMessage("invocation_success",
 						invocationResult.getInstanceId(), invocationResult.getInstanceName(),
@@ -151,8 +149,7 @@ public class Invoke extends AdminAwareCommand implements NewRestClientCommand {
 		final RestClient newRestClient = ((RestAdminFacade) getRestAdminFacade()).getNewRestClient();
 		
 		InvokeCustomCommandRequest request = new InvokeCustomCommandRequest();
-		request.setCommandName(commandName);
-		request.setParameters(getParamsMap(params));
+		request.setParameters(buildCustomCommandParams(commandName, getParamsMap(params)));
 		
 		String applicationName = this.getCurrentApplicationName();
 		if (applicationName == null) {
@@ -161,7 +158,7 @@ public class Invoke extends AdminAwareCommand implements NewRestClientCommand {
 
 		if (instanceId == null) { // Invoking command on all of the service's instances.
 			InvokeServiceCommandResponse response = newRestClient.invokeServiceCommand(applicationName, serviceName,
-					beanName, request);
+					request);
 			
 			final Map<String, InvocationResult> invocationResults = parseInvocationResults(
 					response.getInvocationResultPerInstance());			
@@ -171,23 +168,25 @@ public class Invoke extends AdminAwareCommand implements NewRestClientCommand {
 			failureMessages = getAllFailureMessages(resultsList);			
 		} else { // instanceID specified. invoking command on specific instance.
 			InvokeInstanceCommandResponse response = newRestClient.invokeInstanceCommand(applicationName, serviceName,
-					instanceId, beanName, request);
+					instanceId, request);
 			
 			final InvocationResult invocationResult = parseInvocationResult(response.getInvocationResult());
 			if (invocationResult.isSuccess()) {
-				successMessages = getSuccessMessage(invocationResult) + System.getProperty("line.separator");
+				successMessages = getSuccessMessage(invocationResult);
 			} else {
-				failureMessages = getFailureMessage(invocationResult) + System.getProperty("line.separator");
+				failureMessages = getFailureMessage(invocationResult);
 			}
 		}
 		
 		// print the success messages to the screen.
-		logger.info(successMessages);
+		if (successMessages.length() > 0) {
+			logger.info("Invocation results: " + System.getProperty("line.separator") + successMessages);
+		}
 		
 		// if invocations failed - throw exception
-		if (StringUtils.isNotBlank(failureMessages)) {
+		if (failureMessages.length() > 0) {
 			throw new CLIStatusException("not_all_invocations_completed_successfully", this.serviceName, 
-					failureMessages);
+					"Invocation results: " + System.getProperty("line.separator") + failureMessages);
 		}
 
 		return getFormattedMessage("all_invocations_completed_successfully");
@@ -209,6 +208,19 @@ public class Invoke extends AdminAwareCommand implements NewRestClientCommand {
 		}
 
 		return returnMap;
+	}
+	
+	private Map<String, Object> buildCustomCommandParams(
+			final String commandName, final Map<String, String> parametersMap) {
+		
+		final Map<String, Object> params = new HashMap<String, Object>();
+		params.put(CloudifyConstants.INVOCATION_PARAMETER_COMMAND_NAME, commandName);
+		
+		// add all of the predefined parameters into the params map.
+		for (final Map.Entry<String, String> entry : parametersMap.entrySet()) {
+			params.put(entry.getKey(), entry.getValue());
+		}
+		return params;
 	}
 	
 	private Map<String, InvocationResult> parseInvocationResults(
@@ -250,30 +262,30 @@ public class Invoke extends AdminAwareCommand implements NewRestClientCommand {
 	
 	
 	private String getAllSuccessMessages(final List<InvocationResult> resultsList) {
-		final StringBuilder invocationSuccessStringBuilder = new StringBuilder("Invocation results: ");
-		invocationSuccessStringBuilder.append(System.getProperty("line.separator"));
 		
+		final StringBuilder successMessagesText = new StringBuilder();
 		for (final InvocationResult invocationResult : resultsList) {
 			if (invocationResult.isSuccess()) {
 				String successMessage = getSuccessMessage(invocationResult);
-				invocationSuccessStringBuilder.append(successMessage).append(System.getProperty("line.separator"));
-			}			
-		}
-		
-		return invocationSuccessStringBuilder.toString();
-	}
-	
-	private String getAllFailureMessages(final List<InvocationResult> resultsList) {
-		final StringBuilder invocationFailedStringBuilder = new StringBuilder("Invocation results: ");
-		
-		for (final InvocationResult invocationResult : resultsList) {
-			if (!invocationResult.isSuccess()) {
-				final String failureMessage = getFailureMessage(invocationResult);
-				invocationFailedStringBuilder.append(failureMessage).append(System.getProperty("line.separator"));
+				successMessagesText.append(successMessage).append(System.getProperty("line.separator"));
 			}
 		}
 		
-		return invocationFailedStringBuilder.toString();
+		return successMessagesText.toString();
+	}
+	
+	
+	private String getAllFailureMessages(final List<InvocationResult> resultsList) {
+		
+		final StringBuilder failureMessagesText = new StringBuilder();
+		for (final InvocationResult invocationResult : resultsList) {
+			if (!invocationResult.isSuccess()) {
+				String failureMessage = getFailureMessage(invocationResult);
+				failureMessagesText.append(failureMessage).append(System.getProperty("line.separator"));
+			}
+		}
+		
+		return failureMessagesText.toString();
 	}
 	
 	private String getSuccessMessage(final InvocationResult invocationResult) {

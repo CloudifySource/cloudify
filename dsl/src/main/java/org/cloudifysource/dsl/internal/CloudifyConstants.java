@@ -83,6 +83,7 @@ public final class CloudifyConstants {
     public static final String INVOCATION_RESPONSE_COMMAND_NAME = "Invocation_Command_Name";
     public static final String INVOCATION_RESPONSE_INSTANCE_ID = "Invocation_Instance_ID";
     public static final String INVOCATION_RESPONSE_INSTANCE_NAME = "Invocation_Instance_Name";
+    public static final String INVOCATION_PARAMETER_BEAN_NAME_USM = "universalServiceManagerBean";
 
     /*************
      * Key names of environment variables passed to USM external scripts

@@ -109,7 +109,7 @@ public class UploadController extends BaseRestController {
                     CloudifyMessageKeys.UPLOAD_FAILED.getName(), name, e.getMessage());
         }
         if (logger.isLoggable(Level.INFO)) {
-            logger.info("[uploadInternal] - seccussfuly uploaded file " + name + " [upload key = " + uploadKey + "]");
+            logger.info("[uploadInternal] - successfuly uploaded file " + name + " [upload key = " + uploadKey + "]");
         }
         // create and return UploadResponse
         UploadResponse response = new UploadResponse();

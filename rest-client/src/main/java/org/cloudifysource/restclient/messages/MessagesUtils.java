@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -56,11 +57,19 @@ public final class MessagesUtils {
 	 */
 	public static String getFormattedMessage(final String messageCode, final Object... arguments) {
 
-		final String message = getMessageBundle().getString(messageCode);
-		if (message == null) {
+		String message = null;
+		try {
+			message = getMessageBundle().getString(messageCode);
+		} catch (MissingResourceException e) {
+			// a matching entry wasn't found in the resource bundle, so message remains null.
+			// handled in the following condition
+		}
+		
+		if (StringUtils.isBlank(message)) {
 			logger.warning("Missing resource in messages resource bundle: " + messageCode);
 			return messageCode;
 		}
+		
 		try {
 			return MessageFormat.format(message, arguments);
 		} catch (final IllegalArgumentException e) {

@@ -101,9 +101,8 @@ public class RestClient {
 	private static final String GET_TEMPALTE_URL_FORMAT = "%s";
 	private static final String LIST_TEMPALTES_URL_FORMAT = "";
 	private static final String REMOVE_TEMPALTE_URL_FORMAT = "%s";
-	private static final String INVOKE_SERVICE_COMMAND_URL_FORMAT = "applications/%s/services/%s/beans/%s/invoke";
-	private static final String INVOKE_INSTANCE_COMMAND_URL_FORMAT = 
-			"applications/%s/services/%s/instances/%s/beans/%s/invoke";
+	private static final String INVOKE_SERVICE_COMMAND_URL_FORMAT = "applications/%s/services/%s/invoke";
+	private static final String INVOKE_INSTANCE_COMMAND_URL_FORMAT = "applications/%s/services/%s/instances/%s/invoke";
 
 	private static final String SET_INSTANCES_URL_FORMAT = "%s/services/%s/count";
 	private static final String GET_LAST_EVENT_URL_FORMAT = "%s/events/last/";
@@ -433,8 +432,6 @@ public class RestClient {
 	 *            the service's application name.
 	 * @param serviceName
 	 *            the service's name.
-	 * @param beanName
-	 *            deprecated
 	 * @param request
 	 *            the InvokeCustomCommandRequest containing the command and parameters
 	 * @return InvokeServiceCommandResponse
@@ -443,31 +440,26 @@ public class RestClient {
 	 *            when the invocation failed or the service/instance were not found.
 	 */
 	public InvokeServiceCommandResponse invokeServiceCommand(final String applicationName, 
-			final String serviceName, final String beanName, final InvokeCustomCommandRequest request)
-					throws RestClientException {
+			final String serviceName, final InvokeCustomCommandRequest request)
+			throws RestClientException {
+		
 		if (request == null) {
 			throw new IllegalArgumentException("request may not be null");
 		}
 
 		InvokeServiceCommandResponse result = null;
-		try {
-			final String invokeCommandUrl = getFormattedUrl(
-					versionedDeploymentControllerUrl, 
-					INVOKE_SERVICE_COMMAND_URL_FORMAT, 
-					applicationName, 
-					serviceName,
-					beanName);
-			
-			result = executor.postObject(
-					invokeCommandUrl,
-					request,
-					new TypeReference<Response<InvokeServiceCommandResponse>>() {
-					}
-					);
-		} catch (final RestClientException e) {
-			// TODO noak: handle
-		}
+		final String invokeCommandUrl = getFormattedUrl(
+				versionedDeploymentControllerUrl, 
+				INVOKE_SERVICE_COMMAND_URL_FORMAT, 
+				applicationName, 
+				serviceName);
 		
+		result = executor.postObject(
+				invokeCommandUrl,
+				request,
+				new TypeReference<Response<InvokeServiceCommandResponse>>() { }
+		);
+	
 		return result;
 	}
 	
@@ -480,8 +472,6 @@ public class RestClient {
 	 *            the service's name.
 	 * @param instanceId
 	 *            the relevant instance id
-	 * @param beanName
-	 *            deprecated
 	 * @param request
 	 *            the InvokeCustomCommandRequest containing the command and parameters
 	 * @return InvokeServiceCommandResponse
@@ -490,8 +480,9 @@ public class RestClient {
 	 *            when the invocation failed or the service/instance were not found.
 	 */
 	public InvokeInstanceCommandResponse invokeInstanceCommand(final String applicationName, 
-			final String serviceName, final int instanceId, final String beanName,
-			final InvokeCustomCommandRequest request) throws RestClientException {
+			final String serviceName, final int instanceId, final InvokeCustomCommandRequest request) 
+			throws RestClientException {
+		
 		if (request == null) {
 			throw new IllegalArgumentException("request may not be null");
 		}
@@ -499,24 +490,19 @@ public class RestClient {
 		String instanceIdStr = String.valueOf(instanceId);
 
 		InvokeInstanceCommandResponse result = null;
-		try {
-			final String invokeCommandUrl = getFormattedUrl(
-					versionedDeploymentControllerUrl, 
-					INVOKE_INSTANCE_COMMAND_URL_FORMAT, 
-					applicationName, 
-					serviceName,
-					instanceIdStr,
-					beanName);
-			
-			result = executor.postObject(
-					invokeCommandUrl,
-					request,
-					new TypeReference<Response<InvokeInstanceCommandResponse>>() {
-					}
-					);
-		} catch (final RestClientException e) {
-			// TODO noak: handle
-		}
+		final String invokeCommandUrl = getFormattedUrl(
+				versionedDeploymentControllerUrl, 
+				INVOKE_INSTANCE_COMMAND_URL_FORMAT, 
+				applicationName, 
+				serviceName,
+				instanceIdStr);
+		
+		result = executor.postObject(
+				invokeCommandUrl,
+				request,
+				new TypeReference<Response<InvokeInstanceCommandResponse>>() {
+				}
+		);
 		
 		return result;
 	}
