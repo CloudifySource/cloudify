@@ -50,6 +50,7 @@ public class RestConfiguration {
     private final AtomicInteger lastTemplateFileNum = new AtomicInteger(0);
     private File restTempFolder;
 	private CustomPermissionEvaluator permissionEvaluator;
+	private File additionalTemplatesFolder;
 
 	/**
      * A set containing all of the executed lifecycle events. used to avoid duplicate prints.
@@ -184,6 +185,14 @@ public class RestConfiguration {
 
 	public void setPermissionEvaluator(final CustomPermissionEvaluator permissionEvaluator) {
 		this.permissionEvaluator = permissionEvaluator;
+	}
+
+	public File getAdditionalTempaltesFolder() {
+		return additionalTemplatesFolder;
+	}
+
+	public void setAdditionalTemplatesFolder(final File additionalTemplatesFolder) {
+		this.additionalTemplatesFolder = additionalTemplatesFolder;
 	}
 
 }

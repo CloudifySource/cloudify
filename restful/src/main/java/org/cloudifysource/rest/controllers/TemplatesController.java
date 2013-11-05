@@ -498,7 +498,7 @@ public class TemplatesController extends BaseRestController {
 			final List<ComputeTemplateHolder> templatesHolders) {
 		log(Level.FINE,
 				"[addTemplatesToCloud] - Adding " + templatesHolders.size() + " templates to cloud.");
-		// adds the templates to the cloud's templates list, deletes the failed to added templates from the folder.
+		// adds the templates to the cloud's templates list, deletes failed to added templates from the folder.
 		final AddTemplatesInternalResponse addTemplatesToCloudListresponse =
 				addTemplatesToCloudList(templatesFolder, templatesHolders);
 		List<String> addedTemplates = addTemplatesToCloudListresponse.getAddedTempaltes();
@@ -624,8 +624,8 @@ public class TemplatesController extends BaseRestController {
 	 */
 	private File copyTemplateFilesToCloudConfigDir(final File templatesDirToCopy)
 			throws IOException {
-		final File templatesDirParent = getTemplatesFolder();
-		// create new templates folder - increment folder number until no folder with that name exist.
+		final File templatesDirParent = restConfig.getAdditionalTempaltesFolder();
+		// create new templates folder with a unique name.
 		String folderName = CloudifyConstants.TEMPLATE_FOLDER_PREFIX
 				+ restConfig.getLastTemplateFileNum().incrementAndGet();
 		File copiedtemplatesFolder = new File(templatesDirParent, folderName);
@@ -697,20 +697,6 @@ public class TemplatesController extends BaseRestController {
 			}
 		}
 		
-	}
-
-	/**
-	 * Gets the {@link CloudifyConstants#ADDITIONAL_TEMPLATES_FOLDER_NAME} folder. Creates it if needed.
-	 * 
-	 * @return the folder.
-	 */
-	private File getTemplatesFolder() {
-		final File templatesFolder = new File(cloudConfigurationDir,
-				CloudifyConstants.ADDITIONAL_TEMPLATES_FOLDER_NAME);
-		if (!cloudConfigurationDir.exists()) {
-			templatesFolder.mkdir();
-		}
-		return templatesFolder;
 	}
 
 	private void validateAddTemplates(final AddTemplatesRequest request)

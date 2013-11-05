@@ -75,6 +75,7 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
 
     /**
      * Initialize all needed fields in RestConfiguration.
+     * @throws RestErrorException 
      */
     public void initRestConfiguration() throws RestErrorException {
         logger.info("Initializing cloud configuration");
@@ -84,6 +85,7 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
         Cloud cloud = readCloud();
         if (cloud != null) {
         	config.setCloud(cloud);
+        	setAdditionalTemplatesFolder();
             initCloudTemplates();
             CloudCompute cloudCompute = cloud.getCloudCompute();
             if (cloudCompute.getTemplates().isEmpty()) {
@@ -103,7 +105,26 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
     }
     
 	
-    private File createRestTempFolder() throws RestErrorException {
+    private void setAdditionalTemplatesFolder() {
+		File additionalTempaltesFolderParent = config.getCloudConfigurationDir();
+		String persistentStoragePath = config.getCloud().getConfiguration().getPersistentStoragePath();
+		if (persistentStoragePath != null) {
+			logger.fine("[setAdditionalTemplatesFolder] - using the persistent storage folder [" 
+					+ persistentStoragePath + "] as the parent of the additional templates folder.");
+			additionalTempaltesFolderParent = new File(persistentStoragePath);
+		}
+		File additionalTemplatesFodler = 
+				new File(additionalTempaltesFolderParent, CloudifyConstants.ADDITIONAL_TEMPLATES_FOLDER_NAME);
+		if (!additionalTemplatesFodler.exists()) {
+			additionalTempaltesFolderParent.mkdirs();
+		}
+		logger.info("[setAdditionalTemplatesFolder] - setting the additional templates folder to [" 
+				+ additionalTemplatesFodler + "]");
+		config.setAdditionalTemplatesFolder(additionalTemplatesFodler);
+		
+	}
+
+	private File createRestTempFolder() throws RestErrorException {
     	String restTempFolderName = "";
     	if (!StringUtils.isEmpty(temporaryFolder)) {
     		restTempFolderName = temporaryFolder;
@@ -187,19 +208,18 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
     }
 
     private void initCloudTemplates() {
-        final File additionalTemplatesFolder = new File(config.getCloudConfigurationDir(),
-                CloudifyConstants.ADDITIONAL_TEMPLATES_FOLDER_NAME);
-        logger.info("initCloudTemplates - Adding templates from folder: "
+        final File additionalTemplatesFolder = config.getAdditionalTempaltesFolder();
+        logger.info("[initCloudTemplates] - Adding templates from folder: "
                 + additionalTemplatesFolder.getAbsolutePath());
         if (!additionalTemplatesFolder.exists()) {
-            logger.info("initCloudTemplates - no templates to add from folder: "
+            logger.info("[initCloudTemplates] - no templates to add from folder: "
                     + additionalTemplatesFolder.getAbsolutePath());
             return;
         }
         File[] listFiles = additionalTemplatesFolder.listFiles();
         ComputeTemplatesReader reader = new ComputeTemplatesReader();
         List<ComputeTemplate> addedTemplates = reader.addAdditionalTemplates(config.getCloud(), listFiles);
-        logger.info("initCloudTemplates - Added the following templates: " + addedTemplates);
+        logger.info("[initCloudTemplates] - Added the following templates: " + addedTemplates);
         config.getLastTemplateFileNum().addAndGet(listFiles.length);
 
     }
