@@ -1107,10 +1107,11 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		File additionalTemplatesParentFolder = cloudConfigDirectory;
 		String persistentStoragePath = cloud.getConfiguration().getPersistentStoragePath();
 		if(persistentStoragePath != null) {
-			logger.severe("[addTemplatesToCloud] - using the persistent storage path as the additional templates parentFolder.");
+			logger.fine("[addTemplatesToCloud] - using the persistent storage folder [" 
+					+ persistentStoragePath + "] as the parent of the additional templates folder.");
 			additionalTemplatesParentFolder = new File(persistentStoragePath);
 		}
-		logger.info("[addTemplatesToCloud] - adding templates from directory " + additionalTemplatesParentFolder.getAbsolutePath());
+		logger.info("[addTemplatesToCloud] - adding templates from directory [" + additionalTemplatesParentFolder.getAbsolutePath() + "]");
 		final File additionalTemplatesFolder = new File(additionalTemplatesParentFolder,
 				CloudifyConstants.ADDITIONAL_TEMPLATES_FOLDER_NAME);
 		if (!additionalTemplatesFolder.exists()) {
