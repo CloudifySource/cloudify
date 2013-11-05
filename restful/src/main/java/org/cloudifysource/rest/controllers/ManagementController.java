@@ -28,7 +28,6 @@ import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.rest.response.ControllerDetails;
-import org.cloudifysource.dsl.rest.response.GetManagementResponse;
 import org.cloudifysource.dsl.rest.response.ShutdownManagementResponse;
 import org.cloudifysource.rest.RestConfiguration;
 import org.hyperic.sigar.Sigar;
@@ -256,13 +255,13 @@ public class ManagementController extends BaseRestController {
 		});
 	}
 
+
 	/**
 	 * 
-	 * @return {@link org.cloudifysource.dsl.rest.response.GetManagementResponse}
 	 */
 	@RequestMapping(value = "/controllers", method = RequestMethod.GET)
 	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
-	public GetManagementResponse getManagers() {
+	public void getManagers() {
 		throw new UnsupportedOperationException();
 	}
 	

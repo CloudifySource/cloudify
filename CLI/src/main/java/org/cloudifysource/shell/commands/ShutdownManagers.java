@@ -74,8 +74,6 @@ public class ShutdownManagers extends AbstractGSCommand implements NewRestClient
 	@Override
 	protected Object doExecute() throws Exception {
 
-		logger.info("[doExecute] - starting shutdown managers");
-
 		validateManagersFilePath();
 
 		if (this.adminFacade == null) {
@@ -103,7 +101,7 @@ public class ShutdownManagers extends AbstractGSCommand implements NewRestClient
 
 	private void waitForShutdown(final List<ControllerDetails> managers, final int port)
 			throws CLIException, InterruptedException, TimeoutException {
-		logger.info("[waitForShutdown] -  waiting for shutdown of all manaement machines [total " 
+		logger.fine("[waitForShutdown] -  waiting for shutdown of all manaement machines [total " 
 			+ managers.size() + " managers]");
 
 		final Set<ControllerDetails> managersStillUp = new HashSet<ControllerDetails>();
@@ -131,14 +129,14 @@ public class ShutdownManagers extends AbstractGSCommand implements NewRestClient
 						displayer.printEvent(getFormattedMessage(
 								CloudifyErrorMessages.MANAGEMENT_SERVERS_MANAGER_DOWN.getName(), host));
 						if (managersStillUp.isEmpty()) {
-							logger.info("all ports are free, disconnecting");
+							logger.fine("all ports are free, disconnecting");
 							disconnect();
 							return true;
 						}
-						logger.info("manager [" + host + "] port is free, " 
+						logger.fine("manager [" + host + "] port is free, " 
 								+ managersStillUp.size() + " more to check");
 					} else {
-						logger.info("manager [" + host + "] port is not free");
+						logger.fine("manager [" + host + "] port is not free");
 						displayer.printNoChange();
 					}
 				}
@@ -148,7 +146,7 @@ public class ShutdownManagers extends AbstractGSCommand implements NewRestClient
 	}
 
 	private void writeManagersToFile(final List<ControllerDetails> managers) throws IOException {
-		logger.info("[writeManagersToFile] -  writing managers to file [" + existingManagersFile + "]");
+		logger.fine("[writeManagersToFile] -  writing managers to file [" + existingManagersFile + "]");
 		if (this.existingManagersFile != null) {
 			final ObjectMapper mapper = new ObjectMapper();
 			final String managersAsString = mapper.writeValueAsString(managers);
@@ -205,8 +203,6 @@ public class ShutdownManagers extends AbstractGSCommand implements NewRestClient
 
 	@Override
 	public Object doExecuteNewRestClient() throws Exception {
-
-		logger.info("[doExecuteNewRestClient] - starting shutdown managers");
 
 		validateManagersFilePath();
 
