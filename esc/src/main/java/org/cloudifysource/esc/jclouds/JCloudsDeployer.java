@@ -28,6 +28,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
 
 import javax.annotation.PreDestroy;
 
@@ -787,7 +788,9 @@ public class JCloudsDeployer {
 		do {
 			retry = false;
 			try {
-				logger.info("starting machine with template : " + template);
+				if(logger.isLoggable(Level.FINE)) {
+					logger.fine("starting machine with template : " + template);
+				}
 				nodes = this.context.getComputeService().createNodesInGroup(
 						group, count, template);
 			} catch (final ResourceNotFoundException e) {
