@@ -110,9 +110,20 @@ public class ApplicationDeployerRunnable implements Runnable {
 			boolean found = false;
 			try {
 				final File serviceDir = new File(appDir, serviceName);
-				final File servicePropertiesFile = DSLReader.findDefaultDSLFileIfExists(
+				File servicePropertiesFile = DSLReader.findDefaultDSLFileIfExists(
 						DSLUtils.SERVICE_PROPERTIES_FILE_NAME_SUFFIX, serviceDir);
-				
+				if (servicePropertiesFile == null 
+						&& (applicationOverridesFile != null || applicationPropertiesFile != null)) {
+					// creating the service's properties to be used as the destination file of the merging process.
+					String propertiesFileName = 
+							DSLUtils.getPropertiesFileName(serviceDir, DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX);
+					logger.finer("Application [" + applicationName 
+							+ "] has overrides or properties file but the service [" + serviceName 
+							+ "], does not have properties file, so, creating an empty properties file [" 
+							+ propertiesFileName 
+							+ "] to contain the merge of the application's overrides and properties files.");
+					servicePropertiesFile = new File(serviceDir, propertiesFileName);
+				}
 				// merge service properties with application properties and overrides files 
 				// merge into service's properties file
 				PropertiesOverridesMerger merger = new PropertiesOverridesMerger(

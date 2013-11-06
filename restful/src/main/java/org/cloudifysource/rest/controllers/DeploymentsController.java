@@ -51,6 +51,7 @@ import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.internal.DSLApplicationCompilationResult;
 import org.cloudifysource.dsl.internal.DSLServiceCompilationResult;
+import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.rest.request.InstallApplicationRequest;
@@ -1075,8 +1076,9 @@ public class DeploymentsController extends BaseRestController {
 				CloudifyMessageKeys.WRONG_SERVICE_OVERRIDES_UPLOAD_KEY.getName(), absolutePuName);
 		
 		// read the service
+		File workingProjectDir = new File(serviceDir, "ext");
 		final DSLServiceCompilationResult readServiceResult = readService(
-				new File(serviceDir, "ext"),
+				workingProjectDir,
 				request.getServiceFileName(),
 				absolutePuName,
 				null,
@@ -1084,18 +1086,28 @@ public class DeploymentsController extends BaseRestController {
 		Service service = readServiceResult.getService();
 
 		// perform validations
+		File overridesFile = readServiceResult.getServiceOverridesFile();
 		validateInstallService(
 				request, 
 				service, 
 				absolutePuName, 
-				readServiceResult.getServiceOverridesFile());
-		
+				overridesFile);
 		// merge properties with overrides files
+		File propertiesFile = readServiceResult.getServicePropertiesFile();
+		if (propertiesFile == null && overridesFile != null) {
+			// creating the service's properties to be used as the destination file of the merging process.
+			String propertiesFileName = 
+					DSLUtils.getPropertiesFileName(workingProjectDir, DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX);
+			logger.finer("Service [" + serviceName + "] has overrides file but no proeprties file."
+					+ "Creating an empty properties file [" + propertiesFileName 
+					+ "] to contain the overrides file's content.");
+			propertiesFile = new File(workingProjectDir, propertiesFileName);
+		}
 		PropertiesOverridesMerger merger = new PropertiesOverridesMerger(
-				readServiceResult.getServicePropertiesFile(), 
+				propertiesFile, 
 				null /* application properties file */,
-				readServiceResult.getServicePropertiesFile(),
-				readServiceResult.getServiceOverridesFile());
+				propertiesFile,
+				overridesFile);
 		merger.merge();
 		
 		File updatedPackedFile = servicePackedFolder;

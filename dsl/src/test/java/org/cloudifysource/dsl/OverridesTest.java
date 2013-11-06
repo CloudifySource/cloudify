@@ -44,11 +44,6 @@ public class OverridesTest {
 			"src/test/resources/overridesTest/apps/overridesTestApplicationWithoutOverridesFile";
 	private static final String APPLICATION_EXTERNAL_OVERRIDES_FILE_PATH = 
 			"src/test/resources/overridesTest/overridesFiles/overridesTestApplicationWithoutOverridesFile.overrides";
-	private static final String APPLICATION_ILLEGAL_OVERRIDES_FILE_FORMAT_PATH = 
-			"src/test/resources/overridesTest/overridesFiles/applicationIllegalOverridesFileFormat.overrides";
-	private static final String APPLICATION_ILLEGAL_OVERRIDES_PROPERTIES_PATH = 
-			"src/test/resources/overridesTest/overridesFiles/applicationIllegalOverridesProperties.overrides";
-
 	private static final String APPLICATION_SERVICE_PATH = 
 			"src/test/resources/overridesTest/services/service1";
 

@@ -25,14 +25,12 @@ import org.cloudifysource.domain.context.ServiceContext;
  */
 public class DSLServiceCompilationResult {
 	private final Service service;
-	private Cloud cloud;
+	private final Cloud cloud;
 	private final File servicePropertiesFile;
-
 	private final File serviceOverridesFile;
-
 	private final ServiceContext context;
 	private final File dslFile;
-
+	
 	public DSLServiceCompilationResult(final Service service, final ServiceContext context, final Cloud cloud,
 			final File dslFile, final File servicePropertiesFile, final File serviceOverridesFile) {
 		super();
@@ -71,9 +69,5 @@ public class DSLServiceCompilationResult {
 	
 	public Cloud getCloud() {
 		return cloud;
-	}
-
-	public void setCloud(final Cloud cloud) {
-		this.cloud = cloud;
 	}
 }
