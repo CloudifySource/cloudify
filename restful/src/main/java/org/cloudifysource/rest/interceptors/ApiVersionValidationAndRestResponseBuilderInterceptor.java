@@ -101,31 +101,9 @@ public class ApiVersionValidationAndRestResponseBuilderInterceptor extends Handl
     	}
     	
     	if (logger.isLoggable(Level.FINEST)) {
-    		String requestUri = request.getRequestURI();
-    		Map<String, Object> model = modelAndView.getModel();
-    		View view = modelAndView.getView();
-    		
-    		StringBuilder message = new StringBuilder("post handle request");
-    		if (requestUri == null) {
-    			message.append(", requestUri is null");
-    		} else {
-    			message.append(" from " + request.getRequestURI());
-    		}
-
-    		if (model == null) {
-    			message.append(", model is null");
-    		} else {
-    			message.append(" with model " + model.toString());
-    		}
-    		
-    		if (view == null) {
-    			message.append(", view is null");
-    		} else {
-    			message.append(" and view " + view.toString());
-    		}
-    		
-    		logger.finest(message.toString());
+    		logCurrentStatus(request, modelAndView);
     	}
+    	
         Object model = filterModel(modelAndView, handler);
         modelAndView.clear();
         response.setContentType(MediaType.APPLICATION_JSON);
@@ -147,6 +125,33 @@ public class ApiVersionValidationAndRestResponseBuilderInterceptor extends Handl
         }
 
     }
+
+	private void logCurrentStatus(final HttpServletRequest request, final ModelAndView modelAndView) {
+		String requestUri = request.getRequestURI();
+		Map<String, Object> model = modelAndView.getModel();
+		View view = modelAndView.getView();
+		
+		StringBuilder message = new StringBuilder("post handle request");
+		if (requestUri == null) {
+			message.append(", requestUri is null");
+		} else {
+			message.append(" from " + request.getRequestURI());
+		}
+
+		if (model == null) {
+			message.append(", model is null");
+		} else {
+			message.append(" with model " + model.toString());
+		}
+		
+		if (view == null) {
+			message.append(", view is null");
+		} else {
+			message.append(" and view " + view.toString());
+		}
+		
+		logger.finest(message.toString());
+	}
 
 
     /**
