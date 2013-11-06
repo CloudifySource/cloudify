@@ -34,6 +34,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import com.j_spaces.kernel.PlatformVersion;
@@ -98,9 +99,32 @@ public class ApiVersionValidationAndRestResponseBuilderInterceptor extends Handl
     		// but it is not a template controller and it will be processed in the VersionValidateInterceptor)
     		return;
     	}
+    	
     	if (logger.isLoggable(Level.FINEST)) {
-    		logger.finest("post handle request from " + request.getRequestURI() + " with model " 
-    				+ modelAndView.getModel().toString() + " and view " + modelAndView.getView().toString());
+    		String requestUri = request.getRequestURI();
+    		Map<String, Object> model = modelAndView.getModel();
+    		View view = modelAndView.getView();
+    		
+    		StringBuilder message = new StringBuilder("post handle request");
+    		if (requestUri == null) {
+    			message.append(", requestUri is null");
+    		} else {
+    			message.append(" from " + request.getRequestURI());
+    		}
+
+    		if (model == null) {
+    			message.append(", model is null");
+    		} else {
+    			message.append(" with model " + model.toString());
+    		}
+    		
+    		if (view == null) {
+    			message.append(", view is null");
+    		} else {
+    			message.append(" and view " + view.toString());
+    		}
+    		
+    		logger.finest(message.toString());
     	}
         Object model = filterModel(modelAndView, handler);
         modelAndView.clear();
