@@ -338,17 +338,7 @@ public class JCloudsDeployer {
 	 * @return the node meta data, or null.
 	 */
 	public NodeMetadata getServerByID(final String serverID) {
-		final Predicate<ComputeMetadata> filter = new Predicate<ComputeMetadata>() {
-
-			@Override
-			public boolean apply(final ComputeMetadata compute) {
-				return compute.getId().equals(serverID);
-			}
-
-		};
-
-		return getServer(filter);
-
+        return this.context.getComputeService().getNodeMetadata(serverID);
 	}
 
 	/*********
