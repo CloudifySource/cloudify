@@ -12,18 +12,17 @@
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning;
 
-import java.io.Externalizable;
-import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
+import com.gigaspaces.internal.io.IOUtils;
 import org.cloudifysource.domain.cloud.CloudTemplateInstallerConfiguration;
 import org.cloudifysource.domain.cloud.FileTransferModes;
 import org.cloudifysource.domain.cloud.RemoteExecutionModes;
 import org.cloudifysource.domain.cloud.ScriptLanguages;
 
-import com.gigaspaces.internal.io.IOUtils;
+import java.io.Externalizable;
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 /*******
  * Described a Machine started by a cloud driver. MachineDetails implements @{link Externalizable} since it is embedded
@@ -68,7 +67,7 @@ public class MachineDetails implements Externalizable {
 
 	private String openFilesLimit;
 
-	public String getLocationId() {
+    public String getLocationId() {
 		return locationId;
 	}
 
@@ -188,6 +187,7 @@ public class MachineDetails implements Externalizable {
 		this.scriptLangeuage = ScriptLanguages.valueOf(IOUtils.readString(in));
 		remoteDirectory = IOUtils.readString(in);
 		locationId = IOUtils.readString(in);
+        openFilesLimit = IOUtils.readString(in);
 	}
 
 	@Override
@@ -207,6 +207,7 @@ public class MachineDetails implements Externalizable {
 		IOUtils.writeString(out, scriptLangeuage.name());
 		IOUtils.writeString(out, remoteDirectory);
 		IOUtils.writeString(out, locationId);
+        IOUtils.writeString(out, openFilesLimit);
 	}
 
 	public ScriptLanguages getScriptLangeuage() {
