@@ -221,7 +221,7 @@ public class ServiceController implements ServiceDetailsProvider {
 	private static final String FAILED_TO_ADD_TEMPLATES_KEY = "failed to add templates";
 	private static final String SUCCESSFULLY_ADDED_TEMPLATES_KEY = "successfully added templates";
 	private static final Logger logger = Logger.getLogger(ServiceController.class.getName());
-	private static final long DEFAULT_DUMP_FILE_SIZE_LIMIT = 5 * 1024 * 1024;
+	private static final long DEFAULT_DUMP_FILE_SIZE_LIMIT = 10 * 1024 * 1024;
 	private static final String DEFAULT_DUMP_PROCESSORS = "summary, network, thread, log";
 	protected static final int MANAGEMENT_AGENT_SHUTDOWN_INTERNAL_SECONDS = 5;
 
