@@ -12,25 +12,8 @@
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning.jclouds;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.NoSuchElementException;
-import java.util.Properties;
-import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.regex.Pattern;
-
+import com.google.common.base.Predicate;
+import com.j_spaces.kernel.Environment;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.commons.net.util.SubnetUtils.SubnetInfo;
@@ -70,8 +53,24 @@ import org.jclouds.providers.ProviderMetadata;
 import org.jclouds.providers.Providers;
 import org.jclouds.rest.RestContext;
 
-import com.google.common.base.Predicate;
-import com.j_spaces.kernel.Environment;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.NoSuchElementException;
+import java.util.Properties;
+import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 /**************
  * A jclouds-based CloudifyProvisioning implementation. Uses the JClouds Compute Context API to provision an image with
@@ -194,7 +193,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
 		}
 
 		try {
-			final String groupName = createNewServerName();
+			final String groupName = serverNamePrefix + counter.incrementAndGet();
 			logger.fine("Starting a new cloud server with group: " + groupName);
 			final MachineDetails md = createServer(end, groupName, context.getLocationId());
 			return md;
@@ -365,42 +364,6 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
 
 		}
 		throw new TimeoutException("Node failed to reach RUNNING mode in time");
-	}
-
-	/*********
-	 * Looks for a free server name by appending a counter to the pre-calculated server name prefix. If the max counter
-	 * value is reached, code will loop back to 0, so that previously used server names will be reused.
-	 * 
-	 * @return the server name.
-	 * @throws CloudProvisioningException
-	 *             if no free server name could be found.
-	 */
-	private String createNewServerName() throws CloudProvisioningException {
-
-		String serverName = null;
-		int attempts = 0;
-		boolean foundFreeName = false;
-
-		while (attempts < MAX_SERVERS_LIMIT) {
-			// counter = (counter + 1) % MAX_SERVERS_LIMIT;
-			++attempts;
-			serverName = serverNamePrefix + counter.incrementAndGet();
-			// verifying this server name is not already used
-			final NodeMetadata existingNode = deployer
-					.getServerByID(serverName);
-			if (existingNode == null) {
-				foundFreeName = true;
-				break;
-			}
-		}
-
-		if (!foundFreeName) {
-			throw new CloudProvisioningException(
-					"Number of servers has exceeded allowed server limit ("
-							+ MAX_SERVERS_LIMIT + ")");
-		}
-
-		return serverName;
 	}
 
 	@Override
