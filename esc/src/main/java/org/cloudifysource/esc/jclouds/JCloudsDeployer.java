@@ -15,23 +15,10 @@
  *******************************************************************************/
 package org.cloudifysource.esc.jclouds;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-
-import javax.annotation.PreDestroy;
-
+import com.google.common.base.Predicate;
+import com.google.inject.AbstractModule;
+import com.google.inject.Module;
+import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.installer.InstallerException;
 import org.jclouds.ContextBuilder;
 import org.jclouds.aws.ec2.compute.strategy.AWSEC2ReviseParsedImage;
@@ -47,9 +34,22 @@ import org.jclouds.domain.Location;
 import org.jclouds.logging.jdk.config.JDKLoggingModule;
 import org.jclouds.rest.ResourceNotFoundException;
 
-import com.google.common.base.Predicate;
-import com.google.inject.AbstractModule;
-import com.google.inject.Module;
+import javax.annotation.PreDestroy;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
 
 /************
  * A JClouds based deployer that creates and queries JClouds complaint servers. All of the JClouds features used in the
@@ -385,12 +385,12 @@ public class JCloudsDeployer {
 	public Set<? extends NodeMetadata> getServers(final String group) {
 		return getServers(new Predicate<ComputeMetadata>() {
 
-			@Override
-			public boolean apply(final ComputeMetadata input) {
-				final NodeMetadata node = (NodeMetadata) input;
-				return node.getGroup() != null && node.getGroup().equals(group);
-			}
-		});
+            @Override
+            public boolean apply(final ComputeMetadata input) {
+                final NodeMetadata node = (NodeMetadata) input;
+                return node.getGroup() != null && node.getGroup().equals(group);
+            }
+        });
 
 	}
 
@@ -724,18 +724,79 @@ public class JCloudsDeployer {
 	 */
 	public void shutdownMachinesWithIPs(final Set<String> ips) {
 		this.context.getComputeService().destroyNodesMatching(
-				new Predicate<NodeMetadata>() {
+                new Predicate<NodeMetadata>() {
 
-					@Override
-					public boolean apply(final NodeMetadata input) {
-						if (!input.getPrivateAddresses().isEmpty()) {
-							final String ip = input.getPrivateAddresses().iterator().next();
-							return ips.contains(ip);
-						}
-						return false;
-					}
-				});
+                    @Override
+                    public boolean apply(final NodeMetadata input) {
+                        if (!input.getPrivateAddresses().isEmpty()) {
+                            final String ip = input.getPrivateAddresses().iterator().next();
+                            return ips.contains(ip);
+                        }
+                        return false;
+                    }
+                });
 	}
+
+    /********
+     * Shutdown servers by ids.
+     *
+     * @param machines array of machines.
+     */
+    public void shutdownMachinesByIds(final MachineDetails[] machines, final long timeoutInMinutes) throws
+            TimeoutException, InterruptedException {
+
+        long endTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(timeoutInMinutes);
+
+        List<MachineDetails> nonTerminatedNodes = new ArrayList<MachineDetails>();
+
+        for (MachineDetails md : machines) {
+            nonTerminatedNodes.add(md);
+            shutdownNodeAsync(md.getMachineId());
+        }
+
+        logger.info("Shutdown of machines " + toIps(machines) + " has started. Waiting for them to terminate, " +
+                "it may take a few minutes.");
+
+        // wait for all machines to terminate
+        while (System.currentTimeMillis() < endTime) {
+            for (MachineDetails md : new ArrayList<MachineDetails>(nonTerminatedNodes)) {
+                NodeMetadata.Status status = getNodeStatus(md.getMachineId());
+                if (NodeMetadata.Status.TERMINATED.equals(status) || status == null) {
+                    logger.info("Machine " + md.getPublicAddress() + "/" + md.getPrivateAddress()
+                            + " has terminated" + ".");
+                    nonTerminatedNodes.remove(md);
+                } else {
+                    logger.fine("Machine: [" + md.getPublicAddress() + "/" + md.getPrivateAddress() + "]" + " state is: " + status);
+                    Thread.sleep(SHUTDOWN_WAIT_POLLING_INTERVAL_MILLIS);
+                }
+            }
+            if (nonTerminatedNodes.isEmpty()) return;
+        }
+
+        throw new TimeoutException("Timed out while waiting for machines " +  toIps(machines) + " to terminate. Make " +
+                "sure this machines are terminated.");
+    }
+
+    public void shutdownNodeAsync(final String id) {
+        logger.fine("Destroying node " + id);
+        this.context.getComputeService().destroyNode(id);
+    }
+
+    public NodeMetadata.Status getNodeStatus(final String id) {
+        NodeMetadata nodeMetadata = this.context.getComputeService().getNodeMetadata(id);
+        if (nodeMetadata != null) {
+            return nodeMetadata.getStatus();
+        }
+        return null;
+    }
+
+    private Set<String> toIps(MachineDetails[] machines) {
+        Set<String> ips = new HashSet<String>();
+        for (MachineDetails md : machines) {
+            ips.add(md.getPublicAddress() + "/" + md.getPrivateAddress());
+        }
+        return ips;
+    }
 
 	/*********
 	 * Returns a server with a tag that equals the given tag. Note that comparison is also performed with the given tag
