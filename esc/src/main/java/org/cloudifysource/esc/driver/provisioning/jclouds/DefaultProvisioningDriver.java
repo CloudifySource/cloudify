@@ -493,7 +493,11 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
 			machineIps.add(machineDetails.getPrivateAddress());
 		}
 
-		this.deployer.shutdownMachinesWithIPs(machineIps);
+        try {
+            this.deployer.shutdownMachinesByIds(managementServers, stopManagementMachinesTimeoutInMinutes);
+        } catch (final InterruptedException e) {
+            throw new CloudProvisioningException(e);
+        }
 	}
 
 	/*
