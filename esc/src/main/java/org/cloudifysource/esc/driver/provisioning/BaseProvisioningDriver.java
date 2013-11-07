@@ -1,23 +1,28 @@
 /*******************************************************************************
  * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  ******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.openspaces.admin.Admin;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.concurrent.Callable;
@@ -29,13 +34,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
-import org.cloudifysource.domain.cloud.Cloud;
-import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
-import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.openspaces.admin.Admin;
 
 /**
  * @author noak
@@ -63,338 +61,358 @@ public abstract class BaseProvisioningDriver extends BaseComputeDriver {
     protected static final String AGENT_MACHINE_PREFIX = "cloudify-agent-";
     protected static final String MANAGMENT_MACHINE_PREFIX = "cloudify-managememnt-";
 
-	protected boolean management;
-	protected static AtomicInteger counter = new AtomicInteger();
-	protected String serverNamePrefix;
-	protected String cloudName;
-	protected String cloudTemplateName;
-	protected Admin admin;
-	protected Cloud cloud;
+    protected boolean management;
+    protected static AtomicInteger counter = new AtomicInteger();
+    protected String serverNamePrefix;
+    protected String cloudName;
+    protected String cloudTemplateName;
+    protected Admin admin;
+    protected Cloud cloud;
 
-	protected final java.util.logging.Logger logger = java.util.logging.Logger
-			.getLogger(this.getClass().getName());
+    protected final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(this.getClass().getName());
 
-	protected final List<ProvisioningDriverListener> eventsListenersList = new LinkedList<ProvisioningDriverListener>();
-	protected Boolean cleanRemoteDirectoryOnStart = false;
-	protected boolean isVerboseValidation = true;
+    protected Boolean cleanRemoteDirectoryOnStart = false;
+    protected boolean isVerboseValidation = true;
 
-	/**
-	 * Initializing the cloud deployer according to the given cloud configuration.
-	 * 
-	 * @param cloud
-	 *            Cloud object to use
-	 */
-	protected abstract void initDeployer(final Cloud cloud);
+    /**
+     * Initializing the cloud deployer according to the given cloud configuration.
+     *
+     * @param cloud
+     *            Cloud object to use
+     */
+    protected abstract void initDeployer(final Cloud cloud);
 
-	@Override
-	public String getCloudName() {
-		return this.cloudName;
-	}
+    @Override
+    public String getCloudName() {
+        return this.cloudName;
+    }
 
-	@Override
-	public void setConfig(final ComputeDriverConfiguration configuration) throws CloudProvisioningException {
-		// TODO Auto-generated method stub
-		super.setConfig(configuration);
+    @Override
+    public void setConfig(final ComputeDriverConfiguration configuration) throws CloudProvisioningException {
+        super.setConfig(configuration);
 
-		this.cloud = configuration.getCloud();
-		this.cloudTemplateName = configuration.getCloudTemplate();
-		this.management = configuration.isManagement();
-		this.cloudName = cloud.getName();
-		this.admin = configuration.getAdmin();
-		
-		Object bol = cloud.getCustom().get(CloudifyConstants.CUSTOM_PROPERTY_VERBOSE_VALIDATION);
-		if (bol == null) {
-			this.isVerboseValidation = true;
-		} else if (bol instanceof String) {
-			this.isVerboseValidation = Boolean.parseBoolean((String) bol);
-		} else if (bol instanceof Boolean) {
-			this.isVerboseValidation = 
-					(Boolean) cloud.getCustom().get(CloudifyConstants.CUSTOM_PROPERTY_VERBOSE_VALIDATION);
-		}
-		publishEvent(EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
-		initDeployer(cloud);
-		publishEvent(EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
+        this.cloud = configuration.getCloud();
+        this.cloudTemplateName = configuration.getCloudTemplate();
+        this.management = configuration.isManagement();
+        this.cloudName = cloud.getName();
+        this.admin = configuration.getAdmin();
 
-		logger.fine("Initializing Cloud Provisioning - management mode: " + management + ". Using template: "
-				+ cloudTemplateName + " with cloud: " + cloudName);
+        Object bol = cloud.getCustom().get(CloudifyConstants.CUSTOM_PROPERTY_VERBOSE_VALIDATION);
+        if (bol == null) {
+            this.isVerboseValidation = true;
+        } else if (bol instanceof String) {
+            this.isVerboseValidation = Boolean.parseBoolean((String) bol);
+        } else if (bol instanceof Boolean) {
+            this.isVerboseValidation =
+                    (Boolean) cloud.getCustom().get(CloudifyConstants.CUSTOM_PROPERTY_VERBOSE_VALIDATION);
+        }
+        publishEvent(EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
+        initDeployer(cloud);
+        publishEvent(EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
 
-		String prefix =
-				management ? cloud.getProvider().getManagementGroup() : cloud.getProvider().getMachineNamePrefix();
+        logger.fine("Initializing Cloud Provisioning - management mode: " + management + ". Using template: "
+                + cloudTemplateName + " with cloud: " + cloudName);
 
-		if (StringUtils.isBlank(prefix)) {
-			if (management) {
-				prefix = MANAGMENT_MACHINE_PREFIX;
-			} else {
-				prefix = AGENT_MACHINE_PREFIX;
-			}
+        String prefix =
+                management ? cloud.getProvider().getManagementGroup() : cloud.getProvider().getMachineNamePrefix();
 
-			logger.warning("Prefix for machine name was not set. Using: " + prefix);
-		}
+        if (StringUtils.isBlank(prefix)) {
+            if (management) {
+                prefix = MANAGMENT_MACHINE_PREFIX;
+            } else {
+                prefix = AGENT_MACHINE_PREFIX;
+            }
 
-		this.serverNamePrefix = prefix;
+            logger.warning("Prefix for machine name was not set. Using: " + prefix);
+        }
 
-		initCleanRemoteOnStart(cloud);
-	}
+        this.serverNamePrefix = prefix;
 
-	private void initCleanRemoteOnStart(final Cloud cloud) {
-		// set custom settings
-		final Map<String, Object> customSettings = cloud.getCustom();
-		if (customSettings != null) {
-			// clean GS files on shutdown
-			if (customSettings.containsKey(CloudifyConstants.CUSTOM_PROPERTY_CLEAN_REMOTE_DIR_ON_START)) {
-				final Object cleanRemoteDirValue =
-						customSettings.get(CloudifyConstants.CUSTOM_PROPERTY_CLEAN_REMOTE_DIR_ON_START);
-				if (cleanRemoteDirValue instanceof Boolean) {
-					this.cleanRemoteDirectoryOnStart = (Boolean) cleanRemoteDirValue;
-				} else if (cleanRemoteDirValue instanceof String) {
-					this.cleanRemoteDirectoryOnStart = Boolean.parseBoolean((String) cleanRemoteDirValue);
-				} else {
-					throw new IllegalArgumentException("Unexpected value for BYON property: "
-							+ CloudifyConstants.CUSTOM_PROPERTY_CLEAN_REMOTE_DIR_ON_START
-							+ ". Was expecting a boolean or String, got: "
-							+ cleanRemoteDirValue.getClass().getName());
-				}
-			}
-		}
-	}
+        initCleanRemoteOnStart(cloud);
+    }
 
-	private void logServerDetails(final MachineDetails machineDetails, final File tempFile) {
-		if (logger.isLoggable(Level.FINE)) {
-			final String nodePrefix = "[" + machineDetails.getMachineId() + "] ";
-			logger.fine(nodePrefix + "Cloud Server is allocated.");
-			if (tempFile == null) {
-				logger.fine(nodePrefix + "Password: ***");
-			} else {
-				logger.fine(nodePrefix + "Key File: " + tempFile.getAbsolutePath());
-			}
+    @Override
+    public void onServiceUninstalled(final long duration, final TimeUnit unit)
+            throws InterruptedException, TimeoutException, CloudProvisioningException {
 
-			if (logger.isLoggable(Level.FINE)) {
-				logger.fine("Private IP: " + machineDetails.getPrivateAddress());
-				logger.fine("Public IP: " + machineDetails.getPublicAddress());
-			}
-		}
-	}
+    }
 
-	/**
-	 * Handles credentials for accessing the server - in this order: 1. pem file (set as a key file on the user block in
-	 * the groovy file) 2. machine's remote password (set previously by the cloud driver)
-	 * 
-	 * @param machineDetails
-	 *            The MachineDetails object that represents this server
-	 * @param template
-	 *            the cloud template.
-	 * @throws CloudProvisioningException
-	 *             Indicates missing credentials or IOException (when a key file is used)
-	 */
-	protected void handleServerCredentials(final MachineDetails machineDetails, final ComputeTemplate template)
-			throws CloudProvisioningException {
+    /**
+     *
+     * @param serverName .
+     * @param endTime .
+     * @param template .
+     * @return
+     * @throws CloudProvisioningException .
+     * @throws TimeoutException .
+     */
+    protected abstract MachineDetails createServer(
+            final String serverName,
+            final long endTime,
+            final ComputeTemplate template) throws CloudProvisioningException, TimeoutException;
 
-		File keyFile = null;
-		// using a key (pem) file
-		if (machineDetails.getKeyFile() != null) {
-			keyFile = machineDetails.getKeyFile();
-			if (!keyFile.isFile()) {
-				throw new CloudProvisioningException("The specified key file could not be found: "
-						+ keyFile.getAbsolutePath());
-			}
-		} else if (StringUtils.isNotBlank(template.getKeyFile())) {
-			final String keyFileStr = template.getKeyFile();
-			// fixConfigRelativePaths(cloud, template);
-			keyFile = new File(keyFileStr);
-			if (!keyFile.isAbsolute()) {
-				keyFile = new File(template.getAbsoluteUploadDir(), keyFileStr);
-			}
-			if (keyFile != null && !keyFile.exists()) {
-				throw new CloudProvisioningException("The specified key file could not be found: "
-						+ keyFile.getAbsolutePath());
-			}
-		} else {
-			// using a password
-			final String remotePassword = machineDetails.getRemotePassword();
-			if (StringUtils.isNotBlank(remotePassword)) {
-				// is this actually a private key file?
-				if (remotePassword.startsWith(PRIVATE_KEY_PREFIX)) {
-					logger.fine("Cloud has provided a key file for connections to new machines");
-					try {
-						keyFile = File.createTempFile("gs-esm-key", ".pem");
-						keyFile.deleteOnExit();
-						FileUtils.write(keyFile, remotePassword);
+    /**
+     *
+     * @param numberOfManagementMachines .
+     * @param numberOfErrors .
+     * @param firstCreationException .
+     * @param createdManagementMachines .
+     * @throws CloudProvisioningException .
+     */
+    protected abstract void handleProvisioningFailure(
+            final int numberOfManagementMachines,
+            final int numberOfErrors,
+            final Exception firstCreationException,
+            final MachineDetails[] createdManagementMachines) throws CloudProvisioningException;
 
-						// template.setKeyFile(keyFile.getAbsolutePath());
-						machineDetails.setKeyFile(keyFile);
-					} catch (final IOException e) {
-						throw new CloudProvisioningException("Failed to create a temporary "
-								+ "file for cloud server's key file", e);
-					}
-				} else {
-					// this is a password
-					logger.fine("Cloud has provided a password for remote connections to new machines");
-				}
-			} else {
-				// if we got here - there is no key file or password on the
-				// cloud or node.
-				logger.severe("No Password or key file specified in the cloud configuration file - connection to"
-						+ " the new machine is not possible.");
-				throw new CloudProvisioningException(
-						"No credentials (password or key file) supplied with the cloud configuration file");
-			}
-		}
 
-		logServerDetails(machineDetails, keyFile);
-	}
+    /**
+     * Handles credentials for accessing the server - in this order: 1. pem file (set as a key file on the user block in
+     * the groovy file) 2. machine's remote password (set previously by the cloud driver)
+     *
+     * @param machineDetails
+     *            The MachineDetails object that represents this server
+     * @param template
+     *            the cloud template.
+     * @throws CloudProvisioningException
+     *             Indicates missing credentials or IOException (when a key file is used)
+     */
+    protected void handleServerCredentials(final MachineDetails machineDetails, final ComputeTemplate template)
+            throws CloudProvisioningException {
 
-	/**
-	 * Publish a provisioning event occurred for the listeners registered on this class.
-	 * 
-	 * @param eventName
-	 *            The name of the event (must be in the message bundle)
-	 * @param args
-	 *            Arguments that complement the event message
-	 */
-	protected void publishEvent(final String eventName, final Object... args) {
-		for (final ProvisioningDriverListener listener : this.eventsListenersList) {
-			listener.onProvisioningEvent(eventName, args);
-		}
-	}
+        File keyFile = null;
+        // using a key (pem) file
+        if (machineDetails.getKeyFile() != null) {
+            keyFile = machineDetails.getKeyFile();
+            if (!keyFile.isFile()) {
+                throw new CloudProvisioningException("The specified key file could not be found: "
+                        + keyFile.getAbsolutePath());
+            }
+        } else if (StringUtils.isNotBlank(template.getKeyFile())) {
+            final String keyFileStr = template.getKeyFile();
+            // fixConfigRelativePaths(cloud, template);
+            keyFile = new File(keyFileStr);
+            if (!keyFile.isAbsolute()) {
+                keyFile = new File(template.getAbsoluteUploadDir(), keyFileStr);
+            }
+            if (!keyFile.exists()) {
+                throw new CloudProvisioningException("The specified key file could not be found: "
+                        + keyFile.getAbsolutePath());
+            }
+        } else {
+            // using a password
+            final String remotePassword = machineDetails.getRemotePassword();
+            if (StringUtils.isNotBlank(remotePassword)) {
+                // is this actually a private key file?
+                if (remotePassword.startsWith(PRIVATE_KEY_PREFIX)) {
+                    logger.fine("Cloud has provided a key file for connections to new machines");
+                    try {
+                        keyFile = File.createTempFile("gs-esm-key", ".pem");
+                        keyFile.deleteOnExit();
+                        FileUtils.write(keyFile, remotePassword);
 
-	/*********
-	 * Created a machine details with basic settings from the given cloud template.
-	 * 
-	 * @param template
-	 *            the cloud template.
-	 * @return the newly created machine details.
-	 */
-	protected MachineDetails createMachineDetailsForTemplate(final ComputeTemplate template) {
+                        // template.setKeyFile(keyFile.getAbsolutePath());
+                        machineDetails.setKeyFile(keyFile);
+                    } catch (final IOException e) {
+                        throw new CloudProvisioningException("Failed to create a temporary "
+                                + "file for cloud server's key file", e);
+                    }
+                } else {
+                    // this is a password
+                    logger.fine("Cloud has provided a password for remote connections to new machines");
+                }
+            } else {
+                // if we got here - there is no key file or password on the
+                // cloud or node.
+                logger.severe("No Password or key file specified in the cloud configuration file - connection to"
+                        + " the new machine is not possible.");
+                throw new CloudProvisioningException(
+                        "No credentials (password or key file) supplied with the cloud configuration file");
+            }
+        }
 
-		final MachineDetails md = new MachineDetails();
-		md.setAgentRunning(false);
-		md.setCloudifyInstalled(false);
-		md.setInstallationDirectory(null);
+        logServerDetails(machineDetails, keyFile);
+    }
 
-		md.setRemoteUsername(template.getUsername());
-		md.setRemotePassword(template.getPassword());
+    /**
+     * Publish a provisioning event occurred for the listeners registered on this class.
+     *
+     * @param eventName
+     *            The name of the event (must be in the message bundle)
+     * @param args
+     *            Arguments that complement the event message
+     */
+    protected void publishEvent(final String eventName, final Object... args) {
+        for (final ProvisioningDriverListener listener : this.eventsListenersList) {
+            listener.onProvisioningEvent(eventName, args);
+        }
+    }
 
-		md.setRemoteExecutionMode(template.getRemoteExecution());
-		md.setFileTransferMode(template.getFileTransfer());
-		md.setScriptLangeuage(template.getScriptLanguage());
-		md.setCleanRemoteDirectoryOnStart(this.cleanRemoteDirectoryOnStart);
-		return md;
+    /*********
+     * Created a machine details with basic settings from the given cloud template.
+     *
+     * @param template
+     *            the cloud template.
+     * @return the newly created machine details.
+     */
+    protected MachineDetails createMachineDetailsForTemplate(final ComputeTemplate template) {
 
-	}
+        final MachineDetails md = new MachineDetails();
+        md.setAgentRunning(false);
+        md.setCloudifyInstalled(false);
+        md.setInstallationDirectory(null);
 
-	/*********
-	 * .
-	 * 
-	 * @param endTime
-	 *            .
-	 * @param numberOfManagementMachines
-	 *            .
-	 * @return .
-	 * @throws TimeoutException .
-	 * @throws CloudProvisioningException .
-	 */
-	protected MachineDetails[] doStartManagementMachines(final long endTime, final int numberOfManagementMachines)
-			throws TimeoutException, CloudProvisioningException {
-		final ExecutorService executors = Executors.newFixedThreadPool(numberOfManagementMachines);
+        md.setRemoteUsername(template.getUsername());
+        md.setRemotePassword(template.getPassword());
 
-		@SuppressWarnings("unchecked")
-		final Future<MachineDetails>[] futures = (Future<MachineDetails>[]) new Future<?>[numberOfManagementMachines];
+        md.setRemoteExecutionMode(template.getRemoteExecution());
+        md.setFileTransferMode(template.getFileTransfer());
+        md.setScriptLangeuage(template.getScriptLanguage());
+        md.setCleanRemoteDirectoryOnStart(this.cleanRemoteDirectoryOnStart);
+        return md;
 
-		final ComputeTemplate managementTemplate =
-				this.cloud.getCloudCompute().getTemplates().get(
-						this.cloud.getConfiguration().getManagementMachineTemplate());
-		try {
-			// Call startMachine asynchronously once for each management machine
-			for (int i = 0; i < numberOfManagementMachines; i++) {
-				final int index = i + 1;
-				futures[i] = executors.submit(new Callable<MachineDetails>() {
+    }
 
-					@Override
-					public MachineDetails call()
-							throws Exception {
-						return createServer(serverNamePrefix + index, endTime, managementTemplate);
-					}
-				});
+    /*********
+     * .
+     *
+     * @param endTime
+     *            .
+     * @param numberOfManagementMachines
+     *            .
+     * @return .
+     * @throws TimeoutException .
+     * @throws CloudProvisioningException .
+     */
+    protected MachineDetails[] doStartManagementMachines(final long endTime, final int numberOfManagementMachines)
+            throws TimeoutException, CloudProvisioningException {
+        final ExecutorService executors = Executors.newFixedThreadPool(numberOfManagementMachines);
 
-			}
+        @SuppressWarnings("unchecked")
+        final Future<MachineDetails>[] futures = (Future<MachineDetails>[]) new Future<?>[numberOfManagementMachines];
 
-			// Wait for each of the async calls to terminate.
-			int numberOfErrors = 0;
-			Exception firstCreationException = null;
-			final MachineDetails[] createdManagementMachines = new MachineDetails[numberOfManagementMachines];
-			for (int i = 0; i < createdManagementMachines.length; i++) {
-				try {
-					createdManagementMachines[i] = futures[i].get(endTime - System.currentTimeMillis(),
-							TimeUnit.MILLISECONDS);
-				} catch (final InterruptedException e) {
-					++numberOfErrors;
-					publishEvent("failed_to_create_management_vm", e.getMessage());
-					logger.log(Level.SEVERE, "Failed to start a management machine", e);
-					if (firstCreationException == null) {
-						firstCreationException = e;
-					}
+        final ComputeTemplate managementTemplate =
+                this.cloud.getCloudCompute().getTemplates().get(
+                        this.cloud.getConfiguration().getManagementMachineTemplate());
+        try {
+            // Call startMachine asynchronously once for each management machine
+            for (int i = 0; i < numberOfManagementMachines; i++) {
+                final int index = i + 1;
+                futures[i] = executors.submit(new Callable<MachineDetails>() {
 
-				} catch (final ExecutionException e) {
-					++numberOfErrors;
-					publishEvent("failed_to_create_management_vm", e.getMessage());
-					logger.log(Level.SEVERE, "Failed to start a management machine", e);
-					if (firstCreationException == null) {
-						firstCreationException = e;
-					}
-				}
-			}
+                    @Override
+                    public MachineDetails call()
+                            throws Exception {
+                        return createServer(serverNamePrefix + index, endTime, managementTemplate);
+                    }
+                });
 
-			// In case of a partial error, shutdown all servers that did start up
-			if (numberOfErrors > 0) {
-				handleProvisioningFailure(numberOfManagementMachines, numberOfErrors, firstCreationException,
-						createdManagementMachines);
-			}
+            }
 
-			return createdManagementMachines;
-		} finally {
-			if (executors != null) {
-				executors.shutdownNow();
-			}
-		}
-	}
+            // Wait for each of the async calls to terminate.
+            int numberOfErrors = 0;
+            Exception firstCreationException = null;
+            final MachineDetails[] createdManagementMachines = new MachineDetails[numberOfManagementMachines];
+            for (int i = 0; i < createdManagementMachines.length; i++) {
+                try {
+                    createdManagementMachines[i] = futures[i].get(endTime - System.currentTimeMillis(),
+                            TimeUnit.MILLISECONDS);
+                } catch (final InterruptedException e) {
+                    ++numberOfErrors;
+                    publishEvent("failed_to_create_management_vm", e.getMessage());
+                    logger.log(Level.SEVERE, "Failed to start a management machine", e);
+                    if (firstCreationException == null) {
+                        firstCreationException = e;
+                    }
 
-	/**
-	 * returns the message as it appears in the DefaultProvisioningDriver message bundle.
-	 * 
-	 * @param messageBundle
-	 *            The message bundle containing the specified message
-	 * @param msgName
-	 *            the message key as it is defined in the message bundle.
-	 * @param arguments
-	 *            the message arguments
-	 * @return the formatted message according to the message key.
-	 */
-	protected String getFormattedMessage(final ResourceBundle messageBundle, final String msgName,
-			final Object... arguments) {
-		final String message = messageBundle.getString(msgName);
-		if (message == null) {
-			logger.warning("Missing resource in messages resource bundle: " + msgName);
-			return msgName;
-		}
-		try {
-			return MessageFormat.format(message, arguments);
-		} catch (final IllegalArgumentException e) {
-			logger.fine("Failed to format message: " + msgName + " with format: "
-					+ message + " and arguments: " + Arrays.toString(arguments));
-			return msgName;
-		}
-	}
+                } catch (final ExecutionException e) {
+                    ++numberOfErrors;
+                    publishEvent("failed_to_create_management_vm", e.getMessage());
+                    logger.log(Level.SEVERE, "Failed to start a management machine", e);
+                    if (firstCreationException == null) {
+                        firstCreationException = e;
+                    }
+                }
+            }
 
-	protected abstract MachineDetails createServer(String serverName, long endTime,
-			ComputeTemplate template) throws CloudProvisioningException, TimeoutException;
+            // In case of a partial error, shutdown all servers that did start up
+            if (numberOfErrors > 0) {
+                handleProvisioningFailure(numberOfManagementMachines, numberOfErrors, firstCreationException,
+                        createdManagementMachines);
+            }
 
-	protected abstract void handleProvisioningFailure(int numberOfManagementMachines,
-			int numberOfErrors, Exception firstCreationException, MachineDetails[] createdManagementMachines)
-			throws CloudProvisioningException;
+            return createdManagementMachines;
+        } finally {
+            if (executors != null) {
+                executors.shutdownNow();
+            }
+        }
+    }
 
-	@Override
-	public void onServiceUninstalled(final long duration, final TimeUnit unit)
-			throws InterruptedException, TimeoutException, CloudProvisioningException {
+    /**
+     * returns the message as it appears in the DefaultProvisioningDriver message bundle.
+     *
+     * @param messageBundle
+     *            The message bundle containing the specified message
+     * @param msgName
+     *            the message key as it is defined in the message bundle.
+     * @param arguments
+     *            the message arguments
+     * @return the formatted message according to the message key.
+     */
+    protected String getFormattedMessage(final ResourceBundle messageBundle, final String msgName,
+                                         final Object... arguments) {
+        final String message = messageBundle.getString(msgName);
+        if (message == null) {
+            logger.warning("Missing resource in messages resource bundle: " + msgName);
+            return msgName;
+        }
+        try {
+            return MessageFormat.format(message, arguments);
+        } catch (final IllegalArgumentException e) {
+            logger.fine("Failed to format message: " + msgName + " with format: "
+                    + message + " and arguments: " + Arrays.toString(arguments));
+            return msgName;
+        }
+    }
 
-	}
+    private void initCleanRemoteOnStart(final Cloud cloud) {
+        // set custom settings
+        final Map<String, Object> customSettings = cloud.getCustom();
+        if (customSettings != null) {
+            // clean GS files on shutdown
+            if (customSettings.containsKey(CloudifyConstants.CUSTOM_PROPERTY_CLEAN_REMOTE_DIR_ON_START)) {
+                final Object cleanRemoteDirValue =
+                        customSettings.get(CloudifyConstants.CUSTOM_PROPERTY_CLEAN_REMOTE_DIR_ON_START);
+                if (cleanRemoteDirValue instanceof Boolean) {
+                    this.cleanRemoteDirectoryOnStart = (Boolean) cleanRemoteDirValue;
+                } else if (cleanRemoteDirValue instanceof String) {
+                    this.cleanRemoteDirectoryOnStart = Boolean.parseBoolean((String) cleanRemoteDirValue);
+                } else {
+                    throw new IllegalArgumentException("Unexpected value for BYON property: "
+                            + CloudifyConstants.CUSTOM_PROPERTY_CLEAN_REMOTE_DIR_ON_START
+                            + ". Was expecting a boolean or String, got: "
+                            + cleanRemoteDirValue.getClass().getName());
+                }
+            }
+        }
+    }
+
+    private void logServerDetails(final MachineDetails machineDetails, final File tempFile) {
+        if (logger.isLoggable(Level.FINE)) {
+            final String nodePrefix = "[" + machineDetails.getMachineId() + "] ";
+            logger.fine(nodePrefix + "Cloud Server is allocated.");
+            if (tempFile == null) {
+                logger.fine(nodePrefix + "Password: ***");
+            } else {
+                logger.fine(nodePrefix + "Key File: " + tempFile.getAbsolutePath());
+            }
+
+            if (logger.isLoggable(Level.FINE)) {
+                logger.fine("Private IP: " + machineDetails.getPrivateAddress());
+                logger.fine("Public IP: " + machineDetails.getPublicAddress());
+            }
+        }
+    }
+
 }
