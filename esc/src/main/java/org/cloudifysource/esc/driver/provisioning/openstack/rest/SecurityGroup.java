@@ -14,20 +14,19 @@ package org.cloudifysource.esc.driver.provisioning.openstack.rest;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
-import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.annotate.JsonRootName;
 
 /**
  * @author victor
  * @since 2.7.0
  */
+@JsonRootName("security_group")
 public class SecurityGroup {
 	private String id;
-	@JsonProperty("tenant_id")
 	private String tenantId;
 	private String name;
 	private String description;
-	@JsonProperty("security_group_rules")
-	private SecurityGroupRules[] securityGroupRules;
+	private SecurityGroupRule[] securityGroupRules;
 
 	public String getId() {
 		return id;
@@ -61,11 +60,11 @@ public class SecurityGroup {
 		this.description = description;
 	}
 
-	public SecurityGroupRules[] getSecurityGroupRules() {
+	public SecurityGroupRule[] getSecurityGroupRules() {
 		return securityGroupRules;
 	}
 
-	public void setSecurityGroupRules(final SecurityGroupRules[] securityGroupRules) {
+	public void setSecurityGroupRules(final SecurityGroupRule[] securityGroupRules) {
 		this.securityGroupRules = securityGroupRules;
 	}
 

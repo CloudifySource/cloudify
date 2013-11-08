@@ -45,17 +45,14 @@ import org.cloudifysource.esc.driver.provisioning.ComputeDriverConfiguration;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ManagementProvisioningContext;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningContext;
-import org.cloudifysource.esc.driver.provisioning.openstack.rest.FixedIp;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Network;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServer;
-import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServersResquest;
+import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServerResquest;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Port;
+import org.cloudifysource.esc.driver.provisioning.openstack.rest.RouteFixedIp;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.SecurityGroup;
-import org.cloudifysource.esc.driver.provisioning.openstack.rest.SecurityGroupRules;
-import org.cloudifysource.esc.driver.provisioning.openstack.rest.SecurityGroupRulesRequest;
-import org.cloudifysource.esc.driver.provisioning.openstack.rest.SecurityGroupsRequest;
+import org.cloudifysource.esc.driver.provisioning.openstack.rest.SecurityGroupRule;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Subnet;
-import org.cloudifysource.esc.driver.provisioning.openstack.rest.UpdatePortRequest;
 import org.openspaces.admin.application.Application;
 import org.openspaces.admin.application.Applications;
 
@@ -207,7 +204,8 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		}
 	}
 
-	private void cleanAllSecurityGroups() throws CloudProvisioningException, OpenstackException {
+	private void cleanAllSecurityGroups() throws CloudProvisioningException, OpenstackException,
+			UniformInterfaceException, OpenstackJsonSerializationException {
 		final String prefix = this.securityGroupNames.getPrefix();
 		final List<SecurityGroup> securityGroupsByName = this.quantumApi.getSecurityGroupsByPrefix(prefix);
 		for (final SecurityGroup securityGroup : securityGroupsByName) {
@@ -216,30 +214,32 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	}
 
 	private void createManagementRule(final String targetSecurityGroupId, final String portRangeString,
-			final String cidr) throws UniformInterfaceException, CloudProvisioningException {
+			final String cidr) throws UniformInterfaceException, CloudProvisioningException,
+			OpenstackJsonSerializationException {
 
 		final PortRange portRange = PortRangeFactory.createPortRange(portRangeString);
-		SecurityGroupRulesRequest request;
+		SecurityGroupRule request;
 		for (final PortRangeEntry entry : portRange.getRanges()) {
-			request = new SecurityGroupRulesRequest();
-			request.setSecurityGroupId(targetSecurityGroupId)
-					.setDirection("ingress")
-					.setProtocol("tcp")
-					.setPortRangeMax(entry.getTo() == null ? entry.getFrom().toString() : entry.getTo().toString())
-					.setPortRangeMin(entry.getFrom().toString());
+			request = new SecurityGroupRule();
+			request.setSecurityGroupId(targetSecurityGroupId);
+			request.setDirection("ingress");
+			request.setProtocol("tcp");
+			request.setPortRangeMax(entry.getTo() == null ? entry.getFrom().toString() : entry.getTo().toString());
+			request.setPortRangeMin(entry.getFrom().toString());
 			if (cidr == null) {
 				request.setRemoteIpPrefix("0.0.0.0/0");
 			} else {
 				request.setRemoteIpPrefix(cidr);
 			}
-			quantumApi.createSecurityGroupRules(request);
+			quantumApi.createSecurityGroupRule(request);
 		}
 	}
 
-	private SecurityGroup createSecurityGroup(final String secgroupName) throws CloudProvisioningException {
-		final SecurityGroupsRequest request = new SecurityGroupsRequest()
-				.setName(secgroupName)
-				.setDescription("Security groups " + secgroupName);
+	private SecurityGroup createSecurityGroup(final String secgroupName) throws CloudProvisioningException,
+			UniformInterfaceException, OpenstackJsonSerializationException {
+		final SecurityGroup request = new SecurityGroup();
+		request.setName(secgroupName);
+		request.setDescription("Security groups " + secgroupName);
 		return quantumApi.createSecurityGroupsIfNotExist(request);
 	}
 
@@ -271,8 +271,12 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		final String tenant = st.hasMoreElements() ? (String) st.nextToken() : null;
 		final String username = st.hasMoreElements() ? (String) st.nextToken() : null;
 
-		this.novaApi = new OpenStackNovaClient(endpoint, username, password, tenant, region);
-		this.quantumApi = new OpenStackQuantumClient(endpoint, username, password, tenant, region, quantumVersion);
+		try {
+			this.novaApi = new OpenStackNovaClient(endpoint, username, password, tenant, region);
+			this.quantumApi = new OpenStackQuantumClient(endpoint, username, password, tenant, region, quantumVersion);
+		} catch (OpenstackJsonSerializationException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	@Override
@@ -317,7 +321,12 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		int attempts = 0;
 		boolean foundFreeName = false;
 
-		final List<NovaServer> servers = novaApi.getServers();
+		final List<NovaServer> servers;
+		try {
+			servers = novaApi.getServers();
+		} catch (final OpenstackJsonSerializationException e) {
+			throw new CloudProvisioningException(e);
+		}
 
 		final Set<String> existingNames = new HashSet<String>(servers.size());
 		for (final NovaServer sv : servers) {
@@ -377,15 +386,19 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 	@Override
 	public MachineDetails[] getExistingManagementServers() throws CloudProvisioningException {
-		final ComputeTemplate template = this.cloud.getCloudCompute().getTemplates().get(this.cloudTemplateName);
-		final List<NovaServer> servers = novaApi.getServersByPrefix(this.serverNamePrefix);
+		try {
+			final ComputeTemplate template = this.cloud.getCloudCompute().getTemplates().get(this.cloudTemplateName);
+			final List<NovaServer> servers = novaApi.getServersByPrefix(this.serverNamePrefix);
 
-		final MachineDetails[] mds = new MachineDetails[servers.size()];
-		for (int i = 0; i < servers.size(); i++) {
-			mds[i] = this.createMachineDetails(template, servers.get(i));
+			final MachineDetails[] mds = new MachineDetails[servers.size()];
+			for (int i = 0; i < servers.size(); i++) {
+				mds[i] = this.createMachineDetails(template, servers.get(i));
+			}
+
+			return mds;
+		} catch (final Exception e) {
+			throw new CloudProvisioningException(e);
 		}
-
-		return mds;
 	}
 
 	private String createExistingServersDescription(final String managementMachinePrefix,
@@ -433,7 +446,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		try {
 			final Network managementNetwork = quantumApi.getNetworkByName(this.managementNetworkName);
 
-			final NovaServersResquest request = new NovaServersResquest();
+			final NovaServerResquest request = new NovaServerResquest();
 			request.setName(serverName);
 			request.setKeyName(keyName);
 			request.setImageRef(imageId);
@@ -476,27 +489,33 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			logger.log(Level.SEVERE,
 					"Cloud machine was started but an error occured during initialization. Shutting down machine", e);
 			if (serverId != null) {
-				novaApi.deleteServer(serverId);
+				try {
+					novaApi.deleteServer(serverId);
+				} catch (OpenstackJsonSerializationException e1) {
+					throw new CloudProvisioningException(e);
+				}
 			}
 			throw new CloudProvisioningException(e);
 		}
 	}
 
 	private void addSecurityGroupsToNetwork(final String serverId, final Network network,
-			final String[] securityGroupNames) throws UniformInterfaceException, CloudProvisioningException {
+			final String[] securityGroupNames) throws UniformInterfaceException, CloudProvisioningException,
+			OpenstackJsonSerializationException {
 		final Port port = quantumApi.getPort(serverId, network.getId());
 
-		final UpdatePortRequest request = new UpdatePortRequest();
-		request.setId(port.getId());
+		final Port updateRequest = new Port();
+		updateRequest.setId(port.getId());
 		for (final String sgn : securityGroupNames) {
 			final SecurityGroup sg = quantumApi.getSecurityGroupsByName(sgn);
-			request.addSecurityGroupId(sg.getId());
+			updateRequest.addSecurityGroup(sg.getId());
 		}
 
-		quantumApi.updatePort(request);
+		quantumApi.updatePort(updateRequest);
 	}
 
-	private void createSecurityGroupsRules() throws CloudProvisioningException {
+	private void createSecurityGroupsRules() throws CloudProvisioningException, UniformInterfaceException,
+			OpenstackJsonSerializationException {
 		// Create rules
 		final ServiceNetwork network = this.configuration.getNetwork();
 		if (network != null) {
@@ -513,10 +532,11 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		}
 	}
 
-	private void deleteEgressRulesFromSecurityGroup(final String securityGroupName) throws CloudProvisioningException {
+	private void deleteEgressRulesFromSecurityGroup(final String securityGroupName) throws CloudProvisioningException,
+			UniformInterfaceException, OpenstackJsonSerializationException {
 		final SecurityGroup securityGroup = quantumApi.getSecurityGroupsByName(securityGroupName);
-		final SecurityGroupRules[] securityGroupRules = securityGroup.getSecurityGroupRules();
-		for (final SecurityGroupRules rule : securityGroupRules) {
+		final SecurityGroupRule[] securityGroupRules = securityGroup.getSecurityGroupRules();
+		for (final SecurityGroupRule rule : securityGroupRules) {
 			if ("egress".equals(rule.getDirection())) {
 				try {
 					quantumApi.deleteSecurityGroupRule(rule.getId());
@@ -528,7 +548,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	}
 
 	private void createAccessRule(final String direction, final String protocol, final AccessRule accessRule)
-			throws CloudProvisioningException {
+			throws CloudProvisioningException, UniformInterfaceException, OpenstackJsonSerializationException {
 
 		final String securityGroupName = this.securityGroupNames.getServiceName();
 		final SecurityGroup securityGroup = quantumApi.getSecurityGroupsByName(securityGroupName);
@@ -585,51 +605,60 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 		// Create rules
 		for (final PortRangeEntry pre : portRange.getRanges()) {
-			final SecurityGroupRulesRequest request = new SecurityGroupRulesRequest()
-					.setDirection(direction)
-					.setProtocol(protocol)
-					.setSecurityGroupId(targetSecurityGroupId)
-					.setPortRangeMax(pre.getTo() == null ? pre.getFrom().toString() : pre.getTo().toString())
-					.setPortRangeMin(pre.getFrom().toString());
+			final SecurityGroupRule request = new SecurityGroupRule();
+			request.setDirection(direction);
+			request.setProtocol(protocol);
+			request.setSecurityGroupId(targetSecurityGroupId);
+			request.setPortRangeMax(pre.getTo() == null ? pre.getFrom().toString() : pre.getTo().toString());
+			request.setPortRangeMin(pre.getFrom().toString());
 			if (existingSecgroup != null) {
 				request.setRemoteGroupId(existingSecgroup.getId());
 			} else {
 				request.setRemoteIpPrefix(ip);
 			}
-			quantumApi.createSecurityGroupRules(request);
+			quantumApi.createSecurityGroupRule(request);
 		}
 	}
 
 	private MachineDetails createMachineDetails(final ComputeTemplate template, final NovaServer server)
 			throws CloudProvisioningException {
-		final MachineDetails md = this.createMachineDetailsForTemplate(template);
+		try {
+			final MachineDetails md = this.createMachineDetailsForTemplate(template);
 
-		md.setMachineId(server.getId());
-		md.setCloudifyInstalled(false);
-		md.setInstallationDirectory(null);
-		// md.setInstallationDirectory(template.getRemoteDirectory());
-		// md.setRemoteDirectory(remoteDirectory);
-		md.setOpenFilesLimit(template.getOpenFilesLimit());
-		//
-		// md.setInstallerConfigutation(installerConfigutation);
-		// md.setKeyFile(keyFile);
-		// md.setLocationId(locationId);
-		final Network managementNetwork = quantumApi.getNetworkByName(this.managementNetworkName);
-		final Port managementPort = quantumApi.getPort(server.getId(), managementNetwork.getId());
-		final FixedIp fixedIp = managementPort.getFixedIps().get(0);
-		md.setPrivateAddress(fixedIp.getIpAddress());
+			md.setMachineId(server.getId());
+			md.setCloudifyInstalled(false);
+			md.setInstallationDirectory(null);
+			// md.setInstallationDirectory(template.getRemoteDirectory());
+			// md.setRemoteDirectory(remoteDirectory);
+			md.setOpenFilesLimit(template.getOpenFilesLimit());
+			//
+			// md.setInstallerConfigutation(installerConfigutation);
+			// md.setKeyFile(keyFile);
+			// md.setLocationId(locationId);
+			final Network managementNetwork = quantumApi.getNetworkByName(this.managementNetworkName);
+			final Port managementPort = quantumApi.getPort(server.getId(), managementNetwork.getId());
+			final RouteFixedIp fixedIp = managementPort.getFixedIps().get(0);
+			md.setPrivateAddress(fixedIp.getIpAddress());
 
-		md.setPublicAddress(quantumApi.getFloatingIpByPortId(managementPort.getId()));
+			md.setPublicAddress(quantumApi.getFloatingIpByPortId(managementPort.getId()));
 
-		this.handleServerCredentials(md, template);
-		return md;
+			this.handleServerCredentials(md, template);
+			return md;
+		} catch (Exception e) {
+			throw new CloudProvisioningException(e);
+		}
 	}
 
 	private NovaServer waitForServerToBecomeReady(final String serverId, final long endTime)
 			throws CloudProvisioningException, InterruptedException, TimeoutException {
 
 		while (System.currentTimeMillis() < endTime) {
-			final NovaServer server = novaApi.getServerDetails(serverId);
+			final NovaServer server;
+			try {
+				server = novaApi.getServerDetails(serverId);
+			} catch (final OpenstackJsonSerializationException e) {
+				throw new CloudProvisioningException(e);
+			}
 
 			if (server == null) {
 				logger.fine("Server Status (" + serverId + ") Not Found, please wait...");
@@ -669,7 +698,11 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			for (final MachineDetails machineDetails : createdManagementMachines) {
 				if (machineDetails != null) {
 					logger.severe("Shutting down machine: " + machineDetails);
-					this.novaApi.deleteServer(machineDetails.getMachineId());
+					try {
+						this.novaApi.deleteServer(machineDetails.getMachineId());
+					} catch (final OpenstackJsonSerializationException e) {
+						throw new CloudProvisioningException(e);
+					}
 				}
 			}
 		}
@@ -710,7 +743,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		// ** Clean security groups
 		try {
 			this.cleanAllSecurityGroups();
-		} catch (OpenstackException e) {
+		} catch (Exception e) {
 			logger.warning("Couldn't clean security groups " + this.securityGroupNames.getPrefix() + "*");
 		}
 
@@ -719,26 +752,43 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	@Override
 	public boolean stopMachine(final String serverIp, final long duration, final TimeUnit unit)
 			throws CloudProvisioningException, TimeoutException, InterruptedException {
+
 		boolean stopResult = false;
 		logger.info("Stop Machine - machineIp: " + serverIp);
 		logger.info("Looking up cloud server with IP: " + serverIp);
-		final NovaServer server = novaApi.getServerByIp(serverIp);
+
+		final NovaServer server;
+		try {
+			server = novaApi.getServerByIp(serverIp);
+		} catch (OpenstackJsonSerializationException e) {
+			throw new CloudProvisioningException(e);
+		}
+
 		if (server != null) {
 			logger.info("Found server: " + server.getId() + ". Shutting it down and waiting for shutdown to complete");
 
-			// Release and delete floating Ip if exists
-			final String floatingIp = quantumApi.getFloatingIpByFixedIpAddress(serverIp);
-			if (floatingIp != null) {
-				try {
-					logger.info("Deleting Floating Ip : " + floatingIp);
-					quantumApi.deleteFloatingIPByFixedIp(serverIp);
-				} catch (Exception e) {
-					logger.warning("Couldn't delete floating IP : " + floatingIp);
+			try {
+				// Release and delete floating Ip if exists
+				final String floatingIp = quantumApi.getFloatingIpByFixedIpAddress(serverIp);
+				if (floatingIp != null) {
+					try {
+						logger.info("Deleting Floating Ip : " + floatingIp);
+						quantumApi.deleteFloatingIPByFixedIp(serverIp);
+					} catch (Exception e) {
+						logger.warning("Couldn't delete floating IP : " + floatingIp);
+					}
 				}
+			} catch (OpenstackJsonSerializationException e) {
+				logger.log(Level.WARNING, "Could not release floating Ip associated to server " + server.getName()
+						+ " (" + server.getId() + ")", e);
 			}
 
 			// Delete server
-			novaApi.deleteServer(server.getId());
+			try {
+				novaApi.deleteServer(server.getId());
+			} catch (final OpenstackJsonSerializationException e) {
+				throw new CloudProvisioningException(e);
+			}
 			this.waitForServerToBeShutdown(server.getId(), duration, unit);
 			logger.info("Server: " + server.getId() + " shutdown has finished.");
 			stopResult = true;
@@ -758,7 +808,12 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		final long endTime = System.currentTimeMillis() + unit.toMillis(duration);
 
 		while (System.currentTimeMillis() < endTime) {
-			final NovaServer server = novaApi.getServerDetails(serverId);
+			final NovaServer server;
+			try {
+				server = novaApi.getServerDetails(serverId);
+			} catch (final OpenstackJsonSerializationException e) {
+				throw new CloudProvisioningException(e);
+			}
 
 			if (server == null) {
 				logger.fine("Server Status (" + serverId + ") Not Found. Considered deleted.");

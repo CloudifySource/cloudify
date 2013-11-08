@@ -10,31 +10,26 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  ******************************************************************************/
-package org.cloudifysource.esc.driver.provisioning.openstack.rest;
+package org.cloudifysource.esc.driver.provisioning.openstack;
 
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
-import org.codehaus.jackson.annotate.JsonProperty;
+public class OpenstackJsonSerializationException extends Exception {
 
-/**
- * @author victor
- * @since 2.7.0
- */
-public class SecurityGroupResponse {
+	private static final long serialVersionUID = 1L;
 
-	@JsonProperty("security_group")
-	private SecurityGroup securityGroup;
-
-	public SecurityGroup getSecurityGroup() {
-		return securityGroup;
+	public OpenstackJsonSerializationException() {
 	}
 
-	public void setSecurityGroup(final SecurityGroup securityGroup) {
-		this.securityGroup = securityGroup;
+	public OpenstackJsonSerializationException(final String message) {
+		super(message);
 	}
 
-	@Override
-	public String toString() {
-		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+	public OpenstackJsonSerializationException(final Throwable cause) {
+		super(cause);
 	}
+
+	public OpenstackJsonSerializationException(final String message, final Throwable cause) {
+		super(message, cause);
+
+	}
+
 }

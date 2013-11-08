@@ -18,12 +18,12 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServerAddress;
-import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
-import org.codehaus.jackson.ObjectCodec;
+import org.codehaus.jackson.map.DeserializationConfig.Feature;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * @author victor
@@ -91,10 +91,10 @@ public class AddressesDeserializer extends JsonDeserializer<List<NovaServerAddre
 		jp.nextToken(); // skip current address name
 
 		final List<NovaServerAddress> list = new ArrayList<NovaServerAddress>();
+		final ObjectMapper mapr = new ObjectMapper();
+		mapr.configure(Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		while (JsonToken.END_ARRAY != jp.nextToken()) {
-			final JsonNode jsonNode = jp.readValueAsTree();
-			final ObjectCodec codec = jp.getCodec();
-			final NovaServerAddress address = codec.treeToValue(jsonNode, NovaServerAddress.class);
+			final NovaServerAddress address = mapr.readValue(jp, NovaServerAddress.class);
 			address.setName(addressName);
 			list.add(address);
 		}

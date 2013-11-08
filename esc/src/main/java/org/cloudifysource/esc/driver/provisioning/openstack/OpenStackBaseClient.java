@@ -18,11 +18,13 @@ import java.util.logging.Logger;
 import javax.ws.rs.core.MediaType;
 
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
-import org.cloudifysource.esc.driver.provisioning.openstack.rest.TokenResponse;
+import org.cloudifysource.esc.driver.provisioning.openstack.rest.TokenAccess;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.TokenServiceCatalog;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.TokenServiceCatalogEndpoint;
 
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 
 /**
@@ -44,7 +46,7 @@ public abstract class OpenStackBaseClient {
 	private String password;
 	private String tenant;
 
-	private TokenResponse token;
+	private TokenAccess token;
 	private String region;
 
 	private Client serviceClient;
@@ -54,7 +56,7 @@ public abstract class OpenStackBaseClient {
 	}
 
 	public OpenStackBaseClient(final String endpoint, final String username, final String password,
-			final String tenant, final String region) {
+			final String tenant, final String region) throws OpenstackJsonSerializationException {
 		this.endpoint = endpoint;
 		this.username = username;
 		this.password = password;
@@ -71,7 +73,7 @@ public abstract class OpenStackBaseClient {
 	}
 
 	private String getEndpoint(final String endpointType) {
-		for (TokenServiceCatalog tsc : this.token.getAccess().getServiceCatalog()) {
+		for (TokenServiceCatalog tsc : this.token.getServiceCatalog()) {
 			if (endpointType.equals(tsc.getName())) {
 				for (TokenServiceCatalogEndpoint endpoint : tsc.getEndpoints()) {
 					if (this.region.equals(endpoint.getRegion())) {
@@ -83,7 +85,7 @@ public abstract class OpenStackBaseClient {
 		return null;
 	}
 
-	private void renewTokenIfNeeded() {
+	private void renewTokenIfNeeded() throws OpenstackJsonSerializationException {
 		if (this.isTokenExpiredSoon()) {
 			if (logger.isLoggable(Level.FINEST)) {
 				logger.finest("Token expired. Request a new token");
@@ -97,11 +99,11 @@ public abstract class OpenStackBaseClient {
 			return true;
 		}
 		long current = System.currentTimeMillis() + TOKEN_TIMEOUT_MARGING;
-		long tokenExpires = token.getAccess().getToken().getExpires().getTime();
+		long tokenExpires = token.getToken().getExpires().getTime();
 		return current > tokenExpires;
 	}
 
-	private void initToken() {
+	private void initToken() throws OpenstackJsonSerializationException {
 		final Client client = Client.create();
 		try {
 			logger.info("Request openstack " + this.getServiceName() + " new token.");
@@ -111,7 +113,7 @@ public abstract class OpenStackBaseClient {
 			final String input = String.format(tokenJsonRequest, username, password, tenant);
 			final String response = webResource.path("tokens").accept(MediaType.APPLICATION_JSON)
 					.type(MediaType.APPLICATION_JSON_TYPE).post(String.class, input);
-			this.token = JsonUtils.mapJsonToObject(TokenResponse.class, response);
+			this.token = JsonUtils.unwrapRootToObject(TokenAccess.class, response, true);
 		} finally {
 			if (client != null) {
 				client.destroy();
@@ -125,8 +127,9 @@ public abstract class OpenStackBaseClient {
 	 * @return The pre configured WebResource.
 	 * @throws CloudProvisioningException
 	 *             If the WebResource fails to initialize.
+	 * @throws OpenstackJsonSerializationException
 	 */
-	protected WebResource getWebResource() throws CloudProvisioningException {
+	protected WebResource getWebResource() throws CloudProvisioningException, OpenstackJsonSerializationException {
 		if (serviceWebResource == null) {
 			this.renewTokenIfNeeded();
 			final String endpoint = this.getEndpoint(this.getServiceName());
@@ -145,10 +148,11 @@ public abstract class OpenStackBaseClient {
 	 * Get the token id. It will renew it if needed.
 	 * 
 	 * @return The token id.
+	 * @throws OpenstackJsonSerializationException
 	 */
-	protected String getTokenId() {
+	protected String getTokenId() throws OpenstackJsonSerializationException {
 		this.renewTokenIfNeeded();
-		return this.token.getAccess().getToken().getId();
+		return this.token.getToken().getId();
 	}
 
 	/**
@@ -158,4 +162,17 @@ public abstract class OpenStackBaseClient {
 	 */
 	abstract String getServiceName();
 
+	protected OpenstackServerException createOpenstackServerException(final UniformInterfaceException e) {
+		final ClientResponse client = e.getResponse();
+		final String responseMessage = client.getEntity(String.class);
+		return new OpenstackServerException(client.getStatus(), responseMessage, e);
+	}
+
+	protected void verifyStatusCode(final int expectedStatus, final ClientResponse response)
+			throws OpenstackServerException {
+		if (expectedStatus != response.getStatus()) {
+			final String entity = response.getEntity(String.class);
+			throw new OpenstackServerException(expectedStatus, response.getStatus(), entity);
+		}
+	}
 }

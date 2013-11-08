@@ -18,13 +18,14 @@ import java.util.List;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.deserializer.AddressesDeserializer;
-import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.codehaus.jackson.map.annotate.JsonRootName;
 
 /**
  * @author victor
  * @since 2.7.0
  */
+@JsonRootName("server")
 public class NovaServer {
 
 	private String id;
@@ -37,8 +38,7 @@ public class NovaServer {
 	@JsonDeserialize(using = AddressesDeserializer.class)
 	private List<NovaServerAddress> addresses;
 
-	@JsonProperty("security_groups")
-	private NovaServerSecurityGroups[] securityGroups;
+	private NovaServerSecurityGroup[] securityGroups;
 
 	public String getId() {
 		return id;
@@ -80,11 +80,11 @@ public class NovaServer {
 		this.status = status;
 	}
 
-	public NovaServerSecurityGroups[] getSecurityGroups() {
+	public NovaServerSecurityGroup[] getSecurityGroups() {
 		return securityGroups;
 	}
 
-	public void setSecurityGroups(final NovaServerSecurityGroups[] securityGroups) {
+	public void setSecurityGroups(final NovaServerSecurityGroup[] securityGroups) {
 		this.securityGroups = securityGroups;
 	}
 

@@ -14,19 +14,20 @@ package org.cloudifysource.esc.driver.provisioning.openstack.rest;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
-import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.annotate.JsonRootName;
 
 /**
  * @author victor
  * @since 2.7.0
  */
+@JsonRootName("network")
 public class Network {
+	private String id;
 	private String status;
 	private String name;
-	@JsonProperty("tenant_id")
 	private String tenantId;
-	private boolean routerExternal;
-	private String id;
+	private Boolean adminStateUp;
+	private String[] subnets;
 
 	public String getStatus() {
 		return status;
@@ -52,22 +53,32 @@ public class Network {
 		this.tenantId = tenantId;
 	}
 
-	@JsonProperty(value = "router:external")
-	public boolean isRouterExternal() {
-		return routerExternal;
-	}
-
-	@JsonProperty(value = "router:external")
-	public void setRouterExternal(final boolean routerExternal) {
-		this.routerExternal = routerExternal;
-	}
-
 	public String getId() {
 		return id;
 	}
 
 	public void setId(final String id) {
 		this.id = id;
+	}
+
+	public Boolean isAdminStateUp() {
+		return adminStateUp;
+	}
+
+	public void setAdminStateUp(final Boolean adminStateUp) {
+		this.adminStateUp = adminStateUp;
+	}
+
+	public Boolean getAdminStateUp() {
+		return adminStateUp;
+	}
+
+	public String[] getSubnets() {
+		return subnets;
+	}
+
+	public void setSubnets(final String[] subnets) {
+		this.subnets = subnets;
 	}
 
 	@Override

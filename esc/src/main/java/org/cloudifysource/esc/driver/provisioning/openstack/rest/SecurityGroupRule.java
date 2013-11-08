@@ -14,28 +14,23 @@ package org.cloudifysource.esc.driver.provisioning.openstack.rest;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
-import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.annotate.JsonRootName;
 
 /**
  * @author victor
  * @since 2.7.0
  */
-public class SecurityGroupRules {
-	@JsonProperty("remote_group_id")
+@JsonRootName("security_group_rule")
+public class SecurityGroupRule {
 	private String remoteGroupId;
 	private String direction;
-	@JsonProperty("remote_ip_prefix")
 	private String remoteIpPrefix;
 	private String protocol;
 	private String ethertype;
-	@JsonProperty("tenant_id")
 	private String tenantId;
-	@JsonProperty("port_range_max")
 	private String portRangeMax;
-	@JsonProperty("port_range_min")
 	private String portRangeMin;
 	private String id;
-	@JsonProperty("security_group_id")
 	private String securityGroupId;
 
 	public String getRemoteGroupId() {
