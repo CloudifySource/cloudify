@@ -19,15 +19,22 @@ import org.apache.commons.lang.builder.ToStringStyle;
  * @author victor
  * @since 2.7.0
  */
-public class PortResponse {
-	private Port port;
+public class NovaServerSecurityGroup {
+	private String name;
 
-	public Port getPort() {
-		return port;
+	public NovaServerSecurityGroup() {
 	}
 
-	public void setPort(final Port port) {
-		this.port = port;
+	public NovaServerSecurityGroup(String name) {
+		this.name = name;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(final String name) {
+		this.name = name;
 	}
 
 	@Override

@@ -14,21 +14,32 @@ package org.cloudifysource.esc.driver.provisioning.openstack.rest;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
  * @author victor
  * @since 2.7.0
  */
-public class NovaServersResponse {
+public class RouteFixedIp {
+	@JsonProperty("subnet_id")
+	private String subnetId;
+	@JsonProperty("ip_address")
+	private String ipAddress;
 
-	private NovaServer[] servers;
-
-	public NovaServer[] getServers() {
-		return servers;
+	public String getSubnetId() {
+		return subnetId;
 	}
 
-	public void setServers(final NovaServer[] servers) {
-		this.servers = servers;
+	public void setSubnetId(final String subnetId) {
+		this.subnetId = subnetId;
+	}
+
+	public String getIpAddress() {
+		return ipAddress;
+	}
+
+	public void setIpAddress(final String ipAddress) {
+		this.ipAddress = ipAddress;
 	}
 
 	@Override

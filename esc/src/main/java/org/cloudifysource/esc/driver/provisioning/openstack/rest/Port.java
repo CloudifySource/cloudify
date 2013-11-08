@@ -19,24 +19,21 @@ import java.util.Set;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
-import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.annotate.JsonRootName;
 
 /**
  * @author victor
  * @since 2.7.0
  */
+@JsonRootName("port")
 public class Port {
 
 	protected String id;
-	@JsonProperty("device_id")
 	protected String deviceId;
-	@JsonProperty("network_id")
 	protected String networkId;
 	protected String status;
-	@JsonProperty("fixed_ips")
-	protected List<FixedIp> fixedIps = new ArrayList<FixedIp>();
-	@JsonProperty("security_groups")
-	protected Set<String> securityGroupIds = new HashSet<String>();
+	protected List<RouteFixedIp> fixedIps = new ArrayList<RouteFixedIp>();
+	protected Set<String> securityGroups = new HashSet<String>();
 
 	public String getId() {
 		return id;
@@ -70,19 +67,19 @@ public class Port {
 		this.status = status;
 	}
 
-	public void addSecurityGroupId(final String securityGroupId) {
-		this.securityGroupIds.add(securityGroupId);
+	public void addSecurityGroup(final String securityGroupId) {
+		this.securityGroups.add(securityGroupId);
 	}
 
-	public Set<String> getSecurityGroupIds() {
-		return securityGroupIds;
+	public Set<String> getSecurityGroups() {
+		return securityGroups;
 	}
 
-	public void addFixedIp(final FixedIp fixedIp) {
+	public void addFixedIp(final RouteFixedIp fixedIp) {
 		this.fixedIps.add(fixedIp);
 	}
 
-	public List<FixedIp> getFixedIps() {
+	public List<RouteFixedIp> getFixedIps() {
 		return fixedIps;
 	}
 

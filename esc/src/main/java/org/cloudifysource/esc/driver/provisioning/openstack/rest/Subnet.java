@@ -12,35 +12,32 @@
  ******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning.openstack.rest;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
-import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.annotate.JsonRootName;
 
 /**
  * @author victor
  * @since 2.7.0
  */
+@JsonRootName("subnet")
 public class Subnet {
 
+	private String id;
 	private String name;
-	@JsonProperty("enable_dhcp")
-	private boolean enableDhcp;
-	@JsonProperty("network_id")
+	private Boolean enableDhcp;
 	private String networkId;
-	@JsonProperty("tenant_id")
 	private String tenantId;
-	@JsonProperty("dns_nameservers")
-	private String[] dnsNameServers;
+	private String ipVersion;
+	private String gatewayIp;
+	private String cidr;
+	private List<String> dnsNameServers = new ArrayList<String>();
 
 	// private List<AllocationPool> allocationPools;
 	// private List<HostRoute> hostRoutes;
-
-	@JsonProperty("ip_version")
-	private String ipVersion;
-	@JsonProperty("gateway_ip")
-	private String gatewayIp;
-	private String cidr;
-	private String id;
 
 	public String getName() {
 		return name;
@@ -50,11 +47,11 @@ public class Subnet {
 		this.name = name;
 	}
 
-	public boolean isEnableDhcp() {
+	public Boolean isEnableDhcp() {
 		return enableDhcp;
 	}
 
-	public void setEnableDhcp(final boolean enableDhcp) {
+	public void setEnableDhcp(final Boolean enableDhcp) {
 		this.enableDhcp = enableDhcp;
 	}
 
@@ -74,12 +71,12 @@ public class Subnet {
 		this.tenantId = tenantId;
 	}
 
-	public String[] getDnsNameServers() {
+	public List<String> getDnsNameServers() {
 		return dnsNameServers;
 	}
 
-	public void setDnsNameServers(final String[] dnsNameServers) {
-		this.dnsNameServers = dnsNameServers;
+	public void addDnsNameServers(final String dnsNameServer) {
+		this.dnsNameServers.add(dnsNameServer);
 	}
 
 	public String getIpVersion() {

@@ -14,18 +14,16 @@ package org.cloudifysource.esc.driver.provisioning.openstack.rest;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
-import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.annotate.JsonRootName;
 
 /**
  * @author victor
  * @since 2.7.0
  */
+@JsonRootName("floatingip")
 public class FloatingIp {
-	@JsonProperty("floating_network_id")
 	private String floatingNetworkId;
-	@JsonProperty("floating_ip_address")
 	private String floatingIpAddress;
-	@JsonProperty("port_id")
 	private String portId;
 	private String id;
 

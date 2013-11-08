@@ -12,19 +12,22 @@
  ******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning.openstack.rest;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+import org.codehaus.jackson.map.annotate.JsonRootName;
 
 /**
  * @author victor
  * @since 2.7.0
  */
+@JsonRootName("access")
 public class TokenAccess {
 	private TokenInfo token;
 
-	private List<TokenServiceCatalog> serviceCatalog;
+	private List<TokenServiceCatalog> serviceCatalog = new ArrayList<TokenServiceCatalog>();
 
 	public TokenInfo getToken() {
 		return token;

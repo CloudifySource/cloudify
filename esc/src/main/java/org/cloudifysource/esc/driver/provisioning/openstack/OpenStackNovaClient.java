@@ -13,7 +13,6 @@
 package org.cloudifysource.esc.driver.provisioning.openstack;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,9 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServer;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServerAddress;
-import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServerResponse;
-import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServersResponse;
-import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServersResquest;
+import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServerResquest;
 
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
@@ -48,7 +45,7 @@ public class OpenStackNovaClient extends OpenStackBaseClient {
 	}
 
 	public OpenStackNovaClient(final String endpoint, final String username, final String password,
-			final String tenant, final String region) {
+			final String tenant, final String region) throws OpenstackJsonSerializationException {
 		super(endpoint, username, password, tenant, region);
 	}
 
@@ -65,10 +62,13 @@ public class OpenStackNovaClient extends OpenStackBaseClient {
 	 * @return The server details.
 	 * @throws CloudProvisioningException
 	 *             If the instance fails to be created.
+	 * @throws OpenstackJsonSerializationException
+	 *             If a serialization issue occurs with Openstack request/response.
 	 */
-	public NovaServer createServer(final NovaServersResquest request) throws CloudProvisioningException {
+	public NovaServer createServer(final NovaServerResquest request) throws CloudProvisioningException,
+			OpenstackJsonSerializationException {
 		final WebResource webResource = this.getWebResource();
-		final String computeRequest = request.computeRequest();
+		final String computeRequest = JsonUtils.toJson(request, true);
 
 		if (logger.isLoggable(Level.FINER)) {
 			logger.log(Level.FINER, "Request=createServer: " + computeRequest);
@@ -81,8 +81,8 @@ public class OpenStackNovaClient extends OpenStackBaseClient {
 					.header("X-Auth-Token", this.getTokenId())
 					.post(String.class, computeRequest);
 
-			final NovaServerResponse nsr = JsonUtils.mapJsonToObject(NovaServerResponse.class, response);
-			return nsr.getServer();
+			final NovaServer nsr = JsonUtils.unwrapRootToObject(NovaServer.class, response);
+			return nsr;
 		} catch (Exception e) {
 			throw new CloudProvisioningException("Could not create a new server", e);
 		}
@@ -94,8 +94,10 @@ public class OpenStackNovaClient extends OpenStackBaseClient {
 	 * @return A list of existing servers.
 	 * @throws CloudProvisioningException
 	 *             If an error occurs with Openstack server.
+	 * @throws OpenstackJsonSerializationException
+	 *             If a serialization issue occurs with Openstack request/response.
 	 */
-	public List<NovaServer> getServers() throws CloudProvisioningException {
+	public List<NovaServer> getServers() throws CloudProvisioningException, OpenstackJsonSerializationException {
 		if (logger.isLoggable(Level.FINER)) {
 			logger.log(Level.FINER, "Request=getServerDetails");
 		}
@@ -107,8 +109,8 @@ public class OpenStackNovaClient extends OpenStackBaseClient {
 				.header("X-Auth-Token", this.getTokenId())
 				.get(String.class);
 
-		final NovaServersResponse nsr = JsonUtils.mapJsonToObject(NovaServersResponse.class, response);
-		return Arrays.asList(nsr.getServers());
+		final List<NovaServer> list = JsonUtils.unwrapRootToList(NovaServer.class, response);
+		return list;
 	}
 
 	/**
@@ -119,8 +121,13 @@ public class OpenStackNovaClient extends OpenStackBaseClient {
 	 * @return A list of instances prefixed by the given name.
 	 * @throws CloudProvisioningException
 	 *             If an error occurs with Openstack server.
+	 * @throws OpenstackJsonSerializationException
+	 *             If a serialization issue occurs with Openstack request/response.
+	 * @throws OpenstackServerException
+	 *             If an error occurs when requesting Openstack server.
 	 */
-	public List<NovaServer> getServersByPrefix(final String prefix) throws CloudProvisioningException {
+	public List<NovaServer> getServersByPrefix(final String prefix) throws CloudProvisioningException,
+			OpenstackJsonSerializationException, OpenstackServerException {
 		if (logger.isLoggable(Level.FINER)) {
 			logger.log(Level.FINER, "Request=getServerWithName");
 		}
@@ -134,20 +141,18 @@ public class OpenStackNovaClient extends OpenStackBaseClient {
 					.header("X-Auth-Token", this.getTokenId())
 					.get(String.class);
 
-			final NovaServersResponse nsr = JsonUtils.mapJsonToObject(NovaServersResponse.class, response);
-			final NovaServer[] servers = nsr.getServers();
-			final List<NovaServer> list = new ArrayList<NovaServer>(servers.length);
+			final List<NovaServer> servers = JsonUtils.unwrapRootToList(NovaServer.class, response);
+			final List<NovaServer> detailServers = new ArrayList<NovaServer>(servers.size());
 			for (final NovaServer sv : servers) {
 				final NovaServer serverDetails = this.getServerDetails(sv.getId());
-				list.add(serverDetails);
+				detailServers.add(serverDetails);
 			}
-			return list;
+			return detailServers;
 		} catch (final UniformInterfaceException e) {
 			if (RESOURCE_NOT_FOUND_STATUS == e.getResponse().getStatus()) {
-				logger.warning("Server (prefix=" + prefix + ") not found.");
-				return new ArrayList<NovaServer>(0);
+				return null;
 			}
-			throw new CloudProvisioningException(e);
+			throw this.createOpenstackServerException(e);
 		}
 	}
 
@@ -159,8 +164,11 @@ public class OpenStackNovaClient extends OpenStackBaseClient {
 	 * @return The server instance that match the ip.
 	 * @throws CloudProvisioningException
 	 *             If an error occurs with Openstack server.
+	 * @throws OpenstackServerException
+	 *             If an error occurs when requesting Openstack server.
 	 */
-	public NovaServer getServerByIp(final String serverIp) throws CloudProvisioningException {
+	public NovaServer getServerByIp(final String serverIp) throws CloudProvisioningException,
+			OpenstackJsonSerializationException {
 		if (logger.isLoggable(Level.FINER)) {
 			logger.log(Level.FINER, "Request=getServerWithIp");
 		}
@@ -190,8 +198,11 @@ public class OpenStackNovaClient extends OpenStackBaseClient {
 	 * @return An instance of the server with all its details.
 	 * @throws CloudProvisioningException
 	 *             If an error occurs with Openstack server.
+	 * @throws OpenstackJsonSerializationException
+	 *             If a serialization issue occurs with Openstack request/response.
 	 */
-	public NovaServer getServerDetails(final String serverId) throws CloudProvisioningException {
+	public NovaServer getServerDetails(final String serverId)
+			throws CloudProvisioningException, OpenstackJsonSerializationException {
 
 		if (logger.isLoggable(Level.FINER)) {
 			logger.log(Level.FINER, "Request=getServerDetails: " + serverId);
@@ -212,8 +223,8 @@ public class OpenStackNovaClient extends OpenStackBaseClient {
 			throw new CloudProvisioningException(e);
 		}
 
-		final NovaServerResponse nsr = JsonUtils.mapJsonToObject(NovaServerResponse.class, response);
-		return nsr.getServer();
+		final NovaServer nsr = JsonUtils.unwrapRootToObject(NovaServer.class, response);
+		return nsr;
 	}
 
 	/**
@@ -223,8 +234,10 @@ public class OpenStackNovaClient extends OpenStackBaseClient {
 	 *            The server id tto terminate.
 	 * @throws CloudProvisioningException
 	 *             If the service's endpoint has not been found in Openstack service's catalog.
+	 * @throws OpenstackJsonSerializationException
 	 */
-	public void deleteServer(final String serverId) throws CloudProvisioningException {
+	public void deleteServer(final String serverId) throws CloudProvisioningException,
+			OpenstackJsonSerializationException {
 		final WebResource webResource = this.getWebResource();
 		if (logger.isLoggable(Level.FINER)) {
 			logger.log(Level.FINER, "Request=deleteServer: " + serverId);
