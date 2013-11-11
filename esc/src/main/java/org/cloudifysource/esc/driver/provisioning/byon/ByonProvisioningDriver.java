@@ -135,7 +135,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 	// if the hosts list include IPv6 addresses - verify the file transfer protocol is SCP
 	private void validateTemplate(final String templateName, final ComputeTemplate template) 
 			throws CloudProvisioningException {
-		
+		logger.fine("validating template [" + templateName + "]");
 		boolean ipv6Used = false;
 		
 		try {
