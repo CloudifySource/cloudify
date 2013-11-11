@@ -313,6 +313,20 @@ cat <(crontab -l) <(echo "@reboot nohup ~/gigaspaces/tools/cli/cloudify.sh $STAR
 
 ./cloudify.sh $START_COMMAND $START_COMMAND_ARGS
 
+echo Cleaning home directory : $WORKING_HOME_DIRECTORY
+
+if [ -f $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz ]; then
+	rm $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz
+fi
+
+if [ -f $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz ]; then
+	rm $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz
+fi
+
+if [ -f $WORKING_HOME_DIRECTORY/java.bin ]; then
+	rm $WORKING_HOME_DIRECTORY/java.bin
+fi
+
 RETVAL=$?
 
 if [ $RETVAL -ne 0 ]; then
