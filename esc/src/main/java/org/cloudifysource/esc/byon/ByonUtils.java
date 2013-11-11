@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
@@ -32,6 +33,8 @@ public class ByonUtils {
 	private static final String EMPTY_IP_RANGE_ERR_MESSAGE = "Failed to parse cloud nodes, invalid IP range "
 			+ "configuration: missing \"-\"";
 	
+	private static final Logger logger = Logger.getLogger(ByonUtils.class.getName());
+	
 	
 	/**
 	 * Parse the templates's nodes list and return a list of nodes, as Strings.
@@ -41,21 +44,17 @@ public class ByonUtils {
 	 */
 	public static List<Map<String, String>> getTemplateNodesList(final ComputeTemplate template) 
 			throws CloudProvisioningException {
-		List<Map<String, String>> nodesList = null;
+		List<Map<Object, Object>> originalNodesList = null;
 		final Map<String, Object> customSettings = template.getCustom();
 		if (customSettings != null) {
-			@SuppressWarnings("unchecked")
-			final List<Map<Object, Object>> originalNodesList =
-					(List<Map<Object, Object>>) customSettings.get(NODES_LIST);
-
-			nodesList = ByonUtils.convertToStringMap(originalNodesList);
+			originalNodesList = (List<Map<Object, Object>>) customSettings.get(NODES_LIST);
 		}
 		
-		if (nodesList == null) {
+		if(originalNodesList == null || originalNodesList.isEmpty()) {
+			logger.warning("Nodes list is missing. custom = " + customSettings);
 			throw new CloudProvisioningException("Nodes list not set");
 		}
-		
-		return nodesList;
+		return ByonUtils.convertToStringMap(originalNodesList);
 	}
 
 	/**
