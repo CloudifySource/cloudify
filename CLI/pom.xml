@@ -33,6 +33,12 @@
             <artifactId>gs-openspaces</artifactId>
             <version>${gsVersion}</version>
             <scope>provided</scope>
+            <exclusions>
+                 <exclusion>
+                     <groupId>commons-httpclient</groupId>
+                     <artifactId>commons-httpclient</artifactId>
+                 </exclusion>
+            </exclusions>            
         </dependency>
         <dependency>
             <groupId>org.apache.karaf.shell</groupId>
