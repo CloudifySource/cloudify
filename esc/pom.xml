@@ -40,6 +40,10 @@
 					<artifactId>ant</artifactId>
 					<groupId>org.apache.ant</groupId>
 				</exclusion>
+				<exclusion>
+                     <groupId>commons-httpclient</groupId>
+                  	 <artifactId>commons-httpclient</artifactId>
+                </exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
