@@ -41,6 +41,7 @@ import org.codehaus.jackson.map.JsonDeserializer;
  * The other type of value is simply saved as a raw in a {@link StringValue}.
  * 
  * @author victor
+ * @since 2.7.0
  * 
  */
 public class ValueDeserializer extends JsonDeserializer<ValueType> {

@@ -24,6 +24,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
  * docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-mount-point.html</a>
  * 
  * @author victor
+ * @since 2.7.0
  * 
  */
 public class VolumeMapping {

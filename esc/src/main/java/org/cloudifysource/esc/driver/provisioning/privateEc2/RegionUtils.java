@@ -21,6 +21,7 @@ import com.amazonaws.regions.Regions;
  * Utility class for region, availability zone and location id conversion.
  * 
  * @author victor
+ * @since 2.7.0
  * 
  */
 public final class RegionUtils {
