@@ -8,7 +8,7 @@
 	<!-- ** SET THESE PROPERTIES BEFORE USING THE ANT BUILDS ** -->
 	<property environment="env" />
 
-	<property name="cloudify.home.dir" value="${env.CLOUDIFY_HOME}/" />
+	<property name="cloudify.home.dir" value="${env.CLOUDIFY_HOME}" />
 
 	<property name="cloudify.version" value="2.7.0" />
 
@@ -30,6 +30,9 @@
     <property name="openstack.dir" value="${esc.dir}/openstack/upload/cloudify-overrides" />
     <property name="privateEc2.dir" value="${esc.dir}/privateEc2/upload/cloudify-overrides" />
     <property name="rackspace.dir" value="${esc.dir}/rackspace/upload/cloudify-overrides" />
+    <property name="softlayer.dir" value="${esc.dir}/softlayer/upload/cloudify-overrides" />
+
+    <property name="local.ec2.cloud" value="../esc/src/main/resources/clouds/ec2/ec2-cloud.groovy"/>
 	
 
 	<macrodef name="copy_binaries">
@@ -57,13 +60,26 @@
 		<copy_binaries target.dir="${cloudify.home.dir}" />
 	</target>
 
+
+    <!--Cloud dev files -->
+    <target name="Copy ec2-cloud to build" depends="">
+        <echo message="Copying ec2-cloud.groovy from ${local.ec2.cloud} file to ${esc.dir}/ec2" />
+        <copy overwrite="yes" todir="${esc.dir}/ec2" file="${local.ec2.cloud}" />
+    </target>
+
+
     <!--Cloud Override-->
-	<target name="Copy Cloudify jars to devstack dir" depends="">
+	<target name="Copy Cloudify jars to devstack upload dir" depends="">
         <echo message="Copying Cloudify jar files to ${devstack.dir}" />
         <copy_binaries target.dir="${devstack.dir}" />
     </target>
 
-	<target name="Copy Cloudify jars to azure upload dir" depends="">
+    <target name="Copy Cloudify jars to softlayer upload dir" depends="">
+        <echo message="Copying Cloudify jar files to ${devstack.dir}" />
+        <copy_binaries target.dir="${softlayer.dir}" />
+    </target>
+
+    <target name="Copy Cloudify jars to azure upload dir" depends="">
 		<echo message="Copying Cloudify jar files to ${ec2.dir}" />
 		<copy_binaries target.dir="${azure.dir}" />
 	</target>
