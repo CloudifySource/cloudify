@@ -322,7 +322,7 @@ public class CloudGridAgentBootstrapper {
 			throws CLIException {
 		MachineDetails[] servers;
 
-		logger.warning("Creating provisioning Context");
+		logger.fine("Creating provisioning Context");
 		final ProvisioningContextImpl context = setUpProvisioningContext(keystorePassword, securityProfile);
 
 		try {

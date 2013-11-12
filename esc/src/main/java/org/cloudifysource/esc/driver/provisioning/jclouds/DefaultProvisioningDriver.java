@@ -233,6 +233,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
 		try {
 			logger.fine("Cloudify Deployer is creating a new server with tag: "
 					+ groupName + ". This may take a few minutes");
+            publishEvent(EVENT_STARTING_MACHINE_WITH_NAME, groupName);
 			node = deployer.createServer(groupName, locationId);
 		} catch (final InstallerException e) {
 			throw new CloudProvisioningException(
@@ -247,7 +248,10 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
 
 		try {
 			// wait for node to reach RUNNING state
+            publishEvent(EVENT_WAITING_FOR_NODE_TO_BE_AVAILABLE, groupName);
 			node = waitForNodeToBecomeReady(nodeId, end);
+
+            publishEvent(EVENT_MACHINE_STARTED, node.getName(), node.getPublicAddresses());
 
 			// Create MachineDetails for the node metadata.
 			machineDetails = createMachineDetailsFromNode(node);
@@ -392,6 +396,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
 		}
 
 		// first check if management already exists
+        publishEvent(EVENT_RETRIEVE_EXISTING_MANAGEMENT_MACHINES, managementMachinePrefix);
 		final MachineDetails[] existingManagementServers = getExistingManagementServers();
 		if (existingManagementServers.length > 0) {
 			final String serverDescriptions =
@@ -480,6 +485,10 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
 			CloudProvisioningException {
 
 		initDeployer(this.cloud);
+
+        final String managementMachinePrefix = this.cloud.getProvider().getManagementGroup();
+
+        publishEvent(EVENT_RETRIEVE_EXISTING_MANAGEMENT_MACHINES, managementMachinePrefix);
 		final MachineDetails[] managementServers = getExistingManagementServers();
 
 		if (managementServers.length == 0) {
@@ -493,8 +502,10 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
 			machineIps.add(machineDetails.getPrivateAddress());
 		}
 
+        publishEvent(EVENT_DESTROYING_MACHINES, machineIps.toString());
         try {
             this.deployer.shutdownMachinesByIds(managementServers, stopManagementMachinesTimeoutInMinutes);
+            publishEvent(EVENT_MACHINES_DESTROYED_SUCCESSFULLY, machineIps.toString());
         } catch (final InterruptedException e) {
             throw new CloudProvisioningException(e);
         }

@@ -52,9 +52,9 @@ public class SshExecutor implements RemoteExecutor {
 
 		// TODO - replace Ant based ssh command implementation with sshj
 		try {
+            logger.fine("Executing command '" + fullCommand + "' on target host " + targetHost);
 			Utils.executeSSHCommand(targetHost, fullCommand, details.getUsername(), details.getPassword(),
-					details.getKeyFile(),
-					endTimeMillis - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+					details.getKeyFile(), endTimeMillis - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
 		} catch (final BuildException e) {
 			// There really should be a better way to check that this is a
 			// timeout
