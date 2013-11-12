@@ -37,6 +37,7 @@ import org.cloudifysource.domain.ServiceNetwork;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.FileTransferModes;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
+import org.cloudifysource.domain.context.network.NetworkDriver;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
@@ -157,6 +158,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	// this is to make sure that the setConfig call is called on the dedicated scale out/in thread and not
 	// in the ESM thread which calls afterPropertiesSet()
 	private boolean driversConfigured = false;
+
+	private NetworkDriver networkDriver;
 
 	private Admin getGlobalAdminInstance(final Admin esmAdminInstance) throws InterruptedException,
 			ElasticMachineProvisioningException {
@@ -987,6 +990,12 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					this.storageTemplateName = config.getStorageTemplateName();
 
 					logger.info("storage provisioning driver created successfully.");
+				}
+				final String networkDriverClassName = this.cloud.getConfiguration().getNetworkDriverClassName();
+				if (!StringUtils.isEmpty(networkDriverClassName)) {
+					logger.info("creating network provisioning driver of type " + networkDriverClassName);
+					this.networkDriver = (NetworkDriver) Class.forName(networkDriverClassName).newInstance();
+					logger.info("network provisioning driver was created succesfully.");
 				}
 			} catch (final ClassNotFoundException e) {
 				throw new BeanConfigurationException("Failed to load provisioning class for cloud: "
