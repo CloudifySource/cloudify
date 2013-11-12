@@ -35,6 +35,7 @@ public class CloudConfiguration {
 			"org.cloudifysource.esc.driver.provisioning.jclouds.DefaultProvisioningDriver";
 	private String className = DEFAULT_CLOUD_DRIVER_CLASS_NAME;
 	private String storageClassName;
+	private String networkDriverClassName;
 	private String nicAddress;
 	private String lookupGroups;
 	private String lookupLocators;
@@ -160,4 +161,11 @@ public class CloudConfiguration {
 		this.adminLoadingTimeInSeconds = adminLoadingTimeInSeconds;
 	}
 	
+	public String getNetworkDriverClassName() {
+		return networkDriverClassName;
+	}
+
+	public void setNetworkDriverClassName(String networkDriverClassName) {
+		this.networkDriverClassName = networkDriverClassName;
+	}
 }
