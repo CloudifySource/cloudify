@@ -11,7 +11,7 @@ CLOUDIFY SOFTWARE  - OPEN SOURCE AND THIRD PARTY COMPONENTS - Cloudify 2.X
 |[Google Web Toolkit](http://code.google.com/webtoolkit/) |2.4.0|Apache 2.0|Web UI|
 |[gQuery (GWTQuery)](http://gwtquery.com)|1.1.0|Apache 2.0|Web UI|
 |[Groovy](http://groovy.codehaus.org/)|1.8.5|Apache 2.0|Core|
-|[GWT Ext](http://www.sencha.com/products/gwt/)|2.2.5|Commercial|Web UI|
+|[GWT Ext](http://www.sencha.com/products/gxt/)|2.2.5|Commercial|Web UI|
 |[gwtupload](http://code.google.com/p/gwtupload/)|0.6.3|Apache 2.0|Web UI|
 |[Highcharts](http://www.highcharts.com/) |1.4.4|OEM License (Commercial)|Web UI|
 |[HttpComponents](http://hc.apache.org/)|4.1.3|Apache 2.0|CLI|
