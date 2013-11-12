@@ -413,7 +413,11 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 
 		Set<CustomNode> managementServers;
 
-		try {
+        final String managementMachinePrefix = this.cloud.getProvider().getManagementGroup();
+
+        publishEvent(EVENT_RETRIEVE_EXISTING_MANAGEMENT_MACHINES, managementMachinePrefix);
+
+        try {
 			managementServers = getExistingManagementServers(cloud.getProvider().getNumberOfManagementMachines());
 		} catch (final Exception e) {
 			publishEvent("prov_management_lookup_failed");

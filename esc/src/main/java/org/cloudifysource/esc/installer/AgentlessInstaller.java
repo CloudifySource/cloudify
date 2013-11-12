@@ -12,6 +12,17 @@
  *******************************************************************************/
 package org.cloudifysource.esc.installer;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.domain.cloud.CloudTemplateInstallerConfiguration;
+import org.cloudifysource.dsl.utils.IPUtils;
+import org.cloudifysource.esc.installer.filetransfer.FileTransfer;
+import org.cloudifysource.esc.installer.filetransfer.FileTransferFactory;
+import org.cloudifysource.esc.installer.remoteExec.RemoteExecutor;
+import org.cloudifysource.esc.installer.remoteExec.RemoteExecutorFactory;
+import org.cloudifysource.esc.util.CalcUtils;
+import org.cloudifysource.esc.util.Utils;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -26,17 +37,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
-import org.cloudifysource.domain.cloud.CloudTemplateInstallerConfiguration;
-import org.cloudifysource.esc.installer.filetransfer.FileTransfer;
-import org.cloudifysource.esc.installer.filetransfer.FileTransferFactory;
-import org.cloudifysource.esc.installer.remoteExec.RemoteExecutor;
-import org.cloudifysource.esc.installer.remoteExec.RemoteExecutorFactory;
-import org.cloudifysource.esc.util.CalcUtils;
-import org.cloudifysource.dsl.utils.IPUtils;
-import org.cloudifysource.esc.util.Utils;
 
 /************
  * The agentless installer class is responsible for installing Cloudify on a remote machine, using only SSH. It will
@@ -142,7 +142,6 @@ public class AgentlessInstaller {
 				sock.connect(socketAddress, installerConfiguration.getConnectionTestConnectTimeoutMillis());
 				return;
 			} catch (final IOException e) {
-				logger.log(Level.FINE, "Checking connection to: " + socketAddress, e);
 				// retry
 			} finally {
 				if (sock != null) {
@@ -197,6 +196,7 @@ public class AgentlessInstaller {
 		final int port = Utils.getFileTransferPort(details.getInstallerConfiguration(), details.getFileTransferMode());
 
 		publishEvent("attempting_to_access_vm", targetHost);
+        logger.fine("Checking connection with target host " + targetHost);
 		checkConnection(targetHost, port, details.getInstallerConfiguration(), CalcUtils.millisUntil(end),
 				TimeUnit.MILLISECONDS);
 
@@ -267,6 +267,7 @@ public class AgentlessInstaller {
 
 		final RemoteExecutor remoteExecutor =
 				RemoteExecutorFactory.createRemoteExecutorProvider(details.getRemoteExecutionMode());
+        logger.fine("Initializing remote executor " + remoteExecutor);
 		remoteExecutor.initialize(this, details);
 		remoteExecutor.execute(targetHost, details, scriptPath, end);
 

@@ -43,19 +43,25 @@ import org.openspaces.admin.Admin;
  */
 public abstract class BaseProvisioningDriver extends BaseComputeDriver {
 
-	private static final String PRIVATE_KEY_PREFIX = "-----BEGIN RSA PRIVATE KEY-----";
-	protected static final int MULTIPLE_SHUTDOWN_REQUEST_IGNORE_TIMEOUT = 120000;
-	protected static final int WAIT_THREAD_SLEEP_MILLIS = 10000;
-	protected static final int WAIT_TIMEOUT_MILLIS = 360000;
-	// TODO - make this a configuration option
-	protected static final int MAX_SERVERS_LIMIT = 200;
+    private static final String PRIVATE_KEY_PREFIX = "-----BEGIN RSA PRIVATE KEY-----";
+    protected static final int MULTIPLE_SHUTDOWN_REQUEST_IGNORE_TIMEOUT = 120000;
+    protected static final int WAIT_THREAD_SLEEP_MILLIS = 10000;
+    protected static final int WAIT_TIMEOUT_MILLIS = 360000;
+    // TODO - make this a configuration option
+    protected static final int MAX_SERVERS_LIMIT = 200;
 
-	protected static final String EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API = "try_to_connect_to_cloud_api";
-	protected static final String EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API = "connection_to_cloud_api_succeeded";
-	protected static final String EVENT_ATTEMPT_START_MGMT_VMS = "attempting_to_create_management_vms";
-	protected static final String EVENT_MGMT_VMS_STARTED = "management_started_successfully";
-	protected static final String AGENT_MACHINE_PREFIX = "cloudify-agent-";
-	protected static final String MANAGMENT_MACHINE_PREFIX = "cloudify-managememnt-";
+    protected static final String EVENT_WAITING_FOR_NODE_TO_BE_AVAILABLE = "waiting_for_node_to_be_available";
+    protected static final String EVENT_STARTING_MACHINE_WITH_NAME = "starting_machine_with_name";
+    protected static final String EVENT_MACHINE_STARTED = "machine_started";
+    protected static final String EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API = "try_to_connect_to_cloud_api";
+    protected static final String EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API = "connection_to_cloud_api_succeeded";
+    protected static final String EVENT_ATTEMPT_START_MGMT_VMS = "attempting_to_create_management_vms";
+    protected static final String EVENT_RETRIEVE_EXISTING_MANAGEMENT_MACHINES = "retrieving_existing_management";
+    protected static final String EVENT_DESTROYING_MACHINES = "destroying_machines_with_private_ips";
+    protected static final String EVENT_MACHINES_DESTROYED_SUCCESSFULLY = "machines_destroyed_succesfully";
+    protected static final String EVENT_MGMT_VMS_STARTED = "management_started_successfully";
+    protected static final String AGENT_MACHINE_PREFIX = "cloudify-agent-";
+    protected static final String MANAGMENT_MACHINE_PREFIX = "cloudify-managememnt-";
 
 	protected boolean management;
 	protected static AtomicInteger counter = new AtomicInteger();
