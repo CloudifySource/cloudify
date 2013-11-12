@@ -87,7 +87,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 	@Override
 	protected void initDeployer(final Cloud cloud) {
 		try {
-			deployer = (ByonDeployer) provisioningContext.getOrCreate("UNIQUE_BYON_DEPLOYER_ID",
+			setDeployer((ByonDeployer) provisioningContext.getOrCreate("UNIQUE_BYON_DEPLOYER_ID",
 					new Callable<Object>() {
 
 						@Override
@@ -98,7 +98,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 							addTemplatesToDeployer(newDeployer, cloud.getCloudCompute().getTemplates());
 							return newDeployer;
 						}
-					});
+					}));
 		} catch (final Exception e) {
 			publishEvent("connection_to_cloud_api_failed", cloud.getProvider().getProvider());
 			throw new IllegalStateException("Failed to create cloud deployer", e);
@@ -113,7 +113,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 	}
 
 	private void addTemplatesToDeployer(final ByonDeployer deployer, final Map<String, ComputeTemplate> templatesMap)
-			throws Exception {
+			throws CloudProvisioningException {
 		List<Map<String, String>> nodesList = null;
 
 		for (final Entry<String, ComputeTemplate> templateEntry : templatesMap.entrySet()) {
@@ -169,16 +169,16 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 	 *            .
 	 * @throws Exception .
 	 */
-	public void updateDeployerTemplates(final Cloud cloud) throws Exception {
+	public void updateDeployerTemplates(final Cloud cloud) throws CloudProvisioningException {
 		final Map<String, ComputeTemplate> cloudTemplatesMap = cloud.getCloudCompute().getTemplates();
 		final List<String> cloudTemplateNames = new LinkedList<String>(cloudTemplatesMap.keySet());
-		final List<String> deployerTemplateNames = deployer.getTemplatesList();
+		final List<String> deployerTemplateNames = getDeployer().getTemplatesList();
 
 		final List<String> redundantTemplates = new LinkedList<String>(deployerTemplateNames);
 		redundantTemplates.removeAll(cloudTemplateNames);
 		if (!redundantTemplates.isEmpty()) {
 			logger.info("initDeployer - found redundant templates: " + redundantTemplates);
-			deployer.removeTemplates(redundantTemplates);
+			getDeployer().removeTemplates(redundantTemplates);
 		}
 		final List<String> missingTemplates = new LinkedList<String>(cloudTemplateNames);
 		missingTemplates.removeAll(deployerTemplateNames);
@@ -189,7 +189,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 				final ComputeTemplate cloudTemplate = cloudTemplatesMap.get(templateName);
 				templatesMap.put(templateName, cloudTemplate);
 			}
-			addTemplatesToDeployer(deployer, templatesMap);
+			addTemplatesToDeployer(getDeployer(), templatesMap);
 		}
 	}
 
@@ -235,18 +235,18 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 		logger.info(this.getClass().getName() + ": startMachine, management mode: " + management);
 
 		final Set<String> activeMachinesIPs = admin.getMachines().getHostsByAddress().keySet();
-		deployer.setAllocated(cloudTemplateName, activeMachinesIPs);
+		getDeployer().setAllocated(cloudTemplateName, activeMachinesIPs);
 		if (logger.isLoggable(Level.INFO)) {
 			logger.info("Verifying the active machines are not in the free pool: "
 					+ "\n Admin reports the currently used machines are: "
 					+ Arrays.toString(activeMachinesIPs.toArray())
 					+ "\n Byon deployer reports the free machines for template " + cloudTemplateName + " are: "
-					+ Arrays.toString(deployer.getFreeNodesByTemplateName(cloudTemplateName).toArray())
+					+ Arrays.toString(getDeployer().getFreeNodesByTemplateName(cloudTemplateName).toArray())
 					+ "\n Byon deployer reports the currently used machines for template " + cloudTemplateName
 					+ " are:"
-					+ Arrays.toString(deployer.getAllocatedNodesByTemplateName(cloudTemplateName).toArray())
+					+ Arrays.toString(getDeployer().getAllocatedNodesByTemplateName(cloudTemplateName).toArray())
 					+ "\n Byon deployer reports the invalid used machines for template " + cloudTemplateName + " are: "
-					+ Arrays.toString(deployer.getInvalidNodesByTemplateName(cloudTemplateName).toArray()) + ")");
+					+ Arrays.toString(getDeployer().getInvalidNodesByTemplateName(cloudTemplateName).toArray()) + ")");
 		}
 		final String newServerName = createNewServerName();
 		logger.info("Attempting to start a new cloud machine");
@@ -262,7 +262,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 		final CustomNode node;
 		final MachineDetails machineDetails;
 		logger.info("Cloudify Deployer is creating a machine named: " + serverName + ". This may take a few minutes");
-		node = deployer.createServer(cloudTemplateName, serverName);
+		node = getDeployer().createServer(cloudTemplateName, serverName);
 
 		machineDetails = createMachineDetailsFromNode(node);
 
@@ -272,7 +272,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 			handleServerCredentials(machineDetails, template);
 		} catch (final CloudProvisioningException e) {
 			try {
-				deployer.invalidateServer(cloudTemplateName, node);
+				getDeployer().invalidateServer(cloudTemplateName, node);
 			} catch (final CloudProvisioningException ie) {
 				logger.log(Level.SEVERE, "Failed to mark machine [" + machineDetails.getPublicAddress() + "/"
 						+ machineDetails.getPrivateAddress() + "] as Invalid.", ie);
@@ -308,7 +308,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 			++attempts;
 			serverName = serverNamePrefix + BaseProvisioningDriver.counter.incrementAndGet();
 			// verifying this server name is not already used
-			final CustomNode existingNode = deployer.getServerByID(cloudTemplateName, serverName);
+			final CustomNode existingNode = getDeployer().getServerByID(cloudTemplateName, serverName);
 			if (existingNode == null) {
 				foundFreeName = true;
 				break;
@@ -389,7 +389,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 		logger.info("Stop Machine - machineIp: " + serverIp);
 		logger.info("Scale IN -- " + serverIp + " --");
 		logger.info("Looking up cloud server with IP: " + serverIp);
-		final CustomNode cloudNode = deployer.getServerByIP(cloudTemplateName, serverIp);
+		final CustomNode cloudNode = getDeployer().getServerByIP(cloudTemplateName, serverIp);
 		if (cloudNode != null) {
 			logger.info("Found server: " + cloudNode.getId()
 					+ ". Shutting it down and waiting for shutdown to complete");
@@ -439,7 +439,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 			throws CloudProvisioningException, TimeoutException, InterruptedException {
 		// loop all IPs in the pool to find a mgmt machine - open on port 8100
 		final Set<CustomNode> existingManagementServers = new HashSet<CustomNode>();
-		final Set<CustomNode> allNodes = deployer.getAllNodesByTemplateName(cloudTemplateName);
+		final Set<CustomNode> allNodes = getDeployer().getAllNodesByTemplateName(cloudTemplateName);
 		String managementIP = null;
 		for (final CustomNode server : allNodes) {
 			try {
@@ -464,7 +464,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 				// make sure a GSM is discovered
 				gsms.waitForAtLeastOne(MANAGEMENT_LOCATION_TIMEOUT, TimeUnit.SECONDS);
 				for (final GridServiceManager gsm : gsms) {
-					final CustomNode managementServer = deployer.getServerByIP(cloudTemplateName, gsm.getMachine()
+					final CustomNode managementServer = getDeployer().getServerByIP(cloudTemplateName, gsm.getMachine()
 							.getHostAddress());
 					if (managementServer != null) {
 						existingManagementServers.add(managementServer);
@@ -586,7 +586,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 			for (final MachineDetails machineDetails : createdManagementMachines) {
 				if (machineDetails != null) {
 					logger.severe("Shutting down machine: " + machineDetails);
-					deployer.shutdownServerByIp(cloudTemplateName, machineDetails.getPrivateAddress());
+					getDeployer().shutdownServerByIp(cloudTemplateName, machineDetails.getPrivateAddress());
 				}
 			}
 		}
@@ -643,7 +643,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 			if (cleanGsFilesOnShutdown) {
 				deleteGsFiles(cloudNode);
 			}
-			deployer.shutdownServer(cloudTemplateName, cloudNode);
+			getDeployer().shutdownServer(cloudTemplateName, cloudNode);
 		} catch (final Exception e) {
 			if (isManagement) {
 				publishEvent("prov_failed_to_stop_management_machine");
@@ -662,8 +662,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 		 * logger.info("ByonProvisioningDriver.close() failed to close agent"); }
 		 */
 
-		if (deployer != null) {
-			deployer.close();
+		if (getDeployer() != null) {
+			getDeployer().close();
 		}
 	}
 
@@ -688,8 +688,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 				getFormattedMessage("validating_all_templates"));
 
 		ComputeTemplate template = null;
-		boolean ipv6Used = false;
-
+		
 		Map<String, ComputeTemplate> templatesMap = cloud.getCloudCompute().getTemplates();
 		
 		validationContext.validationOngoingEvent(ValidationMessageType.GROUP_VALIDATION_MESSAGE,
@@ -729,7 +728,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 		}
 
 		final Set<CustomNode> allNodesByTemplateName =
-				this.deployer.getAllNodesByTemplateName(this.cloud.getConfiguration().getManagementMachineTemplate());
+				this.getDeployer().getAllNodesByTemplateName(this.cloud.getConfiguration().getManagementMachineTemplate());
 		final Set<CustomNode> managementNodes = new HashSet<CustomNode>();
 
 		for (final CustomNode node : allNodesByTemplateName) {
@@ -788,6 +787,10 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 					Locale.getDefault());
 		}
 		return byonProvisioningDriverMessageBundle;
+	}
+
+	public void setDeployer(ByonDeployer deployer) {
+		this.deployer = deployer;
 	}
 
 }
