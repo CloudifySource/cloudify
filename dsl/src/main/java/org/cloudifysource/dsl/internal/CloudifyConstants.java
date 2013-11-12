@@ -182,6 +182,8 @@ public final class CloudifyConstants {
     /***************
      * Misc.
      */
+    public static final String STOP_MANAGEMENT_TIMEOUT_IN_MINUTES = "org.cloudifysource" +
+            ".stop-management-timeout-in-minutes";
     public static final String DEFAULT_APPLICATION_NAME = "default";
     public static final String MANAGEMENT_SPACE_NAME = "cloudifyManagementSpace";
     public static final String MANAGEMENT_WEBUI_SERVICE_NAME = "webui";
