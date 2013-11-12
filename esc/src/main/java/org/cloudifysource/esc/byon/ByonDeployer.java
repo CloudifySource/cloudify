@@ -75,7 +75,7 @@ public class ByonDeployer {
 	 */
 	public synchronized void addNodesList(final String templateName,
 			final ComputeTemplate template,
-			final List<Map<String, String>> nodesList) throws Exception {
+			final List<Map<String, String>> nodesList) throws CloudProvisioningException {
 		final List<CustomNode> resolvedNodes = new ArrayList<CustomNode>();
 		final List<CustomNode> unresolvedNodes = new ArrayList<CustomNode>();
 
