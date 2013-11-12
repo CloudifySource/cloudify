@@ -224,6 +224,7 @@ cloud {
 	 * Optional. Custom properties used to extend existing drivers or create new ones.
 	 */
 	custom ([
-		"org.cloudifysource.clearRemoteDirectoryOnStart" : true 
+		"org.cloudifysource.clearRemoteDirectoryOnStart" : true,
+        "org.cloudifysource.stop-management-timeout-in-minutes" : 15
 	])
 }

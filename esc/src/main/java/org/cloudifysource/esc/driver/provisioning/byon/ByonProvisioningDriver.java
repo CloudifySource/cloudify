@@ -12,23 +12,7 @@
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning.byon;
 
-import java.io.File;
-import java.rmi.RemoteException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-
+import com.gigaspaces.grid.gsa.GSA;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.FileTransferModes;
@@ -59,7 +43,22 @@ import org.openspaces.admin.gsm.GridServiceManagers;
 import org.openspaces.admin.internal.gsa.InternalGridServiceAgent;
 import org.openspaces.admin.internal.support.NetworkExceptionHelper;
 
-import com.gigaspaces.grid.gsa.GSA;
+import java.io.File;
+import java.rmi.RemoteException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
 
 /**************
  * A bring-your-own-node (BYON) CloudifyProvisioning implementation. Parses a groovy file as a source of available
@@ -74,7 +73,6 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 
 	private static final int MANAGEMENT_LOCATION_TIMEOUT = 10;
 	private static final int THREAD_WAITING_IDLE_TIME_IN_SECS = 10;
-	private static final int AGENT_SHUTDOWN_TIMEOUT_IN_MINUTES = 2;
 	private static final String CLEAN_GS_FILES_ON_SHUTDOWN = "cleanGsFilesOnShutdown";
 	private static final String CLOUDIFY_ITEMS_TO_CLEAN = "itemsToClean";
 	private static ResourceBundle byonProvisioningDriverMessageBundle;
@@ -83,6 +81,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 	private List<String> cloudifyItems;
 	private ByonDeployer deployer;
 	private Integer restPort;
+
+    private Integer stopManagementTimeoutInMinutes = 4;
 
 	@Override
 	protected void initDeployer(final Cloud cloud) {
@@ -99,6 +99,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 							return newDeployer;
 						}
 					}));
+            this.stopManagementTimeoutInMinutes = (Integer) super.cloud.getCustom().get(CloudifyConstants
+                    .STOP_MANAGEMENT_TIMEOUT_IN_MINUTES);
 		} catch (final Exception e) {
 			publishEvent("connection_to_cloud_api_failed", cloud.getProvider().getProvider());
 			throw new IllegalStateException("Failed to create cloud deployer", e);
@@ -409,23 +411,21 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 	public void stopManagementMachines()
 			throws TimeoutException, CloudProvisioningException {
 
-		Set<CustomNode> managementServers = null;
+		Set<CustomNode> managementServers;
 
 		try {
 			managementServers = getExistingManagementServers(cloud.getProvider().getNumberOfManagementMachines());
-			/*
-			 * if (managementServers == null || managementServers.isEmpty()) {
-			 * publishEvent("prov_management_server_not_found"); throw new CloudProvisioningException
-			 * ("Could not find any management machines for this cloud"); }
-			 */
 		} catch (final Exception e) {
 			publishEvent("prov_management_lookup_failed");
 			throw new CloudProvisioningException("Failed to lookup existing management servers.", e);
 		}
 
-		for (final CustomNode customNode : managementServers) {
+        final int stopTimeoutPerAgent = stopManagementTimeoutInMinutes / managementServers.size();
+
+        for (final CustomNode customNode : managementServers) {
 			try {
-				stopAgentAndWait(cloud.getProvider().getNumberOfManagementMachines(), customNode.getPrivateIP());
+				stopAgentAndWait(cloud.getProvider().getNumberOfManagementMachines(),
+                        customNode.getPrivateIP(), stopTimeoutPerAgent);
 			} catch (final Exception e) {
 				publishEvent("prov_failed_to_stop_management_machine");
 				throw new CloudProvisioningException(e);
@@ -492,7 +492,8 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 		return discoveryPort;
 	}
 
-	private void stopAgentAndWait(final int expectedGsmCount, final String ipAddress)
+	private void stopAgentAndWait(final int expectedGsmCount, final String ipAddress,
+                                  final int timeoutInMinutes)
 			throws TimeoutException, InterruptedException {
 
 		if (admin == null) {
@@ -501,7 +502,6 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 		}
 
 		final Map<String, GridServiceAgent> agentsMap = admin.getGridServiceAgents().getHostAddress();
-		// GridServiceAgent agent = agentsMap.get(ipAddress);
 		GSA agent = null;
 		for (final Entry<String, GridServiceAgent> agentEntry : agentsMap.entrySet()) {
 			if (IPUtils.isSameIpAddress(agentEntry.getKey(), ipAddress)
@@ -511,7 +511,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 		}
 
 		if (agent != null) {
-			logger.info("ByonProvisioningDriver: shutting down agent on server: " + ipAddress);
+			logger.info("Shutting down agent on server: " + ipAddress);
 			try {
 				admin.close();
 				agent.shutdown();
@@ -522,7 +522,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 				}
 			}
 
-			final long end = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(AGENT_SHUTDOWN_TIMEOUT_IN_MINUTES);
+			final long end = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(timeoutInMinutes);
 			boolean agentUp = isAgentUp(agent);
 			while (agentUp && System.currentTimeMillis() < end) {
 				logger.fine("next check in " + TimeUnit.MILLISECONDS.toSeconds(THREAD_WAITING_IDLE_TIME_IN_SECS)

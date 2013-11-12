@@ -15,23 +15,10 @@
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning.azure;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.esc.driver.provisioning.CloudDriverSupport;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
@@ -48,6 +35,20 @@ import org.cloudifysource.esc.driver.provisioning.azure.model.HostedService;
 import org.cloudifysource.esc.driver.provisioning.azure.model.HostedServices;
 import org.cloudifysource.esc.driver.provisioning.azure.model.InputEndpoint;
 import org.cloudifysource.esc.driver.provisioning.azure.model.InputEndpoints;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /***************************************************************************************
  * A custom Cloud Driver implementation for provisioning machines on Azure.
@@ -110,7 +111,9 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 	private static final int REST_PORT = 8100;
 	private static final int SSH_PORT = 22;
 
-	private static final Logger logger = Logger
+    private Integer stopManagementTimeoutInMinutes = 15;
+
+    private static final Logger logger = Logger
 			.getLogger(MicrosoftAzureCloudDriver.class.getName());
 	private static final long CLEANUP_TIMEOUT = 60 * 1000 * 5; // five minutes
 
@@ -123,7 +126,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 			final String subscriptionId, final String pathToPfxFile,
 			final String pfxPassword, final boolean enableWireLog) {
 		if (azureClient == null) {
-			logger.fine("initializing Azure REST client");
+			logger.fine("Initializing Azure REST client");
 			azureClient = new MicrosoftAzureRestClient(subscriptionId,
 					pathToPfxFile, pfxPassword, CLOUDIFY_AFFINITY_PREFIX,
 					CLOUDIFY_CLOUD_SERVICE_PREFIX,
@@ -141,7 +144,10 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 		
 		super.setConfig(cloud, templateName, management, serviceName);
 
-		// Per template properties
+        this.stopManagementTimeoutInMinutes = (Integer) super.cloud.getCustom().get(CloudifyConstants
+                .STOP_MANAGEMENT_TIMEOUT_IN_MINUTES);
+
+        // Per template properties
 		this.availabilitySet = (String) this.template.getCustom().get(
 				AZURE_AVAILABILITY_SET);
 		String pfxFile = (String) this.template.getCustom().get(AZURE_PFX_FILE);
@@ -470,7 +476,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 	public void stopManagementMachines() throws TimeoutException,
 			CloudProvisioningException {
 
-		long endTime = System.currentTimeMillis() + DEFAULT_SHUTDOWN_DURATION;
+        final long endTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(stopManagementTimeoutInMinutes);
 		boolean success = false;
 
 		ExecutorService service = Executors.newCachedThreadPool();

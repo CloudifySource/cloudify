@@ -20,6 +20,7 @@ import org.apache.commons.net.util.SubnetUtils.SubnetInfo;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.FileTransferModes;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.rest.response.ControllerDetails;
 import org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
@@ -110,6 +111,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
 	private SubnetInfo publicSubnetInfo;
 	private Pattern publicIpPattern;
 
+    private Integer stopManagementMachinesTimeoutInMinutes = 15;
+
 	@Override
 	protected void initDeployer(final Cloud cloud) {
 		if (this.deployer != null) {
@@ -126,6 +129,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
 			// no longer there. Otherwise, either this context will leak, or it
 			// will be shutdown by the first
 			// service to by undeployed.
+            this.stopManagementMachinesTimeoutInMinutes = (Integer) cloud.getCustom().get
+                    (CloudifyConstants.STOP_MANAGEMENT_TIMEOUT_IN_MINUTES);
 			this.deployer = createDeployer(cloud);
 			// (JCloudsDeployer)
 			// context.getOrCreate("UNIQUE_JCLOUDS_DEPLOYER_ID_" +
