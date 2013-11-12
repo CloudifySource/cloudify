@@ -138,7 +138,7 @@ public class InstallService extends AdminAwareCommand implements NewRestClientCo
 	@Override
 	protected Object doExecute()
 			throws Exception {
-		logger.info("install-service using the old rest client");
+		logger.fine("install-service using the old rest client");
 		try {
 			DebugUtils.validateDebugSettings(debugAll, debugEvents, debugModeString);
 		} catch (final DSLErrorMessageException e) {
