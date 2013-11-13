@@ -65,6 +65,7 @@ public abstract class BaseProvisioningDriver extends BaseComputeDriver {
     protected static AtomicInteger counter = new AtomicInteger();
     protected String serverNamePrefix;
     protected String cloudName;
+
     protected String cloudTemplateName;
     protected Admin admin;
     protected Cloud cloud;
@@ -81,6 +82,14 @@ public abstract class BaseProvisioningDriver extends BaseComputeDriver {
      *            Cloud object to use
      */
     protected abstract void initDeployer(final Cloud cloud);
+
+    public String getCloudTemplateName() {
+        return cloudTemplateName;
+    }
+
+    public void setCloudTemplateName(String cloudTemplateName) {
+        this.cloudTemplateName = cloudTemplateName;
+    }
 
     @Override
     public String getCloudName() {

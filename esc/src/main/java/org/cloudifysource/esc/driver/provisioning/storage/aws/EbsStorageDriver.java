@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
+import com.google.inject.Module;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
@@ -106,7 +107,7 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 
     private void initDeployer() throws IOException {
         this.deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(),
-                cloud.getUser().getApiKey(), new Properties());
+                cloud.getUser().getApiKey(), new Properties(), new HashSet<Module>());
     }
 
     private void initRegion() {
