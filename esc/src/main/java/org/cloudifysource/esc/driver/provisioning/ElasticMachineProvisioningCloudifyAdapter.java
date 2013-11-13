@@ -37,7 +37,7 @@ import org.cloudifysource.domain.ServiceNetwork;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.FileTransferModes;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
-import org.cloudifysource.domain.context.network.NetworkDriver;
+import org.cloudifysource.domain.context.network.NetworkProvisioningDriver;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
@@ -159,7 +159,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	// in the ESM thread which calls afterPropertiesSet()
 	private boolean driversConfigured = false;
 
-	private NetworkDriver networkDriver;
+	private NetworkProvisioningDriver networkProvisioning;
 
 	private Admin getGlobalAdminInstance(final Admin esmAdminInstance) throws InterruptedException,
 			ElasticMachineProvisioningException {
@@ -994,7 +994,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				final String networkDriverClassName = this.cloud.getConfiguration().getNetworkDriverClassName();
 				if (!StringUtils.isEmpty(networkDriverClassName)) {
 					logger.info("creating network provisioning driver of type " + networkDriverClassName);
-					this.networkDriver = (NetworkDriver) Class.forName(networkDriverClassName).newInstance();
+					this.networkProvisioning = (NetworkProvisioningDriver) Class.forName(networkDriverClassName)
+							.newInstance();
 					logger.info("network provisioning driver was created succesfully.");
 				}
 			} catch (final ClassNotFoundException e) {
@@ -1256,6 +1257,18 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			cloudifyProvisioning.onServiceUninstalled(duration, timeUnit);
 		} catch (final Exception e) {
 			throw new ElasticMachineProvisioningException("Failed to cleanup cloud", e);
+		}
+	}
+
+	@Override
+	public Object getExternalAPI(final String apiName) {
+		//TODO: (adaml) extract the names of the apis to constants.
+		if (apiName.equals("Storage")) {
+			return this.storageProvisioning;
+		} else if (apiName.equals("Network")) {
+			return this.networkProvisioning;
+		} else {
+			throw new UnsupportedOperationException("");
 		}
 	}
 }
