@@ -20,6 +20,7 @@ import org.cloudifysource.domain.Service;
 import org.cloudifysource.domain.context.ServiceContext;
 import org.cloudifysource.domain.context.blockstorage.StorageFacade;
 import org.cloudifysource.domain.context.kvstorage.AttributesFacade;
+import org.cloudifysource.domain.context.network.NetworkProvisioningDriver;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.context.RemoteStorageProvisioningDriver;
 import org.cloudifysource.dsl.utils.ServiceUtils;
@@ -53,6 +54,7 @@ public class ServiceContextImpl implements ServiceContext {
 	private String applicationName;
 
 	private StorageFacade storageFacade;
+	private NetworkProvisioningDriver networkDriver;
 	private AttributesFacade attributesFacade;
 
 	// TODO - this property should not be settable - there should be a separate
@@ -131,19 +133,20 @@ public class ServiceContextImpl implements ServiceContext {
 		initialized = true;
 	}
 
-	private StorageFacade getRemoteStorage() {
+	private Object getRemoteApi(final String apiName) {
 		ElasticServiceManager elasticServiceManager;
 		if (admin != null) {
 			elasticServiceManager = admin.getElasticServiceManagers().waitForAtLeastOne();
 			RemoteStorageProvisioningDriver storageApi =
 					(RemoteStorageProvisioningDriver) ((InternalElasticServiceManager) elasticServiceManager)
-							.getStorageApi(ServiceUtils.getAbsolutePUName(applicationName, serviceName));
+							.getExternalApi(ServiceUtils.getAbsolutePUName(applicationName, serviceName), 
+									apiName);
 
 			if (logger.isLoggable(Level.FINE)) {
 				if (storageApi == null) {
-					logger.fine("storageApi was not found");
+					logger.fine(apiName + " was not found");
 				} else {
-					logger.fine("storageApi successfully located");
+					logger.fine(apiName + " successfully located");
 				}
 			}
 
@@ -386,7 +389,7 @@ public class ServiceContextImpl implements ServiceContext {
 	@Override
 	public StorageFacade getStorage() {
 		if (storageFacade == null) {
-			this.storageFacade = getRemoteStorage();
+			this.storageFacade = (StorageFacade) getRemoteApi(CloudifyConstants.STORAGE_API_NAME);
 		}
 		return storageFacade;
 	}
@@ -417,5 +420,13 @@ public class ServiceContextImpl implements ServiceContext {
     			.waitForAtLeastOne();
     	String absolutePUName = ServiceUtils.getAbsolutePUName(getApplicationName(), getServiceName());
 		esm.disableAgentFailureDetection(absolutePUName, timeout, unit);
+	}
+
+	@Override
+	public NetworkProvisioningDriver getNetwork() {
+		if (this.networkDriver == null) {
+			this.networkDriver = (NetworkProvisioningDriver) getRemoteApi(CloudifyConstants.NETWORK_API_NAME);
+		}
+		return this.networkDriver;
 	}
 }

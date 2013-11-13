@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.cloudifysource.domain.context.blockstorage.StorageFacade;
 import org.cloudifysource.domain.context.kvstorage.AttributesFacade;
+import org.cloudifysource.domain.context.network.NetworkProvisioningDriver;
 
 /***********
  * Context interface, available in the service recipe.
@@ -171,6 +172,13 @@ public interface ServiceContext {
 	 * 			timeout unit.
 	 */
 	void startMaintenanceMode(final long timeout, final TimeUnit unit);
+	
+	/*********
+	 * Access to the network provisioning driver.
+	 * @return
+	 * 		 interface for executing network API calls.
+	 */
+	NetworkProvisioningDriver getNetwork();
 	
 	
 }
