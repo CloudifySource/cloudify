@@ -24,7 +24,6 @@ import java.util.logging.Level;
 
 import org.apache.commons.io.FileUtils;
 import org.cloudifysource.domain.Service;
-import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
 import org.cloudifysource.dsl.internal.packaging.Packager;
 import org.cloudifysource.dsl.rest.request.InstallApplicationRequest;
@@ -110,20 +109,8 @@ public class ApplicationDeployerRunnable implements Runnable {
 			boolean found = false;
 			try {
 				final File serviceDir = new File(appDir, serviceName);
-				File servicePropertiesFile = DSLReader.findDefaultDSLFileIfExists(
-						DSLUtils.SERVICE_PROPERTIES_FILE_NAME_SUFFIX, serviceDir);
-				if (servicePropertiesFile == null 
-						&& (applicationOverridesFile != null || applicationPropertiesFile != null)) {
-					// creating the service's properties to be used as the destination file of the merging process.
-					String propertiesFileName = 
-							DSLUtils.getPropertiesFileName(serviceDir, DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX);
-					logger.finer("Application [" + applicationName 
-							+ "] has overrides or properties file but the service [" + serviceName 
-							+ "], does not have properties file, so, creating an empty properties file [" 
-							+ propertiesFileName 
-							+ "] to contain the merge of the application's overrides and properties files.");
-					servicePropertiesFile = new File(serviceDir, propertiesFileName);
-				}
+				File servicePropertiesFile = new File(serviceDir, serviceDir.getName() 
+						+ DSLUtils.SERVICE_PROPERTIES_FILE_NAME_SUFFIX);
 				// merge service properties with application properties and overrides files 
 				// merge into service's properties file
 				PropertiesOverridesMerger merger = new PropertiesOverridesMerger(
