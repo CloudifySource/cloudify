@@ -119,7 +119,7 @@ public class CloudConfiguration {
 				+ lookupGroups + ", lookupLocators=" + lookupLocators + ", managementMachineTemplate="
 				+ managementMachineTemplate + ", bootstrapManagementOnPublicIp=" + bootstrapManagementOnPublicIp
 				+ ", connectToPrivateIp=" + connectToPrivateIp
-				+ ", remotePassword=***]";
+				+ ", remotePassword=***] networkDriverClassName=" + networkDriverClassName;
 	}
 
 	public GridComponents getComponents() {
@@ -152,7 +152,7 @@ public class CloudConfiguration {
 	public void setManagementStorageTemplate(final String managementStorageTemplate) {
 		this.managementStorageTemplate = managementStorageTemplate;
 	}
-
+	
 	public short getAdminLoadingTimeInSeconds() {
 		return adminLoadingTimeInSeconds;
 	}
@@ -160,12 +160,12 @@ public class CloudConfiguration {
 	public void setAdminLoadingTimeInSeconds(final short adminLoadingTimeInSeconds) {
 		this.adminLoadingTimeInSeconds = adminLoadingTimeInSeconds;
 	}
-	
+
 	public String getNetworkDriverClassName() {
 		return networkDriverClassName;
 	}
 
-	public void setNetworkDriverClassName(String networkDriverClassName) {
+	public void setNetworkDriverClassName(final String networkDriverClassName) {
 		this.networkDriverClassName = networkDriverClassName;
 	}
 }
