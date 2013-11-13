@@ -66,6 +66,21 @@ public final class Utils {
 	private Utils() {
 	}
 
+    /**
+     * Try casting the object the integer. if the object is null, return the default value.
+     * @param obj The expected integer object.
+     * @param defaultValue The default value.
+     * @return The integer value of the object.
+     */
+    public static int getInteger(final Object obj, final int defaultValue) {
+
+        if (obj == null) {
+            return defaultValue;
+        } else {
+            return (Integer) obj;
+        }
+    }
+
 	/**
 	 * Gets a "full" admin object. The function waits until all GridServiceManagers are found before returning the
 	 * object.

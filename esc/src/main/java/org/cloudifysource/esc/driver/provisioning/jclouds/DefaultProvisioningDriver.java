@@ -32,6 +32,7 @@ import org.cloudifysource.esc.driver.provisioning.validation.ValidationMessageTy
 import org.cloudifysource.esc.driver.provisioning.validation.ValidationResultType;
 import org.cloudifysource.esc.jclouds.JCloudsDeployer;
 import org.cloudifysource.esc.util.JCloudsUtils;
+import org.cloudifysource.esc.util.Utils;
 import org.jclouds.apis.ApiMetadata;
 import org.jclouds.apis.Apis;
 import org.jclouds.compute.ComputeServiceContext;
@@ -96,6 +97,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
     private static final String ENDPOINT_OVERRIDE = "jclouds.endpoint";
     private static final String CLOUDS_FOLDER_PATH = Environment.getHomeDirectory() + "clouds";
     private static final int MAX_VERBOSE_IDS_LENGTH = 5;
+    private static final int DEFAULT_STOP_MANAGEMENT_TIMEOUT = 15;
 
     // TODO: should it be volatile?
     private static ResourceBundle defaultProvisioningDriverMessageBundle;
@@ -109,7 +111,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
     private SubnetInfo publicSubnetInfo;
     private Pattern publicIpPattern;
 
-    private Integer stopManagementMachinesTimeoutInMinutes = 15;
+    private int stopManagementMachinesTimeoutInMinutes = DEFAULT_STOP_MANAGEMENT_TIMEOUT;
 
     @Override
     public void setCustomDataFile(final File customDataFile) {
@@ -189,9 +191,12 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
             return;
         }
 
+        // TODO refactor to getInteger with default value and use it when necessary
+
         try {
-            this.stopManagementMachinesTimeoutInMinutes =
-                    (Integer) cloud.getCustom().get(CloudifyConstants.STOP_MANAGEMENT_TIMEOUT_IN_MINUTES);
+            this.stopManagementMachinesTimeoutInMinutes = Utils.getInteger(super.cloud.getCustom().get(CloudifyConstants
+                    .STOP_MANAGEMENT_TIMEOUT_IN_MINUTES), DEFAULT_STOP_MANAGEMENT_TIMEOUT);
+
             this.deployer = createDeployer(cloud);
 
             initIPFilters(cloud);

@@ -35,6 +35,7 @@ import org.cloudifysource.esc.driver.provisioning.azure.model.HostedService;
 import org.cloudifysource.esc.driver.provisioning.azure.model.HostedServices;
 import org.cloudifysource.esc.driver.provisioning.azure.model.InputEndpoint;
 import org.cloudifysource.esc.driver.provisioning.azure.model.InputEndpoints;
+import org.cloudifysource.esc.util.Utils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -111,7 +112,9 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 	private static final int REST_PORT = 8100;
 	private static final int SSH_PORT = 22;
 
-    private Integer stopManagementTimeoutInMinutes = 15;
+    private static final int DEFAULT_STOP_MANAGEMENT_TIMEOUT = 15;
+
+    private int stopManagementMachinesTimeoutInMinutes = DEFAULT_STOP_MANAGEMENT_TIMEOUT;
 
     private static final Logger logger = Logger
 			.getLogger(MicrosoftAzureCloudDriver.class.getName());
@@ -144,8 +147,8 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 		
 		super.setConfig(cloud, templateName, management, serviceName);
 
-        this.stopManagementTimeoutInMinutes = (Integer) super.cloud.getCustom().get(CloudifyConstants
-                .STOP_MANAGEMENT_TIMEOUT_IN_MINUTES);
+        this.stopManagementMachinesTimeoutInMinutes = Utils.getInteger(super.cloud.getCustom().get(CloudifyConstants
+                .STOP_MANAGEMENT_TIMEOUT_IN_MINUTES), DEFAULT_STOP_MANAGEMENT_TIMEOUT);
 
         // Per template properties
 		this.availabilitySet = (String) this.template.getCustom().get(
@@ -476,7 +479,8 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 	public void stopManagementMachines() throws TimeoutException,
 			CloudProvisioningException {
 
-        final long endTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(stopManagementTimeoutInMinutes);
+        final long endTime = System.currentTimeMillis()
+                + TimeUnit.MINUTES.toMillis(stopManagementMachinesTimeoutInMinutes);
 		boolean success = false;
 
 		ExecutorService service = Executors.newCachedThreadPool();
