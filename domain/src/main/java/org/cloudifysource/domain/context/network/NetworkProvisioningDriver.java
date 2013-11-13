@@ -18,6 +18,8 @@ package org.cloudifysource.domain.context.network;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.cloudifysource.domain.cloud.Cloud;
+
 /**
  * 
  * @author adaml
@@ -26,12 +28,27 @@ import java.util.concurrent.TimeoutException;
  */
 public interface NetworkProvisioningDriver {
 
+	/**
+	 * Called once at initialization. Sets configuration members for later use. use this method to extract all necessary
+	 * information needed for future provisioning calls.
+	 * 
+	 * @param cloud
+	 *            - The {@link Cloud} Object.
+	 * @param computeTemplateName
+	 *            - the compute template name used to provision the machine that this volume is dedicated to.
+	 */
+	void setConfig(final Cloud cloud, final String computeTemplateName);
+	
 	/********
 	 * Assigns a floating IP address to the dedicated instance.
 	 * @param ip
 	 * 			The floating IP address.
 	 * @param instanceID
 	 * 			The dedicated instance ID.
+	 * @param duration 
+	 * 			duration until times out.
+	 * @param timeUnit
+	 *            the duration timeout units.
 	 * @throws NetworkProvisioningException
 	 * 			If assign action fails.
 	 * @throws TimeoutException
@@ -46,6 +63,10 @@ public interface NetworkProvisioningDriver {
 	 * 			The floating IP address.
 	 * @param instanceID
 	 * 			The instance ID.
+	 * @param duration 
+	 * 			duration until times out.
+	 * @param timeUnit
+	 *            the duration timeout units.
 	 * @throws NetworkProvisioningException
 	 * 			If unassign action fails.
 	 * @throws TimeoutException 
@@ -58,6 +79,10 @@ public interface NetworkProvisioningDriver {
 	 * Reserves a floating IP address from the available blocks of floating IP addresses.
 	 * @param poolName
 	 * 			The pool name from which to allocate the floating IP address. 
+	 * @param duration 
+	 * 			duration until times out.
+	 * @param timeUnit
+	 *            the duration timeout units.
 	 * @return
 	 * 		The reserved IP address.
 	 * @throws NetworkProvisioningException
@@ -72,6 +97,10 @@ public interface NetworkProvisioningDriver {
 	 * Releases the floating IP address back to the floating IP address pool. 
 	 * @param ip
 	 * 			The floating IP address to release.
+	 * @param duration 
+	 * 			duration until times out.
+	 * @param timeUnit
+	 *            the duration timeout units.
 	 * @throws NetworkProvisioningException 
 	 * 			If release action fails.
 	 * @throws TimeoutException
