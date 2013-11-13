@@ -16,43 +16,34 @@
 package org.cloudifysource.domain.context.network;
 
 /**
+ * A dedicated exception for network provisioning errors.
  * 
  * @author adaml
  * @since 2.7.0
  *
  */
-public interface NetworkDriver {
+public class NetworkProvisioningException extends Exception {
 
-	/********
-	 * Assigns a floating IP address to the dedicated instance.
-	 * @param ip
-	 * 			The floating IP address.
-	 * @param instanceID
-	 * 			The dedicated instance ID.
-	 */
-	void assign(final String ip, final String instanceID);
-	
-	/********
-	 * Unassigns the floating IP address.
-	 * @param ip
-	 * 			The floating IP address.
-	 * @param instanceID
-	 * 			The instance ID.
-	 */
-	void unassign(final String ip, final String instanceID);
-	
-	/********
-	 * Reserves a floating IP address from the available blocks of floating IP addresses. 
-	 * @return
-	 * 		The reserved IP address.
-	 */
-	String create();
-	
-	/********
-	 * Releases the floating IP address back to the floating IP address pool. 
-	 * @param ip
-	 * 			The floating IP address to release.
+	/**
 	 * 
 	 */
-	void release(final String ip);
+	private static final long serialVersionUID = 1L;
+	
+	public NetworkProvisioningException(final String message) {
+		super(message);
+	}
+	
+	public NetworkProvisioningException(final Exception e) {
+		super(e);
+	}
+	
+	public NetworkProvisioningException(final String message, final Exception e) {
+		super(message, e);
+	}
+	
+	public NetworkProvisioningException() {
+		super();
+	}
 }
+
+	
