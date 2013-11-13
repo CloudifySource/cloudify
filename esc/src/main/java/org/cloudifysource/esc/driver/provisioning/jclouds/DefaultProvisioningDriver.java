@@ -194,7 +194,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
         // TODO refactor to getInteger with default value and use it when necessary
 
         try {
-            this.stopManagementMachinesTimeoutInMinutes = Utils.getInteger(super.cloud.getCustom().get(CloudifyConstants
+            this.stopManagementMachinesTimeoutInMinutes = Utils.getInteger(cloud.getCustom().get(CloudifyConstants
                     .STOP_MANAGEMENT_TIMEOUT_IN_MINUTES), DEFAULT_STOP_MANAGEMENT_TIMEOUT);
 
             this.deployer = createDeployer(cloud);
