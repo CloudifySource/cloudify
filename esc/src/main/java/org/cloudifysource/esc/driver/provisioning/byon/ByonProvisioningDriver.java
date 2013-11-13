@@ -102,7 +102,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 						}
 					}));
 
-            this.stopManagementMachinesTimeoutInMinutes = Utils.getInteger(super.cloud.getCustom().get(CloudifyConstants
+            this.stopManagementMachinesTimeoutInMinutes = Utils.getInteger(cloud.getCustom().get(CloudifyConstants
                     .STOP_MANAGEMENT_TIMEOUT_IN_MINUTES), DEFAULT_STOP_MANAGEMENT_TIMEOUT);
 
 		} catch (final Exception e) {
