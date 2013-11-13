@@ -255,7 +255,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 		if (permissionName.equalsIgnoreCase(PERMISSION_TO_VIEW)) {
 			if (hasPermissionToView(authDetails, targetAuthGroups)) {
 				permissionGranted = true;
-				logger.log(Level.INFO, "View permission granted for user " + authDetails.getUsername());
+				logger.log(Level.FINE, "View permission granted for user " + authDetails.getUsername());
 			} else {
 				logger.log(Level.WARNING, "Insufficient permissions. User " + authDetails.getUsername() + " is only "
 						+ "permitted to view groups: " 
