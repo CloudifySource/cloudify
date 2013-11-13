@@ -13,6 +13,7 @@
 package org.cloudifysource.esc.driver.provisioning.jclouds;
 
 import com.google.common.base.Predicate;
+import com.google.inject.Module;
 import com.j_spaces.kernel.Environment;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.net.util.SubnetUtils;
@@ -186,12 +187,10 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
 
 
     @Override
-    protected void initDeployer(final Cloud cloud) {
+    public void initDeployer(final Cloud cloud) {
         if (this.deployer != null) {
             return;
         }
-
-        // TODO refactor to getInteger with default value and use it when necessary
 
         try {
             this.stopManagementMachinesTimeoutInMinutes = Utils.getInteger(cloud.getCustom().get(CloudifyConstants
@@ -230,6 +229,10 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
             final long endTime,
             final ComputeTemplate template) throws CloudProvisioningException, TimeoutException {
         return createServer(endTime, serverName, null);
+    }
+
+    public Set<Module> setupModules() {
+        return new HashSet<Module>();
     }
 
     private MachineDetails createServer(final long end, final String groupName,
@@ -629,8 +632,13 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
         return null;
     }
 
-    private JCloudsDeployer createDeployer(final Cloud cloud)
-            throws IOException {
+    /**
+     *
+     * @param cloud The cloud object that contains cerdentials.
+     * @return A {@link JCloudsDeployer} object for remote cloud operations.
+     * @throws IOException In case of an IO error.
+     */
+    public JCloudsDeployer createDeployer(final Cloud cloud) throws IOException {
         logger.fine("Creating JClouds context deployer with user: " + cloud.getUser().getUser());
         final ComputeTemplate cloudTemplate = cloud.getCloudCompute().getTemplates().get(
                 cloudTemplateName);
@@ -639,8 +647,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
         final Properties props = new Properties();
         props.putAll(cloudTemplate.getOverrides());
 
-        deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(),
-                cloud.getUser().getApiKey(), props);
+        JCloudsDeployer deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(),
+                cloud.getUser().getApiKey(), props, setupModules());
 
         deployer.setImageId(cloudTemplate.getImageId());
         deployer.setMinRamMegabytes(cloudTemplate.getMachineMemoryMB());
@@ -681,7 +689,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
                     templateProps.putAll(templateOverrides);
                     logger.fine("Creating a new cloud deployer");
                     deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(),
-                            cloud.getUser().getApiKey(), templateProps);
+                            cloud.getUser().getApiKey(), templateProps, setupModules());
                     logger.log(Level.FINE, "making API call");
                     deployer.getAllLocations();
                     validationContext.validationEventEnd(ValidationResultType.OK);

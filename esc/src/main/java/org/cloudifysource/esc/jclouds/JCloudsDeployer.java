@@ -64,33 +64,21 @@ import java.util.logging.Level;
 public class JCloudsDeployer {
 
     private static final long SHUTDOWN_MANAGEMENT_MACHINE_DEFAULT_TIMEOUT_IN_SECONDS = 60 * 5;
-
     private static final int SHUTDOWN_WAIT_POLLING_INTERVAL_MILLIS = 1000;
-
     private static java.util.logging.Logger logger = java.util.logging.Logger
             .getLogger(JCloudsDeployer.class.getName());
-
     private static final int DEFAULT_MIN_RAM_MB = 0;
     private static final String DEFAULT_IMAGE_ID_RACKSPACE = "51";
-
     private static final long RETRY_SLEEP_TIMEOUT_IN_MILLIS = 5000;
     private static final int NUMBER_OF_RETRY_ATTEMPTS = 2;
-
     private int minRamMegabytes = DEFAULT_MIN_RAM_MB;
     private String imageId = DEFAULT_IMAGE_ID_RACKSPACE;
-
     private ComputeServiceContext context;
-
     private String hardwareId;
-
     private Map<String, Object> extraOptions;
-
     private final String provider;
-
     private final String account;
-
     private final String key;
-
     private final Properties overrides;
 
     public void close() {
@@ -133,21 +121,21 @@ public class JCloudsDeployer {
     public JCloudsDeployer(final String provider,
                            final String account,
                            final String key) throws IOException {
-        this(provider, account, key, new Properties());
+        this(provider, account, key, new Properties(), new HashSet<Module>());
     }
 
     public JCloudsDeployer(final String provider,
                            final String account,
                            final String key,
-                           final Properties overrides) throws IOException {
+                           final Properties overrides,
+                           final Set<Module> modules) throws IOException {
 
         this.provider = provider;
         this.account = account;
         this.key = key;
         this.overrides = overrides;
 
-        final Set<Module> wiring = new HashSet<Module>();
-        wiring.add(new AbstractModule() {
+        modules.add(new AbstractModule() {
 
             @Override
             protected void configure() {
@@ -159,11 +147,11 @@ public class JCloudsDeployer {
         });
 
         // Enable logging using gs_logging
-        wiring.add(new JDKLoggingModule());
+        modules.add(new JDKLoggingModule());
 
         this.context = ContextBuilder.newBuilder(provider)
                 .credentials(account, key)
-                .modules(wiring)
+                .modules(modules)
                 .overrides(overrides)
                 .buildView(ComputeServiceContext.class);
     }
@@ -755,7 +743,9 @@ public class JCloudsDeployer {
                             + " has terminated" + ".");
                     nonTerminatedNodes.remove(md);
                 } else {
-                    logger.fine("Machine: [" + md.getPublicAddress() + "/" + md.getPrivateAddress() + "]" + " state is: " + status);
+                    logger.fine(
+                            "Machine: [" + md.getPublicAddress() + "/" + md.getPrivateAddress() + "]" + " state is: " +
+                                    status);
                 }
             }
             if (nonTerminatedNodes.isEmpty()) return;
