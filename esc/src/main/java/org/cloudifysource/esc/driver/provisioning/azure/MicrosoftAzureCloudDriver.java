@@ -147,7 +147,7 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 		
 		super.setConfig(cloud, templateName, management, serviceName);
 
-        this.stopManagementMachinesTimeoutInMinutes = Utils.getInteger(super.cloud.getCustom().get(CloudifyConstants
+        this.stopManagementMachinesTimeoutInMinutes = Utils.getInteger(cloud.getCustom().get(CloudifyConstants
                 .STOP_MANAGEMENT_TIMEOUT_IN_MINUTES), DEFAULT_STOP_MANAGEMENT_TIMEOUT);
 
         // Per template properties
