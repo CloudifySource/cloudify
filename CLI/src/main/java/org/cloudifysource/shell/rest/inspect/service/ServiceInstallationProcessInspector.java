@@ -15,6 +15,9 @@
  *******************************************************************************/
 package org.cloudifysource.shell.rest.inspect.service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.rest.response.ServiceDescription;
@@ -24,9 +27,6 @@ import org.cloudifysource.restclient.exceptions.RestClientResponseException;
 import org.cloudifysource.shell.ShellUtils;
 import org.cloudifysource.shell.exceptions.CLIException;
 import org.cloudifysource.shell.rest.inspect.InstallationProcessInspector;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
@@ -43,7 +43,6 @@ public class ServiceInstallationProcessInspector extends InstallationProcessInsp
             + "Configure the timeout using the -timeout flag.";
 
     protected final String serviceName;
-    protected final String applicationName;
 
     public ServiceInstallationProcessInspector(final RestClient restClient,
                                                final String deploymentId,
@@ -54,12 +53,12 @@ public class ServiceInstallationProcessInspector extends InstallationProcessInsp
 
         super(
         		restClient, 
-        		deploymentId, 
+        		deploymentId,
+        		(applicationName != null ? applicationName : CloudifyConstants.DEFAULT_APPLICATION_NAME),
         		verbose, 
         		createOneEntryMap(serviceName, plannedNumberOfInstances),
         		createOneEntryMap(serviceName, 0));
         this.serviceName = serviceName;
-        this.applicationName = applicationName != null ? applicationName : CloudifyConstants.DEFAULT_APPLICATION_NAME;
     }
 
     public ServiceInstallationProcessInspector(final RestClient restClient,
@@ -72,12 +71,12 @@ public class ServiceInstallationProcessInspector extends InstallationProcessInsp
 
         super(
         		restClient, 
-        		deploymentId, 
+        		deploymentId,
+        		(applicationName != null ? applicationName : CloudifyConstants.DEFAULT_APPLICATION_NAME),
         		verbose, 
         		createOneEntryMap(serviceName, plannedNumberOfInstances) ,
         		createOneEntryMap(serviceName, currentNumberOfInstances));
         this.serviceName = serviceName;
-        this.applicationName = applicationName != null ? applicationName : CloudifyConstants.DEFAULT_APPLICATION_NAME;
     }
 
     private static Map<String, Integer> createOneEntryMap(final String serviceName, final int numberOfInstances) {

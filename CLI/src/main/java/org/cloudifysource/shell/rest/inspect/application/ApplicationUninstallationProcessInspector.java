@@ -34,7 +34,6 @@ public class ApplicationUninstallationProcessInspector extends UninstallationPro
             + "Configure the timeout using the -timeout flag.";
 
 
-    private String applicationName;
     private List<ServiceDescription> serviceDescriptionList;
 
     public ApplicationUninstallationProcessInspector(
@@ -44,9 +43,8 @@ public class ApplicationUninstallationProcessInspector extends UninstallationPro
             final Map<String, Integer> currentRunningInstancesPerService,
             final String applicationName,
             final int nextEventId) {
-        super(restClient, deploymentId, verbose, initWithZeros(currentRunningInstancesPerService.keySet()), 
-        		currentRunningInstancesPerService);
-        this.applicationName = applicationName;
+        super(restClient, deploymentId, applicationName, verbose, 
+        		initWithZeros(currentRunningInstancesPerService.keySet()), currentRunningInstancesPerService);
         setLastEventIndex(nextEventId);
     }
 

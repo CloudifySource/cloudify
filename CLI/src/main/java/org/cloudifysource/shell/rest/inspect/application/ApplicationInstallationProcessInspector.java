@@ -44,7 +44,6 @@ public class ApplicationInstallationProcessInspector extends InstallationProcess
     private static final String TIMEOUT_ERROR_MESSAGE = "Application installation timed out. "
             + "Configure the timeout using the -timeout flag.";
 
-    private String applicationName;
 	private int numServices;
 
     public ApplicationInstallationProcessInspector(final RestClient restClient,
@@ -52,9 +51,8 @@ public class ApplicationInstallationProcessInspector extends InstallationProcess
                                                    final String applicationName,
                                                    final boolean verbose,
                                                    final Map<String, Integer> plannedNumberOfInstancesPerService) {
-        super(restClient, deploymentId, verbose, plannedNumberOfInstancesPerService, 
+        super(restClient, deploymentId, applicationName, verbose, plannedNumberOfInstancesPerService, 
         							initWithZeros(plannedNumberOfInstancesPerService.keySet()));
-        this.applicationName = applicationName;
         this.numServices = plannedNumberOfInstancesPerService.entrySet().size();
     }
 

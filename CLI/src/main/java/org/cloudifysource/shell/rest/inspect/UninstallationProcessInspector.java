@@ -12,16 +12,17 @@
  *******************************************************************************/
 package org.cloudifysource.shell.rest.inspect;
 
-import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.cloudifysource.restclient.RestClient;
-import org.cloudifysource.restclient.exceptions.RestClientException;
-import org.cloudifysource.shell.ConditionLatch;
-import org.cloudifysource.shell.exceptions.CLIException;
-import org.cloudifysource.shell.installer.CLIEventsDisplayer;
-
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
+
+import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.restclient.RestClient;
+import org.cloudifysource.restclient.exceptions.RestClientException;
+import org.cloudifysource.restclient.exceptions.RestClientResponseException;
+import org.cloudifysource.shell.ConditionLatch;
+import org.cloudifysource.shell.exceptions.CLIException;
+import org.cloudifysource.shell.installer.CLIEventsDisplayer;
 
 /**
  * Created with IntelliJ IDEA.
@@ -31,17 +32,18 @@ import java.util.concurrent.TimeoutException;
  */
 public abstract class UninstallationProcessInspector extends InstallationProcessInspector {
 
+	private boolean cloudResourcesReleased = false;
     private final CLIEventsDisplayer displayer = new CLIEventsDisplayer();
-
-    private boolean waitForCloudResourcesRelease = true;
-
+    
     public UninstallationProcessInspector(final RestClient restClient,
                                           final String deploymentId,
+                                          final String applicationName,
                                           final boolean verbose,
                                           final Map<String, Integer> plannedNumberOfInstancesPerService,
                                           final Map<String, Integer> currentRunningInstancesPerService) {
         super(restClient,
               deploymentId,
+              applicationName,
               verbose,
               plannedNumberOfInstancesPerService,
               currentRunningInstancesPerService);
@@ -70,9 +72,12 @@ public abstract class UninstallationProcessInspector extends InstallationProcess
         			} else {
         				displayer.printNoChange();
         			}
-        			// it is hard to determin exactly when the PUI was terminated,
+        			
+					// it is hard to determine exactly when the PUI was terminated,
         			// since PUIs are terminated almost instantly after calling the uninstall command.
-//        			printUnInstalledInstances();
+        			if (!cloudResourcesReleased) {
+        				printIfReleasingCloudResources();
+        			}
         			
         			return ended;
         		} catch (final RestClientException e) {
@@ -84,25 +89,22 @@ public abstract class UninstallationProcessInspector extends InstallationProcess
         		}
         	}
 
-        	// this method will yeild 0 puis almost instantly after the uninstall command was invoked
-        	// and will not return the true service instance state.
-        	// The proper way would be to count service STOP events.
-            private void printUnInstalledInstances() throws RestClientException {
-                for (Map.Entry<String, Integer> entry : plannedNumberOfInstancesPerService.entrySet()) {
-                    String serviceName = entry.getKey();
-					int currentRunningInstances = getNumberOfRunningInstances(serviceName);
-                    Integer lastUpdatedRunningInstances = currentRunningInstancesPerService.get(serviceName);
-                    if (currentRunningInstances < lastUpdatedRunningInstances) {
-                        // a new instance is now running
-                        displayer.printEvent(serviceName 
-                        		+ " : Installed " + currentRunningInstances + " Planned " + entry.getValue());
-                        currentRunningInstancesPerService.put(serviceName, currentRunningInstances);
-                    }
-                }
+        	private void printIfReleasingCloudResources() throws RestClientException {
+            for (Map.Entry<String, Integer> entry : plannedNumberOfInstancesPerService.entrySet()) {
+                String serviceName = entry.getKey();
+				try {
+					restClient.getServiceDescription(applicationName, serviceName);	
+				} catch (RestClientResponseException e) {
+					if (e.getStatusCode() == CloudifyConstants.HTTP_STATUS_NOT_FOUND) {
+	    				// if we got here the pui is not longer available even through the zone.
+	    				// we assume the ESM is currently releasing cloud resources.
+						cloudResourcesReleased = true;
+						displayer.printEvent(serviceName + ": " + CloudifyConstants.RELEASING_CLOUD_RESOURCES_EVENT);
+					}
+				}
             }
+        }
         });
-
-
     }
 
 	private void printInitialRunningInstances() {
@@ -112,9 +114,5 @@ public abstract class UninstallationProcessInspector extends InstallationProcess
             displayer.printEvent(serviceName 
             		+ ": Installed " + numberOfRunningInstances + " Planned " + entry.getValue());
 		}
-	}
-
-	public void setWaitForCloudResourcesRelease(final boolean waitForCloudResourcesRelease) {
-		this.waitForCloudResourcesRelease = waitForCloudResourcesRelease;
 	}
 }
