@@ -742,7 +742,8 @@ public class JCloudsDeployer {
             shutdownNodeAsync(md.getMachineId());
         }
 
-        logger.info("Shutdown of machines " + toIps(machines) + " has started. Waiting for them to terminate, " +
+        logger.info("Shutdown of machines " + toIps(nonTerminatedNodes) + " has started. Waiting for them to " +
+                "terminate, " +
                 "it may take a few minutes.");
 
         // wait for all machines to terminate
@@ -755,13 +756,13 @@ public class JCloudsDeployer {
                     nonTerminatedNodes.remove(md);
                 } else {
                     logger.fine("Machine: [" + md.getPublicAddress() + "/" + md.getPrivateAddress() + "]" + " state is: " + status);
-                    Thread.sleep(SHUTDOWN_WAIT_POLLING_INTERVAL_MILLIS);
                 }
             }
             if (nonTerminatedNodes.isEmpty()) return;
+            Thread.sleep(SHUTDOWN_WAIT_POLLING_INTERVAL_MILLIS);
         }
 
-        throw new TimeoutException("Timed out while waiting for machines " +  toIps(machines) + " to terminate. Make " +
+        throw new TimeoutException("Timed out while waiting for machines " +  toIps(nonTerminatedNodes) + " to terminate. Make " +
                 "sure this machines are terminated.");
     }
 
@@ -778,7 +779,7 @@ public class JCloudsDeployer {
         return null;
     }
 
-    private Set<String> toIps(MachineDetails[] machines) {
+    private Set<String> toIps(List<MachineDetails> machines) {
         Set<String> ips = new HashSet<String>();
         for (MachineDetails md : machines) {
             ips.add(md.getPublicAddress() + "/" + md.getPrivateAddress());
