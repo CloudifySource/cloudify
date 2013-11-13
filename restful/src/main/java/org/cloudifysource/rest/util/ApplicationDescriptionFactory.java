@@ -33,11 +33,13 @@ import org.openspaces.admin.pu.ProcessingUnitType;
 import org.openspaces.admin.pu.ProcessingUnits;
 import org.openspaces.admin.zone.Zone;
 import org.openspaces.admin.zone.Zones;
+import org.openspaces.core.properties.BeanLevelProperties;
 import org.openspaces.pu.service.ServiceMonitors;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -183,6 +185,48 @@ public class ApplicationDescriptionFactory {
         
         return serviceDescription;
     }
+    
+    
+    /**
+     * Gets the {@link ServiceDescription} object of the given zone.
+     * This method is typically called when the ProcessingUnit object is not available,
+     * i.e. during service undeploy, after the pu was already uninstalled.
+     * @param zone the zone
+     * @return {@link ServiceDescription} object.
+     */
+    public ServiceDescription getServiceDescription(final Zone zone) {
+        int plannedNumberOfInstances, numberOfServiceInstances;
+        DeploymentState serviceState;
+        
+        ServiceDescription serviceDescription = new ServiceDescription();
+        
+        plannedNumberOfInstances = 0; 
+        numberOfServiceInstances = zone.getProcessingUnitInstances().length;
+        List<InstanceDescription> serviceInstancesDescription = getServiceInstacesDescription(zone);
+
+        serviceState = DeploymentState.IN_PROGRESS;		//since this method is called during uninstall
+        logger.log(Level.FINE, "Service \"" + zone.getName() + "\" is in state: " + serviceState);
+        
+        serviceDescription.setPlannedInstances(plannedNumberOfInstances);
+        serviceDescription.setInstanceCount(numberOfServiceInstances);
+
+        FullServiceName fullServiceName = ServiceUtils.getFullServiceName(zone.getName());
+
+        final String applicationName = fullServiceName.getApplicationName();
+        final String serviceName = fullServiceName.getServiceName();
+
+        serviceDescription.setApplicationName(applicationName);
+        serviceDescription.setServiceName(serviceName);
+
+        serviceDescription.setInstancesDescription(serviceInstancesDescription);
+        serviceDescription.setServiceState(serviceState);
+        
+        String deploymentId = getDeploymentIdFromServiceInstaces(zone);
+        serviceDescription.setDeploymentId(deploymentId);
+        
+        return serviceDescription;
+    }
+    
 
     /**
      * Gets a populated service description object for the specified service.
@@ -201,7 +245,7 @@ public class ApplicationDescriptionFactory {
 
         zone = getZone(absolutePuName);
         if (zone != null) {
-            // for undeply - zone exists, PU does not.
+            // for undeploy - zone exists, PU does not.
             ProcessingUnitInstance[] processingUnitInstances = zone.getProcessingUnitInstances();
             if (processingUnitInstances.length > 0) {
                 processingUnit = processingUnitInstances[0].getProcessingUnit();
@@ -213,12 +257,17 @@ public class ApplicationDescriptionFactory {
             // for deploy - zone does not exist, PU does.
             processingUnit = admin.getProcessingUnits().getProcessingUnit(absolutePuName);
         }
-
-        if (processingUnit == null) {
-           throw new ResourceNotFoundException(absolutePuName);
+        
+        if (processingUnit != null) {
+        	return getServiceDescription(processingUnit);
+        } else if (processingUnit == null && zone != null) {
+        	// this could happen on uninstall, if the pu is down already but the zone is not
+        	return getServiceDescription(zone);
+        } else {
+        	// both pu and zone are null
+        	throw new ResourceNotFoundException(absolutePuName);
         }
-
-        return getServiceDescription(processingUnit);
+                
     }
 
     /**
@@ -289,6 +338,62 @@ public class ApplicationDescriptionFactory {
 
         return instancesDescriptionList;
     }
+    
+    
+    /**
+     * Gets a list of {@link InstanceDescription} objects, describing the service instances.
+     *
+     * @param zone
+     *            The service's zone of which instances are described
+     * @return a list of {@link InstanceDescription} objects, describing the service instances.
+     */
+    private List<InstanceDescription> getServiceInstacesDescription(
+            final Zone zone) {
+
+        List<InstanceDescription> instancesDescriptionList = new ArrayList<InstanceDescription>();
+
+        if (zone != null) {
+            for (ProcessingUnitInstance processingUnitInstance : zone.getProcessingUnitInstances()) {
+                InstanceDescription instanceDescription = getInstanceDescription(processingUnitInstance);
+                instancesDescriptionList.add(instanceDescription);
+            }
+        }
+
+        return instancesDescriptionList;
+    }
+    
+    /**
+     * Gets a list of {@link InstanceDescription} objects, describing the service instances.
+     *
+     * @param zone
+     *            The service's zone of which instances are described
+     * @return a list of {@link InstanceDescription} objects, describing the service instances.
+     */
+    private String getDeploymentIdFromServiceInstaces(
+            final Zone zone) {
+
+        String deploymentId = null;
+
+        if (zone != null) {
+            for (ProcessingUnitInstance processingUnitInstance : zone.getProcessingUnitInstances()) {
+            	
+            	BeanLevelProperties beanLevelProps = processingUnitInstance.getProperties();
+            	if (beanLevelProps != null) {
+            		Properties ctxProps = beanLevelProps.getContextProperties();
+            		if (ctxProps != null) {
+            			deploymentId = ctxProps.getProperty(CloudifyConstants.CONTEXT_PROPERTY_DEPLOYMENT_ID);
+            		}
+            	}    
+
+            	if (deploymentId != null) {
+            		break;
+            	}
+            }
+        }
+
+        return deploymentId;
+    }
+    
 
     /**
      * Gets the application state - STARTED, INSTALLING or FAILED. The method returns FAILED status only if all of the
@@ -329,8 +434,6 @@ public class ApplicationDescriptionFactory {
      * @param zoneName
      *            The name of the requested zone
      * @return The zone matching the specified name, if found. Null otherwise.
-     * @throws ResourceNotFoundException
-     *             Indicates the zone was not found
      */
     private Zone getZone(final String zoneName) {
         Zone zone = null;

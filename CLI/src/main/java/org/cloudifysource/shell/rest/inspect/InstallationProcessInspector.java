@@ -44,6 +44,7 @@ public abstract class InstallationProcessInspector {
 	protected RestClient restClient;
 	private final boolean verbose;
 	protected final String deploymentId;
+	protected final String applicationName;
 	protected final Map<String, Integer> plannedNumberOfInstancesPerService;
 	protected final Map<String, Integer> currentRunningInstancesPerService;
 
@@ -52,11 +53,13 @@ public abstract class InstallationProcessInspector {
 
 	public InstallationProcessInspector(final RestClient restClient,
 			final String deploymentId,
+			final String applicationName,
 			final boolean verbose,
 			final Map<String, Integer> plannedNumberOfInstancesPerService,
 			final Map<String, Integer> currentRunningInstancesPerService) {
 		this.restClient = restClient;
 		this.deploymentId = deploymentId;
+		this.applicationName = applicationName;
 		this.verbose = verbose;
 		this.plannedNumberOfInstancesPerService = plannedNumberOfInstancesPerService;
 		this.currentRunningInstancesPerService = currentRunningInstancesPerService;
