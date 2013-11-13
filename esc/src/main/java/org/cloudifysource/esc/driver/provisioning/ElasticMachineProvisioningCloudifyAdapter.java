@@ -84,6 +84,8 @@ import org.openspaces.core.bean.Bean;
 import org.openspaces.grid.gsm.capacity.CapacityRequirements;
 import org.openspaces.grid.gsm.capacity.CpuCapacityRequirement;
 import org.openspaces.grid.gsm.capacity.MemoryCapacityRequirement;
+import org.openspaces.grid.gsm.machines.FailedGridServiceAgent;
+import org.openspaces.grid.gsm.machines.StartedGridServiceAgent;
 import org.openspaces.grid.gsm.machines.isolation.ElasticProcessingUnitMachineIsolation;
 import org.openspaces.grid.gsm.machines.plugins.ElasticMachineProvisioning;
 import org.openspaces.grid.gsm.machines.plugins.events.GridServiceAgentStartRequestedEvent;
@@ -328,19 +330,11 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return details;
 
 	}
-
+	
 	@Override
-	public GridServiceAgent startMachine(final long duration, final TimeUnit unit)
-			throws ElasticMachineProvisioningException, ElasticGridServiceAgentProvisioningException,
-			InterruptedException, TimeoutException {
-		final GSAReservationId reservationId = null;
-		final ExactZonesConfig zones = new ExactZonesConfig();
-		return startMachine(zones, reservationId, duration, unit);
-	}
-
-	@Override
-	public GridServiceAgent startMachine(final ExactZonesConfig zones, final GSAReservationId reservationId,
-			final long duration, final TimeUnit unit) throws ElasticMachineProvisioningException,
+	public StartedGridServiceAgent startMachine(final ExactZonesConfig zones, final GSAReservationId reservationId,
+			final FailedGridServiceAgent failedAgent, final long duration, final TimeUnit unit)
+					throws ElasticMachineProvisioningException,
 			ElasticGridServiceAgentProvisioningException, InterruptedException, TimeoutException {
 
 		logger.info("Cloudify Adapter is starting a new machine with zones " + zones.getZones()
@@ -454,7 +448,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 						+ " was missing from its environment variables.");
 			}
 
-			return gsa;
+			final Object context = null; //stub
+			return new StartedGridServiceAgent(gsa, context );
 		} catch (final ElasticMachineProvisioningException e) {
 			logger.info("ElasticMachineProvisioningException occurred, " + e.getMessage());
 			logger.info(ExceptionUtils.getFullStackTrace(e));
@@ -767,11 +762,12 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	}
 
 	@Override
-	public void stopMachine(final GridServiceAgent agent, final long duration, final TimeUnit unit)
+	public void stopMachine(final StartedGridServiceAgent startedAgent, final long duration, final TimeUnit unit)
 			throws ElasticMachineProvisioningException, ElasticGridServiceAgentProvisioningException,
 			InterruptedException, TimeoutException {
 
 		final long endTime = System.currentTimeMillis() + unit.toMillis(duration);
+		final GridServiceAgent agent = startedAgent.getAgent();
 		final String machineIp = agent.getMachine().getHostAddress();
 		
 		// configure drivers if this is first time
