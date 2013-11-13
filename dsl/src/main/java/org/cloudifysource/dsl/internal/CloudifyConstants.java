@@ -48,6 +48,9 @@ public final class CloudifyConstants {
         STARTED
 
     }
+    
+	public static final String STORAGE_API_NAME = "STORAGE_API_NAME";
+	public static final String NETWORK_API_NAME = "NETWORK_API_NAME";
 
     /***
      * Context properties for deployed services.

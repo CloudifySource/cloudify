@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import org.cloudifysource.domain.Service;
 import org.cloudifysource.domain.context.blockstorage.StorageFacade;
 import org.cloudifysource.domain.context.kvstorage.AttributesFacade;
+import org.cloudifysource.domain.context.network.NetworkProvisioningDriver;
 
 /**
  * 
@@ -160,6 +161,12 @@ public class BaseServiceContext implements ServiceContext {
 	@Override
 	public void startMaintenanceMode(final long timeout, final TimeUnit unit) {
 		throw new UnsupportedOperationException("startMaintenanceMode context method is not supported for"
+				+ " services running outside a GSC.");
+	}
+
+	@Override
+	public NetworkProvisioningDriver getNetwork() {
+		throw new UnsupportedOperationException("getNetwork context method is not supported for"
 				+ " services running outside a GSC.");
 	}
 
