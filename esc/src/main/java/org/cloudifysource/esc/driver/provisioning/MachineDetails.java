@@ -34,6 +34,9 @@ import java.io.ObjectOutput;
  */
 public class MachineDetails implements Externalizable {
 
+    // TODO - insert serial version uid of 2.6.0-ga using serialver (consult barak)
+    // TODO add version check to read/write external
+
 	private String privateAddress;
 	private String publicAddress;
 
