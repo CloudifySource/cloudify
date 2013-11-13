@@ -119,7 +119,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private static final int MILLISECONDS_IN_SECOND = 1000;
 
 	private static final int DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE = 5;
-
+	
 	/**********
 	 * .
 	 */
@@ -1058,6 +1058,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			}
 			this.storageProvisioning.setConfig(cloud, this.cloudTemplateName);
 		}
+		if (this.networkProvisioning != null) {
+			this.networkProvisioning.setConfig(cloud, this.cloudTemplateName);
+		}
 
 		this.driversConfigured = true;
 	}
@@ -1261,14 +1264,20 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	}
 
 	@Override
-	public Object getExternalAPI(final String apiName) {
+	public Object getExternalApi(final String apiName) {
+		Object externalApi = null;
 		//TODO: (adaml) extract the names of the apis to constants.
-		if (apiName.equals("Storage")) {
-			return this.storageProvisioning;
-		} else if (apiName.equals("Network")) {
-			return this.networkProvisioning;
-		} else {
-			throw new UnsupportedOperationException("");
-		}
+		if (apiName.equals(CloudifyConstants.STORAGE_API_NAME)) {
+			externalApi = this.storageProvisioning;
+		} else if (apiName.equals(CloudifyConstants.NETWORK_API_NAME)) {
+			externalApi = this.networkProvisioning;
+		} 
+		return externalApi;
+	}
+
+	@Override
+	public String[] getExternalApis() {
+		return new String[] {CloudifyConstants.STORAGE_API_NAME, 
+							CloudifyConstants.NETWORK_API_NAME};
 	}
 }
