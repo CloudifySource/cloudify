@@ -1304,9 +1304,9 @@ public class LocalhostGridAgentBootstrapper {
 
 	private boolean fastExistingAgentCheck() {
 		if (isLocalCloud) {
-			return !ServiceUtils.isPortFree(OpenspacesConstants.DEFAULT_LOCALCLOUD_LUS_PORT);
+			return !ServiceUtils.isPortFree(nicAddress, OpenspacesConstants.DEFAULT_LOCALCLOUD_LUS_PORT);
 		}
-		return !ServiceUtils.isPortFree(
+		return !ServiceUtils.isPortFree(nicAddress,
 				this.cloud.getConfiguration().getComponents().getDiscovery().getDiscoveryPort());
 	}
 
