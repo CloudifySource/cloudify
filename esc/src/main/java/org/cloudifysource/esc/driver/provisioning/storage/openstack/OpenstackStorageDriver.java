@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
+import com.google.inject.Module;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
@@ -368,7 +369,7 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 			props.putAll(computeTemplate.getOverrides());
 
 			deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(),
-					cloud.getUser().getApiKey(), props);
+					cloud.getUser().getApiKey(), props, new HashSet<Module>());
 		} catch (final Exception e) {
 			publishEvent("connection_to_cloud_api_failed", cloud.getProvider().getProvider());
 			throw new IllegalStateException("Failed to create cloud Deployer", e);
