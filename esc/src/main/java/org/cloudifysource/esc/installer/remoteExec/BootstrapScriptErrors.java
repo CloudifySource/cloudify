@@ -196,11 +196,27 @@ public enum BootstrapScriptErrors {
 	 */
 	POST_BOOTSTRAP_MISSING_MGMT_SERVICE(133, "Failed to find a required management service (space, web-UI or Rest) "
 			+ "after bootstrap completed. Please review the logs for more details."),
-	
-	/**
-	 * IMPORTANT NOTE: If the error code is larger than 200, you must edit bootstrap-management.sh or it 
-	 * would be re-thrown as code 255.
-	 */
+
+    /**
+     * Failed to clean the script home directory from the gigaspaces tar file.
+     */
+    FAILED_DELETING_GIGASPACES_TAR(134, "Failed deleting gigaspaces.tar.gz from home directory"),
+
+    /**
+     * Failed to clean the script home directory from the gigaspaces_overrides tar file.
+     */
+    FAILED_DELETING_GIGASPACES_OVERRIDES_TAR(135, "Failed deleting gigaspaces_overrides.tar.gz from home directory"),
+
+    /**
+     * Failed to clean the script home directory from the java bin.
+     */
+    FAILED_DELETING_JAVA_BIN(136, "Failed deleting java.bin from home directory"),
+
+
+    /**
+     * IMPORTANT NOTE: If the error code is larger than 200, you must edit bootstrap-management.sh or it
+     * would be re-thrown as code 255.
+     */
 	
 	/**
 	 * Custom error.
