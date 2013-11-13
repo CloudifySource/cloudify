@@ -82,7 +82,9 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 	private ByonDeployer deployer;
 	private Integer restPort;
 
-    private Integer stopManagementTimeoutInMinutes = 4;
+    private static final int DEFAULT_STOP_MANAGEMENT_TIMEOUT = 4;
+
+    private int stopManagementMachinesTimeoutInMinutes = DEFAULT_STOP_MANAGEMENT_TIMEOUT;
 
 	@Override
 	protected void initDeployer(final Cloud cloud) {
@@ -99,8 +101,10 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 							return newDeployer;
 						}
 					}));
-            this.stopManagementTimeoutInMinutes = (Integer) super.cloud.getCustom().get(CloudifyConstants
-                    .STOP_MANAGEMENT_TIMEOUT_IN_MINUTES);
+
+            this.stopManagementMachinesTimeoutInMinutes = Utils.getInteger(super.cloud.getCustom().get(CloudifyConstants
+                    .STOP_MANAGEMENT_TIMEOUT_IN_MINUTES), DEFAULT_STOP_MANAGEMENT_TIMEOUT);
+
 		} catch (final Exception e) {
 			publishEvent("connection_to_cloud_api_failed", cloud.getProvider().getProvider());
 			throw new IllegalStateException("Failed to create cloud deployer", e);
@@ -424,7 +428,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 			throw new CloudProvisioningException("Failed to lookup existing management servers.", e);
 		}
 
-        final int stopTimeoutPerAgent = stopManagementTimeoutInMinutes / managementServers.size();
+        final int stopTimeoutPerAgent = stopManagementMachinesTimeoutInMinutes / managementServers.size();
 
         for (final CustomNode customNode : managementServers) {
 			try {
