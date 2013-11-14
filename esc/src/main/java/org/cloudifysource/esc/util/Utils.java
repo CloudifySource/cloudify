@@ -66,20 +66,23 @@ public final class Utils {
 	private Utils() {
 	}
 
-    /**
-     * Try casting the object the integer. if the object is null, return the default value.
-     * @param obj The expected integer object.
-     * @param defaultValue The default value.
-     * @return The integer value of the object.
-     */
-    public static int getInteger(final Object obj, final int defaultValue) {
+	/**
+	 * Try casting the object the integer. if the object is null, return the default value.
+	 * 
+	 * @param obj
+	 *            The expected integer object.
+	 * @param defaultValue
+	 *            The default value.
+	 * @return The integer value of the object.
+	 */
+	public static int getInteger(final Object obj, final int defaultValue) {
 
-        if (obj == null) {
-            return defaultValue;
-        } else {
-            return (Integer) obj;
-        }
-    }
+		if (obj == null) {
+			return defaultValue;
+		} else {
+			return (Integer) obj;
+		}
+	}
 
 	/**
 	 * Gets a "full" admin object. The function waits until all GridServiceManagers are found before returning the
@@ -200,7 +203,7 @@ public final class Utils {
 	 * @param authGroups
 	 *            The authentication groups attached to the GSA as an environment variable
 	 *            {@link CloudifyConstants#GIGASPACES_AUTH_GROUPS}
-	 * @param rebootstrapping
+	 * @param rebootstrapping .
 	 * @return the installation details.
 	 * @throws FileNotFoundException
 	 *             if a key file is specified and is not found.
@@ -287,7 +290,7 @@ public final class Utils {
 		}
 		String agentCommandlineArgs = gridCommandBuilder.getAgentCommandlineArgs(componentsConfig.getAgent(),
 				details.isManagement() ? MANAGEMENT_ZONE : details.getZones(), reservationId);
-		
+
 		details.setGsaCommandlineArgs(agentCommandlineArgs);
 
 		// Add all template custom data fields starting with 'installer.' to the
@@ -382,6 +385,14 @@ public final class Utils {
 		}
 
 		details.setOpenFilesLimit(md.getOpenFilesLimit());
+
+		if (md.getEnvironment() != null && !md.getEnvironment().isEmpty()) {
+			final Set<Entry<String, String>> environmentEntries = md.getEnvironment().entrySet();
+			for (Entry<String, String> entry : environmentEntries) {
+				details.getExtraRemoteEnvironmentVariables().put(entry.getKey(), entry.getValue());
+			}
+		}
+
 		logger.fine("Created InstallationDetails: " + details);
 		return details;
 	}

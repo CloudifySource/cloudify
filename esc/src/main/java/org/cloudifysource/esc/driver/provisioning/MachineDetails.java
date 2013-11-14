@@ -12,17 +12,20 @@
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning;
 
-import com.gigaspaces.internal.io.IOUtils;
-import org.cloudifysource.domain.cloud.CloudTemplateInstallerConfiguration;
-import org.cloudifysource.domain.cloud.FileTransferModes;
-import org.cloudifysource.domain.cloud.RemoteExecutionModes;
-import org.cloudifysource.domain.cloud.ScriptLanguages;
-
 import java.io.Externalizable;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import org.cloudifysource.domain.cloud.CloudTemplateInstallerConfiguration;
+import org.cloudifysource.domain.cloud.FileTransferModes;
+import org.cloudifysource.domain.cloud.RemoteExecutionModes;
+import org.cloudifysource.domain.cloud.ScriptLanguages;
+
+import com.gigaspaces.internal.io.IOUtils;
 
 /*******
  * Described a Machine started by a cloud driver. MachineDetails implements @{link Externalizable} since it is embedded
@@ -34,8 +37,8 @@ import java.io.ObjectOutput;
  */
 public class MachineDetails implements Externalizable {
 
-    // TODO - insert serial version uid of 2.6.0-ga using serialver (consult barak)
-    // TODO add version check to read/write external
+	// TODO - insert serial version uid of 2.6.0-ga using serialver (consult barak)
+	// TODO add version check to read/write external
 
 	private String privateAddress;
 	private String publicAddress;
@@ -70,7 +73,9 @@ public class MachineDetails implements Externalizable {
 
 	private String openFilesLimit;
 
-    public String getLocationId() {
+	private Map<String, String> environment = new LinkedHashMap<String, String>();
+
+	public String getLocationId() {
 		return locationId;
 	}
 
@@ -190,7 +195,8 @@ public class MachineDetails implements Externalizable {
 		this.scriptLangeuage = ScriptLanguages.valueOf(IOUtils.readString(in));
 		remoteDirectory = IOUtils.readString(in);
 		locationId = IOUtils.readString(in);
-        openFilesLimit = IOUtils.readString(in);
+		openFilesLimit = IOUtils.readString(in);
+		environment = IOUtils.readMapStringString(in);
 	}
 
 	@Override
@@ -210,7 +216,8 @@ public class MachineDetails implements Externalizable {
 		IOUtils.writeString(out, scriptLangeuage.name());
 		IOUtils.writeString(out, remoteDirectory);
 		IOUtils.writeString(out, locationId);
-        IOUtils.writeString(out, openFilesLimit);
+		IOUtils.writeString(out, openFilesLimit);
+		IOUtils.writeMapStringString(out, environment);
 	}
 
 	public ScriptLanguages getScriptLangeuage() {
@@ -251,6 +258,20 @@ public class MachineDetails implements Externalizable {
 
 	public void setOpenFilesLimit(final String openFilesLimit) {
 		this.openFilesLimit = openFilesLimit;
+	}
+
+	/*****
+	 * Environment variables that should be made available on the machine, in addition to the standard ones that
+	 * Cloudify uses. These variables will have priority over any previous ones defined by Cloudify or by the template.
+	 * 
+	 * @return the environment variables.
+	 */
+	public Map<String, String> getEnvironment() {
+		return environment;
+	}
+
+	public void setEnvironment(final Map<String, String> environment) {
+		this.environment = environment;
 	}
 
 }
