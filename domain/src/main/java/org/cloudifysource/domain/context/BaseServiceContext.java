@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 import org.cloudifysource.domain.Service;
 import org.cloudifysource.domain.context.blockstorage.StorageFacade;
 import org.cloudifysource.domain.context.kvstorage.AttributesFacade;
-import org.cloudifysource.domain.context.network.NetworkProvisioningDriver;
+import org.cloudifysource.domain.context.network.NetworkFacade;
 
 /**
  * 
@@ -165,7 +165,7 @@ public class BaseServiceContext implements ServiceContext {
 	}
 
 	@Override
-	public NetworkProvisioningDriver getNetwork() {
+	public NetworkFacade getNetwork() {
 		throw new UnsupportedOperationException("getNetwork context method is not supported for"
 				+ " services running outside a GSC.");
 	}
