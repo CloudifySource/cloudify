@@ -45,7 +45,8 @@ public class NetworkFacadeImpl implements NetworkFacade {
 	private RemoteNetworkProvisioningDriver getRemoteNetworkProvisioningDriver() {
 		if (this.remoteNetworkProvisioningDriver == null) {
 			throw new IllegalStateException(
-					"No network provisioning driver configured, remote provisioning calls are not possible");
+					"No network provisioning driver configured. "
+							 + "remote network provisioning calls are not possible");
 		}
 		return this.remoteNetworkProvisioningDriver;
 		

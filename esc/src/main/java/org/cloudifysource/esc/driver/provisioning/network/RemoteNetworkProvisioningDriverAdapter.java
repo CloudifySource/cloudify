@@ -47,7 +47,8 @@ public class RemoteNetworkProvisioningDriverAdapter implements RemoteNetworkProv
 	public void assignFloatingIP(final String ip, final String instanceID)
 			throws RemoteNetworkOperationException, TimeoutException {
 		try {
-			this.driver.assignFloatingIP(ip, instanceID, DEFAULT_NETWORK_OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+			this.driver.assignFloatingIP(ip, instanceID, 
+					DEFAULT_NETWORK_OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
 		} catch (final NetworkProvisioningException e) {
 			logger.warning("failed to assign IP " + ip + " to instance with ID " + instanceID 
 					+ ". Error was " + e.getMessage());
@@ -60,7 +61,8 @@ public class RemoteNetworkProvisioningDriverAdapter implements RemoteNetworkProv
 	public void unassignFloatingIP(final String ip, final String instanceID)
 			throws RemoteNetworkOperationException, TimeoutException {
 		try {
-			this.driver.unassignFloatingIP(ip, instanceID, DEFAULT_NETWORK_OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+			this.driver.unassignFloatingIP(ip, instanceID, 
+					DEFAULT_NETWORK_OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
 		} catch (final NetworkProvisioningException e) {
 			logger.warning("failed to unassign IP " + ip + " to instance with ID " + instanceID 
 					+ ". Error was " + e.getMessage());
