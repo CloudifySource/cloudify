@@ -48,7 +48,8 @@ import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDri
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.events.MachineStartRequestedCloudifyEvent;
 import org.cloudifysource.esc.driver.provisioning.events.MachineStartedCloudifyEvent;
-import org.cloudifysource.esc.driver.provisioning.network.NetworkProvisioningDriver;
+import org.cloudifysource.esc.driver.provisioning.network.BaseNetworkDriver;
+import org.cloudifysource.esc.driver.provisioning.network.NetworkDriverConfiguration;
 import org.cloudifysource.esc.driver.provisioning.storage.BaseStorageDriver;
 import org.cloudifysource.esc.driver.provisioning.storage.RemoteStorageProvisioningDriverAdapter;
 import org.cloudifysource.esc.driver.provisioning.storage.StorageProvisioningDriver;
@@ -139,6 +140,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private StorageProvisioningDriver storageProvisioning;
 
 	private BaseComputeDriver cloudifyProvisioning;
+	private BaseNetworkDriver networkProvisioning;
 	private Admin originalESMAdmin;
 	private Cloud cloud;
 	private Map<String, String> properties;
@@ -159,7 +161,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	// in the ESM thread which calls afterPropertiesSet()
 	private boolean driversConfigured = false;
 
-	private NetworkProvisioningDriver networkProvisioning;
 
 	private Admin getGlobalAdminInstance(final Admin esmAdminInstance) throws InterruptedException,
 			ElasticMachineProvisioningException {
@@ -994,7 +995,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				final String networkDriverClassName = this.cloud.getConfiguration().getNetworkDriverClassName();
 				if (!StringUtils.isEmpty(networkDriverClassName)) {
 					logger.info("creating network provisioning driver of type " + networkDriverClassName);
-					this.networkProvisioning = (NetworkProvisioningDriver) Class.forName(networkDriverClassName)
+					this.networkProvisioning = (BaseNetworkDriver) Class.forName(networkDriverClassName)
 							.newInstance();
 					logger.info("network provisioning driver was created succesfully.");
 				}
@@ -1059,7 +1060,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			this.storageProvisioning.setConfig(cloud, this.cloudTemplateName);
 		}
 		if (this.networkProvisioning != null) {
-			this.networkProvisioning.setConfig(cloud, this.cloudTemplateName);
+			final NetworkDriverConfiguration networkConfig = new NetworkDriverConfiguration();
+			networkConfig.setCloud(cloud);
+			this.networkProvisioning.setConfig(networkConfig);
 		}
 
 		this.driversConfigured = true;
