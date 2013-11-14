@@ -12,7 +12,13 @@
  ******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning.openstack;
 
-public class OpenstackJsonSerializationException extends Exception {
+/**
+ * Exception to be thrown when then is a serialization issue with Openstack request/response.
+ * 
+ * @author victor
+ * 
+ */
+public class OpenstackJsonSerializationException extends OpenstackException {
 
 	private static final long serialVersionUID = 1L;
 

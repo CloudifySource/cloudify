@@ -56,7 +56,6 @@ public class OpenstackException extends Exception {
 	 */
 	public OpenstackException(final String message, final Throwable cause) {
 		super(message, cause);
-
 	}
 
 }

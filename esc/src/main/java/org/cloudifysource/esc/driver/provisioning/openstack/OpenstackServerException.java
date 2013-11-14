@@ -12,27 +12,35 @@
  ******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning.openstack;
 
-public class OpenstackServerException extends Exception {
+/**
+ * Exception to be thrown if an error occurs when requesting Openstack server.
+ * 
+ * @author victor
+ * 
+ */
+public class OpenstackServerException extends OpenstackException {
 
 	private static final long serialVersionUID = 1L;
-
-	public OpenstackServerException() {
-	}
+	private final int statusCode;
 
 	public OpenstackServerException(final int statusCode, final String entity) {
 		super(String.format("Error requesting Openstack (code=%s): %s", statusCode, entity));
+		this.statusCode = statusCode;
 	}
 
 	public OpenstackServerException(final int expectedStatusCode, final int actualStatusCode, final String entity) {
 		super(String.format("Error requesting Openstack. Expected code=%s got code=%s cause=%s", expectedStatusCode,
 				actualStatusCode, entity));
-	}
-
-	public OpenstackServerException(final Throwable cause) {
-		super(cause);
+		this.statusCode = actualStatusCode;
 	}
 
 	public OpenstackServerException(final int statusCode, final String entity, final Throwable cause) {
 		super(String.format("Error requesting Openstack (code=%s): %s", statusCode, entity), cause);
+		this.statusCode = statusCode;
 	}
+
+	public int getStatusCode() {
+		return statusCode;
+	}
+
 }

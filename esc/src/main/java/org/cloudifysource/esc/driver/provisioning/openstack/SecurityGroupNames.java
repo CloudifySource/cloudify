@@ -13,7 +13,7 @@
 package org.cloudifysource.esc.driver.provisioning.openstack;
 
 /**
- * A class which computes all security group for a service.
+ * A class which computes all security group names for a service.
  * 
  * @author victor
  * @since 2.7.0

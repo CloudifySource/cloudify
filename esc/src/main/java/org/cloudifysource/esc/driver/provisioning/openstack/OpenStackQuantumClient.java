@@ -17,18 +17,15 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.ws.rs.core.MediaType;
-
-import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.FloatingIp;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Network;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Port;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Router;
+import org.cloudifysource.esc.driver.provisioning.openstack.rest.RouterInterface;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.SecurityGroup;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.SecurityGroupRule;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Subnet;
 
-import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 
@@ -43,12 +40,8 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 
 	private static final Logger logger = Logger.getLogger(OpenStackQuantumClient.class.getName());
 
-	private static final int CODE_200_STATUS = 200;
-	private static final int CODE_204_STATUS = 204;
-	private static final int CONFLICT_STATUS = 409;
-	private static final int FLOATING_IP_EXCEEDED_STATUS = 409;
-
 	private static final byte[] MUTEX_CREATE_SECURITY_GROUPS = new byte[0];
+	private static final byte[] MUTEX_CREATE_NETWORK = new byte[0];
 
 	private String quantumVersion;
 
@@ -61,7 +54,7 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	}
 
 	@Override
-	protected WebResource getWebResource() throws CloudProvisioningException, OpenstackJsonSerializationException {
+	protected WebResource getWebResource() throws OpenstackException {
 		WebResource webResource = super.getWebResource();
 		if (this.quantumVersion != null) {
 			webResource = webResource.path(this.quantumVersion);
@@ -80,19 +73,14 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 * @param fixedIpAddress
 	 *            The fixed ip address.
 	 * @return The associated floating ip address or <code>null</code> if no floating ip attached.
-	 * @throws CloudProvisioningException
-	 *             If the service's endpoint has not been found in Openstack service's catalog.
-	 * @throws OpenstackJsonSerializationException
-	 *             If a serialization issue occurs with Openstack request/response.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
 	 */
-	public String getFloatingIpByFixedIpAddress(final String fixedIpAddress) throws CloudProvisioningException,
-			OpenstackJsonSerializationException {
-		final String response = this.getWebResource().path("floatingips")
-				.queryParam("fixed_ip_address", fixedIpAddress)
-				.type(MediaType.APPLICATION_JSON_TYPE)
-				.accept(MediaType.APPLICATION_JSON)
-				.header("X-Auth-Token", this.getTokenId())
-				.get(String.class);
+	public String getFloatingIpByFixedIpAddress(final String fixedIpAddress) throws OpenstackException {
+
+		final String response = this.doGet("floatingips",
+				new String[] { "fixed_ip_address", fixedIpAddress });
+
 		final List<FloatingIp> floatingips = JsonUtils.unwrapRootToList(FloatingIp.class, response);
 		if (floatingips != null && !floatingips.isEmpty()) {
 			return floatingips.get(0).getFloatingIpAddress();
@@ -106,21 +94,12 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 * @param portId
 	 *            The port id.
 	 * @return The floating ip address or <code>null</code> if no floating ip attached.
-	 * @throws UniformInterfaceException
-	 *             If an error occurs with Openstack server.
-	 * @throws CloudProvisioningException
-	 *             If the service's endpoint has not been found in Openstack service's catalog.
-	 * @throws OpenstackJsonSerializationException
-	 *             If a serialization issue occurs with Openstack request/response.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
 	 */
-	public String getFloatingIpByPortId(final String portId)
-			throws UniformInterfaceException, CloudProvisioningException, OpenstackJsonSerializationException {
-		final String response = this.getWebResource().path("floatingips")
-				.queryParam("port_id", portId)
-				.type(MediaType.APPLICATION_JSON_TYPE)
-				.accept(MediaType.APPLICATION_JSON)
-				.header("X-Auth-Token", this.getTokenId())
-				.get(String.class);
+	public String getFloatingIpByPortId(final String portId) throws OpenstackException {
+		final String response = this.doGet("floatingips", new String[] { "port_id", portId });
+
 		final List<FloatingIp> floatingips = JsonUtils.unwrapRootToList(FloatingIp.class, response);
 		if (floatingips != null && !floatingips.isEmpty()) {
 			return floatingips.get(0).getFloatingIpAddress();
@@ -137,19 +116,10 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 *            The network id.
 	 * @return The floating ip address.
 	 * @throws OpenstackException
-	 *             If the server or the network could not be found.
-	 * @throws UniformInterfaceException
-	 *             If an error occurs with the request.
-	 * @throws CloudProvisioningException
-	 *             If the service's endpoint has not been found in Openstack service's catalog.
-	 * @throws OpenstackJsonSerializationException
-	 *             If a serialization issue occurs with Openstack request/response.
-	 * @throws OpenstackServerException
-	 *             If an error occurs when requesting Openstack server.
+	 *             Thrown when something went wrong with the request.
 	 */
 	public String createAndAssociateFloatingIp(final String deviceId, final String networkId)
-			throws OpenstackException, UniformInterfaceException, CloudProvisioningException,
-			OpenstackJsonSerializationException, OpenstackServerException {
+			throws OpenstackException {
 		if (networkId == null) {
 			throw new OpenstackException("Public network not found for deviceId=" + deviceId);
 		}
@@ -168,11 +138,7 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 				logger.finer("Requesting creation and association request=" + input);
 			}
 
-			final String response = this.getWebResource().path("floatingips")
-					.type(MediaType.APPLICATION_JSON_TYPE)
-					.accept(MediaType.APPLICATION_JSON)
-					.header("X-Auth-Token", this.getTokenId())
-					.post(String.class, input);
+			final String response = this.doPost("floatingips", input);
 
 			if (logger.isLoggable(Level.FINER)) {
 				logger.finer("Response creation and association response=" + response);
@@ -186,55 +152,72 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 
 	}
 
-	public Port addRouterInterface(final String routerId, final String subnetId)
-			throws UniformInterfaceException, CloudProvisioningException, OpenstackJsonSerializationException {
-		final String response = this.getWebResource().path("routers/" + routerId + "/add_router_interface")
-				.type(MediaType.APPLICATION_JSON_TYPE)
-				.accept(MediaType.APPLICATION_JSON)
-				.header("X-Auth-Token", this.getTokenId())
-				.put(String.class, "{\"subnet_id\":\"" + subnetId + "\"}");
-		final Port port = JsonUtils.unwrapRootToObject(Port.class, response);
-		return port;
+	/**
+	 * Add interface to a router.
+	 * 
+	 * @param routerId
+	 *            The router id.
+	 * 
+	 * @param subnetId
+	 *            The subnet id.
+	 * @return The response.
+	 * @throws OpenstackException
+	 *             Thrown if something went wrong with the request.
+	 */
+	public RouterInterface addRouterInterface(final String routerId, final String subnetId) throws OpenstackException {
+		final String path = "routers/" + routerId + "/add_router_interface";
+		final String input = "{\"subnet_id\":\"" + subnetId + "\"}";
+		final String response = this.doPut(path, input);
+		final RouterInterface routerInterface = JsonUtils.mapJsonToObject(RouterInterface.class, response);
+		return routerInterface;
 	}
 
-	public void deleteRouterInterface(final String routerId, final String subnetId)
-			throws UniformInterfaceException, CloudProvisioningException, OpenstackServerException,
-			OpenstackJsonSerializationException {
-		final ClientResponse response = this.getWebResource().path("routers/" + routerId + "/remove_router_interface")
-				.type(MediaType.APPLICATION_JSON_TYPE)
-				.accept(MediaType.APPLICATION_JSON)
-				.header("X-Auth-Token", this.getTokenId())
-				.put(ClientResponse.class, "{\"subnet_id\":\"" + subnetId + "\"}");
-		this.verifyStatusCode(CODE_200_STATUS, response);
+	/**
+	 * Remove an interface from a router.
+	 * 
+	 * @param routerId
+	 *            The router id.
+	 * @param subnetId
+	 *            The subnet id.
+	 * @throws OpenstackException
+	 *             Thrown if something went wrong with the request.
+	 */
+	public void deleteRouterInterface(final String routerId, final String subnetId) throws OpenstackException {
+		final String path = "routers/" + routerId + "/remove_router_interface";
+		final String input = "{\"subnet_id\":\"" + subnetId + "\"}";
+		this.doPut(path, input);
 	}
 
-	public Router createRouter(final Router request)
-			throws UniformInterfaceException, CloudProvisioningException, OpenstackJsonSerializationException {
-
+	/**
+	 * Create a router.
+	 * 
+	 * @param request
+	 *            The request.
+	 * @return The created router.
+	 * @throws OpenstackException
+	 *             Thrown if something went wrong with the request.
+	 */
+	public Router createRouter(final Router request) throws OpenstackException {
 		final String jsonRequest = JsonUtils.toJson(request);
-		final String response = this.getWebResource().path("routers")
-				.type(MediaType.APPLICATION_JSON_TYPE)
-				.accept(MediaType.APPLICATION_JSON)
-				.header("X-Auth-Token", this.getTokenId())
-				.post(String.class, jsonRequest);
+		final String response = this.doPost("routers", jsonRequest);
 		final Router router = JsonUtils.unwrapRootToObject(Router.class, response);
 		return router;
 	}
 
-	public void deleteRouter(final String routerId)
-			throws UniformInterfaceException, CloudProvisioningException, OpenstackServerException,
-			OpenstackJsonSerializationException {
+	/**
+	 * Delete a router.
+	 * 
+	 * @param routerId
+	 *            The if of the router to delete.
+	 * @throws OpenstackException
+	 *             Thrown if something went wrong with the request.
+	 */
+	public void deleteRouter(final String routerId) throws OpenstackException {
 		if (logger.isLoggable(Level.FINEST)) {
 			logger.finest("Deleting router with id=" + routerId);
 		}
 
-		final ClientResponse response = this.getWebResource().path("routers/" + routerId)
-				.type(MediaType.APPLICATION_JSON_TYPE)
-				.accept(MediaType.APPLICATION_JSON)
-				.header("X-Auth-Token", this.getTokenId())
-				.delete(ClientResponse.class);
-
-		this.verifyStatusCode(CODE_204_STATUS, response);
+		this.doDelete("routers/" + routerId, CODE_OK_204);
 
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("Deleted router with id=" + routerId);
@@ -242,14 +225,17 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 
 	}
 
-	public Router getRouterByName(final String name)
-			throws UniformInterfaceException, CloudProvisioningException, OpenstackJsonSerializationException {
-		final String response = this.getWebResource().path("routers")
-				.queryParam("name", name)
-				.type(MediaType.APPLICATION_JSON_TYPE)
-				.accept(MediaType.APPLICATION_JSON)
-				.header("X-Auth-Token", this.getTokenId())
-				.get(String.class);
+	/**
+	 * Retrieve a router by name.
+	 * 
+	 * @param name
+	 *            The name of the router.
+	 * @return The router matching the given name.
+	 * @throws OpenstackException
+	 *             Thrown if something went wrong with the request.
+	 */
+	public Router getRouterByName(final String name) throws OpenstackException {
+		final String response = this.doGet("routers", new String[] { "name", name });
 		final List<Router> routers = JsonUtils.unwrapRootToList(Router.class, response);
 		if (routers == null || routers.isEmpty()) {
 			return null;
@@ -257,33 +243,49 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 		return routers.get(0);
 	}
 
-	public Network createNetwork(final Network request)
-			throws UniformInterfaceException, CloudProvisioningException, OpenstackJsonSerializationException {
+	/**
+	 * Create a network if its not already exists.<br />
+	 * To know if a network exists, it will check the network's name.
+	 * 
+	 * @param request
+	 *            The request.
+	 * @return The created network.
+	 * @throws OpenstackException
+	 *             Thrown if something went wrong with the request.
+	 */
+	public Network createNetworkIfNotExists(final Network request) throws OpenstackException {
+		if (request.getName() == null) {
+			throw new IllegalArgumentException("Network templates should have names.");
+		}
 
-		String json = JsonUtils.toJson(request);
-		final String response = this.getWebResource().path("networks")
-				.type(MediaType.APPLICATION_JSON_TYPE)
-				.accept(MediaType.APPLICATION_JSON)
-				.header("X-Auth-Token", this.getTokenId())
-				.post(String.class, json);
-		final Network network = JsonUtils.unwrapRootToObject(Network.class, response);
-		return network;
+		synchronized (MUTEX_CREATE_NETWORK) {
+			final Network existingNetwork = this.getNetworkByName(request.getName());
+			if (existingNetwork != null) {
+				logger.info("Network '" + request.getName() + "' already exists.");
+				return null;
+			}
+
+			final String json = JsonUtils.toJson(request);
+			final String response = this.doPost("networks", json);
+			final Network network = JsonUtils.unwrapRootToObject(Network.class, response);
+			return network;
+		}
 	}
 
-	public void deleteNetwork(String networkId)
-			throws OpenstackServerException, UniformInterfaceException, CloudProvisioningException,
-			OpenstackJsonSerializationException {
+	/**
+	 * Delete a network.
+	 * 
+	 * @param networkId
+	 *            The id of the network to delete.
+	 * @throws OpenstackException
+	 *             Thrown if something went wrong with the request.
+	 */
+	public void deleteNetwork(final String networkId) throws OpenstackException {
 		if (logger.isLoggable(Level.FINEST)) {
 			logger.finest("Deleting network with id=" + networkId);
 		}
 
-		final ClientResponse response = this.getWebResource().path("networks/" + networkId)
-				.type(MediaType.APPLICATION_JSON_TYPE)
-				.accept(MediaType.APPLICATION_JSON)
-				.header("X-Auth-Token", this.getTokenId())
-				.delete(ClientResponse.class);
-
-		this.verifyStatusCode(CODE_204_STATUS, response);
+		this.doDelete("networks/" + networkId, CODE_OK_204);
 
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("Deleted network with id=" + networkId);
@@ -292,18 +294,28 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	}
 
 	/**
+	 * Retrieve a network by name.
+	 * 
+	 * @param networkName
+	 *            The name of the network.
+	 * @throws OpenstackException
+	 *             Thrown if something went wrong with the request.
+	 */
+	public void deleteNetworkByName(final String networkName) throws OpenstackException {
+		final Network network = this.getNetworkByName(networkName);
+		if (network != null) {
+			this.deleteNetwork(network.getId());
+		}
+	}
+
+	/**
 	 * Retrieve a network id which is connected to the external world.
 	 * 
 	 * @return The public network id or <code>null</code> if not found.
-	 * @throws UniformInterfaceException
-	 *             If something goes wrong with the request.
-	 * @throws CloudProvisioningException
-	 *             If the service's endpoint has not been found in Openstack service's catalog.
-	 * @throws OpenstackJsonSerializationException
-	 *             If a serialization issue occurs with Openstack request/response.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
 	 */
-	public String getPublicNetworkId() throws UniformInterfaceException, CloudProvisioningException,
-			OpenstackJsonSerializationException {
+	public String getPublicNetworkId() throws OpenstackException {
 		final List<Network> networks = this.getPublicNetwork();
 		for (final Network network : networks) {
 			return network.getId();
@@ -315,25 +327,15 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 * Retrieve a network which is connected to the external world.
 	 * 
 	 * @return The public network.
-	 * @throws UniformInterfaceException
-	 *             If something goes wrong with the request.
-	 * @throws CloudProvisioningException
-	 *             If the service's endpoint has not been found in Openstack service's catalog.
-	 * @throws OpenstackJsonSerializationException
-	 *             If a serialization issue occurs with Openstack request/response.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
 	 */
-	public List<Network> getPublicNetwork() throws UniformInterfaceException, CloudProvisioningException,
-			OpenstackJsonSerializationException {
+	public List<Network> getPublicNetwork() throws OpenstackException {
 		if (logger.isLoggable(Level.FINE)) {
 			logger.fine("Requesting networks list");
 		}
 
-		final String response = this.getWebResource().path("networks")
-				.queryParam("router:external", "true")
-				.type(MediaType.APPLICATION_JSON_TYPE)
-				.accept(MediaType.APPLICATION_JSON)
-				.header("X-Auth-Token", this.getTokenId()).get(String.class);
-
+		final String response = this.doGet("networks", new String[] { "router:external", "true" });
 		final List<Network> networks = JsonUtils.unwrapRootToList(Network.class, response);
 
 		if (logger.isLoggable(Level.FINE)) {
@@ -348,30 +350,49 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 * @param networkName
 	 *            The name of the looking network.
 	 * @return The network.
-	 * @throws UniformInterfaceException
-	 *             If something goes wrong with the request.
-	 * @throws CloudProvisioningException
-	 *             If the service's endpoint has not been found in Openstack service's catalog.
-	 * @throws OpenstackJsonSerializationException
-	 *             If a serialization issue occurs with Openstack request/response.
+	 * @throws OpenstackException
+	 *             Thrown if something went wrong with the request.
 	 */
-	public Network getNetworkByName(final String networkName)
-			throws UniformInterfaceException, CloudProvisioningException, OpenstackJsonSerializationException {
+	public Network getNetworkByName(final String networkName) throws OpenstackException {
 		if (logger.isLoggable(Level.FINE)) {
 			logger.fine("Requesting networks list");
 		}
-
-		final String response = this.getWebResource().path("networks")
-				.queryParam("name", networkName)
-				.type(MediaType.APPLICATION_JSON_TYPE)
-				.accept(MediaType.APPLICATION_JSON)
-				.header("X-Auth-Token", this.getTokenId()).get(String.class);
-
+		final String response = this.doGet("networks", new String[] { "name", networkName });
 		final List<Network> networks = JsonUtils.unwrapRootToList(Network.class, response);
-		if (networks == null || networks.isEmpty()) {
-			return null;
+		if (networks != null) {
+			for (final Network network : networks) {
+				if (networkName.equals(network.getName())) {
+					return network;
+				}
+
+			}
 		}
-		return networks.get(0);
+		return null;
+	}
+
+	/**
+	 * Retrieve networks with a prefix name.
+	 * 
+	 * @param prefix
+	 *            The prefix name.
+	 * @return A list of networks matching the prefix.
+	 * @throws OpenstackException
+	 *             Thrown if something went wrong with the request.
+	 */
+	public List<Network> getNetworkByPrefix(final String prefix) throws OpenstackException {
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Requesting networks by prefix");
+		}
+		final String response = this.doGet("networks");
+		final List<Network> list = JsonUtils.unwrapRootToList(Network.class, response);
+		final List<Network> networksToReturn = new ArrayList<Network>();
+		for (Network network : list) {
+			if (network.getName().startsWith(prefix)) {
+				networksToReturn.add(network);
+			}
+
+		}
+		return networksToReturn;
 	}
 
 	/**
@@ -382,21 +403,12 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 * @param networkId
 	 *            The network id.
 	 * @return The port or <code>null</code> if none.
-	 * @throws UniformInterfaceException
-	 *             If something goes wrong with the request.
-	 * @throws CloudProvisioningException
-	 *             If the service's endpoint has not been found in Openstack service's catalog.
-	 * @throws OpenstackJsonSerializationException
-	 *             If a serialization issue occurs with Openstack request/response.
+	 * @throws OpenstackException
+	 *             Thrown if something went wrong with the request.
 	 */
-	public Port getPort(final String serverId, final String networkId)
-			throws UniformInterfaceException, CloudProvisioningException, OpenstackJsonSerializationException {
-		final String response = this.getWebResource().path("ports")
-				.queryParam("device_id", serverId)
-				.queryParam("network_id", networkId)
-				.type(MediaType.APPLICATION_JSON_TYPE)
-				.accept(MediaType.APPLICATION_JSON)
-				.header("X-Auth-Token", this.getTokenId()).get(String.class);
+	public Port getPort(final String serverId, final String networkId) throws OpenstackException {
+		final String[] params = new String[] { "device_id", serverId, "network_id", networkId };
+		final String response = this.doGet("ports", params);
 		final List<Port> ports = JsonUtils.unwrapRootToList(Port.class, response);
 		if (ports == null || ports.isEmpty()) {
 			return null;
@@ -410,26 +422,16 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 * @param request
 	 *            The request.
 	 * @return The updated port.
-	 * @throws UniformInterfaceException
-	 *             If something goes wrong with the request.
-	 * @throws CloudProvisioningException
-	 *             If the service's endpoint has not been found in Openstack service's catalog.
-	 * @throws OpenstackJsonSerializationException
-	 *             If a serialization issue occurs with Openstack request/response.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
 	 */
-	public Port updatePort(final Port request) throws UniformInterfaceException,
-			CloudProvisioningException, OpenstackJsonSerializationException {
+	public Port updatePort(final Port request) throws OpenstackException {
 		final String portId = request.getId();
 		try {
 			// TODO Should handle the request properly without changing the request object.
 			request.setId(null);
 			final String jsonRequest = JsonUtils.toJson(request);
-
-			final String response = this.getWebResource().path("ports/" + portId)
-					.type(MediaType.APPLICATION_JSON_TYPE)
-					.accept(MediaType.APPLICATION_JSON)
-					.header("X-Auth-Token", this.getTokenId())
-					.put(String.class, jsonRequest);
+			final String response = this.doPut("ports/" + portId, jsonRequest);
 			final Port port = JsonUtils.unwrapRootToObject(Port.class, response);
 			return port;
 		} finally {
@@ -443,25 +445,12 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 * @param fixedIp
 	 *            The fixed ip address.
 	 * @throws OpenstackException
-	 *             If the floating ip could not be released.
-	 * @throws UniformInterfaceException
-	 *             If something goes wrong with the request.
-	 * @throws CloudProvisioningException
-	 *             If the service's endpoint has not been found in Openstack service's catalog.
-	 * @throws OpenstackJsonSerializationException
-	 *             If a serialization issue occurs with Openstack request/response.
+	 *             Thrown when something went wrong with the request.
 	 */
-	public void deleteFloatingIPByFixedIp(final String fixedIp)
-			throws OpenstackException, UniformInterfaceException, CloudProvisioningException,
-			OpenstackJsonSerializationException {
-		final String response = this.getWebResource().path("floatingips")
-				.queryParam("fixed_ip_address", fixedIp)
-				.type(MediaType.APPLICATION_JSON_TYPE)
-				.accept(MediaType.APPLICATION_JSON)
-				.header("X-Auth-Token", this.getTokenId())
-				.get(String.class);
+	public void deleteFloatingIPByFixedIp(final String fixedIp) throws OpenstackException {
+		final String response = this.doGet("floatingips",
+				new String[] { "fixed_ip_address", fixedIp });
 		final List<FloatingIp> floatingIPs = JsonUtils.unwrapRootToList(FloatingIp.class, response);
-
 		if (floatingIPs != null && floatingIPs.size() != 0) {
 			final String floatingIPId = floatingIPs.get(0).getId();
 			this.deleteFloatingIP(floatingIPId);
@@ -477,31 +466,13 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 *            The floating id to delete.
 	 * 
 	 * @throws OpenstackException
-	 *             If the floating ip could not be released.
-	 * @throws UniformInterfaceException
-	 *             If something goes wrong with the request.
-	 * @throws CloudProvisioningException
-	 *             If the service's endpoint has not been found in Openstack service's catalog.
-	 * @throws OpenstackJsonSerializationException
-	 *             If a serialization issue occurs with Openstack request/response.
+	 *             Thrown when something went wrong with the request.
 	 */
-	public void deleteFloatingIP(final String floatingIPId)
-			throws OpenstackException, UniformInterfaceException, CloudProvisioningException,
-			OpenstackJsonSerializationException {
+	public void deleteFloatingIP(final String floatingIPId) throws OpenstackException {
 		if (logger.isLoggable(Level.FINE)) {
 			logger.fine("Deleting floating id=" + floatingIPId);
 		}
-
-		final ClientResponse response = this.getWebResource().path("floatingips/" + floatingIPId)
-				.type(MediaType.APPLICATION_JSON_TYPE)
-				.accept(MediaType.APPLICATION_JSON)
-				.header("X-Auth-Token", this.getTokenId())
-				.delete(ClientResponse.class);
-
-		if (CODE_204_STATUS != response.getStatus()) {
-			throw new OpenstackException("" + response.getStatus());
-		}
-
+		this.doDelete("floatingips/" + floatingIPId, CODE_OK_204);
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("Deleted floating id=" + floatingIPId);
 		}
@@ -513,20 +484,11 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 * @param prefix
 	 *            The prefix.
 	 * @return A list of security groups that match the prefix.
-	 * @throws UniformInterfaceException
-	 *             If something goes wrong with the request.
-	 * @throws CloudProvisioningException
-	 *             If the service's endpoint has not been found in Openstack service's catalog.
-	 * @throws OpenstackJsonSerializationException
-	 *             If a serialization issue occurs with Openstack request/response.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
 	 */
-	public List<SecurityGroup> getSecurityGroupsByPrefix(final String prefix)
-			throws UniformInterfaceException, CloudProvisioningException, OpenstackJsonSerializationException {
-		final String response = this.getWebResource().path("security-groups")
-				.type(MediaType.APPLICATION_JSON_TYPE)
-				.accept(MediaType.APPLICATION_JSON)
-				.header("X-Auth-Token", this.getTokenId())
-				.get(String.class);
+	public List<SecurityGroup> getSecurityGroupsByPrefix(final String prefix) throws OpenstackException {
+		final String response = this.doGet("security-groups");
 		final List<SecurityGroup> securityGroupsResponse = JsonUtils.unwrapRootToList(SecurityGroup.class, response);
 		final List<SecurityGroup> list = new ArrayList<SecurityGroup>();
 		if (securityGroupsResponse != null) {
@@ -545,22 +507,12 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 * @param name
 	 *            The name.
 	 * @return A list of security groups that match the exact given name.
-	 * @throws UniformInterfaceException
-	 *             If something goes wrong with the request.
-	 * @throws CloudProvisioningException
-	 *             If the service's endpoint has not been found in Openstack service's catalog.
-	 * @throws OpenstackJsonSerializationException
-	 *             If a serialization issue occurs with Openstack request/response.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
 	 */
-	public SecurityGroup getSecurityGroupsByName(final String name) throws UniformInterfaceException,
-			CloudProvisioningException, OpenstackJsonSerializationException {
-		final String response = this.getWebResource().path("security-groups")
-				.type(MediaType.APPLICATION_JSON_TYPE)
-				.accept(MediaType.APPLICATION_JSON)
-				.header("X-Auth-Token", this.getTokenId())
-				.get(String.class);
+	public SecurityGroup getSecurityGroupsByName(final String name) throws OpenstackException {
+		final String response = this.doGet("security-groups");
 		final List<SecurityGroup> securityGroups = JsonUtils.unwrapRootToList(SecurityGroup.class, response);
-
 		if (securityGroups != null) {
 			for (final SecurityGroup securityGroup : securityGroups) {
 				if (securityGroup.getName().equals(name)) {
@@ -577,21 +529,11 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 * @param securityGroupId
 	 *            The security group id.
 	 * @return The security group.
-	 * @throws UniformInterfaceException
-	 *             If something goes wrong with the request.
-	 * @throws CloudProvisioningException
-	 *             If the service's endpoint has not been found in Openstack service's catalog.
-	 * @throws OpenstackJsonSerializationException
-	 *             If a serialization issue occurs with Openstack request/response.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
 	 */
-	public SecurityGroup getSecurityGroupsById(final String securityGroupId) throws UniformInterfaceException,
-			CloudProvisioningException, OpenstackJsonSerializationException {
-		final String response = this.getWebResource().path("security-groups")
-				.queryParam("id", securityGroupId)
-				.type(MediaType.APPLICATION_JSON_TYPE)
-				.accept(MediaType.APPLICATION_JSON)
-				.header("X-Auth-Token", this.getTokenId())
-				.get(String.class);
+	public SecurityGroup getSecurityGroupsById(final String securityGroupId) throws OpenstackException {
+		final String response = this.doGet("security-groups", new String[] { "id", securityGroupId });
 		final SecurityGroup securityGroup = JsonUtils.unwrapRootToObject(SecurityGroup.class, response);
 		return securityGroup;
 	}
@@ -601,16 +543,11 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 * 
 	 * @param request
 	 *            The request.
-	 * @return The created security group.
-	 * @throws UniformInterfaceException
-	 *             If something goes wrong with the request.
-	 * @throws CloudProvisioningException
-	 *             If the service's endpoint has not been found in Openstack service's catalog.
-	 * @throws OpenstackJsonSerializationException
-	 *             If a serialization issue occurs with Openstack request/response.
+	 * @return The created security group or <code>null</code> if the security group already exists.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
 	 */
-	public SecurityGroup createSecurityGroupsIfNotExist(final SecurityGroup request)
-			throws UniformInterfaceException, CloudProvisioningException, OpenstackJsonSerializationException {
+	public SecurityGroup createSecurityGroupsIfNotExist(final SecurityGroup request) throws OpenstackException {
 		// We can either use synchronize or handle exception to ensure that we create only one group.
 		synchronized (MUTEX_CREATE_SECURITY_GROUPS) {
 			try {
@@ -618,22 +555,14 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 				final SecurityGroup securityGroup = this.getSecurityGroupsByName(request.getName());
 				if (securityGroup != null) {
 					logger.info("Security group '" + request.getName() + "' already exists.");
-					return securityGroup;
+					return null;
 				}
 				logger.info("Create security group : " + request.getName());
-				final String response = this.getWebResource().path("security-groups")
-						.type(MediaType.APPLICATION_JSON_TYPE)
-						.accept(MediaType.APPLICATION_JSON)
-						.header("X-Auth-Token", this.getTokenId())
-						.post(String.class, jsonRequest);
-
+				final String response = this.doPost("security-groups", jsonRequest);
 				final SecurityGroup created = JsonUtils.unwrapRootToObject(SecurityGroup.class, response);
 				return created;
 			} catch (UniformInterfaceException e) {
-				if (CONFLICT_STATUS == e.getResponse().getStatus()) {
-					throw new CloudProvisioningException("Quota for security group might be exceeded.", e);
-				}
-				throw e;
+				throw this.createOpenstackServerException(e);
 			}
 		}
 	}
@@ -643,32 +572,14 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 * 
 	 * @param securityGroupId
 	 *            The id of the security group to delete
-	 * @throws UniformInterfaceException
-	 *             If something goes wrong with the request.
-	 * @throws CloudProvisioningException
-	 *             If the service's endpoint has not been found in Openstack service's catalog.
 	 * @throws OpenstackException
-	 *             If the security group has not been deleted.
-	 * @throws OpenstackJsonSerializationException
-	 *             If a serialization issue occurs with Openstack request/response.
+	 *             Thrown when something went wrong with the request.
 	 */
-	public void deleteSecurityGroup(final String securityGroupId)
-			throws UniformInterfaceException, CloudProvisioningException, OpenstackException,
-			OpenstackJsonSerializationException {
+	public void deleteSecurityGroup(final String securityGroupId) throws OpenstackException {
 		if (logger.isLoggable(Level.FINEST)) {
 			logger.finest("Deleting security group id=" + securityGroupId);
 		}
-
-		final ClientResponse response = this.getWebResource().path("security-groups/" + securityGroupId)
-				.type(MediaType.APPLICATION_JSON_TYPE)
-				.accept(MediaType.APPLICATION_JSON)
-				.header("X-Auth-Token", this.getTokenId())
-				.delete(ClientResponse.class);
-
-		if (CODE_204_STATUS != response.getStatus()) {
-			throw new OpenstackException("" + response.getStatus());
-		}
-
+		this.doDelete("security-groups/" + securityGroupId, CODE_OK_204);
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("Deleted security group id=" + securityGroupId);
 		}
@@ -680,36 +591,27 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 * @param request
 	 *            The request.
 	 * @return The security group updated with the new rule.
-	 * @throws UniformInterfaceException
-	 *             If something goes wrong with the request.
-	 * @throws CloudProvisioningException
-	 *             If the service's endpoint has not been found in Openstack service's catalog.
-	 * @throws OpenstackJsonSerializationException
-	 *             If a serialization issue occurs with Openstack request/response.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
 	 */
-	public SecurityGroupRule createSecurityGroupRule(final SecurityGroupRule request)
-			throws UniformInterfaceException, CloudProvisioningException, OpenstackJsonSerializationException {
+	public SecurityGroupRule createSecurityGroupRule(final SecurityGroupRule request) throws OpenstackException {
 		if (logger.isLoggable(Level.FINEST)) {
 			logger.finest("Create security group rule " + request);
 		}
+		final String jsonRequest = JsonUtils.toJson(request);
+		String response = null;
 		try {
-			final String jsonRequest = JsonUtils.toJson(request);
-			final String response = this.getWebResource().path("security-group-rules")
-					.type(MediaType.APPLICATION_JSON_TYPE)
-					.accept(MediaType.APPLICATION_JSON)
-					.header("X-Auth-Token", this.getTokenId())
-					.post(String.class, jsonRequest);
-			final SecurityGroupRule created = JsonUtils.unwrapRootToObject(SecurityGroupRule.class, response);
-			return created;
+			response = this.doPost("security-group-rules", jsonRequest);
+		} catch (final OpenstackServerException e) {
+			if (e.getMessage().contains("already exists")) {
+				logger.warning("Rule already exists: " + request);
+				return null;
 
-		} catch (final UniformInterfaceException e) {
-			if (CONFLICT_STATUS == e.getResponse().getStatus()) {
-				logger.warning("Rule already exists or is conflincting with another one: " + request);
-				return null; // FIXME
-			} else {
-				throw e;
 			}
 		}
+		final SecurityGroupRule created = JsonUtils.unwrapRootToObject(SecurityGroupRule.class, response);
+		return created;
+
 	}
 
 	/**
@@ -717,47 +619,36 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 * 
 	 * @param securityGroupRuleId
 	 *            The id of the rule to delete.
-	 * @throws UniformInterfaceException
-	 *             If something goes wrong with the request.
-	 * @throws CloudProvisioningException
-	 *             If the service's endpoint has not been found in Openstack service's catalog.
 	 * @throws OpenstackException
-	 *             If an error occurs and the rule has not been deleted.
-	 * @throws OpenstackJsonSerializationException
+	 *             Thrown if something went wrong with the request.
 	 */
-	public void deleteSecurityGroupRule(final String securityGroupRuleId)
-			throws UniformInterfaceException, CloudProvisioningException, OpenstackException,
-			OpenstackJsonSerializationException {
+	public void deleteSecurityGroupRule(final String securityGroupRuleId) throws OpenstackException {
 		if (logger.isLoggable(Level.FINEST)) {
 			logger.finest("Deleting security group rule id=" + securityGroupRuleId);
 		}
-
-		final ClientResponse response = this.getWebResource().path("security-group-rules/" + securityGroupRuleId)
-				.type(MediaType.APPLICATION_JSON_TYPE)
-				.accept(MediaType.APPLICATION_JSON)
-				.header("X-Auth-Token", this.getTokenId())
-				.delete(ClientResponse.class);
-
-		if (CODE_204_STATUS != response.getStatus()) {
-			throw new OpenstackException("" + response.getStatus());
-		}
-
+		this.doDelete("security-group-rules/" + securityGroupRuleId, CODE_OK_204);
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("Deleted security group id=" + securityGroupRuleId);
 		}
 
 	}
 
-	public Subnet createSubnet(final Subnet request)
-			throws CloudProvisioningException, OpenstackJsonSerializationException, OpenstackServerException {
-		final String jsonRequest = JsonUtils.toJson(request);
+	/**
+	 * Create a subnet.
+	 * 
+	 * @param request
+	 *            The request.
+	 * @return The created subnet.
+	 * @throws OpenstackException
+	 *             Thrown if something went wrong with the request.
+	 */
+	public Subnet createSubnet(final Subnet request) throws OpenstackException {
+		String jsonRequest = JsonUtils.toJson(request);
+		// When getwayIp="null" this means that Openstack should not automatically assign a gateway to the subnet.
+		jsonRequest = jsonRequest.replaceAll("\"gateway_ip\"\\s*:\\s*\"null\"", "\"gateway_ip\" : null");
 		Subnet subnet = null;
 		try {
-			final String response = this.getWebResource().path("subnets")
-					.type(MediaType.APPLICATION_JSON_TYPE)
-					.accept(MediaType.APPLICATION_JSON)
-					.header("X-Auth-Token", this.getTokenId())
-					.post(String.class, jsonRequest);
+			final String response = this.doPost("subnets", jsonRequest);
 			subnet = JsonUtils.unwrapRootToObject(Subnet.class, response);
 		} catch (final UniformInterfaceException e) {
 			throw this.createOpenstackServerException(e);
@@ -771,22 +662,11 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 * @param networkId
 	 *            The network id.
 	 * @return A list of subnets belonging to a network.
-	 * @throws UniformInterfaceException
-	 *             If something goes wrong with the request.
-	 * @throws CloudProvisioningException
-	 *             If the service's endpoint has not been found in Openstack service's catalog.
-	 * @throws OpenstackJsonSerializationException
-	 *             If a serialization issue occurs with Openstack request/response.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
 	 */
-	public List<Subnet> getSubnetsByNetworkId(final String networkId)
-			throws UniformInterfaceException, CloudProvisioningException, OpenstackJsonSerializationException {
-		final String response = this.getWebResource().path("subnets")
-				.queryParam("network_id", networkId)
-				.type(MediaType.APPLICATION_JSON_TYPE)
-				.accept(MediaType.APPLICATION_JSON)
-				.header("X-Auth-Token", this.getTokenId())
-				.get(String.class);
-
+	public List<Subnet> getSubnetsByNetworkId(final String networkId) throws OpenstackException {
+		final String response = this.doGet("subnets", new String[] { "network_id", networkId });
 		final List<Subnet> subnets = JsonUtils.unwrapRootToList(Subnet.class, response);
 		return subnets;
 	}
@@ -797,15 +677,10 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 * @param networkName
 	 *            The network name.
 	 * @return A list of subnets belonging to a network.
-	 * @throws UniformInterfaceException
-	 *             If something goes wrong with the request.
-	 * @throws CloudProvisioningException
-	 *             If the service's endpoint has not been found in Openstack service's catalog.
-	 * @throws OpenstackJsonSerializationException
-	 *             If a serialization issue occurs with Openstack request/response.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
 	 */
-	public List<Subnet> getSubnetsByNetworkName(final String networkName) throws UniformInterfaceException,
-			CloudProvisioningException, OpenstackJsonSerializationException {
+	public List<Subnet> getSubnetsByNetworkName(final String networkName) throws OpenstackException {
 		final Network network = this.getNetworkByName(networkName);
 		if (network != null) {
 			return this.getSubnetsByNetworkId(network.getId());

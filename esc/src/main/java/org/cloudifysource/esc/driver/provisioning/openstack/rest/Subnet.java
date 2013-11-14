@@ -17,6 +17,7 @@ import java.util.List;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonRootName;
 
 /**
@@ -32,12 +33,13 @@ public class Subnet {
 	private String networkId;
 	private String tenantId;
 	private String ipVersion;
+	@JsonIgnore(value = false)
 	private String gatewayIp;
 	private String cidr;
-	private List<String> dnsNameServers = new ArrayList<String>();
+	private List<String> dnsNameservers = new ArrayList<String>();
+	private List<HostRoute> hostRoutes = new ArrayList<HostRoute>();
 
 	// private List<AllocationPool> allocationPools;
-	// private List<HostRoute> hostRoutes;
 
 	public String getName() {
 		return name;
@@ -71,12 +73,20 @@ public class Subnet {
 		this.tenantId = tenantId;
 	}
 
-	public List<String> getDnsNameServers() {
-		return dnsNameServers;
+	public List<String> getDnsNameservers() {
+		return dnsNameservers;
 	}
 
-	public void addDnsNameServers(final String dnsNameServer) {
-		this.dnsNameServers.add(dnsNameServer);
+	public void addDnsNameservers(final String dnsNameserver) {
+		this.dnsNameservers.add(dnsNameserver);
+	}
+
+	public List<HostRoute> getHostRoutes() {
+		return hostRoutes;
+	}
+
+	public void addHostRoute(final String nexthop, final String destination) {
+		this.hostRoutes.add(new HostRoute(nexthop, destination));
 	}
 
 	public String getIpVersion() {
