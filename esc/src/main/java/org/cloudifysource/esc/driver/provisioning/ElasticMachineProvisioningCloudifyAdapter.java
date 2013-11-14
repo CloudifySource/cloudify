@@ -37,7 +37,6 @@ import org.cloudifysource.domain.ServiceNetwork;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.FileTransferModes;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
-import org.cloudifysource.domain.context.network.NetworkProvisioningDriver;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
@@ -49,6 +48,7 @@ import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDri
 import org.cloudifysource.esc.driver.provisioning.context.ProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.events.MachineStartRequestedCloudifyEvent;
 import org.cloudifysource.esc.driver.provisioning.events.MachineStartedCloudifyEvent;
+import org.cloudifysource.esc.driver.provisioning.network.NetworkProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.storage.BaseStorageDriver;
 import org.cloudifysource.esc.driver.provisioning.storage.RemoteStorageProvisioningDriverAdapter;
 import org.cloudifysource.esc.driver.provisioning.storage.StorageProvisioningDriver;
@@ -1264,14 +1264,28 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	}
 
 	@Override
-	public Object getExternalApi(final String apiName) {
+	public Object getExternalApi(final String apiName) throws InterruptedException, 
+			ElasticMachineProvisioningException {
+		// configure drivers if this is first time (occurs when using the management machine for storage,
+		// so create machine is not called earlier)
+		try {
+			configureDrivers();
+		} catch (final CloudProvisioningException e) {
+			throw new ElasticMachineProvisioningException("Failed to configure cloud driver for first use: "
+					+ e.getMessage(), e);
+		} catch (final StorageProvisioningException e) {
+			throw new ElasticMachineProvisioningException("Failed to configure storage driver for first use: "
+					+ e.getMessage(), e);
+		}
 		Object externalApi = null;
 		//TODO: (adaml) extract the names of the apis to constants.
 		if (apiName.equals(CloudifyConstants.STORAGE_API_NAME)) {
-			externalApi = this.storageProvisioning;
+			externalApi = new RemoteStorageProvisioningDriverAdapter(storageProvisioning, cloud.getCloudStorage().
+					getTemplates().get(storageTemplateName));
 		} else if (apiName.equals(CloudifyConstants.NETWORK_API_NAME)) {
 			externalApi = this.networkProvisioning;
-		} 
+		}
+		
 		return externalApi;
 	}
 
