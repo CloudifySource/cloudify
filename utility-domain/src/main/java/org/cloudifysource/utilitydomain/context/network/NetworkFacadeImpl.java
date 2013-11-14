@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.utilitydomain.context.blockstorage;
+package org.cloudifysource.utilitydomain.context.network;
 
 import java.util.concurrent.TimeoutException;
 
@@ -36,10 +36,10 @@ public class NetworkFacadeImpl implements NetworkFacade {
 	}
 	
 	@Override
-	public void assign(final String ip, final String instanceID)
+	public void assignFloatingIP(final String ip, final String instanceID)
 			throws RemoteNetworkOperationException, TimeoutException {
 		final RemoteNetworkProvisioningDriver provisioningDriver = getRemoteNetworkProvisioningDriver();
-		provisioningDriver.assign(ip, instanceID);
+		provisioningDriver.assignFloatingIP(ip, instanceID);
 	}
 
 	private RemoteNetworkProvisioningDriver getRemoteNetworkProvisioningDriver() {
@@ -51,23 +51,24 @@ public class NetworkFacadeImpl implements NetworkFacade {
 		
 	}
 	@Override
-	public void unassign(final String ip, final String instanceID)
+	public void unassignFloatingIP(final String ip, final String instanceID)
 			throws RemoteNetworkOperationException, TimeoutException {
 		final RemoteNetworkProvisioningDriver provisioningDriver = getRemoteNetworkProvisioningDriver();
-		provisioningDriver.unassign(ip, instanceID);
+		provisioningDriver.unassignFloatingIP(ip, instanceID);
 	}
 
 	@Override
-	public String allocate(final String poolName)
+	public String allocateFloatingIP(final String poolName)
 			throws RemoteNetworkOperationException, TimeoutException {
 		final RemoteNetworkProvisioningDriver provisioningDriver = getRemoteNetworkProvisioningDriver();
-		return provisioningDriver.allocate(poolName);
+		return provisioningDriver.allocateFloatingIP(poolName);
 	}
 
 	@Override
-	public void release(final String ip) throws RemoteNetworkOperationException,
+	public void releaseFloatingIP(final String ip) throws RemoteNetworkOperationException,
 			TimeoutException {
-		// TODO Auto-generated method stub
+		final RemoteNetworkProvisioningDriver provisioningDriver = getRemoteNetworkProvisioningDriver();
+		provisioningDriver.releaseFloatingIP(ip);
 		
 	}
 
