@@ -91,7 +91,7 @@ public class ManagementController extends BaseRestController {
 
 	@Autowired
 	private DumpMachineValidator[] dumpValidators = new DumpMachineValidator[0];
-	
+
 	private Admin admin;
 	private Cloud cloud;
 
@@ -343,6 +343,7 @@ public class ManagementController extends BaseRestController {
 		response.setDumpBytes(dumpBytes);
 		return response;
 	}
+
 	/**
 	 * Get the dump of all machines.
 	 *
@@ -413,7 +414,7 @@ public class ManagementController extends BaseRestController {
 
 		return parts;
 	}
-	
+
 	private byte[] getDumpRawData(final DumpResult dump,
 			final long fileSizeLimit) throws RestErrorException {
 		File target;

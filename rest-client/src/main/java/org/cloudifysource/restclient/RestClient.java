@@ -809,7 +809,7 @@ public class RestClient {
 	 * Executes a rest API call to shutdown the managers of the current cloud.
 	 * 
 	 * @return ShutdownManagementResponse
-	 * @throws RestClientException 
+	 * @throws RestClientException
 	 */
 	public ShutdownManagementResponse shutdownManagers()
 			throws RestClientException {
@@ -885,14 +885,6 @@ public class RestClient {
 				args);
 		log(Level.FINE, "[getPUDumpFile] - sending GET request to REST ["
 				+ getMachineDumpFileURL + "]");
-		return executor.get(
-				getMachineDumpFileURL,
-				new TypeReference<Response<GetMachineDumpFileResponse>>() {
-				});
-	}
-	
-	public GetMachineDumpFileResponse getMachineDumpFile(final String getMachineDumpFileURL) 
-			throws RestClientException {
 		return executor.get(
 				getMachineDumpFileURL,
 				new TypeReference<Response<GetMachineDumpFileResponse>>() {
