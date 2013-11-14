@@ -36,72 +36,129 @@ public final class JsonUtils {
 	}
 
 	/**
-	 * Map a json string to a javabean.
+	 * Serialize a json string into a javabean object. <br />
+	 * Java property names are translate to lower case JSON element names.
 	 * 
 	 * @param clazz
 	 *            The target class.
-	 * @param response
+	 * @param jsonString
 	 *            The string to parse.
 	 * @param <T>
 	 *            The type of the java bean.
 	 * @return The class filled with the json values. Fields that are not defined in the java bean will be ignore.
+	 * @throws OpenstackJsonSerializationException
+	 *             If the json string could not be serialized into object.
 	 */
-	@Deprecated
-	public static <T> T mapJsonToObject(final Class<T> clazz, final String response) {
-		if (response == null) {
-			return null;
-		}
-		final ObjectMapper mapper = new ObjectMapper();
-		mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		T tokenResponse = null;
-		try {
-			tokenResponse = mapper.readValue(response, clazz);
-		} catch (final Exception e) {
-			e.printStackTrace();
-			// FIXME
-			// throw new OpenstackJsonException(e);
-		}
-		return tokenResponse;
+	public static <T> T mapJsonToObject(final Class<T> clazz, final String jsonString)
+			throws OpenstackJsonSerializationException {
+		return mapJsonToObject(clazz, jsonString, true);
 	}
 
-	public static <T> T unwrapRootToObject(final Class<T> clazz, final String response)
+	/**
+	 * Serialize a json string into a javabean object.
+	 * 
+	 * @param clazz
+	 *            The target class.
+	 * @param jsonString
+	 *            The string to parse.
+	 * @param translateCamelCase
+	 *            Translates typical camel case Java property names to lower case JSON element names.
+	 * @param <T>
+	 *            The type of the java bean.
+	 * @return The class filled with the json values. Fields that are not defined in the java bean will be ignore.
+	 * @throws OpenstackJsonSerializationException
+	 *             If the json string could not be serialized into object.
+	 */
+	public static <T> T mapJsonToObject(final Class<T> clazz, final String jsonString, final boolean translateCamelCase)
 			throws OpenstackJsonSerializationException {
-		return unwrapRootToObject(clazz, response, false);
-	}
-
-	public static <T> T unwrapRootToObject(final Class<T> clazz, final String response, final boolean useCamelCase)
-			throws OpenstackJsonSerializationException {
-		if (response == null) {
+		if (jsonString == null) {
 			return null;
 		}
-		T tokenResponse = null;
+		final ObjectMapper mapper = createDefaultDeserializationMapper();
+		if (translateCamelCase) {
+			mapper.setPropertyNamingStrategy(PropertyNamingStrategy.CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES);
+		}
 		try {
-			final ObjectMapper mapper = new ObjectMapper();
-			if (!useCamelCase) {
-				mapper.setPropertyNamingStrategy(PropertyNamingStrategy.CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES);
-			}
-			mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-			mapper.configure(DeserializationConfig.Feature.USE_ANNOTATIONS, true);
-			mapper.configure(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE, true);
-			mapper.configure(DeserializationConfig.Feature.USE_GETTERS_AS_SETTERS, false);
-			tokenResponse = mapper.readValue(response, clazz);
+			return mapper.readValue(jsonString, clazz);
 		} catch (final Exception e) {
 			throw new OpenstackJsonSerializationException(e);
 		}
-		return tokenResponse;
 	}
 
-	public static <T> List<T> unwrapRootToList(final Class<T> clazz, final String response)
+	/**
+	 * Serialize a json string into a javabean object and unwrap root-level JSON value.<br />
+	 * Java property names are translate to lower case JSON element names.
+	 * 
+	 * @param clazz
+	 *            The target class.
+	 * @param jsonString
+	 *            The string to parse.
+	 * @param <T>
+	 *            The type of the java bean.
+	 * @return The class filled with the json values. Fields that are not defined in the java bean will be ignore.
+	 * @throws OpenstackJsonSerializationException
+	 *             If the json string could not be serialized into object.
+	 */
+	public static <T> T unwrapRootToObject(final Class<T> clazz, final String jsonString)
+			throws OpenstackJsonSerializationException {
+		return unwrapRootToObject(clazz, jsonString, true);
+	}
+
+	/**
+	 * Serialize a json string into a javabean object and unwrap root-level JSON value.
+	 * 
+	 * @param clazz
+	 *            The target class.
+	 * @param jsonString
+	 *            The string to parse.
+	 * @param translateCamelCase
+	 *            Translates typical camel case Java property names to lower case JSON element names.
+	 * @param <T>
+	 *            The type of the java bean.
+	 * @return The class filled with the json values. Fields that are not defined in the java bean will be ignore.
+	 * @throws OpenstackJsonSerializationException
+	 *             If the json string could not be serialized into object.
+	 */
+	public static <T> T unwrapRootToObject(final Class<T> clazz, final String jsonString,
+			final boolean translateCamelCase) throws OpenstackJsonSerializationException {
+		if (jsonString == null) {
+			return null;
+		}
+		try {
+			final ObjectMapper mapper = createDefaultDeserializationMapper();
+			mapper.configure(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE, true);
+			if (translateCamelCase) {
+				mapper.setPropertyNamingStrategy(PropertyNamingStrategy.CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES);
+			}
+
+			return mapper.readValue(jsonString, clazz);
+		} catch (final Exception e) {
+			throw new OpenstackJsonSerializationException(e);
+		}
+	}
+
+	/**
+	 * Serialize a json string into a javabean object and unwrap root-level JSON value.<br />
+	 * Java property names are translate to lower case JSON element names.
+	 * 
+	 * @param clazz
+	 *            The target class.
+	 * @param jsonString
+	 *            The string to parse.
+	 * @param <T>
+	 *            The type of the java bean.
+	 * @return The class filled with the json values. Fields that are not defined in the java bean will be ignore.
+	 * @throws OpenstackJsonSerializationException
+	 *             If the json string could not be serialized into object.
+	 */
+	public static <T> List<T> unwrapRootToList(final Class<T> clazz, final String jsonString)
 			throws OpenstackJsonSerializationException {
 		List<T> list = null;
 		try {
-			final ObjectMapper mapper = new ObjectMapper();
+			final ObjectMapper mapper = createDefaultDeserializationMapper();
 			mapper.setPropertyNamingStrategy(PropertyNamingStrategy.CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES);
-			mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-			mapper.configure(DeserializationConfig.Feature.USE_ANNOTATIONS, true);
-			mapper.configure(DeserializationConfig.Feature.AUTO_DETECT_FIELDS, true);
 
-			final JsonNode readTree = mapper.readTree(response);
+			final JsonNode readTree = mapper.readTree(jsonString);
 			if (readTree != null && readTree.getElements().hasNext()) {
 				final JavaType type = mapper.getTypeFactory().constructCollectionType(List.class, clazz);
 				JsonNode next = readTree.getElements().next();
@@ -116,11 +173,41 @@ public final class JsonUtils {
 		return list;
 	}
 
-	public static String toJson(final Object javabean) throws OpenstackJsonSerializationException {
-		return toJson(javabean, false);
+	private static ObjectMapper createDefaultDeserializationMapper() {
+		final ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		mapper.configure(DeserializationConfig.Feature.USE_ANNOTATIONS, true);
+		mapper.configure(DeserializationConfig.Feature.AUTO_DETECT_FIELDS, true);
+		mapper.configure(DeserializationConfig.Feature.USE_GETTERS_AS_SETTERS, false);
+		return mapper;
 	}
 
-	public static String toJson(final Object javabean, final boolean useCamelCase)
+	/**
+	 * Deserialize a javabean object into json string.<br />
+	 * Java property names are translate to lower case JSON element names.
+	 * 
+	 * @param javabean
+	 *            The object to deserialize.
+	 * @return The json representation of the javabean.
+	 * @throws OpenstackJsonSerializationException
+	 *             If the javabean could not be deserialized.
+	 */
+	public static String toJson(final Object javabean) throws OpenstackJsonSerializationException {
+		return toJson(javabean, true);
+	}
+
+	/**
+	 * Deserialize a javabean object into json string.
+	 * 
+	 * @param javabean
+	 *            The object to deserialize.
+	 * @param translateCamelCase
+	 *            Translates typical camel case Java property names to lower case JSON element names.
+	 * @return The json representation of the javabean.
+	 * @throws OpenstackJsonSerializationException
+	 *             If the javabean could not be deserialized.
+	 */
+	public static String toJson(final Object javabean, final boolean translateCamelCase)
 			throws OpenstackJsonSerializationException {
 		if (javabean == null) {
 			return null;
@@ -128,7 +215,7 @@ public final class JsonUtils {
 		try {
 			final ObjectMapper mapper = new ObjectMapper();
 
-			if (!useCamelCase) {
+			if (translateCamelCase) {
 				mapper.setPropertyNamingStrategy(PropertyNamingStrategy.CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES);
 			}
 			mapper.setSerializationInclusion(Inclusion.NON_EMPTY);

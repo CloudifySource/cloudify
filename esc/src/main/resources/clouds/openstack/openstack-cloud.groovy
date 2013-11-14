@@ -76,6 +76,54 @@ cloud {
 
 	}
 	
+	/********************
+	 * Cloud networking configuration.
+	 */
+	cloudNetwork {
+
+		// Details of the management network, which is shared among all instances of the Cloudify Cluster.
+		management {
+			networkConfiguration {
+				// The network name
+				name  "Cloudify-Management-Network"
+
+				// Subnets
+				subnets ([
+					subnet {
+						name "Cloudify-Management-Subnet"
+						range "177.86.0.0/24"
+						options ([ "gateway" : "177.86.0.111" ])
+					}
+				])
+				
+				custom ([ "application.network.custom.setting" : "Some other value" ])
+			}
+		}
+
+		// Templates for networks which applications may use
+		// Only service isntances belonging to an application will be attached to this network.
+		templates ([
+			"APPLICATION_NET" : networkConfiguration {
+				name  "Cloudify-Application-Network"
+				subnets {
+					subnet {
+						name "Cloudify-Application-Subnet"
+						range "160.0.0.0/24"
+						options { gateway "160.0.0.1" }
+					}
+					subnet {
+						range "160.1.0.0/24"
+						options ([ "gateway" : "null" ])
+					}
+				}
+
+				custom ([ "application.network.custom.setting" : "Some other value" ])
+			}
+		])
+
+		custom ([ "global.network.custom.setting" : "Some other other value" ])
+	}
+	
 	cloudCompute {
 		
 		/***********

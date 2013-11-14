@@ -12,33 +12,36 @@
  ******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning.openstack.rest;
 
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
-
 /**
  * @author victor
  * @since 2.7.0
  */
-public class NovaServerSecurityGroup {
-	private String name;
+public class HostRoute {
+	private String nexthop;
+	private String destination;
 
-	public NovaServerSecurityGroup() {
+	public HostRoute() {
 	}
 
-	public NovaServerSecurityGroup(final String name) {
-		this.name = name;
+	public HostRoute(final String nexthop, final String destination) {
+		this.nexthop = nexthop;
+		this.destination = destination;
 	}
 
-	public String getName() {
-		return name;
+	public String getNexthop() {
+		return nexthop;
 	}
 
-	public void setName(final String name) {
-		this.name = name;
+	public void setNexthop(final String nexthop) {
+		this.nexthop = nexthop;
 	}
 
-	@Override
-	public String toString() {
-		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+	public String getDestination() {
+		return destination;
 	}
+
+	public void setDestination(final String destination) {
+		this.destination = destination;
+	}
+
 }

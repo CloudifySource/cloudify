@@ -1,9 +1,25 @@
+/*******************************************************************************
+ * Copyright (c) 2013 GigaSpaces Technologies Ltd. All rights reserved
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ ******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning.openstack.rest;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 import org.codehaus.jackson.map.annotate.JsonRootName;
 
+/**
+ * @author victor
+ * @since 2.7.0
+ */
 @JsonRootName("router")
 public class Router {
 	private String status;
@@ -20,7 +36,7 @@ public class Router {
 		return status;
 	}
 
-	public void setStatus(String status) {
+	public void setStatus(final String status) {
 		this.status = status;
 	}
 
@@ -28,7 +44,7 @@ public class Router {
 		return name;
 	}
 
-	public void setName(String name) {
+	public void setName(final String name) {
 		this.name = name;
 	}
 
@@ -36,7 +52,7 @@ public class Router {
 		return adminStateUp;
 	}
 
-	public void setAdminStateUp(Boolean adminStateUp) {
+	public void setAdminStateUp(final Boolean adminStateUp) {
 		this.adminStateUp = adminStateUp;
 	}
 
@@ -44,7 +60,7 @@ public class Router {
 		return tenantId;
 	}
 
-	public void setTenantId(String tenantId) {
+	public void setTenantId(final String tenantId) {
 		this.tenantId = tenantId;
 	}
 
@@ -52,7 +68,7 @@ public class Router {
 		return id;
 	}
 
-	public void setId(String id) {
+	public void setId(final String id) {
 		this.id = id;
 	}
 
@@ -60,7 +76,7 @@ public class Router {
 		return externalGatewayInfo;
 	}
 
-	public void setExternalGatewayInfo(RouterExternalGatewayInfo externalGatewayInfo) {
+	public void setExternalGatewayInfo(final RouterExternalGatewayInfo externalGatewayInfo) {
 		this.externalGatewayInfo = externalGatewayInfo;
 	}
 

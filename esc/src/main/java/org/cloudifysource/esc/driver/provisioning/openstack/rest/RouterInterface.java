@@ -19,22 +19,43 @@ import org.apache.commons.lang.builder.ToStringStyle;
  * @author victor
  * @since 2.7.0
  */
-public class NovaServerSecurityGroup {
-	private String name;
+public class RouterInterface {
 
-	public NovaServerSecurityGroup() {
+	private String id;
+	private String tenantId;
+	private String portId;
+	private String subnetId;
+
+	public String getId() {
+		return id;
 	}
 
-	public NovaServerSecurityGroup(final String name) {
-		this.name = name;
+	public void setId(final String id) {
+		this.id = id;
 	}
 
-	public String getName() {
-		return name;
+	public String getTenantId() {
+		return tenantId;
 	}
 
-	public void setName(final String name) {
-		this.name = name;
+	public void setTenantId(final String tenantId) {
+		this.tenantId = tenantId;
+	}
+
+	public String getPortId() {
+		return portId;
+	}
+
+	public void setPortId(final String portId) {
+		this.portId = portId;
+	}
+
+	public String getSubnetId() {
+		return subnetId;
+	}
+
+	public void setSubnetId(final String subnetId) {
+		this.subnetId = subnetId;
 	}
 
 	@Override

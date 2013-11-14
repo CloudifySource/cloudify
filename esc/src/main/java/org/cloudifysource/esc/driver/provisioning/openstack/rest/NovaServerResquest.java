@@ -31,6 +31,12 @@ public class NovaServerResquest {
 	private String flavorRef;
 	private String imageRef;
 
+	/**
+	 * For some reason, the Nova VM request mix up properties with camel case and properties with lower case with
+	 * underscores. The "keyname" name property uses underscores while the other fields use camel case. The
+	 * <code>JsonProperty</code> annotation is here to force the translation to lower case with underscores. The
+	 * (de)serialization of the other fields will keep camel case.
+	 */
 	@JsonProperty("key_name")
 	private String keyName;
 
@@ -49,36 +55,32 @@ public class NovaServerResquest {
 		return name;
 	}
 
-	public NovaServerResquest setName(final String name) {
+	public void setName(final String name) {
 		this.name = name;
-		return this;
 	}
 
 	public String getFlavorRef() {
 		return flavorRef;
 	}
 
-	public NovaServerResquest setFlavorRef(final String flavorRef) {
+	public void setFlavorRef(final String flavorRef) {
 		this.flavorRef = flavorRef;
-		return this;
 	}
 
 	public String getImageRef() {
 		return imageRef;
 	}
 
-	public NovaServerResquest setImageRef(final String imageRef) {
+	public void setImageRef(final String imageRef) {
 		this.imageRef = imageRef;
-		return this;
 	}
 
 	public String getKeyName() {
 		return keyName;
 	}
 
-	public NovaServerResquest setKeyName(final String keyName) {
+	public void setKeyName(final String keyName) {
 		this.keyName = keyName;
-		return this;
 	}
 
 	public void addSecurityGroup(final String securityGroup) {

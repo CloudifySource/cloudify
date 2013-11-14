@@ -17,7 +17,6 @@ import java.util.logging.Logger;
 
 import javax.ws.rs.core.MediaType;
 
-import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.TokenAccess;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.TokenServiceCatalog;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.TokenServiceCatalogEndpoint;
@@ -26,6 +25,8 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
+
+import edu.emory.mathcs.backport.java.util.Arrays;
 
 /**
  * A base class for openstack clients.<br />
@@ -38,6 +39,9 @@ import com.sun.jersey.api.client.WebResource;
 public abstract class OpenStackBaseClient {
 
 	private static final long TOKEN_TIMEOUT_MARGING = 60000L;
+
+	protected static final int CODE_OK_200 = 200;
+	protected static final int CODE_OK_204 = 204;
 
 	private static final Logger logger = Logger.getLogger(OpenStackBaseClient.class.getName());
 
@@ -69,7 +73,9 @@ public abstract class OpenStackBaseClient {
 	 * Destroy the client. <br />
 	 */
 	public void close() {
-		serviceClient.destroy();
+		if (serviceClient != null) {
+			serviceClient.destroy();
+		}
 	}
 
 	private String getEndpoint(final String endpointType) {
@@ -113,7 +119,7 @@ public abstract class OpenStackBaseClient {
 			final String input = String.format(tokenJsonRequest, username, password, tenant);
 			final String response = webResource.path("tokens").accept(MediaType.APPLICATION_JSON)
 					.type(MediaType.APPLICATION_JSON_TYPE).post(String.class, input);
-			this.token = JsonUtils.unwrapRootToObject(TokenAccess.class, response, true);
+			this.token = JsonUtils.unwrapRootToObject(TokenAccess.class, response, false);
 		} finally {
 			if (client != null) {
 				client.destroy();
@@ -125,16 +131,15 @@ public abstract class OpenStackBaseClient {
 	 * Return the WebResource pre configured with the endpoint.
 	 * 
 	 * @return The pre configured WebResource.
-	 * @throws CloudProvisioningException
-	 *             If the WebResource fails to initialize.
-	 * @throws OpenstackJsonSerializationException
+	 * @throws OpenstackException
+	 *             A problem occurs when requesting Openstack server.
 	 */
-	protected WebResource getWebResource() throws CloudProvisioningException, OpenstackJsonSerializationException {
+	protected WebResource getWebResource() throws OpenstackException {
 		if (serviceWebResource == null) {
 			this.renewTokenIfNeeded();
 			final String endpoint = this.getEndpoint(this.getServiceName());
 			if (endpoint == null) {
-				throw new CloudProvisioningException("Cannot find endpoint for service '"
+				throw new OpenstackException("Cannot find endpoint for service '"
 						+ this.getServiceName() + "' in the service catalog.");
 			}
 			this.serviceClient = Client.create();
@@ -149,6 +154,7 @@ public abstract class OpenStackBaseClient {
 	 * 
 	 * @return The token id.
 	 * @throws OpenstackJsonSerializationException
+	 *             If a serialization issue occurs with Openstack request/response.
 	 */
 	protected String getTokenId() throws OpenstackJsonSerializationException {
 		this.renewTokenIfNeeded();
@@ -162,17 +168,140 @@ public abstract class OpenStackBaseClient {
 	 */
 	abstract String getServiceName();
 
+	/**
+	 * Translate {@link UniformInterfaceException} to {@link OpenstackServerException} to get an accurate error message.
+	 * 
+	 * @param e
+	 *            The {@link UniformInterfaceException} to translate
+	 * @return The translated {@link OpenstackServerException}.
+	 */
 	protected OpenstackServerException createOpenstackServerException(final UniformInterfaceException e) {
 		final ClientResponse client = e.getResponse();
 		final String responseMessage = client.getEntity(String.class);
 		return new OpenstackServerException(client.getStatus(), responseMessage, e);
 	}
 
-	protected void verifyStatusCode(final int expectedStatus, final ClientResponse response)
-			throws OpenstackServerException {
-		if (expectedStatus != response.getStatus()) {
-			final String entity = response.getEntity(String.class);
-			throw new OpenstackServerException(expectedStatus, response.getStatus(), entity);
+	/**
+	 * Perform a get query with parameters.
+	 * 
+	 * @param path
+	 *            The URI path of the request.
+	 * @param params
+	 *            The parameters for the request. The array must be formatted as [key, value, key, value,...].
+	 * @return The response of the request.
+	 * @throws OpenstackException
+	 *             If an error occurs during the request.
+	 */
+	protected String doGet(final String path, final String[] params) throws OpenstackException {
+		try {
+			if (params != null && params.length % 2 != 0) {
+				throw new IllegalArgumentException("Paramters array missing an element:" + Arrays.asList(params));
+			}
+			WebResource webResource = this.getWebResource();
+			webResource = webResource.path(path);
+			if (params != null) {
+				for (int i = 0; i < params.length - 1; i += 2) {
+					webResource = webResource.queryParam(params[i], params[i + 1]);
+				}
+			}
+			final String response = webResource.type(MediaType.APPLICATION_JSON_TYPE)
+					.accept(MediaType.APPLICATION_JSON)
+					.header("X-Auth-Token", this.getTokenId())
+					.get(String.class);
+			return response;
+		} catch (final UniformInterfaceException e) {
+			throw this.createOpenstackServerException(e);
 		}
+	}
+
+	/**
+	 * Perform a get query.
+	 * 
+	 * @param path
+	 *            The URI path of the request.
+	 * @return The response of the request.
+	 * @throws OpenstackException
+	 *             If an error occurs during the request.
+	 */
+	protected String doGet(final String path) throws OpenstackException {
+		return this.doGet(path, null);
+	}
+
+	/**
+	 * Perform a delete query.
+	 * 
+	 * @param path
+	 *            The URI path of the request.
+	 * @param expectedStatus
+	 *            The expected returned status code.
+	 * @throws OpenstackException
+	 *             If an error occurs during the request.
+	 */
+	protected void doDelete(final String path, final int expectedStatus) throws OpenstackException {
+		try {
+			final WebResource webResource = this.getWebResource();
+			final ClientResponse response = webResource.path(path)
+					.type(MediaType.APPLICATION_JSON_TYPE)
+					.accept(MediaType.APPLICATION_JSON)
+					.header("X-Auth-Token", this.getTokenId())
+					.delete(ClientResponse.class);
+
+			if (expectedStatus != response.getStatus()) {
+				final String entity = response.getEntity(String.class);
+				throw new OpenstackServerException(expectedStatus, response.getStatus(), entity);
+			}
+
+		} catch (final UniformInterfaceException e) {
+			throw this.createOpenstackServerException(e);
+		}
+	}
+
+	/**
+	 * Perform a post request.
+	 * 
+	 * @param path
+	 *            The URI path of the request.
+	 * @param input
+	 *            The body of the request.
+	 * @return The response of the request.
+	 * @throws OpenstackException
+	 *             If an error occurs during the request.
+	 */
+	protected String doPost(final String path, final String input) throws OpenstackException {
+		try {
+			final String response = this.getWebResource().path(path)
+					.type(MediaType.APPLICATION_JSON_TYPE)
+					.accept(MediaType.APPLICATION_JSON)
+					.header("X-Auth-Token", this.getTokenId())
+					.post(String.class, input);
+			return response;
+		} catch (final UniformInterfaceException e) {
+			throw this.createOpenstackServerException(e);
+		}
+	}
+
+	/**
+	 * Perform a put request.
+	 * 
+	 * @param path
+	 *            The URI path of the request.
+	 * @param input
+	 *            The body of the request.
+	 * @return The response of the request.
+	 * @throws OpenstackException
+	 *             If an error occurs during the request.
+	 */
+	protected String doPut(final String path, final String input) throws OpenstackException {
+		try {
+			final String response = this.getWebResource().path(path)
+					.type(MediaType.APPLICATION_JSON_TYPE)
+					.accept(MediaType.APPLICATION_JSON)
+					.header("X-Auth-Token", this.getTokenId())
+					.put(String.class, input);
+			return response;
+		} catch (final UniformInterfaceException e) {
+			throw this.createOpenstackServerException(e);
+		}
+
 	}
 }

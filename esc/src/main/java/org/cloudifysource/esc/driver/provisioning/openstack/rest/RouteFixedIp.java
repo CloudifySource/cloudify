@@ -14,16 +14,13 @@ package org.cloudifysource.esc.driver.provisioning.openstack.rest;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
-import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
  * @author victor
  * @since 2.7.0
  */
 public class RouteFixedIp {
-	@JsonProperty("subnet_id")
 	private String subnetId;
-	@JsonProperty("ip_address")
 	private String ipAddress;
 
 	public String getSubnetId() {
