@@ -12,23 +12,25 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.rest.response;
 
-import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
+import java.util.Map;
 
 /**
- * A POJO representing a response to get-template command via the REST Gateway.
- * It holds the template. 
+ * A POJO representing a response to getMachinesDumpFile command via the REST Gateway. It holds a map by IP that holds
+ * the data of the dump file of all the machines.
  * 
+ * @see {@link org.cloudifysource.rest.controllers.ManagementController.getMachinesDumpFile(String, long)}
  * @author yael
  * @since 2.7.0
  */
-public class GetTemplateResponse {
-	private ComputeTemplate template;
+public class GetMachinesDumpFileResponse {
+	private Map<String, byte[]> dumpBytesPerIP;
 
-	public ComputeTemplate getTemplate() {
-		return template;
+	public Map<String, byte[]> getDumpBytesPerIP() {
+		return dumpBytesPerIP;
 	}
 
-	public void setTemplate(final ComputeTemplate template) {
-		this.template = template;
+	public void setDumpBytesPerIP(final Map<String, byte[]> dumpBytesPerIP) {
+		this.dumpBytesPerIP = dumpBytesPerIP;
 	}
+
 }

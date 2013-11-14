@@ -16,21 +16,23 @@
 package org.cloudifysource.dsl.rest.response;
 
 /**
- * A POJO representing a response to shutdownManagers command via the REST Gateway.
- * It holds the controllers details. 
+ * A POJO representing a response to getMachineDumpFile command via the REST Gateway. 
+ * It holds the data of the zip file containing the dump of the machine.
  * 
- * @see {@link org.cloudifysource.rest.controllers.ManagementController.shutdownManagers()}
+ * @see {@link org.cloudifysource.rest.controllers.ManagementController.getMachineDumpFile(String, String, long)}
  * @author yael
  * @since 2.7.0
  */
-public class ShutdownManagementResponse {
-	private ControllerDetails[] controllers;
+public class GetMachineDumpFileResponse {
 
-	public ControllerDetails[] getControllers() {
-		return controllers;
+	private byte[] dumpBytes;
+
+	public byte[] getDumpBytes() {
+		return dumpBytes;
 	}
 
-	public void setControllers(final ControllerDetails[] controllers) {
-		this.controllers = controllers;
+	public void setDumpBytes(final byte[] dumpBytes) {
+		this.dumpBytes = dumpBytes;
 	}
+	
 }

@@ -445,6 +445,12 @@ public final class CloudifyConstants {
 	public static final String ILlEGAL_SERVICE_NAME_PREFIX = ".";
 	public static final String ILlEGAL_SERVICE_NAME_SUFFIX = ".";
 	
+	/**
+	 * dump file
+	 */
+	public static final long DEFAULT_DUMP_FILE_SIZE_LIMIT = 10 * 1024 * 1024;
+	public static final String DEFAULT_DUMP_PROCESSORS = "summary, network, thread, log";
+	
     // CHECKSTYLE:ON
 }
 

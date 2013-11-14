@@ -53,6 +53,9 @@ import org.cloudifysource.dsl.rest.response.AddTemplatesResponse;
 import org.cloudifysource.dsl.rest.response.ApplicationDescription;
 import org.cloudifysource.dsl.rest.response.DeploymentEvent;
 import org.cloudifysource.dsl.rest.response.DeploymentEvents;
+import org.cloudifysource.dsl.rest.response.GetMachineDumpFileResponse;
+import org.cloudifysource.dsl.rest.response.GetMachinesDumpFileResponse;
+import org.cloudifysource.dsl.rest.response.GetPUDumpFileResponse;
 import org.cloudifysource.dsl.rest.response.GetTemplateResponse;
 import org.cloudifysource.dsl.rest.response.InstallApplicationResponse;
 import org.cloudifysource.dsl.rest.response.InstallServiceResponse;
@@ -73,8 +76,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
 /**
- * This class performs all the calls to the REST API, 
- * using the {@link RestClientExecutor}.
+ * This class performs all the calls to the REST API, using the {@link RestClientExecutor}.
  * 
  * @author yael
  * 
@@ -110,10 +112,12 @@ public class RestClient {
 	private static final String GET_LAST_EVENT_URL_FORMAT = "%s/events/last/";
 
 	private static final String SHUTDOWN_MANAGERS_URL_FORMAT = "controllers";
-
+	private static final String GET_PU_DUMP_FILE_URL_FORMAT = "dump/processing-units/?fileSizeLimit=%s";
+	private static final String GET_MACHINE_DUMP_FILE_URL_FORMAT = "dump/machine/%s/?processors=%s&?fileSizeLimit=%s";
+	private static final String GET_MACHINES_DUMP_FILE_URL_FORMAT = "dump/machines/?processors=%s&?fileSizeLimit=%s";
 
 	protected final RestClientExecutor executor;
-	private String versionedDeploymentControllerUrl;
+	private final String versionedDeploymentControllerUrl;
 	protected String versionedUploadControllerUrl;
 	protected String versionedTemplatesControllerUrl;
 	protected String shutdownManagersControllerUrl;
@@ -137,7 +141,7 @@ public class RestClient {
 	 * @throws RestClientException .
 	 */
 	public void connect() throws RestClientException {
-		String url = versionedDeploymentControllerUrl + "testrest";
+		final String url = versionedDeploymentControllerUrl + "testrest";
 		log(Level.FINE, "[connect] - sending GET request to REST [" + url + "]");
 		executor.get(url, new TypeReference<Response<Void>>() {
 		});
@@ -181,16 +185,15 @@ public class RestClient {
 					CloudifyErrorMessages.INSTALL_SERVICE_REQUEST_MISSING.getName());
 		}
 		final String installServiceUrl = getFormattedUrl(
-				versionedDeploymentControllerUrl, 
-				INSTALL_SERVICE_URL_FORMAT, 
+				versionedDeploymentControllerUrl,
+				INSTALL_SERVICE_URL_FORMAT,
 				effAppName,
 				serviceName);
-		
+
 		log(Level.FINE, "[installService] - sending POST request to REST [" + installServiceUrl + "]");
 		return executor.postObject(installServiceUrl, request, new TypeReference<Response<InstallServiceResponse>>() {
 		});
 	}
-
 
 	/**
 	 * Executes a rest api call to install an application.
@@ -205,14 +208,14 @@ public class RestClient {
 	public InstallApplicationResponse installApplication(final String applicationName,
 			final InstallApplicationRequest request) throws RestClientException {
 		final String installApplicationUrl = getFormattedUrl(
-				versionedDeploymentControllerUrl, 
-				INSTALL_APPLICATION_URL_FORMAT, 
+				versionedDeploymentControllerUrl,
+				INSTALL_APPLICATION_URL_FORMAT,
 				applicationName);
-		
+
 		log(Level.FINE, "[installApplication] - sending POST request to REST [" + installApplicationUrl + "]");
 		return executor.postObject(installApplicationUrl, request,
 				new TypeReference<Response<InstallApplicationResponse>>() {
-		});
+				});
 	}
 
 	/**
@@ -232,9 +235,9 @@ public class RestClient {
 			final int timeoutInMinutes) throws RestClientException {
 
 		final String url = getFormattedUrl(
-				versionedDeploymentControllerUrl, 
-				INSTALL_SERVICE_URL_FORMAT, 
-				applicationName, 
+				versionedDeploymentControllerUrl,
+				INSTALL_SERVICE_URL_FORMAT,
+				applicationName,
 				serviceName);
 		final Map<String, String> requestParams = new HashMap<String, String>();
 		requestParams.put(CloudifyConstants.REQ_PARAM_TIMEOUT_IN_MINUTES, String.valueOf(timeoutInMinutes));
@@ -261,7 +264,7 @@ public class RestClient {
 		final String url = versionedDeploymentControllerUrl + applicationName;
 		final Map<String, String> requestParams = new HashMap<String, String>();
 		requestParams.put(CloudifyConstants.REQ_PARAM_TIMEOUT_IN_MINUTES, String.valueOf(timeoutInMinutes));
-		
+
 		log(Level.FINE, "[uninstallApplication] - sending DELETE request to REST [" + url + "]");
 		return executor.delete(url, requestParams, new TypeReference<Response<UninstallApplicationResponse>>() {
 		});
@@ -280,26 +283,26 @@ public class RestClient {
 	public UploadResponse upload(final String fileName, final File file) throws RestClientException {
 		validateFile(file);
 		final String finalFileName = fileName == null ? file.getName() : fileName;
-        if (logger.isLoggable(Level.FINE)) {
-        	logger.fine("[getDeploymentEvents] - uploading file " 
-        			+ file.getAbsolutePath() + " with name " + finalFileName);
-        }
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("[getDeploymentEvents] - uploading file "
+					+ file.getAbsolutePath() + " with name " + finalFileName);
+		}
 		final String uploadUrl = getFormattedUrl(
-				versionedUploadControllerUrl, 
-				UPLOAD_URL_FORMAT, 
-				finalFileName);	
-		
+				versionedUploadControllerUrl,
+				UPLOAD_URL_FORMAT,
+				finalFileName);
+
 		log(Level.FINE, "[upload] - sending POST request to REST [" + uploadUrl + "]");
-		final UploadResponse response = 
+		final UploadResponse response =
 				executor.postFile(
-						uploadUrl, 
-						file, 
-						CloudifyConstants.UPLOAD_FILE_PARAM_NAME, 
-						new TypeReference<Response<UploadResponse>>() { });	
+						uploadUrl,
+						file,
+						CloudifyConstants.UPLOAD_FILE_PARAM_NAME,
+						new TypeReference<Response<UploadResponse>>() {
+						});
 		return response;
 	}
-	
-	
+
 	/**
 	 * Provides access to life cycle events of a service.
 	 * 
@@ -315,11 +318,11 @@ public class RestClient {
 	public DeploymentEvents getDeploymentEvents(final String deploymentId, final int from, final int to)
 			throws RestClientException {
 		validateDeploymentID(deploymentId, "getDeploymentEvents(String,int,int)");
-		String url = getFormattedUrl(
-				versionedDeploymentControllerUrl, 
-				GET_DEPLOYMENT_EVENTS_URL_FORMAT, 
-				deploymentId, 
-				String.valueOf(from), 
+		final String url = getFormattedUrl(
+				versionedDeploymentControllerUrl,
+				GET_DEPLOYMENT_EVENTS_URL_FORMAT,
+				deploymentId,
+				String.valueOf(from),
 				String.valueOf(to));
 		log(Level.FINE, "[getDeploymentEvents] - sending GET request to REST [" + url + "]");
 		return executor.get(url, new TypeReference<Response<DeploymentEvents>>() {
@@ -329,8 +332,8 @@ public class RestClient {
 	private void validateDeploymentID(final String deploymentId, final String methodName) throws RestClientException {
 		if (deploymentId == null) {
 			logger.warning("[" + methodName + "] - deployment ID is missing.");
-            throw MessagesUtils.createRestClientException(
-                    CloudifyErrorMessages.MISSING_DEPLOYMENT_ID.getName(), methodName);
+			throw MessagesUtils.createRestClientException(
+					CloudifyErrorMessages.MISSING_DEPLOYMENT_ID.getName(), methodName);
 		}
 	}
 
@@ -345,11 +348,11 @@ public class RestClient {
 	 */
 	public ServiceDescription getServiceDescription(final String appName, final String serviceName)
 			throws RestClientException {
-		String url = getFormattedUrl(
-				versionedDeploymentControllerUrl, 
-				GET_SERVICE_DESCRIPTION_URL_FORMAT, 
+		final String url = getFormattedUrl(
+				versionedDeploymentControllerUrl,
+				GET_SERVICE_DESCRIPTION_URL_FORMAT,
 				appName,
-				serviceName);	
+				serviceName);
 		log(Level.FINE, "[getServiceDescription] - sending GET request to REST [" + url + "]");
 		return executor.get(url, new TypeReference<Response<ServiceDescription>>() {
 		});
@@ -361,14 +364,14 @@ public class RestClient {
 	 * @param deploymentId
 	 *            The deployment id.
 	 * @return list of {@link ServiceDescription}
-	 * @throws RestClientException 
+	 * @throws RestClientException
 	 */
 	public List<ServiceDescription> getServiceDescriptions(final String deploymentId)
 			throws RestClientException {
 		validateDeploymentID(deploymentId, "getServiceDescriptions(String)");
-		String url = getFormattedUrl(
-				versionedDeploymentControllerUrl, 
-				GET_SERVICES_DESCRIPTION_URL_FORMAT, 
+		final String url = getFormattedUrl(
+				versionedDeploymentControllerUrl,
+				GET_SERVICES_DESCRIPTION_URL_FORMAT,
 				deploymentId);
 		log(Level.FINE, "[getServiceDescriptions] - sending GET request to REST [" + url + "]");
 		return executor.get(url, new TypeReference<Response<List<ServiceDescription>>>() {
@@ -383,7 +386,7 @@ public class RestClient {
 	 * @throws RestClientException .
 	 */
 	public ApplicationDescription getApplicationDescription(final String appName) throws RestClientException {
-		String url = getFormattedUrl(
+		final String url = getFormattedUrl(
 				versionedDeploymentControllerUrl,
 				GET_APPLICATION_DESCRIPTION_URL_FORMAT,
 				appName);
@@ -391,31 +394,32 @@ public class RestClient {
 		return executor.get(url, new TypeReference<Response<ApplicationDescription>>() {
 		});
 	}
-	
+
 	/**
 	 * 
 	 * @return List of ApplicationDescription objects.
 	 * @throws RestClientException .
 	 */
 	public List<ApplicationDescription> getApplicationDescriptionsList() throws RestClientException {
-		String url = getFormattedUrl(
-				versionedDeploymentControllerUrl, 
+		final String url = getFormattedUrl(
+				versionedDeploymentControllerUrl,
 				GET_APPLICATION_DESCRIPTIONS_URL_FORMAT);
 		log(Level.FINE, "[getApplicationDescriptionsList] - sending GET request to REST [" + url + "]");
 		return executor.get(url, new TypeReference<Response<List<ApplicationDescription>>>() {
 		});
 	}
-	
+
 	/**
-	 * @param appName The application the services to be listed are part of.
+	 * @param appName
+	 *            The application the services to be listed are part of.
 	 * @return List of service descriptions
 	 * @throws RestClientException .
 	 */
 	public List<ServiceDescription> getServicesDescriptionList(final String appName) throws RestClientException {
 		return getApplicationDescription(appName).getServicesDescription();
-		
+
 	}
-	
+
 	/********
 	 * Manually Scales a specific service in/out.
 	 * 
@@ -435,9 +439,9 @@ public class RestClient {
 		}
 
 		final String setInstancesUrl = getFormattedUrl(
-				versionedDeploymentControllerUrl, 
-				SET_INSTANCES_URL_FORMAT, 
-				applicationName, 
+				versionedDeploymentControllerUrl,
+				SET_INSTANCES_URL_FORMAT,
+				applicationName,
 				serviceName);
 		log(Level.FINE, "[setServiceInstances] - sending POST request to REST [" + setInstancesUrl + "]");
 		executor.postObject(
@@ -448,48 +452,48 @@ public class RestClient {
 				);
 
 	}
-	
-	
+
 	/**
 	 * Invokes the command specified in the request on all the instances of the given service.
+	 * 
 	 * @param applicationName
 	 *            the service's application name.
 	 * @param serviceName
 	 *            the service's name.
 	 * @param request
 	 *            the InvokeCustomCommandRequest containing the command and parameters
-	 * @return InvokeServiceCommandResponse
-	 *            the response holding the results of the command invocation per service
+	 * @return InvokeServiceCommandResponse the response holding the results of the command invocation per service
 	 * @throws RestClientException
-	 *            when the invocation failed or the service/instance were not found.
+	 *             when the invocation failed or the service/instance were not found.
 	 */
-	public InvokeServiceCommandResponse invokeServiceCommand(final String applicationName, 
+	public InvokeServiceCommandResponse invokeServiceCommand(final String applicationName,
 			final String serviceName, final InvokeCustomCommandRequest request)
 			throws RestClientException {
-		
+
 		if (request == null) {
 			throw new IllegalArgumentException("request may not be null");
 		}
 
 		InvokeServiceCommandResponse result = null;
 		final String invokeCommandUrl = getFormattedUrl(
-				versionedDeploymentControllerUrl, 
-				INVOKE_SERVICE_COMMAND_URL_FORMAT, 
-				applicationName, 
+				versionedDeploymentControllerUrl,
+				INVOKE_SERVICE_COMMAND_URL_FORMAT,
+				applicationName,
 				serviceName);
-		
+
 		result = executor.postObject(
 				invokeCommandUrl,
 				request,
-				new TypeReference<Response<InvokeServiceCommandResponse>>() { }
-		);
-	
+				new TypeReference<Response<InvokeServiceCommandResponse>>() {
+				}
+				);
+
 		return result;
 	}
-	
-	
+
 	/**
 	 * Invokes the command specified in the request on the specified instance of the given service.
+	 * 
 	 * @param applicationName
 	 *            the service's application name.
 	 * @param serviceName
@@ -498,40 +502,38 @@ public class RestClient {
 	 *            the relevant instance id
 	 * @param request
 	 *            the InvokeCustomCommandRequest containing the command and parameters
-	 * @return InvokeServiceCommandResponse
-	 *            the response holding the results of the command invocation per service
+	 * @return InvokeServiceCommandResponse the response holding the results of the command invocation per service
 	 * @throws RestClientException
-	 *            when the invocation failed or the service/instance were not found.
+	 *             when the invocation failed or the service/instance were not found.
 	 */
-	public InvokeInstanceCommandResponse invokeInstanceCommand(final String applicationName, 
-			final String serviceName, final int instanceId, final InvokeCustomCommandRequest request) 
+	public InvokeInstanceCommandResponse invokeInstanceCommand(final String applicationName,
+			final String serviceName, final int instanceId, final InvokeCustomCommandRequest request)
 			throws RestClientException {
-		
+
 		if (request == null) {
 			throw new IllegalArgumentException("request may not be null");
 		}
-		
-		String instanceIdStr = String.valueOf(instanceId);
+
+		final String instanceIdStr = String.valueOf(instanceId);
 
 		InvokeInstanceCommandResponse result = null;
 		final String invokeCommandUrl = getFormattedUrl(
-				versionedDeploymentControllerUrl, 
-				INVOKE_INSTANCE_COMMAND_URL_FORMAT, 
-				applicationName, 
+				versionedDeploymentControllerUrl,
+				INVOKE_INSTANCE_COMMAND_URL_FORMAT,
+				applicationName,
 				serviceName,
 				instanceIdStr);
-		
+
 		result = executor.postObject(
 				invokeCommandUrl,
 				request,
 				new TypeReference<Response<InvokeInstanceCommandResponse>>() {
 				}
-		);
-		
+				);
+
 		return result;
 	}
 
-	
 	/********
 	 * Retrieves last event indes for this deployment id.
 	 * 
@@ -544,8 +546,8 @@ public class RestClient {
 	public DeploymentEvent getLastEvent(final String deploymentId) throws RestClientException {
 		validateDeploymentID(deploymentId, "getLastEvent(String)");
 		final String url = getFormattedUrl(
-				versionedDeploymentControllerUrl, 
-				GET_LAST_EVENT_URL_FORMAT, 
+				versionedDeploymentControllerUrl,
+				GET_LAST_EVENT_URL_FORMAT,
 				deploymentId);
 		log(Level.FINE, "[getLastEvent] - sending GET request to REST [" + url + "]");
 		return executor.get(url, new TypeReference<Response<DeploymentEvent>>() {
@@ -555,8 +557,9 @@ public class RestClient {
 
 	/**
 	 * Validate file before uploading.
-	 * @param file 
-	 * 			The file to upload.
+	 * 
+	 * @param file
+	 *            The file to upload.
 	 * @throws RestClientException .
 	 */
 	protected void validateFile(final File file) throws RestClientException {
@@ -605,12 +608,12 @@ public class RestClient {
 	private DefaultHttpClient getSSLHttpClient(final URL url) throws RestClientException {
 		try {
 			final X509TrustManager trustManager = createTrustManager();
-			SSLContext ctx = SSLContext.getInstance("TLS");
-			ctx.init(null, new TrustManager[]{trustManager}, null);
-			SSLSocketFactory ssf = new SSLSocketFactory(ctx, createHostnameVerifier());
-			AbstractHttpClient base = new DefaultHttpClient();
-			ClientConnectionManager ccm = base.getConnectionManager();
-			SchemeRegistry sr = ccm.getSchemeRegistry();
+			final SSLContext ctx = SSLContext.getInstance("TLS");
+			ctx.init(null, new TrustManager[] { trustManager }, null);
+			final SSLSocketFactory ssf = new SSLSocketFactory(ctx, createHostnameVerifier());
+			final AbstractHttpClient base = new DefaultHttpClient();
+			final ClientConnectionManager ccm = base.getConnectionManager();
+			final SchemeRegistry sr = ccm.getSchemeRegistry();
 			sr.register(new Scheme(HTTPS, url.getPort(), ssf));
 			return new DefaultHttpClient(ccm, base.getParams());
 		} catch (final Exception e) {
@@ -618,60 +621,62 @@ public class RestClient {
 					ExceptionUtils.getFullStackTrace(e));
 		}
 	}
-	
-	
+
 	private X509TrustManager createTrustManager() {
-		X509TrustManager tm = new X509TrustManager() {
-			
+		final X509TrustManager tm = new X509TrustManager() {
+
 			@Override
 			public X509Certificate[] getAcceptedIssuers() {
 				return null;
 			}
-			
+
 			@Override
-			public void checkServerTrusted(final X509Certificate[] chain, final String authType) 
+			public void checkServerTrusted(final X509Certificate[] chain, final String authType)
 					throws CertificateException {
 			}
-			
+
 			@Override
-			public void checkClientTrusted(final X509Certificate[] chain, final String authType) 
+			public void checkClientTrusted(final X509Certificate[] chain, final String authType)
 					throws CertificateException {
 			}
 		};
 		return tm;
 	}
 
-	
 	private X509HostnameVerifier createHostnameVerifier() {
-		X509HostnameVerifier verifier = new X509HostnameVerifier() {
-			
+		final X509HostnameVerifier verifier = new X509HostnameVerifier() {
+
 			@Override
 			public boolean verify(final String arg0, final SSLSession arg1) {
 				return true;
 			}
-			
+
 			@Override
-			public void verify(final String host, final String[] cns, final String[] subjectAlts) 
+			public void verify(final String host, final String[] cns, final String[] subjectAlts)
 					throws SSLException {
 			}
-			
+
 			@Override
-			public void verify(final String host, final X509Certificate cert) 
+			public void verify(final String host, final X509Certificate cert)
 					throws SSLException {
 			}
-			
+
 			@Override
-			public void verify(final String host, final SSLSocket ssl) 
+			public void verify(final String host, final SSLSocket ssl)
 					throws IOException {
 			}
 		};
-        return verifier;
+		return verifier;
 	}
+
 	/**
 	 * 
-	 * @param controllerUrl .
-	 * @param format .
-	 * @param args .
+	 * @param controllerUrl
+	 *            .
+	 * @param format
+	 *            .
+	 * @param args
+	 *            .
 	 * @return the formatted URL.
 	 */
 	protected String getFormattedUrl(final String controllerUrl, final String format, final String... args) {
@@ -681,132 +686,293 @@ public class RestClient {
 	/**
 	 * Executes a rest API call to get template.
 	 * 
-	 * @param templateName the name of the template to get.
+	 * @param templateName
+	 *            the name of the template to get.
 	 * @return GetTemplateResponse.
 	 * @throws RestClientException .
 	 */
-	public GetTemplateResponse getTemplate(final String templateName) 
+	public GetTemplateResponse getTemplate(final String templateName)
 			throws RestClientException {
 		final String getTempalteInternalUrl = getFormattedUrl(
-				versionedTemplatesControllerUrl, 
+				versionedTemplatesControllerUrl,
 				GET_TEMPALTE_URL_FORMAT,
 				templateName);
-		log(Level.FINE, "[getTemplate] - sending GET request to REST [" 
+		log(Level.FINE, "[getTemplate] - sending GET request to REST ["
 				+ getTempalteInternalUrl + "]");
 		return executor.get(getTempalteInternalUrl,
-				new TypeReference<Response<GetTemplateResponse>>() { });
+				new TypeReference<Response<GetTemplateResponse>>() {
+				});
 	}
-	
+
 	/**
 	 * Executes a rest API call to list templates.
-	 *  
+	 * 
 	 * @return ListTemplatesResponse.
 	 * @throws RestClientException .
 	 */
 	public ListTemplatesResponse listTemplates() throws RestClientException {
 		final String listTempaltesInternalUrl = getFormattedUrl(
-				versionedTemplatesControllerUrl, 
+				versionedTemplatesControllerUrl,
 				LIST_TEMPALTES_URL_FORMAT);
-		log(Level.FINE, "[listTemplates] - sending GET request to REST [" 
+		log(Level.FINE, "[listTemplates] - sending GET request to REST ["
 				+ listTempaltesInternalUrl + "]");
 		return executor.get(listTempaltesInternalUrl,
-				new TypeReference<Response<ListTemplatesResponse>>() { });
+				new TypeReference<Response<ListTemplatesResponse>>() {
+				});
 	}
-	
+
 	/**
 	 * Executes a rest API call to add templates to all REST instances.
-	 *  
-	 * @param request contains the templates folder.
+	 * 
+	 * @param request
+	 *            contains the templates folder.
 	 * @return AddTemplatesResponse.
-	 * @throws AddTemplatesException 
-	 * 			If failed to add all templates (includes partial failure).
+	 * @throws AddTemplatesException
+	 *             If failed to add all templates (includes partial failure).
 	 * @throws RestClientException .
 	 */
-	public AddTemplatesResponse addTemplates(final AddTemplatesRequest request) 
+	public AddTemplatesResponse addTemplates(final AddTemplatesRequest request)
 			throws RestClientException, AddTemplatesException {
 		final String addTempaltesUrl = getFormattedUrl(
-				versionedTemplatesControllerUrl, 
+				versionedTemplatesControllerUrl,
 				ADD_TEMPALTES_URL_FORMAT);
 		AddTemplatesResponse response = null;
 		try {
-			log(Level.FINE, "[addTemplates] - sending POST request to REST [" 
+			log(Level.FINE, "[addTemplates] - sending POST request to REST ["
 					+ addTempaltesUrl + "]");
 			return executor.postObject(
-					addTempaltesUrl, 
-					request, 
-					new TypeReference<Response<AddTemplatesResponse>>() { });
-		} catch (RestClientException e) {
-			String verbose = e.getVerbose();
-				// may be partial failure - in this case the verbose contains the AddTemplatesResponse object.
-				if (logger.isLoggable(Level.WARNING)) {
-					logger.log(Level.WARNING, 
-							"[addTemplates] - caught RestClientException, " 
-									+ "trying to read the response from the verbose", e);
+					addTempaltesUrl,
+					request,
+					new TypeReference<Response<AddTemplatesResponse>>() {
+					});
+		} catch (final RestClientException e) {
+			final String verbose = e.getVerbose();
+			// may be partial failure - in this case the verbose contains the AddTemplatesResponse object.
+			if (logger.isLoggable(Level.WARNING)) {
+				logger.log(Level.WARNING,
+						"[addTemplates] - caught RestClientException, "
+								+ "trying to read the response from the verbose", e);
+			}
+			try {
+				response = new ObjectMapper().readValue(verbose, AddTemplatesResponse.class);
+				throw new AddTemplatesException(response);
+			} catch (final JsonProcessingException e1) {
+				// failed to read the response from the verbose => not a partial failure
+				// => throwing the original exception
+				if (logger.isLoggable(Level.FINE)) {
+					logger.log(Level.FINE,
+							"[addTemplates] - caught JsonProcessingException "
+									+ "when tried to read the response from the verbose, "
+									+ " throwing the RestClientException that constructed "
+									+ "from the original exception", e1);
 				}
-				try {
-					response = new ObjectMapper().readValue(verbose, AddTemplatesResponse.class);
-					throw new AddTemplatesException(response);
-				} catch (JsonProcessingException e1) {
-					// failed to read the response from the verbose => not a partial failure 
-					// => throwing the original exception
-					if (logger.isLoggable(Level.FINE)) {
-						logger.log(Level.FINE, 
-								"[addTemplates] - caught JsonProcessingException " 
-										+ "when tried to read the response from the verbose, " 
-										+ " throwing the RestClientException that constructed " 
-										+ "from the original exception", e1);
-					}
-					throw e;
-				} catch (IOException e1) {
-					// failed to read the response from the verbose => not a partial failure 
-					// => throwing the original exception
-					if (logger.isLoggable(Level.FINE)) {
-						logger.log(Level.FINE, 
-								"[addTemplates] - caught IOException " 
-										+ "when tried to read the response from the verbose, " 
-										+ " throwing the RestClientException that constructed " 
-										+ "from the original exception", e1);
-					}
-					throw e;
-				}				
+				throw e;
+			} catch (final IOException e1) {
+				// failed to read the response from the verbose => not a partial failure
+				// => throwing the original exception
+				if (logger.isLoggable(Level.FINE)) {
+					logger.log(Level.FINE,
+							"[addTemplates] - caught IOException "
+									+ "when tried to read the response from the verbose, "
+									+ " throwing the RestClientException that constructed "
+									+ "from the original exception", e1);
+				}
+				throw e;
+			}
 		}
 	}
-	
+
 	/**
 	 * Executes a rest API call to remove template from all REST instances.
 	 * 
-	 * @param templateName the template's name to remove.
+	 * @param templateName
+	 *            the template's name to remove.
 	 * @throws RestClientException .
 	 */
-	public void removeTemplate(final String templateName) 
+	public void removeTemplate(final String templateName)
 			throws RestClientException {
 		final String removeTempalteUrl = getFormattedUrl(
-				versionedTemplatesControllerUrl, 
+				versionedTemplatesControllerUrl,
 				REMOVE_TEMPALTE_URL_FORMAT,
 				templateName);
-		log(Level.FINE, "[removeTemplate] - sending DELETE request to REST [" 
+		log(Level.FINE, "[removeTemplate] - sending DELETE request to REST ["
 				+ removeTempalteUrl + "]");
 		executor.delete(
-				removeTempalteUrl, 
-				new TypeReference<Response<Void>>() { });
+				removeTempalteUrl,
+				new TypeReference<Response<Void>>() {
+				});
+	}
+
+	/**
+	 * Executes a rest API call to shutdown the managers of the current cloud.
+	 * 
+	 * @return ShutdownManagementResponse
+	 * @throws RestClientException
+	 */
+	public ShutdownManagementResponse shutdownManagers()
+			throws RestClientException {
+		final String shutdownManagersUrl = getFormattedUrl(
+				shutdownManagersControllerUrl,
+				SHUTDOWN_MANAGERS_URL_FORMAT);
+		log(Level.FINE, "[shutdownManagers] - sending DELETE request to REST ["
+				+ shutdownManagersUrl + "]");
+		return executor.delete(
+				shutdownManagersUrl,
+				new TypeReference<Response<ShutdownManagementResponse>>() {
+				});
+	}
+
+	/**
+	 * 
+	 * @param fileSizeLimit
+	 * @return {@link GetPUDumpFileResponse} containing the dump of all the processing units.
+	 * @throws RestClientException
+	 */
+	public GetPUDumpFileResponse getPUDumpFile(final long fileSizeLimit)
+			throws RestClientException {
+		final String getPUDumpFileUrl = getFormattedUrl(
+				shutdownManagersControllerUrl,
+				GET_PU_DUMP_FILE_URL_FORMAT,
+				Long.toString(fileSizeLimit));
+		log(Level.FINE, "[getPUDumpFile] - sending GET request to REST ["
+				+ getPUDumpFileUrl + "]");
+		return executor.get(
+				getPUDumpFileUrl,
+				new TypeReference<Response<GetPUDumpFileResponse>>() {
+				});
+	}
+
+	/**
+	 * 
+	 * @return {@link GetPUDumpFileResponse} containing the dump of all the processing units.
+	 * @throws RestClientException 
+	 */
+	public GetPUDumpFileResponse getPUDumpFile()
+			throws RestClientException {
+		return getPUDumpFile(CloudifyConstants.DEFAULT_DUMP_FILE_SIZE_LIMIT);
+	}
+
+	/**
+	 * @param ip
+	 *            The machine IP.
+	 * @param processors
+	 *            The list of processors to be used.
+	 * @param fileSizeLimit
+	 *            The dump file size limit.
+	 * @return {@link GetMachineDumpFileResponse} containing the dump data of the machine.
+	 * @throws RestClientException 
+	 */
+	public GetMachineDumpFileResponse getMachineDumpFile(
+			final String ip, final String processors, final long fileSizeLimit)
+			throws RestClientException {
+		final String getMachineDumpFileURL = getFormattedUrl(
+				shutdownManagersControllerUrl,
+				GET_MACHINE_DUMP_FILE_URL_FORMAT,
+				ip,
+				processors,
+				Long.toString(fileSizeLimit));
+		log(Level.FINE, "[getPUDumpFile] - sending GET request to REST ["
+				+ getMachineDumpFileURL + "]");
+		return executor.get(
+				getMachineDumpFileURL,
+				new TypeReference<Response<GetMachineDumpFileResponse>>() {
+				});
 	}
 	
 	/**
-	 * Executes a rest API call to shutdown the managers of the current cloud.
-	 * @return ShutdownManagementResponse
+	 * @param ip
+	 *            The machine IP.
+	 * @param fileSizeLimit
+	 *            The dump file size limit.
+	 * @return {@link GetMachineDumpFileResponse} containing the dump data of the machine.
 	 * @throws RestClientException 
 	 */
-	public ShutdownManagementResponse shutdownManagers() throws RestClientException {
-		final String shutdownManagersUrl = getFormattedUrl(
-				shutdownManagersControllerUrl, 
-				SHUTDOWN_MANAGERS_URL_FORMAT);
-		log(Level.FINE, "[shutdownManagers] - sending DELETE request to REST [" 
-				+ shutdownManagersUrl + "]");
-		return executor.delete(
-				shutdownManagersUrl, 
-				new TypeReference<Response<ShutdownManagementResponse>>() { });
+	public GetMachineDumpFileResponse getMachineDumpFile(final String ip, final long fileSizeLimit)
+			throws RestClientException {
+		return getMachineDumpFile(ip, CloudifyConstants.DEFAULT_DUMP_PROCESSORS, fileSizeLimit);
 	}
 
+	
+	/**
+	 * @param ip
+	 *            The machine IP.
+	 * @param processors
+	 *            The list of processors to be used.
+	 * @return {@link GetMachineDumpFileResponse} containing the dump data of the machine.
+	 * @throws RestClientException 
+	 */
+	public GetMachineDumpFileResponse getMachineDumpFile(final String ip, final String processors)
+			throws RestClientException {
+		return getMachineDumpFile(ip, processors, CloudifyConstants.DEFAULT_DUMP_FILE_SIZE_LIMIT);
+	}
+	
+	/**
+	 * @param ip
+	 *            The machine IP.
+	 * @return {@link GetMachineDumpFileResponse} containing the dump data of the machine.
+	 * @throws RestClientException 
+	 */
+	public GetMachineDumpFileResponse getMachineDumpFile(final String ip)
+			throws RestClientException {
+		return getMachineDumpFile(ip, CloudifyConstants.DEFAULT_DUMP_PROCESSORS, 
+				CloudifyConstants.DEFAULT_DUMP_FILE_SIZE_LIMIT);
+	}
+	
+	/**
+	 * @param processors
+	 *            The list of processors to be used.
+	 * @param fileSizeLimit
+	 *            The dump file size limit.
+	 * @return {@link GetMachinesDumpFileResponse} containing the dump data of all the machines.
+	 * @throws RestClientException 
+	 */
+	public GetMachinesDumpFileResponse getMachinesDumpFile(final String processors, final long fileSizeLimit)
+			throws RestClientException {
+		final String getMachinesDumpFileURL = getFormattedUrl(
+				shutdownManagersControllerUrl,
+				GET_MACHINES_DUMP_FILE_URL_FORMAT,
+				processors,
+				Long.toString(fileSizeLimit));
+		log(Level.FINE, "[getPUDumpFile] - sending GET request to REST ["
+				+ getMachinesDumpFileURL + "]");
+		return executor.get(
+				getMachinesDumpFileURL,
+				new TypeReference<Response<GetMachinesDumpFileResponse>>() {
+				});
+	}
+	
+	/**
+	 * @param fileSizeLimit
+	 *            The dump file size limit.
+	 * @return {@link GetMachinesDumpFileResponse} containing the dump data of all the machines.
+	 * @throws RestClientException 
+	 */
+	public GetMachinesDumpFileResponse getMachinesDumpFile(final long fileSizeLimit)
+			throws RestClientException {
+		return getMachinesDumpFile(CloudifyConstants.DEFAULT_DUMP_PROCESSORS, fileSizeLimit);
+	}
+	
+	/**
+	 * @param processors
+	 *            The list of processors to be used.
+	 * @return {@link GetMachinesDumpFileResponse} containing the dump data of all the machines.
+	 * @throws RestClientException 
+	 */
+	public GetMachinesDumpFileResponse getMachinesDumpFile(final String processors)
+			throws RestClientException {
+		return getMachinesDumpFile(processors, CloudifyConstants.DEFAULT_DUMP_FILE_SIZE_LIMIT);
+	}
+	
+	/**
+	 * @return {@link GetMachinesDumpFileResponse} containing the dump data of all the machines.
+	 * @throws RestClientException 
+	 */
+	public GetMachinesDumpFileResponse getMachinesDumpFile()
+			throws RestClientException {
+		return getMachinesDumpFile(CloudifyConstants.DEFAULT_DUMP_PROCESSORS, 
+				CloudifyConstants.DEFAULT_DUMP_FILE_SIZE_LIMIT);
+	}
+	
 	private void log(final Level level, final String msg) {
 		if (logger.isLoggable(level)) {
 			logger.log(level, msg);
