@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.domain.context.network;
+package org.cloudifysource.esc.driver.provisioning.network;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;

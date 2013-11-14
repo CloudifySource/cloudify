@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package org.cloudifysource.domain.context.network;
+package org.cloudifysource.esc.driver.provisioning.network;
 
 /**
  * A dedicated exception for network provisioning errors.
