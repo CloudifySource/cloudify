@@ -20,11 +20,13 @@ import org.cloudifysource.domain.Service;
 import org.cloudifysource.domain.context.ServiceContext;
 import org.cloudifysource.domain.context.blockstorage.StorageFacade;
 import org.cloudifysource.domain.context.kvstorage.AttributesFacade;
-import org.cloudifysource.domain.context.network.NetworkProvisioningDriver;
+import org.cloudifysource.domain.context.network.NetworkFacade;
+import org.cloudifysource.domain.context.network.RemoteNetworkProvisioningDriver;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.context.RemoteStorageProvisioningDriver;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.dsl.utils.ServiceUtils.FullServiceName;
+import org.cloudifysource.utilitydomain.context.blockstorage.NetworkFacadeImpl;
 import org.cloudifysource.utilitydomain.context.blockstorage.StorageFacadeImpl;
 import org.cloudifysource.utilitydomain.context.kvstore.AttributesFacadeImpl;
 import org.openspaces.admin.Admin;
@@ -54,7 +56,7 @@ public class ServiceContextImpl implements ServiceContext {
 	private String applicationName;
 
 	private StorageFacade storageFacade;
-	private NetworkProvisioningDriver networkDriver;
+	private NetworkFacade networkDriver;
 	private AttributesFacade attributesFacade;
 
 	// TODO - this property should not be settable - there should be a separate
@@ -137,21 +139,23 @@ public class ServiceContextImpl implements ServiceContext {
 		ElasticServiceManager elasticServiceManager;
 		if (admin != null) {
 			elasticServiceManager = admin.getElasticServiceManagers().waitForAtLeastOne();
-			RemoteStorageProvisioningDriver storageApi =
-					(RemoteStorageProvisioningDriver) ((InternalElasticServiceManager) elasticServiceManager)
-							.getExternalApi(ServiceUtils.getAbsolutePUName(applicationName, serviceName), 
-									apiName);
+			Object remoteApi = null;
+			remoteApi = ((InternalElasticServiceManager) elasticServiceManager)
+					.getExternalApi(ServiceUtils.getAbsolutePUName(applicationName, serviceName), 
+							apiName);
 
 			if (logger.isLoggable(Level.FINE)) {
-				if (storageApi == null) {
+				if (remoteApi == null) {
 					logger.fine(apiName + " was not found");
 				} else {
 					logger.fine(apiName + " successfully located");
 				}
 			}
-
-			return new StorageFacadeImpl(this, storageApi);
-
+			if (CloudifyConstants.STORAGE_API_NAME.equals(apiName)) {
+				return new StorageFacadeImpl(this, (RemoteStorageProvisioningDriver) remoteApi);
+			} else if (CloudifyConstants.NETWORK_API_NAME.equals(apiName)) {
+				return new NetworkFacadeImpl((RemoteNetworkProvisioningDriver) remoteApi);
+			}
 		}
 		return null;
 	}
@@ -423,9 +427,9 @@ public class ServiceContextImpl implements ServiceContext {
 	}
 
 	@Override
-	public NetworkProvisioningDriver getNetwork() {
+	public NetworkFacade getNetwork() {
 		if (this.networkDriver == null) {
-			this.networkDriver = (NetworkProvisioningDriver) getRemoteApi(CloudifyConstants.NETWORK_API_NAME);
+			this.networkDriver = (NetworkFacade) getRemoteApi(CloudifyConstants.NETWORK_API_NAME);
 		}
 		return this.networkDriver;
 	}

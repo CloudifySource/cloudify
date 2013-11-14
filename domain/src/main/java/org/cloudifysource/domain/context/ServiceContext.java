@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.cloudifysource.domain.context.blockstorage.StorageFacade;
 import org.cloudifysource.domain.context.kvstorage.AttributesFacade;
-import org.cloudifysource.domain.context.network.NetworkProvisioningDriver;
+import org.cloudifysource.domain.context.network.NetworkFacade;
 
 /***********
  * Context interface, available in the service recipe.
@@ -178,7 +178,7 @@ public interface ServiceContext {
 	 * @return
 	 * 		 interface for executing network API calls.
 	 */
-	NetworkProvisioningDriver getNetwork();
+	NetworkFacade getNetwork();
 	
 	
 }
