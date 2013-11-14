@@ -17,6 +17,8 @@ import java.util.Map;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 
 /**
+ * A POJO representing a response to list-templates command via the REST Gateway.
+ * It holds a map of the templates. 
  * 
  * @author yael
  * @since 2.7.0

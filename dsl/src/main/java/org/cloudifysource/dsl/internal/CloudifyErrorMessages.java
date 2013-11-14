@@ -388,7 +388,18 @@ public enum CloudifyErrorMessages {
     /**
      * Indicates service does not exist.
      */
-    FAILED_TO_LOCATE_SERVICE("failed_to_locate_service", 1)
+    FAILED_TO_LOCATE_SERVICE("failed_to_locate_service", 1),
+    
+    /**
+     * Indicates a failure in creating a dump file.
+     */
+    FAILED_CREATE_DUMP_FILE("failed-create-dump", 1),
+    
+    /**
+     * Indicates that the dump file exceeds the file size limit.
+     */
+    DUMP_FILE_TOO_LARGE("dump_file_too_large", 2)
+    
     // CHECKSTYLE:OFF
 	;
 	// CHECKSTYLE:ON
