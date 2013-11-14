@@ -644,6 +644,7 @@ public class ServiceParsingTest {
 		Assert.assertNotNull(service.getNetwork().getAccessRules() != null);
 		Assert.assertNotNull(service.getNetwork().getAccessRules().getIncoming() != null);
 		Assert.assertEquals(service.getNetwork().getAccessRules().getIncoming().get(0).getPortRange(), "80");
+		Assert.assertEquals("My_Network", service.getNetwork().getTemplate());
 
 	}
 	
