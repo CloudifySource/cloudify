@@ -14,6 +14,7 @@ package org.cloudifysource.esc.installer;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -106,7 +107,7 @@ public class InstallationDetails implements Cloneable {
 
 	private final Map<String, Object> customData = new HashMap<String, Object>();
 
-	private Map<String, String> extraRemoteEnvironmentVariables = new HashMap<String, String>();
+	private Map<String, String> extraRemoteEnvironmentVariables = new LinkedHashMap<String, String>();
 
 	// defines the com.gs.agent.reservationid system property for the GSA
 	// see InternalGridServiceAgent#getReservationId()
