@@ -1133,6 +1133,7 @@ public class DeploymentsController extends BaseRestController {
 		final String deploymentID = UUID.randomUUID().toString();
 		return installServiceInternal(
 				appName,
+				serviceName,
 				request,
 				deploymentID,
 				null,
@@ -1145,6 +1146,8 @@ public class DeploymentsController extends BaseRestController {
 	 * 
 	 * @param appName
 	 *            Application name.
+	 * @param serviceName        
+	 *            Service name.
 	 * @param request
 	 *            Install service request.
 	 * @param deploymentID
@@ -1160,6 +1163,7 @@ public class DeploymentsController extends BaseRestController {
 	 */
 	public InstallServiceResponse installServiceInternal(
 			final String appName,
+			final String serviceName,
 			final InstallServiceRequest request,
 			final String deploymentID,
 			final ServiceApplicationDependentProperties serviceProps, 
@@ -1167,7 +1171,6 @@ public class DeploymentsController extends BaseRestController {
 			final File packedFile)
 			throws RestErrorException {
 
-		String serviceName = service.getName();
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(appName, serviceName);
 
 		// update template name
