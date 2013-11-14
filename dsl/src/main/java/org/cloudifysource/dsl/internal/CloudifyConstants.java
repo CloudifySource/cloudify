@@ -499,6 +499,7 @@ public final class CloudifyConstants {
 	public static final String MIME_TYPE_APPLICATION_JSON = "application/json";
    
 	// CHECKSTYLE:ON
+
 }
 
 
