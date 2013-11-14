@@ -32,11 +32,14 @@ public class ServiceNetwork implements Serializable {
      */
 	private static final long serialVersionUID = 1L;
 
+	@Deprecated
 	private int port = -1;
+	@Deprecated
 	private String protocolDescription = "tcp";
 
 	private AccessRules accessRules = null;
 
+	private String template = null;
 	/********
 	 * Default public constructor.
 	 */
@@ -47,18 +50,22 @@ public class ServiceNetwork implements Serializable {
 	/**
 	 * @return the port number opened by this service.
 	 */
+	@Deprecated
 	public int getPort() {
 		return port;
 	}
 
+	@Deprecated
 	public void setPort(final int port) {
 		this.port = port;
 	}
 
+	@Deprecated
 	public String getProtocolDescription() {
 		return protocolDescription;
 	}
 
+	@Deprecated
 	public void setProtocolDescription(final String protocolDescription) {
 		this.protocolDescription = protocolDescription;
 	}
@@ -69,5 +76,13 @@ public class ServiceNetwork implements Serializable {
 
 	public void setAccessRules(final AccessRules accessRules) {
 		this.accessRules = accessRules;
+	}
+
+	public String getTemplate() {
+		return template;
+	}
+
+	public void setTemplate(final String template) {
+		this.template = template;
 	}
 }
