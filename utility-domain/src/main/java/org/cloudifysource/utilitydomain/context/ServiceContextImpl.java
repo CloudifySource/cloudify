@@ -26,9 +26,9 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.context.RemoteStorageProvisioningDriver;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.dsl.utils.ServiceUtils.FullServiceName;
-import org.cloudifysource.utilitydomain.context.blockstorage.NetworkFacadeImpl;
 import org.cloudifysource.utilitydomain.context.blockstorage.StorageFacadeImpl;
 import org.cloudifysource.utilitydomain.context.kvstore.AttributesFacadeImpl;
+import org.cloudifysource.utilitydomain.context.network.NetworkFacadeImpl;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
 import org.openspaces.admin.esm.ElasticServiceManager;
@@ -141,7 +141,7 @@ public class ServiceContextImpl implements ServiceContext {
 			elasticServiceManager = admin.getElasticServiceManagers().waitForAtLeastOne();
 			Object remoteApi = null;
 			remoteApi = ((InternalElasticServiceManager) elasticServiceManager)
-					.getExternalApi(ServiceUtils.getAbsolutePUName(applicationName, serviceName), 
+					.getRemoteApi(ServiceUtils.getAbsolutePUName(applicationName, serviceName), 
 							apiName);
 
 			if (logger.isLoggable(Level.FINE)) {

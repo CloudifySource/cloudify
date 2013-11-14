@@ -36,18 +36,18 @@ public class RemoteNetworkProvisioningDriverAdapter implements RemoteNetworkProv
 	// one minute
 	private static final long DEFAULT_NETWORK_OPERATION_TIMEOUT_MILLIS = 60 * 1000;
 	
-	private NetworkProvisioningDriver driver;
+	private BaseNetworkDriver driver;
 
 	
-	public RemoteNetworkProvisioningDriverAdapter(final NetworkProvisioningDriver networkDriver) {
+	public RemoteNetworkProvisioningDriverAdapter(final BaseNetworkDriver networkDriver) {
 		this.driver = networkDriver;
 	}
 	
 	@Override
-	public void assign(final String ip, final String instanceID)
+	public void assignFloatingIP(final String ip, final String instanceID)
 			throws RemoteNetworkOperationException, TimeoutException {
 		try {
-			this.driver.assign(ip, instanceID, DEFAULT_NETWORK_OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+			this.driver.assignFloatingIP(ip, instanceID, DEFAULT_NETWORK_OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
 		} catch (final NetworkProvisioningException e) {
 			logger.warning("failed to assign IP " + ip + " to instance with ID " + instanceID 
 					+ ". Error was " + e.getMessage());
@@ -57,10 +57,10 @@ public class RemoteNetworkProvisioningDriverAdapter implements RemoteNetworkProv
 	}
 
 	@Override
-	public void unassign(final String ip, final String instanceID)
+	public void unassignFloatingIP(final String ip, final String instanceID)
 			throws RemoteNetworkOperationException, TimeoutException {
 		try {
-			this.driver.unassign(ip, instanceID, DEFAULT_NETWORK_OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+			this.driver.unassignFloatingIP(ip, instanceID, DEFAULT_NETWORK_OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
 		} catch (final NetworkProvisioningException e) {
 			logger.warning("failed to unassign IP " + ip + " to instance with ID " + instanceID 
 					+ ". Error was " + e.getMessage());
@@ -70,10 +70,11 @@ public class RemoteNetworkProvisioningDriverAdapter implements RemoteNetworkProv
 	}
 
 	@Override
-	public String allocate(final String poolName)
+	public String allocateFloatingIP(final String poolName)
 			throws RemoteNetworkOperationException, TimeoutException {
 		try {
-			return this.driver.allocate(poolName, DEFAULT_NETWORK_OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+			return this.driver.allocateFloatingIP(poolName, 
+					DEFAULT_NETWORK_OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
 		} catch (final NetworkProvisioningException e) {
 			logger.warning("failed to allocate a new IP address from pool " + poolName
 					+ " : " + e.getMessage());
@@ -83,10 +84,10 @@ public class RemoteNetworkProvisioningDriverAdapter implements RemoteNetworkProv
 	}
 
 	@Override
-	public void release(final String ip) throws RemoteNetworkOperationException,
+	public void releaseFloatingIP(final String ip) throws RemoteNetworkOperationException,
 			TimeoutException {
 		try {
-			this.driver.release(ip, DEFAULT_NETWORK_OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+			this.driver.releaseFloatingIP(ip, DEFAULT_NETWORK_OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
 		} catch (final NetworkProvisioningException e) {
 			logger.warning("failed releasing IP address " + ip
 					+ " : " + e.getMessage());
