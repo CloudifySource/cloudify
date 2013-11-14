@@ -149,6 +149,7 @@ public class ApplicationDeployerRunnable implements Runnable {
 						
 				controller.installServiceInternal(
 						applicationName, 
+						serviceName,
 						installServiceReq, 
 						deploymentID,
 						serviceProps,
