@@ -50,6 +50,7 @@ import org.cloudifysource.esc.driver.provisioning.events.MachineStartRequestedCl
 import org.cloudifysource.esc.driver.provisioning.events.MachineStartedCloudifyEvent;
 import org.cloudifysource.esc.driver.provisioning.network.BaseNetworkDriver;
 import org.cloudifysource.esc.driver.provisioning.network.NetworkDriverConfiguration;
+import org.cloudifysource.esc.driver.provisioning.network.RemoteNetworkProvisioningDriverAdapter;
 import org.cloudifysource.esc.driver.provisioning.storage.BaseStorageDriver;
 import org.cloudifysource.esc.driver.provisioning.storage.RemoteStorageProvisioningDriverAdapter;
 import org.cloudifysource.esc.driver.provisioning.storage.StorageProvisioningDriver;
@@ -1286,7 +1287,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			externalApi = new RemoteStorageProvisioningDriverAdapter(storageProvisioning, cloud.getCloudStorage().
 					getTemplates().get(storageTemplateName));
 		} else if (apiName.equals(CloudifyConstants.NETWORK_API_NAME)) {
-			externalApi = this.networkProvisioning;
+			externalApi = new RemoteNetworkProvisioningDriverAdapter(this.networkProvisioning);
 		}
 		
 		return externalApi;
