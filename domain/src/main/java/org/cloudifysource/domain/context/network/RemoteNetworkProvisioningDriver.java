@@ -35,7 +35,7 @@ public interface RemoteNetworkProvisioningDriver extends Remote {
 	 * @throws NetworkProvisioningException
 	 * 			If assign action fails.
 	 * @throws TimeoutException
-	 * 			If execution exceeds duration.
+	 * 			If execution exceeds the default time duration.
 	 */
 	void assignFloatingIP(final String ip, final String instanceID) 
 			throws RemoteNetworkOperationException, TimeoutException;
@@ -49,7 +49,7 @@ public interface RemoteNetworkProvisioningDriver extends Remote {
 	 * @throws NetworkProvisioningException
 	 * 			If unassign action fails.
 	 * @throws TimeoutException 
-	 * 			If execution exceeds duration.
+	 * 			If execution exceeds the default time duration.
 	 */
 	void unassignFloatingIP(final String ip, final String instanceID)
 			throws RemoteNetworkOperationException, TimeoutException;
@@ -63,7 +63,7 @@ public interface RemoteNetworkProvisioningDriver extends Remote {
 	 * @throws NetworkProvisioningException
 	 * 			If allocation fails.
 	 * @throws TimeoutException
-	 * 			If execution exceeds duration.
+	 * 			If execution exceeds the default time duration.
 	 */
 	String allocateFloatingIP(final String poolName)
 			throws RemoteNetworkOperationException, TimeoutException;
@@ -75,7 +75,7 @@ public interface RemoteNetworkProvisioningDriver extends Remote {
 	 * @throws NetworkProvisioningException 
 	 * 			If release action fails.
 	 * @throws TimeoutException
-	 * 			If execution exceeds duration.
+	 * 			If execution exceeds the default time duration.
 	 * 
 	 */
 	void releaseFloatingIP(final String ip)

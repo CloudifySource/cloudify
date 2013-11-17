@@ -49,8 +49,8 @@ public final class CloudifyConstants {
 
     }
     
-	public static final String STORAGE_API_NAME = "STORAGE_API_NAME";
-	public static final String NETWORK_API_NAME = "NETWORK_API_NAME";
+	public static final String ESM_STORAGE_API_KEY = "STORAGE_API_NAME";
+	public static final String ESM_NETWORK_API_KEY = "NETWORK_API_NAME";
 
     /***
      * Context properties for deployed services.
