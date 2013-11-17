@@ -22,7 +22,6 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.time.DateUtils;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
@@ -481,7 +480,6 @@ public class InstallService extends AdminAwareCommand implements NewRestClientCo
         request.setServiceOverridesUploadKey(overridesFileKey);
         request.setServiceFolderUploadKey(recipeFileKey);
         request.setSelfHealing(!disableSelfHealing);
-        request.setTimeoutInMillis(timeoutInMinutes * DateUtils.MILLIS_PER_MINUTE);
 
         // execute the request
         InstallServiceResponse installServiceResponse = 

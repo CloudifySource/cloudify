@@ -383,7 +383,6 @@ public class InstallApplication extends AdminAwareCommand implements NewRestClie
 		request.setDebugEvents(debugEvents);
 		request.setDebugMode(debugModeString);
 		request.setSelfHealing(!disableSelfHealing);
-		request.setTimeoutInMillis(TimeUnit.MINUTES.toMillis(timeoutInMinutes));
 
         //install application
         final InstallApplicationResponse installApplicationResponse =

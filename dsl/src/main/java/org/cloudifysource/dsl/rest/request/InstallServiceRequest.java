@@ -30,7 +30,6 @@ public class InstallServiceRequest {
     private String serviceFileName;
     private String authGroups;
     private Boolean selfHealing = true;
-    private long timeoutInMillis;
     private boolean debugAll;
     private String debugEvents;
     
@@ -90,14 +89,6 @@ public class InstallServiceRequest {
 
     public void setSelfHealing(final Boolean selfHealing) {
         this.selfHealing = selfHealing;
-    }
-
-    public long getTimeoutInMillis() {
-        return timeoutInMillis;
-    }
-
-    public void setTimeoutInMillis(final long timeout) {
-        this.timeoutInMillis = timeout;
     }
 
     public boolean isDebugAll() {
