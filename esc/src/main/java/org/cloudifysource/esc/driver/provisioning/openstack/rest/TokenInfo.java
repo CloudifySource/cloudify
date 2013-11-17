@@ -10,24 +10,54 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  ******************************************************************************/
-package org.cloudifysource.esc.driver.provisioning.privateEc2.parser.beans;
+package org.cloudifysource.esc.driver.provisioning.openstack.rest;
 
+import java.util.Date;
+
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
- * This class is a bean representing a EC2 Instance resource node of the Amazon CloudFormation template.<br />
- * <a href="http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html"
- * >http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html</a>
- * 
  * @author victor
  * @since 2.7.0
  */
-public class AWSEC2Instance extends AWSResource {
+public class TokenInfo {
 
-	@JsonProperty("Properties")
-	private InstanceProperties properties;
+	private String id;
 
-	public InstanceProperties getProperties() {
-		return properties;
+	private Date expires;
+
+	@JsonProperty("issued_at")
+	private Date issuedAt;
+
+	public String getId() {
+		return id;
 	}
+
+	public void setId(final String id) {
+		this.id = id;
+	}
+
+	public Date getExpires() {
+		return expires;
+	}
+
+	public void setExpires(final Date expires) {
+		this.expires = expires;
+	}
+
+	public Date getIssuedAt() {
+		return issuedAt;
+	}
+
+	public void setIssuedAt(final Date issuedAt) {
+		this.issuedAt = issuedAt;
+	}
+
+	@Override
+	public String toString() {
+		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+	}
+
 }

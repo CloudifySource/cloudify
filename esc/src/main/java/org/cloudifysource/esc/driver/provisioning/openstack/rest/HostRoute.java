@@ -10,24 +10,38 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  ******************************************************************************/
-package org.cloudifysource.esc.driver.provisioning.privateEc2.parser.beans;
-
-import org.codehaus.jackson.annotate.JsonProperty;
+package org.cloudifysource.esc.driver.provisioning.openstack.rest;
 
 /**
- * This class is a bean representing a EC2 Instance resource node of the Amazon CloudFormation template.<br />
- * <a href="http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html"
- * >http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html</a>
- * 
  * @author victor
  * @since 2.7.0
  */
-public class AWSEC2Instance extends AWSResource {
+public class HostRoute {
+	private String nexthop;
+	private String destination;
 
-	@JsonProperty("Properties")
-	private InstanceProperties properties;
-
-	public InstanceProperties getProperties() {
-		return properties;
+	public HostRoute() {
 	}
+
+	public HostRoute(final String nexthop, final String destination) {
+		this.nexthop = nexthop;
+		this.destination = destination;
+	}
+
+	public String getNexthop() {
+		return nexthop;
+	}
+
+	public void setNexthop(final String nexthop) {
+		this.nexthop = nexthop;
+	}
+
+	public String getDestination() {
+		return destination;
+	}
+
+	public void setDestination(final String destination) {
+		this.destination = destination;
+	}
+
 }

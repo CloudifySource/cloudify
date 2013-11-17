@@ -100,6 +100,7 @@ import com.amazonaws.services.s3.model.S3Object;
  * This driver can still start machines the usual way using cloudify groovy templates.
  * 
  * @author victor
+ * @since 2.7.0
  * 
  */
 public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements

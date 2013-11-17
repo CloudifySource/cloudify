@@ -10,45 +10,43 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  ******************************************************************************/
-package org.cloudifysource.esc.driver.provisioning.privateEc2.parser.beans.types;
+package org.cloudifysource.esc.driver.provisioning.openstack.rest;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+import org.codehaus.jackson.map.annotate.JsonRootName;
 
 /**
- * A bean to handle the parsing of the <code>Fn::Join</code> function of Amazon CloudFormation.<br />
- * <a href="http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-join.html">
- * http:// docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-join.html</a>
- * 
  * @author victor
  * @since 2.7.0
- * 
  */
-public class JoinFunction implements ValueType {
+@JsonRootName("access")
+public class TokenAccess {
+	private TokenInfo token;
 
-	private final String separator;
+	private List<TokenServiceCatalog> serviceCatalog = new ArrayList<TokenServiceCatalog>();
 
-	private final List<ValueType> strings;
-
-	public JoinFunction(final String separator, final List<ValueType> strings) {
-		this.separator = separator;
-		this.strings = strings;
+	public TokenInfo getToken() {
+		return token;
 	}
 
-	@Override
-	public String getValue() {
-		StringBuilder sb = new StringBuilder();
-		for (ValueType s : this.strings) {
-			sb.append(s.getValue()).append(this.separator);
-		}
-		return sb.toString();
+	public void setToken(final TokenInfo token) {
+		this.token = token;
+	}
+
+	public List<TokenServiceCatalog> getServiceCatalog() {
+		return serviceCatalog;
+	}
+
+	public void setServiceCatalog(final List<TokenServiceCatalog> serviceCatalog) {
+		this.serviceCatalog = serviceCatalog;
 	}
 
 	@Override
 	public String toString() {
 		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
 	}
-
 }

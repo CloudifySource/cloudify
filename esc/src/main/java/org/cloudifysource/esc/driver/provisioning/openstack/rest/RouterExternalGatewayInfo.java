@@ -10,24 +10,35 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  ******************************************************************************/
-package org.cloudifysource.esc.driver.provisioning.privateEc2.parser.beans;
+package org.cloudifysource.esc.driver.provisioning.openstack.rest;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 
 /**
- * This class is a bean representing a EC2 Instance resource node of the Amazon CloudFormation template.<br />
- * <a href="http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html"
- * >http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html</a>
- * 
  * @author victor
  * @since 2.7.0
  */
-public class AWSEC2Instance extends AWSResource {
+public class RouterExternalGatewayInfo {
+	private String networkId;
 
-	@JsonProperty("Properties")
-	private InstanceProperties properties;
+	public RouterExternalGatewayInfo() {
+	}
 
-	public InstanceProperties getProperties() {
-		return properties;
+	public RouterExternalGatewayInfo(final String networkId) {
+		this.networkId = networkId;
+	}
+
+	public String getNetworkId() {
+		return networkId;
+	}
+
+	public void setNetworkId(final String networkId) {
+		this.networkId = networkId;
+	}
+
+	@Override
+	public String toString() {
+		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
 	}
 }

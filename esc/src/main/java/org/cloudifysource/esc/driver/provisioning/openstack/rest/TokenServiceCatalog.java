@@ -10,45 +10,46 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  ******************************************************************************/
-package org.cloudifysource.esc.driver.provisioning.privateEc2.parser.beans.types;
-
-import java.util.List;
+package org.cloudifysource.esc.driver.provisioning.openstack.rest;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 
 /**
- * A bean to handle the parsing of the <code>Fn::Join</code> function of Amazon CloudFormation.<br />
- * <a href="http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-join.html">
- * http:// docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-join.html</a>
- * 
  * @author victor
  * @since 2.7.0
- * 
  */
-public class JoinFunction implements ValueType {
+public class TokenServiceCatalog {
+	private TokenServiceCatalogEndpoint[] endpoints;
+	private String type;
+	private String name;
 
-	private final String separator;
-
-	private final List<ValueType> strings;
-
-	public JoinFunction(final String separator, final List<ValueType> strings) {
-		this.separator = separator;
-		this.strings = strings;
+	public TokenServiceCatalogEndpoint[] getEndpoints() {
+		return endpoints;
 	}
 
-	@Override
-	public String getValue() {
-		StringBuilder sb = new StringBuilder();
-		for (ValueType s : this.strings) {
-			sb.append(s.getValue()).append(this.separator);
-		}
-		return sb.toString();
+	public void setEndpoints(final TokenServiceCatalogEndpoint[] endpoints) {
+		this.endpoints = endpoints;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(final String type) {
+		this.type = type;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(final String name) {
+		this.name = name;
 	}
 
 	@Override
 	public String toString() {
 		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
 	}
-
 }

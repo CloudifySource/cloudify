@@ -22,6 +22,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
  * >http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-tags.html</a>
  * 
  * @author victor
+ * @since 2.7.0
  * 
  */
 public class Tag {

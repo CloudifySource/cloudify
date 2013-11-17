@@ -10,45 +10,57 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  ******************************************************************************/
-package org.cloudifysource.esc.driver.provisioning.privateEc2.parser.beans.types;
-
-import java.util.List;
+package org.cloudifysource.esc.driver.provisioning.openstack.rest;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+import org.codehaus.jackson.map.annotate.JsonRootName;
 
 /**
- * A bean to handle the parsing of the <code>Fn::Join</code> function of Amazon CloudFormation.<br />
- * <a href="http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-join.html">
- * http:// docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-join.html</a>
- * 
  * @author victor
  * @since 2.7.0
- * 
  */
-public class JoinFunction implements ValueType {
+@JsonRootName("floatingip")
+public class FloatingIp {
+	private String floatingNetworkId;
+	private String floatingIpAddress;
+	private String portId;
+	private String id;
 
-	private final String separator;
-
-	private final List<ValueType> strings;
-
-	public JoinFunction(final String separator, final List<ValueType> strings) {
-		this.separator = separator;
-		this.strings = strings;
+	public String getFloatingNetworkId() {
+		return floatingNetworkId;
 	}
 
-	@Override
-	public String getValue() {
-		StringBuilder sb = new StringBuilder();
-		for (ValueType s : this.strings) {
-			sb.append(s.getValue()).append(this.separator);
-		}
-		return sb.toString();
+	public void setFloatingNetworkId(final String floatingNetworkId) {
+		this.floatingNetworkId = floatingNetworkId;
+	}
+
+	public String getPortId() {
+		return portId;
+	}
+
+	public void setPortId(final String portId) {
+		this.portId = portId;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(final String id) {
+		this.id = id;
+	}
+
+	public String getFloatingIpAddress() {
+		return floatingIpAddress;
+	}
+
+	public void setFloatingIpAddress(final String floatingIpAddress) {
+		this.floatingIpAddress = floatingIpAddress;
 	}
 
 	@Override
 	public String toString() {
 		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
 	}
-
 }
