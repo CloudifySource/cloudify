@@ -1283,20 +1283,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		}
 		Object externalApi = null;
 		//TODO: (adaml) extract the names of the apis to constants.
-		if (apiName.equals(CloudifyConstants.ESM_STORAGE_API_KEY)) {
+		if (apiName.equals(CloudifyConstants.STORAGE_REMOTE_API_KEY)) {
 			externalApi = new RemoteStorageProvisioningDriverAdapter(storageProvisioning, cloud.getCloudStorage().
 					getTemplates().get(storageTemplateName));
-		} else if (apiName.equals(CloudifyConstants.ESM_NETWORK_API_KEY)) {
+		} else if (apiName.equals(CloudifyConstants.NETWORK_REMOTE_API_KEY)) {
 			externalApi = new RemoteNetworkProvisioningDriverAdapter(this.networkProvisioning);
 		}
 		
 		return externalApi;
-	}
-
-	@Override
-	public String[] getExternalApis() {
-		// Used by the ESM to perform cleanup oporations once pu was removed.
-		return new String[] {CloudifyConstants.ESM_STORAGE_API_KEY, 
-							CloudifyConstants.ESM_NETWORK_API_KEY};
 	}
 }
