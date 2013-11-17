@@ -221,7 +221,6 @@ public class ApplicationDeployerRunnable implements Runnable {
 		installServiceReq.setDebugMode(installApplicationRequest.getDebugMode());
 		installServiceReq.setSelfHealing(installApplicationRequest.isSelfHealing());
 		installServiceReq.setServiceFileName(null);
-		installServiceReq.setTimeoutInMillis(0);
 
 		return installServiceReq;
 	}

@@ -16,7 +16,6 @@
  *******************************************************************************/
 package org.cloudifysource.rest.doclet;
 
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang.ClassUtils;
@@ -68,7 +67,6 @@ public class RESTRequestExampleGenerator implements IDocExampleGenerator {
 			installApplicationRequest.setDebugEvents(RESTExamples.getDebugEvents());
 			installApplicationRequest.setDebugMode(RESTExamples.getDebugMode());
 			installApplicationRequest.setSelfHealing(RESTExamples.isSelfHealing());
-			installApplicationRequest.setTimeoutInMillis(RESTExamples.getTimeoutMinutes());
 			example = installApplicationRequest;
 		} else if (clazz.equals(InstallServiceRequest.class)) {
 			InstallServiceRequest installServiceRequest = new InstallServiceRequest();
@@ -82,7 +80,6 @@ public class RESTRequestExampleGenerator implements IDocExampleGenerator {
 			installServiceRequest.setServiceFileName(RESTExamples.getServiceFileName());
 			installServiceRequest.setServiceFolderUploadKey(RESTExamples.getUploadKey());
 			installServiceRequest.setServiceOverridesUploadKey(RESTExamples.getUploadKey());
-			installServiceRequest.setTimeoutInMillis(TimeUnit.MINUTES.toMillis(RESTExamples.getTimeoutMinutes()));
 			example = installServiceRequest;
 		} else if (clazz.equals(SetApplicationAttributesRequest.class)) {
 			example = new SetApplicationAttributesRequest();
