@@ -21,6 +21,7 @@
 		<module>../rest-client</module>
 		<module>../management-space</module>
 		<module>../version</module>
+		<module>../esc-config</module>
 	</modules>
 	<properties>
 		<gsVersion>9.7.0-SNAPSHOT</gsVersion>
