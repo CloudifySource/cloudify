@@ -149,7 +149,8 @@ public class Invoke extends AdminAwareCommand implements NewRestClientCommand {
 		final RestClient newRestClient = ((RestAdminFacade) getRestAdminFacade()).getNewRestClient();
 		
 		InvokeCustomCommandRequest request = new InvokeCustomCommandRequest();
-		request.setParameters(buildCustomCommandParams(commandName, getParamsMap(params)));
+		request.setCommandName(commandName);
+		request.setParameters(params);
 		
 		String applicationName = this.getCurrentApplicationName();
 		if (applicationName == null) {
@@ -192,8 +193,6 @@ public class Invoke extends AdminAwareCommand implements NewRestClientCommand {
 		return getFormattedMessage("all_invocations_completed_successfully");
 	}
 	
-
-	// TODO: look at karaf's MultiValue option
 	private Map<String, String> getParamsMap(final List<String> parameters) {
 		int index = 0;
 		final Map<String, String> returnMap = new HashMap<String, String>();
@@ -210,19 +209,7 @@ public class Invoke extends AdminAwareCommand implements NewRestClientCommand {
 		return returnMap;
 	}
 	
-	private Map<String, Object> buildCustomCommandParams(
-			final String commandName, final Map<String, String> parametersMap) {
-		
-		final Map<String, Object> params = new HashMap<String, Object>();
-		params.put(CloudifyConstants.INVOCATION_PARAMETER_COMMAND_NAME, commandName);
-		
-		// add all of the predefined parameters into the params map.
-		for (final Map.Entry<String, String> entry : parametersMap.entrySet()) {
-			params.put(entry.getKey(), entry.getValue());
-		}
-		return params;
-	}
-	
+
 	private Map<String, InvocationResult> parseInvocationResults(
 			final Map<String, Object> restInvocationResultsPerInstance) {
 
