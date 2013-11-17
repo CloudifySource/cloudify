@@ -15,7 +15,7 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.rest.request;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * 
@@ -27,13 +27,21 @@ import java.util.Map;
  */
 public class InvokeCustomCommandRequest {
 
-	private Map<String, Object> parameters;
+	private String commandName;
+	private List<String> parameters;
 
-	public Map<String, Object> getParameters() {
+	public String getCommandName() {
+		return commandName;
+	}
+	public void setCommandName(final String commandName) {
+		this.commandName = commandName;
+	}
+	public List<String> getParameters() {
 		return parameters;
 	}
-
-	public void setParameters(final Map<String, Object> parameters) {
+	public void setParameters(final List<String> parameters) {
 		this.parameters = parameters;
 	}
+	
+	
 }

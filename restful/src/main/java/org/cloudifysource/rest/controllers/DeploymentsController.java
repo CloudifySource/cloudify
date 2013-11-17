@@ -2427,8 +2427,10 @@ public class DeploymentsController extends BaseRestController {
 			// key includes instance ID and host name
 			final String serviceInstanceName = buildServiceInstanceName(instance);
 			try {
+				Map<String, Object> invocationArgs = preProcessInvocationRequest(request.getCommandName(), 
+						request.getParameters());
 				final Future<Object> future = ((DefaultProcessingUnitInstance) instance)
-						.invoke(CloudifyConstants.INVOCATION_PARAMETER_BEAN_NAME_USM, request.getParameters());
+						.invoke(CloudifyConstants.INVOCATION_PARAMETER_BEAN_NAME_USM, invocationArgs);
 				futures.put(serviceInstanceName, future);
 			} catch (final Exception e) {
 				logger.severe("Error invoking service "
@@ -2529,8 +2531,9 @@ public class DeploymentsController extends BaseRestController {
 		
 		// Invoke the remote service
 		try {
-			final Future<?> future = pui.invoke(CloudifyConstants.INVOCATION_PARAMETER_BEAN_NAME_USM, 
+			Map<String, Object> invocationArgs = preProcessInvocationRequest(request.getCommandName(), 
 					request.getParameters());
+			final Future<?> future = pui.invoke(CloudifyConstants.INVOCATION_PARAMETER_BEAN_NAME_USM, invocationArgs);
 			final Object invocationResult = future.get();
 			final Object finalResult = postProcessInvocationResult(invocationResult, instanceName);
 			response.setInvocationResult(finalResult);
@@ -2546,7 +2549,24 @@ public class DeploymentsController extends BaseRestController {
 		return response;
 	}
 
-	
+	private Map<String, Object> preProcessInvocationRequest(final String commandName, final List<String> parameters) {
+		int index = 0;
+		final Map<String, Object> invocationParamsMap = new HashMap<String, Object>();
+		
+		// add command
+		invocationParamsMap.put(CloudifyConstants.INVOCATION_PARAMETER_COMMAND_NAME, commandName);
+		
+		if (parameters != null) {
+			for (final String param : parameters) {
+				invocationParamsMap.put(CloudifyConstants.INVOCATION_PARAMETERS_KEY + index, param);
+				++index;
+			}
+		}
+		
+
+		return invocationParamsMap;
+
+	}
 	
 	private Object postProcessInvocationResult(final Object result,
 			final String instanceName) {
