@@ -12,6 +12,7 @@
  ******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning.openstack;
 
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,7 +27,6 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 
-import edu.emory.mathcs.backport.java.util.Arrays;
 
 /**
  * A base class for openstack clients.<br />
