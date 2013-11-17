@@ -49,8 +49,8 @@ public final class CloudifyConstants {
 
     }
     
-	public static final String ESM_STORAGE_API_KEY = "ESM_STORAGE_API_KEY";
-	public static final String ESM_NETWORK_API_KEY = "ESM_STORAGE_API_KEY";
+	public static final String STORAGE_REMOTE_API_KEY = "org.cloudifysource.dsl.internal.context.RemoteStorageProvisioningDriver";
+	public static final String NETWORK_REMOTE_API_KEY = "org.cloudifysource.domain.context.network.RemoteNetworkProvisioningDriver";
 
     /***
      * Context properties for deployed services.
