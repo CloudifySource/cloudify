@@ -1292,6 +1292,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	@Override
 	public String[] getExternalApis() {
+		// Used by the ESM to perform cleanup oporations once pu was removed.
 		return new String[] {CloudifyConstants.STORAGE_API_NAME, 
 							CloudifyConstants.NETWORK_API_NAME};
 	}
