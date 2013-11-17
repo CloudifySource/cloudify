@@ -151,9 +151,9 @@ public class ServiceContextImpl implements ServiceContext {
 					logger.fine(apiName + " successfully located");
 				}
 			}
-			if (CloudifyConstants.STORAGE_API_NAME.equals(apiName)) {
+			if (CloudifyConstants.ESM_STORAGE_API_KEY.equals(apiName)) {
 				return new StorageFacadeImpl(this, (RemoteStorageProvisioningDriver) remoteApi);
-			} else if (CloudifyConstants.NETWORK_API_NAME.equals(apiName)) {
+			} else if (CloudifyConstants.ESM_NETWORK_API_KEY.equals(apiName)) {
 				return new NetworkFacadeImpl((RemoteNetworkProvisioningDriver) remoteApi);
 			}
 		}
@@ -393,7 +393,7 @@ public class ServiceContextImpl implements ServiceContext {
 	@Override
 	public StorageFacade getStorage() {
 		if (storageFacade == null) {
-			this.storageFacade = (StorageFacade) getRemoteApi(CloudifyConstants.STORAGE_API_NAME);
+			this.storageFacade = (StorageFacade) getRemoteApi(CloudifyConstants.ESM_STORAGE_API_KEY);
 		}
 		return storageFacade;
 	}
@@ -429,7 +429,7 @@ public class ServiceContextImpl implements ServiceContext {
 	@Override
 	public NetworkFacade getNetwork() {
 		if (this.networkDriver == null) {
-			this.networkDriver = (NetworkFacade) getRemoteApi(CloudifyConstants.NETWORK_API_NAME);
+			this.networkDriver = (NetworkFacade) getRemoteApi(CloudifyConstants.ESM_NETWORK_API_KEY);
 		}
 		return this.networkDriver;
 	}
