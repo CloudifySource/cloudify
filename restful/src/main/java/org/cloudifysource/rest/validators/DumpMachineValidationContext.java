@@ -12,42 +12,20 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
-import org.cloudifysource.domain.cloud.Cloud;
-import org.openspaces.admin.Admin;
-
 /**
- * A POJO for holding uninstall-service validator's parameters.
+ * A POJO for holding dump-machine/s validator's parameters.
  * 
- * @author noak
+ * @author yael
+ * @since 2.7.0
  */
-public class UninstallServiceValidationContext {
+public class DumpMachineValidationContext {
+	private String[] processors;
 
-	private Cloud cloud;
-	private Admin admin;
-	private String puName;
-
-	public Cloud getCloud() {
-		return cloud;
+	public String[] getProcessors() {
+		return processors;
 	}
 
-	public void setCloud(final Cloud cloud) {
-		this.cloud = cloud;
+	public void setProcessors(final String[] processors) {
+		this.processors = processors;
 	}
-
-	public Admin getAdmin() {
-		return admin;
-	}
-
-	public void setAdmin(final Admin admin) {
-		this.admin = admin;
-	}
-
-	public String getPuName() {
-		return puName;
-	}
-
-	public void setPuName(final String puName) {
-		this.puName = puName;
-	}
-
 }

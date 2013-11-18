@@ -398,7 +398,22 @@ public enum CloudifyErrorMessages {
     /**
      * Indicates that the dump file exceeds the file size limit.
      */
-    DUMP_FILE_TOO_LARGE("dump_file_too_large", 2)
+    DUMP_FILE_TOO_LARGE("dump_file_too_large", 2), 
+    
+    /**
+     * Indicates that machine IP is missing.
+     */
+    MACHINE_IP_MISSING("machine_ip_missing", 0),
+    
+     /**
+     * Indicates that machine with a given IP was not found.
+     */
+    MACHINE_NOT_FOUND("machine_not_found", 1),
+    
+	/**
+	 * 
+	 */
+	UNKNOWN_PROCESSOR_TYPE("unknown_processor_type", 1),
     
     // CHECKSTYLE:OFF
 	;
