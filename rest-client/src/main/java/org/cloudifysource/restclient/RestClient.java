@@ -809,7 +809,7 @@ public class RestClient {
 	 * Executes a rest API call to shutdown the managers of the current cloud.
 	 * 
 	 * @return ShutdownManagementResponse
-	 * @throws RestClientException
+	 * @throws RestClientException 
 	 */
 	public ShutdownManagementResponse shutdownManagers()
 			throws RestClientException {
