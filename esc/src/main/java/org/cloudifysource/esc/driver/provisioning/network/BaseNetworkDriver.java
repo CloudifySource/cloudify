@@ -15,6 +15,7 @@
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning.network;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -41,10 +42,12 @@ public abstract class BaseNetworkDriver {
 	
 	/********
 	 * Assigns a floating IP address to the dedicated instance.
-	 * @param ip
+	 * @param instanceIPAddress
+	 * 			The dedicated instance IP address.
+	 * @param floatingIP
 	 * 			The floating IP address.
-	 * @param instanceID
-	 * 			The dedicated instance ID.
+	 * @param context
+	 * 			context properties.
 	 * @param duration 
 	 * 			duration until times out.
 	 * @param timeUnit
@@ -54,18 +57,20 @@ public abstract class BaseNetworkDriver {
 	 * @throws TimeoutException
 	 * 			If execution exceeds duration.
 	 */
-	public void assignFloatingIP(final String ip, final String instanceID,
-					final long duration, final TimeUnit timeUnit) throws NetworkProvisioningException,
-					TimeoutException {
+	public void assignFloatingIP(final String instanceIPAddress, final String floatingIP,
+			final Map<String, Object> context, final long duration, final TimeUnit timeUnit) 
+					throws NetworkProvisioningException, TimeoutException {
 		unsupported();
 	}
 	
 	/********
 	 * Unassigns the floating IP address.
-	 * @param ip
+	 * @param instanceIPAddress
+	 * 			The instance IP address.
+	 * @param floatingIP
 	 * 			The floating IP address.
-	 * @param instanceID
-	 * 			The instance ID.
+	 * @param context
+	 * 			context properties.
 	 * @param duration 
 	 * 			duration until times out.
 	 * @param timeUnit
@@ -75,9 +80,9 @@ public abstract class BaseNetworkDriver {
 	 * @throws TimeoutException 
 	 * 			If execution exceeds duration.
 	 */
-	public void unassignFloatingIP(final String ip, final String instanceID, 
-			final long duration, final TimeUnit timeUnit) throws NetworkProvisioningException,
-			TimeoutException {
+	public void unassignFloatingIP(final String instanceIPAddress, final String floatingIP,
+			final Map<String, Object> context, final long duration, final TimeUnit timeUnit) 
+					throws NetworkProvisioningException, TimeoutException {
 		unsupported();
 	}
 	
@@ -85,6 +90,8 @@ public abstract class BaseNetworkDriver {
 	 * Reserves a floating IP address from the available blocks of floating IP addresses.
 	 * @param poolName
 	 * 			The pool name from which to allocate the floating IP address. 
+	 * @param context
+	 * 			context properties.
 	 * @param duration 
 	 * 			duration until times out.
 	 * @param timeUnit
@@ -96,7 +103,8 @@ public abstract class BaseNetworkDriver {
 	 * @throws TimeoutException
 	 * 			If execution exceeds duration.
 	 */
-	public String allocateFloatingIP(final String poolName, final long duration, final TimeUnit timeUnit)
+	public String allocateFloatingIP(final String poolName, final Map<String, Object> context,
+			final long duration, final TimeUnit timeUnit)
 			throws NetworkProvisioningException, TimeoutException {
 		unsupported();
 		return null;
@@ -106,6 +114,8 @@ public abstract class BaseNetworkDriver {
 	 * Releases the floating IP address back to the floating IP address pool. 
 	 * @param ip
 	 * 			The floating IP address to release.
+	 * @param context
+	 * 			context properties.
 	 * @param duration 
 	 * 			duration until times out.
 	 * @param timeUnit
@@ -116,7 +126,8 @@ public abstract class BaseNetworkDriver {
 	 * 			If execution exceeds duration.
 	 * 
 	 */
-	public void releaseFloatingIP(final String ip, final long duration, final TimeUnit timeUnit)
+	public void releaseFloatingIP(final String ip, final Map<String, Object> context,
+			final long duration, final TimeUnit timeUnit)
 			throws NetworkProvisioningException, TimeoutException {
 		unsupported();
 	}

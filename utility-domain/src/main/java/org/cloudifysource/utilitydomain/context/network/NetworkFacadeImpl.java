@@ -15,6 +15,8 @@
  *******************************************************************************/
 package org.cloudifysource.utilitydomain.context.network;
 
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.cloudifysource.domain.context.network.NetworkFacade;
@@ -36,10 +38,10 @@ public class NetworkFacadeImpl implements NetworkFacade {
 	}
 	
 	@Override
-	public void assignFloatingIP(final String ip, final String instanceID)
+	public void assignFloatingIP(final String instanceIPAddress, final String floatingIP, final Map<String, Object> context)
 			throws RemoteNetworkOperationException, TimeoutException {
 		final RemoteNetworkProvisioningDriver provisioningDriver = getRemoteNetworkProvisioningDriver();
-		provisioningDriver.assignFloatingIP(ip, instanceID);
+		provisioningDriver.assignFloatingIP(floatingIP, instanceIPAddress, context);
 	}
 
 	private RemoteNetworkProvisioningDriver getRemoteNetworkProvisioningDriver() {
@@ -51,25 +53,57 @@ public class NetworkFacadeImpl implements NetworkFacade {
 		return this.remoteNetworkProvisioningDriver;
 		
 	}
+	
 	@Override
-	public void unassignFloatingIP(final String ip, final String instanceID)
+	public void unassignFloatingIP(final String instanceIPAddress, final String floatingIP, final Map<String, Object> context)
 			throws RemoteNetworkOperationException, TimeoutException {
 		final RemoteNetworkProvisioningDriver provisioningDriver = getRemoteNetworkProvisioningDriver();
-		provisioningDriver.unassignFloatingIP(ip, instanceID);
+		provisioningDriver.unassignFloatingIP(floatingIP, instanceIPAddress, context);
 	}
 
 	@Override
-	public String allocateFloatingIP(final String poolName)
+	public String allocateFloatingIP(final String poolName, final Map<String, Object> context)
 			throws RemoteNetworkOperationException, TimeoutException {
 		final RemoteNetworkProvisioningDriver provisioningDriver = getRemoteNetworkProvisioningDriver();
-		return provisioningDriver.allocateFloatingIP(poolName);
+		return provisioningDriver.allocateFloatingIP(poolName, context);
 	}
 
 	@Override
-	public void releaseFloatingIP(final String ip) throws RemoteNetworkOperationException,
+	public void releaseFloatingIP(final String ip, final Map<String, Object> context) throws RemoteNetworkOperationException,
 			TimeoutException {
 		final RemoteNetworkProvisioningDriver provisioningDriver = getRemoteNetworkProvisioningDriver();
-		provisioningDriver.releaseFloatingIP(ip);
+		provisioningDriver.releaseFloatingIP(ip, context);
+		
+	}
+
+	@Override
+	public void assignFloatingIP(final String instanceIPAddress, final String floatingIP, final Map<String, Object> context,
+			final long duration, final TimeUnit timeUnit)
+			throws RemoteNetworkOperationException, TimeoutException {
+		final RemoteNetworkProvisioningDriver provisioningDriver = getRemoteNetworkProvisioningDriver();
+		provisioningDriver.assignFloatingIP(floatingIP, instanceIPAddress, context, duration, timeUnit);
+	}
+
+	@Override
+	public void unassignFloatingIP(final String instanceIPAddress, final String floatingIP, final Map<String, Object> context,
+			final long duration, final TimeUnit timeUnit)
+			throws RemoteNetworkOperationException, TimeoutException {
+		final RemoteNetworkProvisioningDriver provisioningDriver = getRemoteNetworkProvisioningDriver();
+		provisioningDriver.unassignFloatingIP(floatingIP, instanceIPAddress, context, duration, timeUnit);
+	}
+
+	@Override
+	public String allocateFloatingIP(String poolName, final Map<String, Object> context, final  long duration,
+			final TimeUnit timeUnit) throws RemoteNetworkOperationException, TimeoutException {
+		final RemoteNetworkProvisioningDriver provisioningDriver = getRemoteNetworkProvisioningDriver();
+		return provisioningDriver.allocateFloatingIP(poolName, context, duration, timeUnit);
+	}
+
+	@Override
+	public void releaseFloatingIP(String ip, final Map<String, Object> context, long duration, TimeUnit timeUnit)
+			throws RemoteNetworkOperationException, TimeoutException {
+		final RemoteNetworkProvisioningDriver provisioningDriver = getRemoteNetworkProvisioningDriver();
+		provisioningDriver.releaseFloatingIP(ip, context, duration, timeUnit);
 		
 	}
 

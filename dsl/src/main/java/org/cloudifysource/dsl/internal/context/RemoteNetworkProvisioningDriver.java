@@ -16,6 +16,7 @@
 package org.cloudifysource.dsl.internal.context;
 
 import java.rmi.Remote;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -31,24 +32,28 @@ public interface RemoteNetworkProvisioningDriver extends Remote {
 	
 	/********
 	 * Assigns a floating IP address to the dedicated instance.
-	 * @param ip
+	 * @param instanceIPAddress
+	 * 			The dedicated instance IP address.
+	 * @param floatingIP
 	 * 			The floating IP address.
-	 * @param instanceID
-	 * 			The dedicated instance ID.
+	 * @param context
+	 * 			context properties. 
 	 * @throws RemoteNetworkOperationException
 	 * 			If assign action fails.
 	 * @throws TimeoutException
 	 * 			If execution exceeds the default time duration.
 	 */
-	void assignFloatingIP(final String ip, final String instanceID) 
+	void assignFloatingIP(final String instanceIPAddress, final String floatingIP, final Map<String, Object> context) 
 			throws RemoteNetworkOperationException, TimeoutException;
 	
 	/********
 	 * Assigns a floating IP address to the dedicated instance.
-	 * @param ip
+	 * @param instanceIPAddress
+	 * 			The dedicated instance IP address.
+	 * @param floatingIP
 	 * 			The floating IP address.
-	 * @param instanceID
-	 * 			The dedicated instance ID.
+	 * @param context
+	 * 			context properties.
 	 * @param duration 
 	 * 			duration until times out.
 	 * @param timeUnit
@@ -58,30 +63,34 @@ public interface RemoteNetworkProvisioningDriver extends Remote {
 	 * @throws TimeoutException
 	 * 			If execution exceeds the default time duration.
 	 */
-	void assignFloatingIP(final String ip, final String instanceID,
+	void assignFloatingIP(final String instanceIPAddress, final String floatingIP, final Map<String, Object> context,
 			final long duration, final TimeUnit timeUnit) 
 			throws RemoteNetworkOperationException, TimeoutException;
 	
 	/********
 	 * Unassigns the floating IP address.
-	 * @param ip
+	 * @param instanceIPAddress
+	 * 			The dedicated instance IP address.
+	 * @param floatingIP
 	 * 			The floating IP address.
-	 * @param instanceID
-	 * 			The instance ID.
+	 * @param context
+	 * 			context properties.
 	 * @throws RemoteNetworkOperationException
 	 * 			If unassign action fails.
 	 * @throws TimeoutException 
 	 * 			If execution exceeds the default time duration.
 	 */
-	void unassignFloatingIP(final String ip, final String instanceID)
+	void unassignFloatingIP(final String instanceIPAddress, final String floatingIP, final Map<String, Object> context)
 			throws RemoteNetworkOperationException, TimeoutException;
 	
 	/********
 	 * Unassigns the floating IP address.
-	 * @param ip
+	 * @param instanceIPAddress
+	 * 			The dedicated instance IP address.
+	 * @param floatingIP
 	 * 			The floating IP address.
-	 * @param instanceID
-	 * 			The instance ID.
+	 * @param context
+	 * 			context properties.
 	 * @param duration 
 	 * 			duration until times out.
 	 * @param timeUnit
@@ -91,14 +100,16 @@ public interface RemoteNetworkProvisioningDriver extends Remote {
 	 * @throws TimeoutException 
 	 * 			If execution exceeds the default time duration.
 	 */
-	void unassignFloatingIP(final String ip, final String instanceID,
+	void unassignFloatingIP(final String instanceIPAddress, final String floatingIP, final Map<String, Object> context,
 			final long duration, final TimeUnit timeUnit)
 			throws RemoteNetworkOperationException, TimeoutException;
 	
 	/********
 	 * Reserves a floating IP address from the available blocks of floating IP addresses.
 	 * @param poolName
-	 * 			The pool name from which to allocate the floating IP address. 
+	 * 			The pool name from which to allocate the floating IP address.
+	 * @param context
+	 * 			context properties.
 	 * @return
 	 * 		The reserved IP address.
 	 * @throws RemoteNetworkOperationException
@@ -106,13 +117,15 @@ public interface RemoteNetworkProvisioningDriver extends Remote {
 	 * @throws TimeoutException
 	 * 			If execution exceeds the default time duration.
 	 */
-	String allocateFloatingIP(final String poolName)
+	String allocateFloatingIP(final String poolName, final Map<String, Object> context)
 			throws RemoteNetworkOperationException, TimeoutException;
 	
 	/********
 	 * Reserves a floating IP address from the available blocks of floating IP addresses.
 	 * @param poolName
-	 * 			The pool name from which to allocate the floating IP address. 
+	 * 			The pool name from which to allocate the floating IP address.
+	 * @param context
+	 * 			context properties.
 	 * @param duration 
 	 * 			duration until times out.
 	 * @param timeUnit
@@ -124,7 +137,7 @@ public interface RemoteNetworkProvisioningDriver extends Remote {
 	 * @throws TimeoutException
 	 * 			If execution exceeds the default time duration.
 	 */
-	String allocateFloatingIP(final String poolName,
+	String allocateFloatingIP(final String poolName, final Map<String, Object> context,
 			final long duration, final TimeUnit timeUnit)
 			throws RemoteNetworkOperationException, TimeoutException;
 	
@@ -132,19 +145,23 @@ public interface RemoteNetworkProvisioningDriver extends Remote {
 	 * Releases the floating IP address back to the floating IP address pool. 
 	 * @param ip
 	 * 			The floating IP address to release.
+	 * @param context
+	 * 			context properties.
 	 * @throws RemoteNetworkOperationException 
 	 * 			If release action fails.
 	 * @throws TimeoutException
 	 * 			If execution exceeds the default time duration.
 	 * 
 	 */
-	void releaseFloatingIP(final String ip)
+	void releaseFloatingIP(final String ip, final Map<String, Object> context)
 			throws RemoteNetworkOperationException, TimeoutException;
 	
 	/********
 	 * Releases the floating IP address back to the floating IP address pool. 
 	 * @param ip
 	 * 			The floating IP address to release.
+	 * @param context
+	 * 			context properties.
 	 * @param duration 
 	 * 			duration until times out.
 	 * @param timeUnit
@@ -155,7 +172,7 @@ public interface RemoteNetworkProvisioningDriver extends Remote {
 	 * 			If execution exceeds the default time duration.
 	 * 
 	 */
-	void releaseFloatingIP(final String ip,
+	void releaseFloatingIP(final String ip, final Map<String, Object> context,
 			final long duration, final TimeUnit timeUnit)
 			throws RemoteNetworkOperationException, TimeoutException;
 
