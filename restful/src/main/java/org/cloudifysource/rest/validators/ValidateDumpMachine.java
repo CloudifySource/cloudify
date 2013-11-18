@@ -12,42 +12,32 @@
  *******************************************************************************/
 package org.cloudifysource.rest.validators;
 
-import org.cloudifysource.domain.cloud.Cloud;
-import org.openspaces.admin.Admin;
+import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
+import org.cloudifysource.dsl.internal.ProcessorTypes;
+import org.cloudifysource.rest.controllers.RestErrorException;
+import org.springframework.stereotype.Component;
 
 /**
- * A POJO for holding uninstall-service validator's parameters.
  * 
- * @author noak
+ * @author yael
+ * @since 2.7.0
  */
-public class UninstallServiceValidationContext {
+@Component
+public class ValidateDumpMachine implements DumpMachineValidator {
 
-	private Cloud cloud;
-	private Admin admin;
-	private String puName;
+	@Override
+	public void validate(final DumpMachineValidationContext validationContext) throws RestErrorException {
+		String[] processors = validationContext.getProcessors();
+		if (processors == null) {
+			return;
+		}
+		for (String processor : processors) {
+			ProcessorTypes type = ProcessorTypes.fromString(processor);
+			if (type == null) {
+				throw new RestErrorException(CloudifyErrorMessages.UNKNOWN_PROCESSOR_TYPE.getName(), processor);
+			}
+		}
 
-	public Cloud getCloud() {
-		return cloud;
-	}
-
-	public void setCloud(final Cloud cloud) {
-		this.cloud = cloud;
-	}
-
-	public Admin getAdmin() {
-		return admin;
-	}
-
-	public void setAdmin(final Admin admin) {
-		this.admin = admin;
-	}
-
-	public String getPuName() {
-		return puName;
-	}
-
-	public void setPuName(final String puName) {
-		this.puName = puName;
 	}
 
 }

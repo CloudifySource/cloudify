@@ -449,7 +449,9 @@ public final class CloudifyConstants {
 	 * dump file
 	 */
 	public static final long DEFAULT_DUMP_FILE_SIZE_LIMIT = 10 * 1024 * 1024;
-	public static final String DEFAULT_DUMP_PROCESSORS = "summary, network, thread, log";
+	public static final String[] DEFAULT_DUMP_PROCESSORS = { 
+		ProcessorTypes.SUMMARY.getName(), ProcessorTypes.NETWORK.getName(), 
+		ProcessorTypes.THREAD.getName(), ProcessorTypes.LOG.getName()};
 	
     // CHECKSTYLE:ON
 }

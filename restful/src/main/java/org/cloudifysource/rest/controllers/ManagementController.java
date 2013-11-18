@@ -16,6 +16,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -29,10 +31,13 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.rest.response.ControllerDetails;
 import org.cloudifysource.dsl.rest.response.GetMachineDumpFileResponse;
+import org.cloudifysource.dsl.rest.response.GetMachinesDumpFileResponse;
 import org.cloudifysource.dsl.rest.response.GetPUDumpFileResponse;
 import org.cloudifysource.dsl.rest.response.ShutdownManagementResponse;
 import org.cloudifysource.rest.ResponseConstants;
 import org.cloudifysource.rest.RestConfiguration;
+import org.cloudifysource.rest.validators.DumpMachineValidationContext;
+import org.cloudifysource.rest.validators.DumpMachineValidator;
 import org.hyperic.sigar.Sigar;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.dump.DumpResult;
@@ -47,7 +52,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.gigaspaces.internal.dump.pu.ProcessingUnitsDumpProcessor;
 import com.gigaspaces.internal.sigar.SigarHolder;
@@ -85,6 +89,9 @@ public class ManagementController extends BaseRestController {
 	@Autowired
 	private RestConfiguration restConfig;
 
+	@Autowired
+	private DumpMachineValidator[] dumpValidators = new DumpMachineValidator[0];
+	
 	private Admin admin;
 	private Cloud cloud;
 
@@ -307,22 +314,27 @@ public class ManagementController extends BaseRestController {
 	 * @throws RestErrorException .
 	 *
 	 */
-	@RequestMapping(value = "/dump/machine/{ip}/", method = RequestMethod.GET)
+	@RequestMapping(value = "/dump/machine/{ip}", method = RequestMethod.GET)
 	@PreAuthorize("isFullyAuthenticated() and hasRole('ROLE_CLOUDADMINS')")
-	@ResponseBody
 	public GetMachineDumpFileResponse getMachineDumpFile(
 			@PathVariable final String ip,
-			@RequestParam(defaultValue = CloudifyConstants.DEFAULT_DUMP_PROCESSORS) final String processors,
+			@RequestParam(required = false) final String[] processors,
 			@RequestParam(defaultValue = "" + CloudifyConstants.DEFAULT_DUMP_FILE_SIZE_LIMIT) final long fileSizeLimit)
 					throws RestErrorException {
-		// check for non-default processors
-		final String[] actualProcessors = getProcessorsFromRequest(processors);
+		
+		// validate
+		validateGetMachineDump(processors);
 
+		String[] actualProcessors = processors;
+		if (processors == null) {
+			actualProcessors = CloudifyConstants.DEFAULT_DUMP_PROCESSORS;
+		}
+		
 		// first find the relevant agent
 		Machine machine = this.admin.getMachines().getHostsByAddress().get(ip);
 		if (machine == null) {
 			throw new RestErrorException(
-					ResponseConstants.MACHINE_NOT_FOUND, ip);
+					CloudifyErrorMessages.MACHINE_NOT_FOUND.getName(), ip);
 		}
 		final byte[] dumpBytes = generateMachineDumpData(fileSizeLimit,
 				machine, actualProcessors);
@@ -331,10 +343,58 @@ public class ManagementController extends BaseRestController {
 		response.setDumpBytes(dumpBytes);
 		return response;
 	}
+	/**
+	 * Get the dump of all machines.
+	 *
+	 * @param processors
+	 *            The list of processors to be used.
+	 * @param fileSizeLimit
+	 *            The dump file size limit.
+	 * @return GetMachinesDumpFileResponse containing a map from machine IP to its dump file in byte array.
+	 * @throws RestErrorException 
+	 *
+	 */
+	@RequestMapping(value = "/dump/machines", method = RequestMethod.GET)
+	@PreAuthorize("isFullyAuthenticated() and hasRole('ROLE_CLOUDADMINS')")
+	public GetMachinesDumpFileResponse getMachinesDumpFile(
+					@RequestParam final String[] processors,
+					@RequestParam(defaultValue = "" + CloudifyConstants.DEFAULT_DUMP_FILE_SIZE_LIMIT) 
+					final long fileSizeLimit) throws RestErrorException {
 
+		validateGetMachineDump(processors);
+
+		String[] actualProcessors = processors;
+		if (processors == null) {
+			actualProcessors = CloudifyConstants.DEFAULT_DUMP_PROCESSORS;
+		}
+
+		long totalSize = 0;
+		final Iterator<Machine> iterator = this.admin.getMachines()
+				.iterator();
+		final Map<String, byte[]> map = new HashMap<String, byte[]>();
+		while (iterator.hasNext()) {
+			final Machine machine = iterator.next();
+
+			final byte[] dumpBytes = generateMachineDumpData(fileSizeLimit,
+					machine, actualProcessors);
+			totalSize += dumpBytes.length;
+			if (totalSize > fileSizeLimit) {
+				throw new RestErrorException(
+						ResponseConstants.DUMP_FILE_TOO_LARGE,
+						Long.toString(dumpBytes.length),
+						Long.toString(totalSize));
+			}
+			map.put(machine.getHostAddress(), dumpBytes);
+		}
+
+		GetMachinesDumpFileResponse response = new GetMachinesDumpFileResponse();
+		response.setDumpBytesPerIP(map);
+		return response;
+	}
+	
 	private byte[] generateMachineDumpData(final long fileSizeLimit,
 			final Machine machine, final String[] actualProcessors)
-			throws RestErrorException {
+					throws RestErrorException {
 		// generator the dump
 		final DumpResult dump = machine.generateDump("Rest_API", null,
 				actualProcessors);
@@ -343,7 +403,7 @@ public class ManagementController extends BaseRestController {
 		return data;
 
 	}
-	
+
 	private String[] getProcessorsFromRequest(final String processors) {
 		final String[] parts = processors.split(",");
 
@@ -353,6 +413,7 @@ public class ManagementController extends BaseRestController {
 
 		return parts;
 	}
+	
 	private byte[] getDumpRawData(final DumpResult dump,
 			final long fileSizeLimit) throws RestErrorException {
 		File target;
@@ -394,6 +455,15 @@ public class ManagementController extends BaseRestController {
 
 		}
 
+	}
+	
+	private void validateGetMachineDump(final String[] processors) 
+			throws RestErrorException {
+		DumpMachineValidationContext validationContext = new DumpMachineValidationContext();
+		validationContext.setProcessors(processors);
+		for (DumpMachineValidator validator : dumpValidators) {
+			validator.validate(validationContext);
+		}
 	}
 	
 	private void log(final Level level, final String msg) {
