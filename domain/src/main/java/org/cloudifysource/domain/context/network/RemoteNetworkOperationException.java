@@ -14,7 +14,12 @@
  * limitations under the License.
  *******************************************************************************/
 package org.cloudifysource.domain.context.network;
-
+/**
+ * 
+ * @author adaml
+ * @since 2.7.0
+ *
+ */
 public class RemoteNetworkOperationException extends Exception {
 	
 	/**

@@ -17,8 +17,6 @@ import groovy.lang.GroovyClassLoader;
 import java.io.File;
 import java.io.FilenameFilter;
 
-import org.cloudifysource.esc.driver.provisioning.BaseComputeDriver;
-import org.cloudifysource.esc.driver.provisioning.ComputeDriverProvisioningAdapter;
 import org.codehaus.groovy.control.CompilerConfiguration;
 
 /**
@@ -40,12 +38,9 @@ public class ProvisioningDriverClassBuilder {
 	 * @throws InstantiationException . 
 	 * @throws IllegalAccessException .
 	 */
-	public BaseComputeDriver build(final String className) 
+	public Object build(final String className) 
 			throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-		
-		final Object createdInstance =  Class.forName(className).newInstance();
-		final BaseComputeDriver instanceAfterAdapter = ComputeDriverProvisioningAdapter.create(createdInstance);
-		return instanceAfterAdapter;
+		return Class.forName(className).newInstance();
 	}
 
 	/**
@@ -61,7 +56,7 @@ public class ProvisioningDriverClassBuilder {
 	 * @throws InstantiationException .
 	 * @throws IllegalAccessException .
 	 */
-	public BaseComputeDriver build(final String cloudFolder, final String className) 
+	public Object build(final String cloudFolder, final String className) 
 			throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final File cloudLibFolder = new File(cloudFolder, "lib");
@@ -78,8 +73,7 @@ public class ProvisioningDriverClassBuilder {
 			//create new groovy classloader having current class loader as parent.
 			final ClassLoader ccl = Thread.currentThread().getContextClassLoader();
 			final GroovyClassLoader gcl = new GroovyClassLoader(ccl, gcc);
-			final Object createdInstance = gcl.loadClass(className).newInstance();
-			return ComputeDriverProvisioningAdapter.create(createdInstance);
+			return gcl.loadClass(className).newInstance();
 		}
 		return build(className);
 

@@ -964,10 +964,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			// load the provisioning class and set it up
 			try {
 				final ProvisioningDriverClassBuilder builder = new ProvisioningDriverClassBuilder();
-				this.cloudifyProvisioning =
-						builder.build(cloudConfigDirectoryPath, this.cloud.getConfiguration().getClassName());
-				// this.cloudifyProvisioning =
-				// (ProvisioningDriver) Class.forName(this.cloud.getConfiguration().getClassName()).newInstance();
+				final Object computeProvisioningInstance = builder.build(cloudConfigDirectoryPath, 
+						this.cloud.getConfiguration().getClassName());
+				// validate instance for depreciation reasons
+				this.cloudifyProvisioning = ComputeDriverProvisioningAdapter.create(computeProvisioningInstance);
 
 				final ProvisioningDriverClassContext provisioningDriverContext =
 						lazyCreateProvisioningDriverClassContext(cloudifyProvisioning);
@@ -984,8 +984,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					// even if no storage template is used, this is to allow
 					// dynamic allocation at runtime.
 					logger.info("creating storage provisioning driver.");
-					this.storageProvisioning = (StorageProvisioningDriver) Class.forName(storageClassName)
-							.newInstance();
+					this.storageProvisioning = (StorageProvisioningDriver) builder
+										.build(cloudConfigDirectoryPath, storageClassName);
+					
 					this.storageTemplateName = config.getStorageTemplateName();
 
 					logger.info("storage provisioning driver created successfully.");
@@ -993,8 +994,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 				final String networkDriverClassName = this.cloud.getConfiguration().getNetworkDriverClassName();
 				if (!StringUtils.isEmpty(networkDriverClassName)) {
 					logger.info("creating network provisioning driver of type " + networkDriverClassName);
-					this.networkProvisioning = (BaseNetworkDriver) Class.forName(networkDriverClassName)
-							.newInstance();
+					this.networkProvisioning = (BaseNetworkDriver) builder
+							.build(cloudConfigDirectoryPath, networkDriverClassName);
 					logger.info("network provisioning driver was created succesfully.");
 				}
 			} catch (final ClassNotFoundException e) {

@@ -45,6 +45,7 @@ import org.cloudifysource.dsl.utils.IPUtils;
 import org.cloudifysource.esc.driver.provisioning.BaseComputeDriver;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.ComputeDriverConfiguration;
+import org.cloudifysource.esc.driver.provisioning.ComputeDriverProvisioningAdapter;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningContextAccess;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningContextImpl;
@@ -525,7 +526,9 @@ public class CloudGridAgentBootstrapper {
 	private void createProvisioningDriver(final boolean performValidation) throws CLIException {
 		try {
 			final ProvisioningDriverClassBuilder builder = new ProvisioningDriverClassBuilder();
-			provisioning = builder.build(providerDirectory.getAbsolutePath(), cloud.getConfiguration().getClassName());
+			final Object computeProvisioningInstance = builder.build(providerDirectory.getAbsolutePath(), 
+					cloud.getConfiguration().getClassName());
+			provisioning = ComputeDriverProvisioningAdapter.create(computeProvisioningInstance);
 		} catch (final ClassNotFoundException e) {
 			throw new CLIException(
 					"Failed to load provisioning class for cloud: "
