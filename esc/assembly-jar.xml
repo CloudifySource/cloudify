@@ -18,6 +18,7 @@
 			<excludes>
 				<exclude>com.gigaspaces:gs-openspaces</exclude>
 				<exclude>org.cloudifysource:dsl</exclude>
+				<exclude>org.cloudifysource:esc-config</exclude>
 			</excludes>
 			<unpack>false</unpack>
 			<useTransitiveFiltering>true</useTransitiveFiltering>
@@ -28,6 +29,17 @@
 		<dependencySet>
 			<includes>
 				<include>org.cloudifysource:esc</include>
+			</includes>
+			<unpack>false</unpack>
+			<useTransitiveFiltering>false</useTransitiveFiltering>
+			<outputDirectory>lib</outputDirectory>
+			<useProjectArtifact>true</useProjectArtifact>
+			<scope>runtime</scope>
+			<outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
+		</dependencySet>
+		<dependencySet>
+			<includes>
+				<include>org.cloudifysource:esc-config</include>
 			</includes>
 			<unpack>false</unpack>
 			<useTransitiveFiltering>false</useTransitiveFiltering>
