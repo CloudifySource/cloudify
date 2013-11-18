@@ -343,7 +343,6 @@ public class ManagementController extends BaseRestController {
 		response.setDumpBytes(dumpBytes);
 		return response;
 	}
-
 	/**
 	 * Get the dump of all machines.
 	 *
