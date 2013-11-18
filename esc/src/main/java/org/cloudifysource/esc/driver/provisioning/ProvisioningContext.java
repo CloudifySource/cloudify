@@ -51,5 +51,14 @@ public interface ProvisioningContext {
 	 * @return the location ID.
 	 */
 	String getLocationId();
+	
+	/***************************
+	 * If this provisioning request is needed to recover from the previous failure of another machine, the previous machine's details are available here. Otherwise null.
+	 * 
+	 * @return the machine details of the previous failed machine that the new machine will replace.   
+	 */
+	MachineDetails getPreviousMachineDetails();
+		
+	
 
 }

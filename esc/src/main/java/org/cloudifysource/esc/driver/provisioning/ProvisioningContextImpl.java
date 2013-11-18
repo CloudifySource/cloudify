@@ -39,6 +39,7 @@ public class ProvisioningContextImpl implements ProvisioningContext, ManagementP
 	private final InstallationDetailsBuilder installationDetailsBuilder = new InstallationDetailsBuilder();
 	private final List<InstallationDetails> createdDetails = new LinkedList<InstallationDetails>();
 	private File cloudFile;
+	private MachineDetails previousMachineDetails;
 	
 	public ProvisioningContextImpl() {
 	}
@@ -141,6 +142,14 @@ public class ProvisioningContextImpl implements ProvisioningContext, ManagementP
 
 	public void setCloudFile(final File cloudFile) {
 		this.cloudFile = cloudFile;
+	}
+
+	public void setPreviousMachineDetails(final MachineDetails md) {
+		this.previousMachineDetails = md;
+	}
+	@Override
+	public MachineDetails getPreviousMachineDetails() {
+		return this.previousMachineDetails;
 	}
 
 }
