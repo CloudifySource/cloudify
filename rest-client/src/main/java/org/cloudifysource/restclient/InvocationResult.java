@@ -32,6 +32,28 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 public class InvocationResult implements Comparable<InvocationResult> {
 
 	/**
+	 * Represents the result status - a reported success, a reported failure, or an unexpected return value.
+	 * @author noak
+	 *
+	 */
+	public enum InvocationStatus {
+		/**
+		 * The invocation reported a successful execution of the command.
+		 */
+		SUCCESS,
+		
+		/**
+		 * The invocation reported a failed execution of the command.
+		 */
+		FAILURE,
+		
+		/**
+		 * The invocation resulted in an unexpected return value.
+		 */
+		UNEXPECTED;
+	}
+	
+	/**
 	 * private members.
 	 */
 	private String exceptionMessage;
@@ -39,13 +61,14 @@ public class InvocationResult implements Comparable<InvocationResult> {
 	private String commandName;
 	private int instanceId;
 	private String instanceName;
-	private boolean success;
+	private InvocationStatus invocationStatus;
 
 	/**
 	 * Default empty Ctor.
 	 */
 	public InvocationResult() {
 	}
+	
 
 	/**
 	 * @param map
@@ -63,14 +86,35 @@ public class InvocationResult implements Comparable<InvocationResult> {
 		res.instanceId = Integer.parseInt(map
 				.get(CloudifyConstants.INVOCATION_RESPONSE_INSTANCE_ID));
 		res.result = map.get(CloudifyConstants.INVOCATION_RESPONSE_RESULT);
-		res.success = Boolean.parseBoolean(map
-				.get(CloudifyConstants.INVOCATION_RESPONSE_STATUS));
+		if (Boolean.parseBoolean(map
+				.get(CloudifyConstants.INVOCATION_RESPONSE_STATUS))) {
+			res.invocationStatus = InvocationStatus.SUCCESS;
+		} else {
+			res.invocationStatus = InvocationStatus.FAILURE;
+		}
 		res.instanceName = map
 				.get(CloudifyConstants.INVOCATION_RESPONSE_INSTANCE_NAME);
 
 		return res;
 	}
 
+	/**
+	 * @param instanceName
+	 *            The name of the instance the command was invoked on
+	 * @param result
+	 *            The result of the invoked command
+	 * @return InvocationResult containing the returned result, as string
+	 */
+	public static InvocationResult createInvocationResult(final String instanceName, final Object result) {
+
+		InvocationResult res = new InvocationResult();
+		res.invocationStatus = InvocationStatus.UNEXPECTED;
+		res.instanceName = instanceName;
+		res.result = result.toString();
+
+		return res;
+	}
+	
 	/**
 	 * Gets the name of the instance this invocation occurred on.
 	 * 
@@ -117,12 +161,20 @@ public class InvocationResult implements Comparable<InvocationResult> {
 	}
 
 	/**
-	 * Gets the invocation's result.
+	 * Gets the invocation's result as an {@link InvocationStatus} object.
 	 * 
-	 * @return the invocation's result as boolean (success=true, Failure=false)
+	 * @return the invocation's result as an InvocationStatus object
+	 */
+	public final InvocationStatus getInvocationStatus() {
+		return invocationStatus;
+	}
+	
+	/**
+	 * Returns true if the status is succcess. false otherwise (status is failure/unexpetced).
+	 * @return true / false
 	 */
 	public final boolean isSuccess() {
-		return success;
+		return (invocationStatus == InvocationStatus.SUCCESS);
 	}
 
 	@Override

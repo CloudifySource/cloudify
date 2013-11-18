@@ -31,6 +31,7 @@ import org.cloudifysource.dsl.rest.request.InvokeCustomCommandRequest;
 import org.cloudifysource.dsl.rest.response.InvokeInstanceCommandResponse;
 import org.cloudifysource.dsl.rest.response.InvokeServiceCommandResponse;
 import org.cloudifysource.restclient.InvocationResult;
+import org.cloudifysource.restclient.InvocationResult.InvocationStatus;
 import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.shell.exceptions.CLIStatusException;
 import org.cloudifysource.shell.rest.RestAdminFacade;
@@ -131,7 +132,7 @@ public class Invoke extends AdminAwareCommand implements NewRestClientCommand {
 		logger.info(invocationSuccessStringBuilder.toString());
 
 		if (invocationFailedStringBuilder.length() != 0) {
-			throw new CLIStatusException("not_all_invocations_completed_successfully", this.serviceName,
+			throw new CLIStatusException("some_invocations_failed", this.serviceName,
 					invocationFailedStringBuilder.toString());
 		}
 
@@ -142,6 +143,7 @@ public class Invoke extends AdminAwareCommand implements NewRestClientCommand {
 	@Override
 	public Object doExecuteNewRestClient() throws Exception {
 		String successMessages = "";
+		String unexpectedMessages = "";
 		String failureMessages = "";
 				
 		logger.fine("Invoking command " + commandName + " using the new rest client");
@@ -166,30 +168,42 @@ public class Invoke extends AdminAwareCommand implements NewRestClientCommand {
 			final List<InvocationResult> resultsList = new ArrayList<InvocationResult>(invocationResults.values());
 			Collections.sort(resultsList);
 			successMessages = getAllSuccessMessages(resultsList);
-			failureMessages = getAllFailureMessages(resultsList);			
-		} else { // instanceID specified. invoking command on specific instance.
+			unexpectedMessages = getAllUnexpectedMessages(resultsList);
+			failureMessages = getAllFailureMessages(resultsList);
+		} else { 
+			// instanceID specified. invoking command on specific instance.
 			InvokeInstanceCommandResponse response = newRestClient.invokeInstanceCommand(applicationName, serviceName,
 					instanceId, request);
 			
-			final InvocationResult invocationResult = parseInvocationResult(response.getInvocationResult());
-			if (invocationResult.isSuccess()) {
+			final InvocationResult invocationResult = parseInvocationResult(instanceId, response.getInvocationResult());
+			if (invocationResult.getInvocationStatus() == InvocationStatus.SUCCESS) {
 				successMessages = getSuccessMessage(invocationResult);
+			} else if (invocationResult.getInvocationStatus() == InvocationStatus.UNEXPECTED) {
+				unexpectedMessages = getUnexpectedMessage(invocationResult);
 			} else {
 				failureMessages = getFailureMessage(invocationResult);
 			}
 		}
 		
-		// print the success messages to the screen.
+		// if invocations failed - throw exception
+		if (failureMessages.length() > 0) {
+			throw new CLIStatusException("some_invocations_failed", this.serviceName, 
+					System.getProperty("line.separator") + failureMessages);
+		}
+		
+		// if invocations returned unexpected value - throw exception
+		if (unexpectedMessages.length() > 0) {
+			//logger.severe("Received an unexpected return value to the invoke command. Key: "
+			//		+ instanceName + ", value: " + restInvocationResult);
+			throw new CLIStatusException("some_invocations_status_unexpected", this.serviceName, 
+					System.getProperty("line.separator") + unexpectedMessages);
+		}
+		
+		// print the success messages to the screen
 		if (successMessages.length() > 0) {
 			logger.info("Invocation results: " + System.getProperty("line.separator") + successMessages);
 		}
 		
-		// if invocations failed - throw exception
-		if (failureMessages.length() > 0) {
-			throw new CLIStatusException("not_all_invocations_completed_successfully", this.serviceName, 
-					"Invocation results: " + System.getProperty("line.separator") + failureMessages);
-		}
-
 		return getFormattedMessage("all_invocations_completed_successfully");
 	}
 	
@@ -220,8 +234,9 @@ public class Invoke extends AdminAwareCommand implements NewRestClientCommand {
 			final Object restInvocationResult = entry.getValue();
 
 			if (restInvocationResult == null || !(restInvocationResult instanceof Map<?, ?>)) {
-				logger.severe("Received an unexpected return value to the invoke command. Key: "
-						+ instanceName + ", value: " + restInvocationResult);
+				final InvocationResult invocationResult = InvocationResult.
+						createInvocationResult(instanceName, restInvocationResult);
+				invocationResultsMap.put(instanceName, invocationResult);
 			} else {
 				@SuppressWarnings("unchecked")
 				final InvocationResult invocationResult = InvocationResult.
@@ -233,13 +248,13 @@ public class Invoke extends AdminAwareCommand implements NewRestClientCommand {
 		return invocationResultsMap;
 	}
 	
-	private InvocationResult parseInvocationResult(final Object restInvocationResult) {
+	private InvocationResult parseInvocationResult(final int instanceId, final Object restInvocationResult) {
 
 		InvocationResult invocationResult = null;
 		
 		if (restInvocationResult == null || !(restInvocationResult instanceof Map<?, ?>)) {
-			logger.severe("Received an unexpected return value to the invoke command: " 
-					+ restInvocationResult);
+			invocationResult = InvocationResult.createInvocationResult(Integer.toString(instanceId), 
+					restInvocationResult);
 		} else {
 			invocationResult = InvocationResult.createInvocationResult((Map<String, String>) restInvocationResult);
 		}
@@ -252,7 +267,7 @@ public class Invoke extends AdminAwareCommand implements NewRestClientCommand {
 		
 		final StringBuilder successMessagesText = new StringBuilder();
 		for (final InvocationResult invocationResult : resultsList) {
-			if (invocationResult.isSuccess()) {
+			if (invocationResult.getInvocationStatus() == InvocationStatus.SUCCESS) {
 				String successMessage = getSuccessMessage(invocationResult);
 				successMessagesText.append(successMessage).append(System.getProperty("line.separator"));
 			}
@@ -261,12 +276,24 @@ public class Invoke extends AdminAwareCommand implements NewRestClientCommand {
 		return successMessagesText.toString();
 	}
 	
+	private String getAllUnexpectedMessages(final List<InvocationResult> resultsList) {
+		
+		final StringBuilder unexpectedMessagesText = new StringBuilder();
+		for (final InvocationResult invocationResult : resultsList) {
+			if (invocationResult.getInvocationStatus() == InvocationStatus.UNEXPECTED) {
+				String unexpectedMessage = getUnexpectedMessage(invocationResult);
+				unexpectedMessagesText.append(unexpectedMessage).append(System.getProperty("line.separator"));
+			}
+		}
+		
+		return unexpectedMessagesText.toString();
+	}
 	
 	private String getAllFailureMessages(final List<InvocationResult> resultsList) {
 		
 		final StringBuilder failureMessagesText = new StringBuilder();
 		for (final InvocationResult invocationResult : resultsList) {
-			if (!invocationResult.isSuccess()) {
+			if (invocationResult.getInvocationStatus() == InvocationStatus.FAILURE) {
 				String failureMessage = getFailureMessage(invocationResult);
 				failureMessagesText.append(failureMessage).append(System.getProperty("line.separator"));
 			}
@@ -279,6 +306,12 @@ public class Invoke extends AdminAwareCommand implements NewRestClientCommand {
 		return getFormattedMessage("invocation_success",
 					invocationResult.getInstanceId(), invocationResult.getInstanceName(),
 					invocationResult.getResult());
+	}
+	
+	private String getUnexpectedMessage(final InvocationResult invocationResult) {
+		return getFormattedMessage("invocation_unexpected_result",
+				invocationResult.getInstanceName(),
+				invocationResult.getResult());
 	}
 
 	private String getFailureMessage(final InvocationResult invocationResult) {
