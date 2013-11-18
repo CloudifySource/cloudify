@@ -1289,4 +1289,17 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		
 		return externalApi;
 	}
+
+	@Override
+	public void blockingAfterPropertiesSet() throws ElasticMachineProvisioningException, InterruptedException {
+		try {
+			configureDrivers();
+		} catch (final CloudProvisioningException e) {
+			throw new ElasticMachineProvisioningException("Failed to configure cloud driver for first use: "
+					+ e.getMessage(), e);
+		} catch (final StorageProvisioningException e) {
+			throw new ElasticMachineProvisioningException("Failed to configure storage driver for first use: "
+					+ e.getMessage(), e);
+		}
+	}
 }
