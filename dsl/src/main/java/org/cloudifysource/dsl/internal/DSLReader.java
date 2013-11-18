@@ -15,8 +15,10 @@ package org.cloudifysource.dsl.internal;
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyShell;
+import groovy.lang.GroovySystem;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
+import groovy.lang.Script;
 import groovy.util.ConfigObject;
 import groovy.util.ConfigSlurper;
 
@@ -558,7 +560,10 @@ public class DSLReader {
 		}
 
 		try {
-			final ConfigObject config = new ConfigSlurper().parse(propertiesFile.toURI().toURL());
+			GroovyClassLoader gcl = new GroovyClassLoader();
+			Script script = (Script) gcl.parseClass(propertiesFile).newInstance();					
+			ConfigObject config = new ConfigSlurper().parse(script);
+			GroovySystem.getMetaClassRegistry().removeMetaClass(script.getClass());
 			return config;
 		} catch (final Exception e) {
 			throw new IOException("Failed to read properties file: " + propertiesFile + ": " + e.getMessage(), e);
