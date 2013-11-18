@@ -876,37 +876,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		return this.properties;
 	}
 
-	/**
-	 * exposes the storage API of the cloud to agent machines.
-	 * 
-	 * @see {@link org.cloudifysource.domain.context.blockstorage.StorageFacade}
-	 * 
-	 *      <<<<<<< HEAD DO NOT refactor this method's name since it is called via reflection by the ESM. ======= DO NOT
-	 *      refactor this method's name since it is called via reflection by the ESM. >>>>>>> CLOUDIFY-1837 Scan all
-	 *      agents for GSA with both required host address and reservation ID
-	 * 
-	 * @throws ElasticMachineProvisioningException .
-	 * @throws InterruptedException .
-	 * @author elip
-	 * @return The storage driver.
-	 */
-	public RemoteStorageProvisioningDriverAdapter getStorageImpl() throws ElasticMachineProvisioningException,
-			InterruptedException {
-		// configure drivers if this is first time (occurs when using the management machine for storage,
-		// so create machine is not called earlier)
-		try {
-			configureDrivers();
-		} catch (final CloudProvisioningException e) {
-			throw new ElasticMachineProvisioningException("Failed to configure cloud driver for first use: "
-					+ e.getMessage(), e);
-		} catch (final StorageProvisioningException e) {
-			throw new ElasticMachineProvisioningException("Failed to configure storage driver for first use: "
-					+ e.getMessage(), e);
-		}
-		return new RemoteStorageProvisioningDriverAdapter(storageProvisioning, cloud.getCloudStorage().
-				getTemplates().get(storageTemplateName));
-	}
-
 	private void initCloudObject(final String cloudConfigDirectory, final String overridesScript) throws DSLException {
 		final DSLReader reader = new DSLReader();
 		reader.setDslFileNameSuffix(DSLUtils.CLOUD_DSL_FILE_NAME_SUFFIX);
@@ -916,7 +885,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 		this.cloud = reader.readDslEntity(Cloud.class);
 		this.cloudDslFile = reader.getDslFile();
-
 	}
 
 	@Override
@@ -1104,12 +1072,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private void addTemplatesToCloud(final File cloudConfigDirectory) {
 		File additionalTemplatesParentFolder = cloudConfigDirectory;
 		String persistentStoragePath = cloud.getConfiguration().getPersistentStoragePath();
-		if(persistentStoragePath != null) {
+		if (persistentStoragePath != null) {
 			logger.fine("[addTemplatesToCloud] - using the persistent storage folder [" 
 					+ persistentStoragePath + "] as the parent of the additional templates folder.");
 			additionalTemplatesParentFolder = new File(persistentStoragePath);
 		}
-		logger.info("[addTemplatesToCloud] - adding templates from directory [" + additionalTemplatesParentFolder.getAbsolutePath() + "]");
+		logger.info("[addTemplatesToCloud] - adding templates from directory " 
+				+ "[" + additionalTemplatesParentFolder.getAbsolutePath() + "]");
 		final File additionalTemplatesFolder = new File(additionalTemplatesParentFolder,
 				CloudifyConstants.ADDITIONAL_TEMPLATES_FOLDER_NAME);
 		if (!additionalTemplatesFolder.exists()) {

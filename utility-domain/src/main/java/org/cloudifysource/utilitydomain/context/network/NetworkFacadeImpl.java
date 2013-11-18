@@ -19,7 +19,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.cloudifysource.domain.context.network.NetworkFacade;
 import org.cloudifysource.domain.context.network.RemoteNetworkOperationException;
-import org.cloudifysource.domain.context.network.RemoteNetworkProvisioningDriver;
+import org.cloudifysource.dsl.internal.context.RemoteNetworkProvisioningDriver;
 
 /**
  * 

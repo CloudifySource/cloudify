@@ -20,7 +20,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 import org.cloudifysource.domain.context.network.RemoteNetworkOperationException;
-import org.cloudifysource.domain.context.network.RemoteNetworkProvisioningDriver;
+import org.cloudifysource.dsl.internal.context.RemoteNetworkProvisioningDriver;
 
 /**
  * Adapter class for remote network oporations. 
@@ -96,6 +96,64 @@ public class RemoteNetworkProvisioningDriverAdapter implements RemoteNetworkProv
 			throw new RemoteNetworkOperationException("failed releasing IP address " + ip
 					+ " : " + e.getMessage(), e);
 		}
+	}
+
+	@Override
+	public void assignFloatingIP(final String ip, final String instanceID, final long duration,
+			final TimeUnit timeUnit) throws RemoteNetworkOperationException,
+			TimeoutException {
+		try {
+			this.driver.assignFloatingIP(ip, instanceID, duration, timeUnit);
+		} catch (final NetworkProvisioningException e) {
+			logger.warning("failed to assign IP " + ip + " to instance with ID " + instanceID 
+					+ ". Error was " + e.getMessage());
+			throw new RemoteNetworkOperationException("failed to assign IP " + ip + " to instance with ID " 
+					+ instanceID + " : " + e.getMessage(), e);
+		}
+		
+	}
+
+	@Override
+	public void unassignFloatingIP(final String ip, final String instanceID, final long duration,
+			final TimeUnit timeUnit) throws RemoteNetworkOperationException,
+			TimeoutException {
+		try {
+			this.driver.unassignFloatingIP(ip, instanceID, duration, timeUnit);
+		} catch (final NetworkProvisioningException e) {
+			logger.warning("failed to unassign IP " + ip + " to instance with ID " + instanceID 
+					+ ". Error was " + e.getMessage());
+			throw new RemoteNetworkOperationException("failed to unassign IP " + ip + " to instance with ID " 
+					+ instanceID + " : " + e.getMessage(), e);
+		}
+		
+	}
+
+	@Override
+	public String allocateFloatingIP(final String poolName, final long duration,
+			final TimeUnit timeUnit) throws RemoteNetworkOperationException,
+			TimeoutException {
+		try {
+			return this.driver.allocateFloatingIP(poolName, duration, timeUnit);
+		} catch (final NetworkProvisioningException e) {
+			logger.warning("failed to allocate a new IP address from pool " + poolName
+					+ " : " + e.getMessage());
+			throw new RemoteNetworkOperationException("failed to allocate a new IP address from pool " + poolName
+					+ " : " + e.getMessage(), e);
+		}
+	}
+
+	@Override
+	public void releaseFloatingIP(final String ip, final long duration, final TimeUnit timeUnit)
+			throws RemoteNetworkOperationException, TimeoutException {
+		try {
+			this.driver.releaseFloatingIP(ip, duration, timeUnit);
+		} catch (final NetworkProvisioningException e) {
+			logger.warning("failed releasing IP address " + ip
+					+ " : " + e.getMessage());
+			throw new RemoteNetworkOperationException("failed releasing IP address " + ip
+					+ " : " + e.getMessage(), e);
+		}
+		
 	}
 
 }
