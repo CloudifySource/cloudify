@@ -31,7 +31,7 @@ import org.springframework.security.core.GrantedAuthority;
  * 
  * @since 2.3.0
  */
-public class CloudifyAuthorizationDetails {
+public class CloudifyAuthorizationDetails implements AuthorizationDetails {
 	
 	private String username;
 	private Collection<String> roles = new ArrayList<String>();
@@ -40,7 +40,12 @@ public class CloudifyAuthorizationDetails {
 	private Logger logger = java.util.logging.Logger.getLogger(CloudifyAuthorizationDetails.class.getName());
 	
 	public CloudifyAuthorizationDetails(final Authentication authentication) {
-		
+		init(authentication);
+	}
+	
+	
+	@Override
+	public void init(final Authentication authentication) {
 		if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
 			logger.warning("Anonymous user is not supported");
 			throw new AccessDeniedException("Anonymous user is not supported");
@@ -66,18 +71,23 @@ public class CloudifyAuthorizationDetails {
 		} else {
 			authGroups.addAll(roles);
 		}
+		
 	}
+	
 
 	public String getUsername() {
 		return username;
 	}
+	
 
 	public Collection<String> getRoles() {
 		return roles;
 	}
+	
 
 	public Collection<String> getAuthGroups() {
 		return authGroups;
 	}
+
 
 }
