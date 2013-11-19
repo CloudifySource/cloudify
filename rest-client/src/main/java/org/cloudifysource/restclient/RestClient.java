@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +30,7 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.Scheme;
@@ -45,6 +44,7 @@ import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
+import org.cloudifysource.dsl.internal.ProcessorTypes;
 import org.cloudifysource.dsl.rest.AddTemplatesException;
 import org.cloudifysource.dsl.rest.request.AddTemplatesRequest;
 import org.cloudifysource.dsl.rest.request.InstallApplicationRequest;
@@ -115,8 +115,8 @@ public class RestClient {
 
 	private static final String SHUTDOWN_MANAGERS_URL_FORMAT = "controllers";
 	private static final String GET_PU_DUMP_FILE_URL_FORMAT = "dump/processing-units/?fileSizeLimit=%s";
-	private static final String GET_MACHINE_DUMP_FILE_URL_FORMAT = "dump/machine/%s/?processors=%s&?fileSizeLimit=%s";
-	private static final String GET_MACHINES_DUMP_FILE_URL_FORMAT = "dump/machines/?processors=%s&?fileSizeLimit=%s";
+	private static final String GET_MACHINE_DUMP_FILE_URL_FORMAT = "dump/machine/%s/?processors=%s&fileSizeLimit=%s";
+	private static final String GET_MACHINES_DUMP_FILE_URL_FORMAT = "dump/machines/?processors=%s&fileSizeLimit=%s";
 
 	protected final RestClientExecutor executor;
 	private final String versionedDeploymentControllerUrl;
@@ -859,32 +859,32 @@ public class RestClient {
 	 * @throws RestClientException 
 	 */
 	public GetMachineDumpFileResponse getMachineDumpFile(
-			final String ip, final long fileSizeLimit, final String... processors)
+			final String ip, final long fileSizeLimit, final String processors)
 			throws RestClientException {
 		if (ip == null) {
 			throw MessagesUtils.createRestClientException(CloudifyErrorMessages.MACHINE_IP_MISSING.getName());
 		}
 		
 		long actualSizeLimit = fileSizeLimit;
-				if (fileSizeLimit == 0) {
+		if (fileSizeLimit == 0) {
 			actualSizeLimit = CloudifyConstants.DEFAULT_DUMP_FILE_SIZE_LIMIT;
 		}
 				
-		String[] actualProcessors = processors;
-		if (processors == null) {
-			actualProcessors = CloudifyConstants.DEFAULT_DUMP_PROCESSORS;
+		String actualProcessors = processors;
+		if (StringUtils.isBlank(processors)) {
+			actualProcessors = ProcessorTypes.DEFAULT_PROCESSORS;
 		}
-		int length = actualProcessors.length;
-//		String[] ipArray = new String[length + 2];
-		String[] ipArray = {ip};
-		String[] args = (String[]) ArrayUtils.addAll(ipArray, actualProcessors);
-		args = (String[]) ArrayUtils.add(args, Long.toString(actualSizeLimit));
+		
 		final String getMachineDumpFileURL = getFormattedUrl(
 				shutdownManagersControllerUrl,
 				GET_MACHINE_DUMP_FILE_URL_FORMAT,
-				args);
+				ip,
+				actualProcessors,
+				Long.toString(actualSizeLimit));
+		
 		log(Level.FINE, "[getPUDumpFile] - sending GET request to REST ["
 				+ getMachineDumpFileURL + "]");
+		
 		return executor.get(
 				getMachineDumpFileURL,
 				new TypeReference<Response<GetMachineDumpFileResponse>>() {
@@ -899,7 +899,7 @@ public class RestClient {
 	 * @return {@link GetMachinesDumpFileResponse} containing the dump data of all the machines.
 	 * @throws RestClientException 
 	 */
-	public GetMachinesDumpFileResponse getMachinesDumpFile(final long fileSizeLimit, final String... processors)
+	public GetMachinesDumpFileResponse getMachinesDumpFile(final String processors, final long fileSizeLimit)
 			throws RestClientException {
 		
 		long actualSizeLimit = fileSizeLimit;
@@ -907,19 +907,16 @@ public class RestClient {
 			actualSizeLimit = CloudifyConstants.DEFAULT_DUMP_FILE_SIZE_LIMIT;
 		}
 		
-		String[] actualProcessors = processors;
-		if (processors == null) {
-			actualProcessors = CloudifyConstants.DEFAULT_DUMP_PROCESSORS;
+		String actualProcessors = processors;
+		if (StringUtils.isBlank(processors)) {
+			actualProcessors = ProcessorTypes.DEFAULT_PROCESSORS;
 		}
-		
-		int length = actualProcessors.length;
-		String[] args = Arrays.copyOf(actualProcessors, length + 1);
-		args[length] = Long.toString(actualSizeLimit);
 		
 		final String getMachinesDumpFileURL = getFormattedUrl(
 				shutdownManagersControllerUrl,
 				GET_MACHINES_DUMP_FILE_URL_FORMAT,
-				args);
+				actualProcessors,
+				Long.toString(actualSizeLimit));
 		
 		log(Level.FINE, "[getPUDumpFile] - sending GET request to REST ["
 				+ getMachinesDumpFileURL + "]");
@@ -928,6 +925,16 @@ public class RestClient {
 				getMachinesDumpFileURL,
 				new TypeReference<Response<GetMachinesDumpFileResponse>>() {
 				});
+	}
+	
+	/**
+	 * 
+	 * @return {@link GetMachinesDumpFileResponse} containing the dump data of all the machines.
+	 * @throws RestClientException 
+	 */
+	public GetMachinesDumpFileResponse getMachinesDumpFile()
+			throws RestClientException {
+		return getMachinesDumpFile(null, 0);
 	}
 	
 	private void log(final Level level, final String msg) {
