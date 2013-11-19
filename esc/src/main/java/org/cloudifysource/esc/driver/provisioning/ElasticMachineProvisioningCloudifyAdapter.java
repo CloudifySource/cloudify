@@ -455,7 +455,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 						+ " was missing from its environment variables.");
 			}
 
-			final Object context = new MachineDetailsDocumentConverter().toDocument(machineDetails); 
+			final Object context = null;// new MachineDetailsDocumentConverter().toDocument(machineDetails); 
 			return new StartedGridServiceAgent(gsa, context);
 		} catch (final ElasticMachineProvisioningException e) {
 			logger.info("ElasticMachineProvisioningException occurred, " + e.getMessage());
@@ -494,16 +494,18 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		if (context == null) {
 			return null;
 		}
+		
+		return null;
 
-		if (!(context instanceof SpaceDocument)) {
-			throw new IllegalStateException("Expected to get a space document in the failed agent context, but got a: "
-					+ context.getClass().getName());
-		}
-
-		final SpaceDocument mdDocument = (SpaceDocument) context;
-		final MachineDetails md = new MachineDetailsDocumentConverter().toMachineDetails(mdDocument);
-
-		return md;
+//		if (!(context instanceof SpaceDocument)) {
+//			throw new IllegalStateException("Expected to get a space document in the failed agent context, but got a: "
+//					+ context.getClass().getName());
+//		}
+//
+//		final SpaceDocument mdDocument = (SpaceDocument) context;
+//		final MachineDetails md = new MachineDetailsDocumentConverter().toMachineDetails(mdDocument);
+//
+//		return md;
 
 	}
 
