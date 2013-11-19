@@ -84,6 +84,27 @@ public final class CloudifyConstants {
     public static final String INVOCATION_RESPONSE_INSTANCE_ID = "Invocation_Instance_ID";
     public static final String INVOCATION_RESPONSE_INSTANCE_NAME = "Invocation_Instance_Name";
     public static final String INVOCATION_PARAMETER_BEAN_NAME_USM = "universalServiceManagerBean";
+    
+	/**
+	 * Command invocatopm result status - a reported success, a reported failure, or an unexpected return value
+	 */
+	public enum InvocationStatus {
+		/**
+		 * The invocation reported a successful execution of the command
+		 */
+		SUCCESS,
+		
+		/**
+		 * The invocation reported a failed execution of the command
+		 */
+		FAILURE,
+		
+		/**
+		 * The invocation resulted in an unexpected return value
+		 */
+		UNEXPECTED;
+	}
+	
 
     /*************
      * Key names of environment variables passed to USM external scripts

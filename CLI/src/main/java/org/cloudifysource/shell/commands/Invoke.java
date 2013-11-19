@@ -23,15 +23,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.gogo.commands.Argument;
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyConstants.InvocationStatus;
 import org.cloudifysource.dsl.rest.request.InvokeCustomCommandRequest;
 import org.cloudifysource.dsl.rest.response.InvokeInstanceCommandResponse;
 import org.cloudifysource.dsl.rest.response.InvokeServiceCommandResponse;
 import org.cloudifysource.restclient.InvocationResult;
-import org.cloudifysource.restclient.InvocationResult.InvocationStatus;
 import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.shell.exceptions.CLIStatusException;
 import org.cloudifysource.shell.rest.RestAdminFacade;
@@ -175,7 +176,7 @@ public class Invoke extends AdminAwareCommand implements NewRestClientCommand {
 			InvokeInstanceCommandResponse response = newRestClient.invokeInstanceCommand(applicationName, serviceName,
 					instanceId, request);
 			
-			final InvocationResult invocationResult = parseInvocationResult(instanceId, response.getInvocationResult());
+			final InvocationResult invocationResult = parseInvocationResult(response.getInvocationResult());
 			if (invocationResult.getInvocationStatus() == InvocationStatus.SUCCESS) {
 				successMessages = getSuccessMessage(invocationResult);
 			} else if (invocationResult.getInvocationStatus() == InvocationStatus.UNEXPECTED) {
@@ -186,21 +187,21 @@ public class Invoke extends AdminAwareCommand implements NewRestClientCommand {
 		}
 		
 		// if invocations failed - throw exception
-		if (failureMessages.length() > 0) {
+		if (StringUtils.isNotBlank(failureMessages)) {
 			throw new CLIStatusException("some_invocations_failed", this.serviceName, 
 					System.getProperty("line.separator") + failureMessages);
 		}
 		
 		// if invocations returned unexpected value - throw exception
-		if (unexpectedMessages.length() > 0) {
+		if (StringUtils.isNotBlank(unexpectedMessages)) {
 			//logger.severe("Received an unexpected return value to the invoke command. Key: "
 			//		+ instanceName + ", value: " + restInvocationResult);
-			throw new CLIStatusException("some_invocations_status_unexpected", this.serviceName, 
+			throw new CLIStatusException("some_invocations_failed", this.serviceName, 
 					System.getProperty("line.separator") + unexpectedMessages);
 		}
 		
 		// print the success messages to the screen
-		if (successMessages.length() > 0) {
+		if (StringUtils.isNotBlank(successMessages)) {
 			logger.info("Invocation results: " + System.getProperty("line.separator") + successMessages);
 		}
 		
@@ -225,38 +226,24 @@ public class Invoke extends AdminAwareCommand implements NewRestClientCommand {
 	
 
 	private Map<String, InvocationResult> parseInvocationResults(
-			final Map<String, Object> restInvocationResultsPerInstance) {
+			final Map<String, Map<String, String>> restInvocationResultsPerInstance) {
 
 		final Map<String, InvocationResult> invocationResultsMap = new LinkedHashMap<String, InvocationResult>();
 		
-		for (final Map.Entry<String, Object> entry : restInvocationResultsPerInstance.entrySet()) {
+		for (final Map.Entry<String, Map<String, String>> entry : restInvocationResultsPerInstance.entrySet()) {
 			final String instanceName = entry.getKey();
-			final Object restInvocationResult = entry.getValue();
-
-			if (restInvocationResult == null || !(restInvocationResult instanceof Map<?, ?>)) {
-				final InvocationResult invocationResult = InvocationResult.
-						createInvocationResult(instanceName, restInvocationResult);
-				invocationResultsMap.put(instanceName, invocationResult);
-			} else {
-				@SuppressWarnings("unchecked")
-				final InvocationResult invocationResult = InvocationResult.
-						createInvocationResult((Map<String, String>) restInvocationResult);
-				invocationResultsMap.put(instanceName, invocationResult);
-			}
+			final Map<String, String> restInvocationResult = entry.getValue();
+			invocationResultsMap.put(instanceName, parseInvocationResult(restInvocationResult));
 		}
 		
 		return invocationResultsMap;
 	}
 	
-	private InvocationResult parseInvocationResult(final int instanceId, final Object restInvocationResult) {
+	private InvocationResult parseInvocationResult(final Map<String, String> restInvocationResult) {
 
-		InvocationResult invocationResult = null;
-		
-		if (restInvocationResult == null || !(restInvocationResult instanceof Map<?, ?>)) {
-			invocationResult = InvocationResult.createInvocationResult(Integer.toString(instanceId), 
-					restInvocationResult);
-		} else {
-			invocationResult = InvocationResult.createInvocationResult((Map<String, String>) restInvocationResult);
+		InvocationResult invocationResult = null;		
+		if (restInvocationResult != null) {
+			invocationResult = InvocationResult.createInvocationResult(restInvocationResult);
 		}
 		
 		return invocationResult;

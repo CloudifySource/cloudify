@@ -12,7 +12,6 @@
  *******************************************************************************/
 package org.cloudifysource.rest.controllers;
 
-import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_INVOKE_INSTANCE;
 import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_LUS;
 
 import java.io.File;
@@ -47,6 +46,7 @@ import org.cloudifysource.domain.ComputeDetails;
 import org.cloudifysource.domain.Service;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyConstants.InvocationStatus;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.internal.CloudifyMessageKeys;
 import org.cloudifysource.dsl.internal.DSLApplicationCompilationResult;
@@ -2393,7 +2393,6 @@ public class DeploymentsController extends BaseRestController {
 			// TODO: Consider telling the user he might be using the wrong
 			// application name.
 			logger.severe("Could not find service " + absolutePuName);
-						
 			throw new ResourceNotFoundException(absolutePuName);
 		}
 
@@ -2429,32 +2428,37 @@ public class DeploymentsController extends BaseRestController {
 						.invoke(CloudifyConstants.INVOCATION_PARAMETER_BEAN_NAME_USM, invocationArgs);
 				futures.put(serviceInstanceName, future);
 			} catch (final Exception e) {
-				logger.severe("Error invoking service "
-						+ serviceName
-						+ ":"
-						+ instance.getInstanceId()
-						+ " on host "
-						+ instance.getVirtualMachine().getMachine().getHostName());
-				response.setInvocationResult(serviceInstanceName, "pu_instance_invocation_failure");
+				// we log the error message and add it to the response but carry on to the following instances
+				String errorMessage = "Error occurred while invoking custom command on service "
+						+ serviceName + ":" + instance.getInstanceId() + " on host " 
+						+ instance.getVirtualMachine().getMachine().getHostName() + ". Reported error: " 
+						+ e.getMessage();
+				logger.severe(errorMessage);
+				Map<String, String> processedResult = postProcessInvocationResult(serviceInstanceName, errorMessage);
+				response.setInvocationResult(serviceInstanceName, processedResult);
 			}
 		}
 
 		for (final Map.Entry<String, Future<Object>> entry : futures.entrySet()) {
 			String serviceInstanceName = entry.getKey();
+			Object invocationResult;
+			
 			try {
-				Object invocationResult = entry.getValue().get();
-				// use only tostring of collection values, to avoid
-				// serialization problems
-				invocationResult = postProcessInvocationResult(invocationResult, entry.getKey());
-				response.setInvocationResult(serviceInstanceName, invocationResult);
-
+				invocationResult = entry.getValue().get();
 			} catch (final Exception e) {
-				response.setInvocationResult(serviceInstanceName, "Invocation failure: " + e.getMessage());
+				// we log the error message and add it to the response but carry on to the following instances
+				String errorMessage = "Error occurred while invoking custom command on service "
+						+ serviceName + ":" + serviceInstanceName + ". Reported error: " + e.getMessage();
+				logger.severe(errorMessage);
+				invocationResult = errorMessage;
 			}
+			
+			// use only tostring of collection values, to avoid serialization problems
+			Map<String, String> processedResult = postProcessInvocationResult(serviceInstanceName, invocationResult);
+			response.setInvocationResult(serviceInstanceName, processedResult);
 		}
 
 		return response;
-		//return successStatus(invocationResult);
 	}
 	
 	
@@ -2501,7 +2505,6 @@ public class DeploymentsController extends BaseRestController {
 			// TODO: Consider telling the user he might be using the wrong
 			// application name.
 			logger.severe("Could not find service " + absolutePuName);
-					
 			throw new ResourceNotFoundException(absolutePuName);
 		}
 
@@ -2526,18 +2529,21 @@ public class DeploymentsController extends BaseRestController {
 		final String instanceName = buildServiceInstanceName(pui);
 		
 		// Invoke the remote service
+		Object invocationResult;
 		try {
 			Map<String, Object> invocationArgs = preProcessInvocationRequest(request.getCommandName(), 
 					request.getParameters());
 			final Future<?> future = pui.invoke(CloudifyConstants.INVOCATION_PARAMETER_BEAN_NAME_USM, invocationArgs);
-			final Object invocationResult = future.get();
-			final Object finalResult = postProcessInvocationResult(invocationResult, instanceName);
+			invocationResult = future.get();
+			Map<String, String> finalResult = postProcessInvocationResult(instanceName, invocationResult);
 			response.setInvocationResult(finalResult);
 		} catch (final Exception e) {
-			logger.severe("Error invoking pu instance " + absolutePuName + ":"
-					+ instanceId + " on host "
-					+ pui.getVirtualMachine().getMachine().getHostName());
-			throw new RestErrorException(FAILED_TO_INVOKE_INSTANCE,
+			String errorMessage = "Error occurred while invoking custom command on pu instance "
+					+ absolutePuName + ":" + instanceId + " on host " 
+					+ pui.getVirtualMachine().getMachine().getHostName() + ". Reported error: " + e.getMessage();
+			logger.severe(errorMessage);
+			throw new RestErrorException(
+					ResponseConstants.FAILED_TO_INVOKE_INSTANCE,
 					absolutePuName, Integer.toString(instanceId),
 					e.getMessage());
 		}
@@ -2564,24 +2570,35 @@ public class DeploymentsController extends BaseRestController {
 
 	}
 	
-	private Object postProcessInvocationResult(final Object result,
-			final String instanceName) {
-		Object formattedResult;
+	private Map<String, String> postProcessInvocationResult(final String instanceName, final Object result) {
+		
+		final Map<String, String> resultsMap = new HashMap<String, String>();
+		resultsMap.put(CloudifyConstants.INVOCATION_RESPONSE_INSTANCE_NAME, instanceName);
+		
 		if (result instanceof Map<?, ?>) {
-			final Map<String, String> modifiedMap = new HashMap<String, String>();
 			@SuppressWarnings("unchecked")
 			final Set<Entry<String, Object>> entries = ((Map<String, Object>) result).entrySet();
 			for (final Entry<String, Object> subEntry : entries) {
-				modifiedMap.put(subEntry.getKey(),
-						subEntry.getValue() == null ? null : subEntry
-								.getValue().toString());
+				String key = subEntry.getKey();
+				String safeValue = subEntry.getValue() == null ? null : subEntry.getValue().toString();
+				
+				if (key.equalsIgnoreCase(CloudifyConstants.INVOCATION_RESPONSE_STATUS)) {
+					if (Boolean.parseBoolean(safeValue)) {
+						resultsMap.put(key, InvocationStatus.SUCCESS.toString());
+					} else {
+						resultsMap.put(key, InvocationStatus.FAILURE.toString());
+					}
+				} else {
+					resultsMap.put(key, safeValue);
+				}
 			}
-			modifiedMap.put(CloudifyConstants.INVOCATION_RESPONSE_INSTANCE_NAME, instanceName);
-			formattedResult = modifiedMap;
 		} else {
-			formattedResult = result.toString();
+			resultsMap.put(CloudifyConstants.INVOCATION_RESPONSE_STATUS, InvocationStatus.UNEXPECTED.toString());
+			resultsMap.put(CloudifyConstants.INVOCATION_RESPONSE_RESULT, result == null ? null : result.toString());
 		}
-		return formattedResult;
+				
+
+		return resultsMap;
 	}
 	
 	
