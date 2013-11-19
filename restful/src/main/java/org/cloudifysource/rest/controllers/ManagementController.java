@@ -29,6 +29,7 @@ import org.apache.commons.io.FileUtils;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
+import org.cloudifysource.dsl.internal.ProcessorTypes;
 import org.cloudifysource.dsl.rest.response.ControllerDetails;
 import org.cloudifysource.dsl.rest.response.GetMachineDumpFileResponse;
 import org.cloudifysource.dsl.rest.response.GetMachinesDumpFileResponse;
@@ -317,18 +318,17 @@ public class ManagementController extends BaseRestController {
 	@RequestMapping(value = "/dump/machine/{ip}", method = RequestMethod.GET)
 	@PreAuthorize("isFullyAuthenticated() and hasRole('ROLE_CLOUDADMINS')")
 	public GetMachineDumpFileResponse getMachineDumpFile(
-			@PathVariable final String ip,
-			@RequestParam(required = false) final String[] processors,
-			@RequestParam(defaultValue = "" + CloudifyConstants.DEFAULT_DUMP_FILE_SIZE_LIMIT) final long fileSizeLimit)
+			@PathVariable 
+			final String ip,
+			@RequestParam(defaultValue = ProcessorTypes.DEFAULT_PROCESSORS) 
+			final String processors,
+			@RequestParam(defaultValue = "" + CloudifyConstants.DEFAULT_DUMP_FILE_SIZE_LIMIT) 
+			final long fileSizeLimit)
 					throws RestErrorException {
 		
 		// validate
-		validateGetMachineDump(processors);
-
-		String[] actualProcessors = processors;
-		if (processors == null) {
-			actualProcessors = CloudifyConstants.DEFAULT_DUMP_PROCESSORS;
-		}
+		String[] actualProcessors = ProcessorTypes.fromStringList(processors);
+		validateGetMachineDump(actualProcessors);
 		
 		// first find the relevant agent
 		Machine machine = this.admin.getMachines().getHostsByAddress().get(ip);
@@ -336,6 +336,8 @@ public class ManagementController extends BaseRestController {
 			throw new RestErrorException(
 					CloudifyErrorMessages.MACHINE_NOT_FOUND.getName(), ip);
 		}
+		
+		
 		final byte[] dumpBytes = generateMachineDumpData(fileSizeLimit,
 				machine, actualProcessors);
 
@@ -357,16 +359,14 @@ public class ManagementController extends BaseRestController {
 	@RequestMapping(value = "/dump/machines", method = RequestMethod.GET)
 	@PreAuthorize("isFullyAuthenticated() and hasRole('ROLE_CLOUDADMINS')")
 	public GetMachinesDumpFileResponse getMachinesDumpFile(
-					@RequestParam final String[] processors,
+					@RequestParam(defaultValue = ProcessorTypes.DEFAULT_PROCESSORS) 
+					final String processors,
 					@RequestParam(defaultValue = "" + CloudifyConstants.DEFAULT_DUMP_FILE_SIZE_LIMIT) 
-					final long fileSizeLimit) throws RestErrorException {
+					final long fileSizeLimit) 
+							throws RestErrorException {
 
-		validateGetMachineDump(processors);
-
-		String[] actualProcessors = processors;
-		if (processors == null) {
-			actualProcessors = CloudifyConstants.DEFAULT_DUMP_PROCESSORS;
-		}
+		String[] actualProcessors = ProcessorTypes.fromStringList(processors);
+		validateGetMachineDump(actualProcessors);
 
 		long totalSize = 0;
 		final Iterator<Machine> iterator = this.admin.getMachines()
@@ -393,25 +393,14 @@ public class ManagementController extends BaseRestController {
 	}
 	
 	private byte[] generateMachineDumpData(final long fileSizeLimit,
-			final Machine machine, final String[] actualProcessors)
+			final Machine machine, final String[] processors)
 					throws RestErrorException {
 		// generator the dump
-		final DumpResult dump = machine.generateDump("Rest_API", null,
-				actualProcessors);
+		final DumpResult dump = machine.generateDump("Rest_API", null, processors);
 
 		final byte[] data = getDumpRawData(dump, fileSizeLimit);
 		return data;
 
-	}
-
-	private String[] getProcessorsFromRequest(final String processors) {
-		final String[] parts = processors.split(",");
-
-		for (int i = 0; i < parts.length; i++) {
-			parts[i] = parts[i].trim();
-		}
-
-		return parts;
 	}
 
 	private byte[] getDumpRawData(final DumpResult dump,

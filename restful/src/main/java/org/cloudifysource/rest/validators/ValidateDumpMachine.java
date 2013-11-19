@@ -32,9 +32,10 @@ public class ValidateDumpMachine implements DumpMachineValidator {
 			return;
 		}
 		for (String processor : processors) {
-			ProcessorTypes type = ProcessorTypes.fromString(processor);
-			if (type == null) {
-				throw new RestErrorException(CloudifyErrorMessages.UNKNOWN_PROCESSOR_TYPE.getName(), processor);
+			ProcessorTypes processorType = ProcessorTypes.fromStringName(processor);
+			if (processorType == null) {
+				throw new RestErrorException(CloudifyErrorMessages.UNKNOWN_PROCESSOR_TYPE.getName(), 
+						processor);
 			}
 		}
 
