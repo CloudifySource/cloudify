@@ -98,8 +98,6 @@ import org.openspaces.grid.gsm.machines.plugins.events.MachineStoppedEvent;
 import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticGridServiceAgentProvisioningException;
 import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticMachineProvisioningException;
 
-import com.gigaspaces.document.SpaceDocument;
-
 /****************************
  * An ESM machine provisioning implementation used by the Cloudify cloud driver. All calls to start/stop a machine are
  * delegated to the CloudifyProvisioning implementation. If the started machine does not have an agent running, this
@@ -1267,8 +1265,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	@Override
 	public Object getExternalApi(final String apiName) throws InterruptedException, 
 			ElasticMachineProvisioningException {
-		// configure drivers if this is first time (occurs when using the management machine for storage,
-		// so create machine is not called earlier)
 		try {
 			configureDrivers();
 		} catch (final CloudProvisioningException e) {
