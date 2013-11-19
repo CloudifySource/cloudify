@@ -18,6 +18,7 @@ package org.cloudifysource.restclient;
 import java.util.Map;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.internal.CloudifyConstants.InvocationStatus;
 
 
 
@@ -31,27 +32,6 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
  */
 public class InvocationResult implements Comparable<InvocationResult> {
 
-	/**
-	 * Represents the result status - a reported success, a reported failure, or an unexpected return value.
-	 * @author noak
-	 *
-	 */
-	public enum InvocationStatus {
-		/**
-		 * The invocation reported a successful execution of the command.
-		 */
-		SUCCESS,
-		
-		/**
-		 * The invocation reported a failed execution of the command.
-		 */
-		FAILURE,
-		
-		/**
-		 * The invocation resulted in an unexpected return value.
-		 */
-		UNEXPECTED;
-	}
 	
 	/**
 	 * private members.
@@ -71,49 +51,29 @@ public class InvocationResult implements Comparable<InvocationResult> {
 	
 
 	/**
+	 * Creates an {@link InvocationResult} object based on the given map. In case the map includes a status
+	 * of "Unexpected", only the string result and instance name are can be found.
+	 * 
 	 * @param map
-	 *            The Map object returned from the rest call, holding command
-	 *            execution and result details
+	 *            The Map object returned from the rest call, holding command execution and result details
 	 * @return InvocationResult consisting of the data in the given map.
 	 */
 	public static InvocationResult createInvocationResult(final Map<String, String> map) {
 
 		InvocationResult res = new InvocationResult();
-		res.commandName = map
-				.get(CloudifyConstants.INVOCATION_RESPONSE_COMMAND_NAME);
-		res.exceptionMessage = map
-				.get(CloudifyConstants.INVOCATION_RESPONSE_EXCEPTION);
-		res.instanceId = Integer.parseInt(map
-				.get(CloudifyConstants.INVOCATION_RESPONSE_INSTANCE_ID));
 		res.result = map.get(CloudifyConstants.INVOCATION_RESPONSE_RESULT);
-		if (Boolean.parseBoolean(map
-				.get(CloudifyConstants.INVOCATION_RESPONSE_STATUS))) {
-			res.invocationStatus = InvocationStatus.SUCCESS;
-		} else {
-			res.invocationStatus = InvocationStatus.FAILURE;
+		res.instanceName = map.get(CloudifyConstants.INVOCATION_RESPONSE_INSTANCE_NAME);
+		res.invocationStatus = InvocationStatus.valueOf(map.get(CloudifyConstants.INVOCATION_RESPONSE_STATUS));
+		if (res.invocationStatus != InvocationStatus.UNEXPECTED) {
+			// the response status is either success or failure, so more info to retrieve
+			res.commandName = map.get(CloudifyConstants.INVOCATION_RESPONSE_COMMAND_NAME);
+			res.exceptionMessage = map.get(CloudifyConstants.INVOCATION_RESPONSE_EXCEPTION);
+			res.instanceId = Integer.parseInt(map.get(CloudifyConstants.INVOCATION_RESPONSE_INSTANCE_ID));
 		}
-		res.instanceName = map
-				.get(CloudifyConstants.INVOCATION_RESPONSE_INSTANCE_NAME);
-
+		
 		return res;
 	}
 
-	/**
-	 * @param instanceName
-	 *            The name of the instance the command was invoked on
-	 * @param result
-	 *            The result of the invoked command
-	 * @return InvocationResult containing the returned result, as string
-	 */
-	public static InvocationResult createInvocationResult(final String instanceName, final Object result) {
-
-		InvocationResult res = new InvocationResult();
-		res.invocationStatus = InvocationStatus.UNEXPECTED;
-		res.instanceName = instanceName;
-		res.result = result.toString();
-
-		return res;
-	}
 	
 	/**
 	 * Gets the name of the instance this invocation occurred on.
@@ -170,8 +130,8 @@ public class InvocationResult implements Comparable<InvocationResult> {
 	}
 	
 	/**
-	 * Returns true if the status is succcess. false otherwise (status is failure/unexpetced).
-	 * @return true / false
+	 * Returns true if the status is success. false otherwise (failure or unexpected).
+	 * @return true if the status is success. false otherwise (failure or unexpected).
 	 */
 	public final boolean isSuccess() {
 		return (invocationStatus == InvocationStatus.SUCCESS);

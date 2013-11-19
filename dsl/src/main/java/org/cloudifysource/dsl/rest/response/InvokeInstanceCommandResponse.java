@@ -12,6 +12,8 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.rest.response;
 
+import java.util.Map;
+
 
 /**
  * A POJO representing the result of invoking a custom command on a specific service instance.
@@ -21,13 +23,13 @@ package org.cloudifysource.dsl.rest.response;
  */
 public class InvokeInstanceCommandResponse {
 
-	private Object invocationResult;
+	private Map<String, String> invocationResult;
 	
-	public void setInvocationResult(final Object invocationResult) {
+	public void setInvocationResult(final Map<String, String> invocationResult) {
 		this.invocationResult = invocationResult;
 	}
 	
-	public Object getInvocationResult() {
+	public Map<String, String> getInvocationResult() {
 		return invocationResult;
 	}
 }

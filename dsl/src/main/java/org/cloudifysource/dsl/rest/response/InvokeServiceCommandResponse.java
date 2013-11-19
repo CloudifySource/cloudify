@@ -23,18 +23,18 @@ import java.util.Map;
  */
 public class InvokeServiceCommandResponse {
 
-	private Map<String, Object> invocationResultPerInstance = new HashMap<String, Object>();
+	private Map<String, Map<String, String>> invocationResultPerInstance = new HashMap<String, Map<String, String>>();
 	
 	/**
 	 * Sets the result of the invoke command action for the specified service instance.
 	 * @param serviceInstanceName the name of service instance
-	 * @param result the result of the command invocation
+	 * @param result the result of the command invocation as Map<String, String>
 	 */
-	public void setInvocationResult(final String serviceInstanceName, final Object result) {
+	public void setInvocationResult(final String serviceInstanceName, final Map<String, String> result) {
 		invocationResultPerInstance.put(serviceInstanceName, result);
 	}
 	
-	public Map<String, Object> getInvocationResultPerInstance() {
+	public Map<String, Map<String, String>> getInvocationResultPerInstance() {
 		return invocationResultPerInstance;
 	}
 }
