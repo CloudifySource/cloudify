@@ -65,7 +65,7 @@ public enum CloudifyErrorMessages {
 	/**
 	 * Access to the resource is denied, unauthorized.
 	 */
-	UNAUTHORIZED("unauthorized", 0),
+	UNAUTHORIZED("unauthorized", 2),
 
 	/**
 	 * Byon template's configuration is missing nodes list.

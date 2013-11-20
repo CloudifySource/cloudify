@@ -927,16 +927,6 @@ public class RestClient {
 				});
 	}
 	
-	/**
-	 * 
-	 * @return {@link GetMachinesDumpFileResponse} containing the dump data of all the machines.
-	 * @throws RestClientException 
-	 */
-	public GetMachinesDumpFileResponse getMachinesDumpFile()
-			throws RestClientException {
-		return getMachinesDumpFile(null, 0);
-	}
-	
 	private void log(final Level level, final String msg) {
 		if (logger.isLoggable(level)) {
 			logger.log(level, msg);

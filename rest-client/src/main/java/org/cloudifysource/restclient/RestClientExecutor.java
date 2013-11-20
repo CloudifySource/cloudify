@@ -388,7 +388,9 @@ public class RestClientExecutor {
                      		statusCode,
                      		reasonPhrase,
                      		responseBody,
-                     		CloudifyErrorMessages.UNAUTHORIZED.getName());
+                     		CloudifyErrorMessages.UNAUTHORIZED.getName(),
+                     		reasonPhrase,
+                     		requestUri);
 				} else {
 	                throw MessagesUtils.createRestClientHttpException(
 	                		e,
