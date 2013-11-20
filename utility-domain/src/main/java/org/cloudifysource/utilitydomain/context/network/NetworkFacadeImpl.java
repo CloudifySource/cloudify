@@ -41,7 +41,7 @@ public class NetworkFacadeImpl implements NetworkFacade {
 	public void assignFloatingIP(final String instanceIPAddress, final String floatingIP, final Map<String, Object> context)
 			throws RemoteNetworkOperationException, TimeoutException {
 		final RemoteNetworkProvisioningDriver provisioningDriver = getRemoteNetworkProvisioningDriver();
-		provisioningDriver.assignFloatingIP(floatingIP, instanceIPAddress, context);
+		provisioningDriver.assignFloatingIP(instanceIPAddress, floatingIP, context);
 	}
 
 	private RemoteNetworkProvisioningDriver getRemoteNetworkProvisioningDriver() {
@@ -58,7 +58,7 @@ public class NetworkFacadeImpl implements NetworkFacade {
 	public void unassignFloatingIP(final String instanceIPAddress, final String floatingIP, final Map<String, Object> context)
 			throws RemoteNetworkOperationException, TimeoutException {
 		final RemoteNetworkProvisioningDriver provisioningDriver = getRemoteNetworkProvisioningDriver();
-		provisioningDriver.unassignFloatingIP(floatingIP, instanceIPAddress, context);
+		provisioningDriver.unassignFloatingIP(instanceIPAddress, floatingIP, context);
 	}
 
 	@Override
@@ -81,7 +81,7 @@ public class NetworkFacadeImpl implements NetworkFacade {
 			final long duration, final TimeUnit timeUnit)
 			throws RemoteNetworkOperationException, TimeoutException {
 		final RemoteNetworkProvisioningDriver provisioningDriver = getRemoteNetworkProvisioningDriver();
-		provisioningDriver.assignFloatingIP(floatingIP, instanceIPAddress, context, duration, timeUnit);
+		provisioningDriver.assignFloatingIP(instanceIPAddress, floatingIP, context, duration, timeUnit);
 	}
 
 	@Override
@@ -89,7 +89,7 @@ public class NetworkFacadeImpl implements NetworkFacade {
 			final long duration, final TimeUnit timeUnit)
 			throws RemoteNetworkOperationException, TimeoutException {
 		final RemoteNetworkProvisioningDriver provisioningDriver = getRemoteNetworkProvisioningDriver();
-		provisioningDriver.unassignFloatingIP(floatingIP, instanceIPAddress, context, duration, timeUnit);
+		provisioningDriver.unassignFloatingIP(instanceIPAddress, floatingIP, context, duration, timeUnit);
 	}
 
 	@Override
