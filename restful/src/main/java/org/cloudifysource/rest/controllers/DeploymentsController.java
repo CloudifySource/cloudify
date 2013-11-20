@@ -1093,13 +1093,11 @@ public class DeploymentsController extends BaseRestController {
 				service, 
 				absolutePuName, 
 				overridesFile);
-		// merge properties with overrides files
 		
+		// merge properties with overrides files
 		File propertiesFile = readServiceResult.getServicePropertiesFile();
 		if (propertiesFile == null) {
-			String propetiesFileNamePrefix = StringUtils.substringBeforeLast(servicePackedFolder.getName(), "."); 
-			propertiesFile = new File(workingProjectDir, propetiesFileNamePrefix 
-					+ DSLUtils.SERVICE_PROPERTIES_FILE_NAME_SUFFIX);
+			propertiesFile = DSLUtils.getPropertiesFile(workingProjectDir);
 		}
 		
 		PropertiesOverridesMerger merger = new PropertiesOverridesMerger(

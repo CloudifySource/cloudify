@@ -109,8 +109,7 @@ public class ApplicationDeployerRunnable implements Runnable {
 			boolean found = false;
 			try {
 				final File serviceDir = new File(appDir, serviceName);
-				File servicePropertiesFile = new File(serviceDir, serviceDir.getName() 
-						+ DSLUtils.SERVICE_PROPERTIES_FILE_NAME_SUFFIX);
+				File servicePropertiesFile = DSLUtils.getPropertiesFile(serviceDir);
 				// merge service properties with application properties and overrides files 
 				// merge into service's properties file
 				PropertiesOverridesMerger merger = new PropertiesOverridesMerger(

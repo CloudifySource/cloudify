@@ -190,6 +190,20 @@ public final class DSLUtils {
 		}
 		return split[0] + PROPERTIES_FILE_SUFFIX;
 	}
+	
+	/**
+	 * Find the file with the suffix -service.groovy in dslDirectory.
+	 * If the groovy file name is tomcat-service.groovy than return new file with name 'tomcat-service.properties'
+	 * @param dslDirectory 
+	 * @return The created properties file.
+	 */
+	public static File getPropertiesFile(final File dslDirectory) {
+		File dslFile = DSLReader.
+				findDefaultDSLFile(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX, dslDirectory);
+		String groovyFileName = dslFile.getName();
+		String dslName = groovyFileName.substring(0, groovyFileName.indexOf(DSLUtils.SERVICE_DSL_FILE_NAME_SUFFIX));
+		return new File(dslDirectory, dslName + DSLUtils.SERVICE_PROPERTIES_FILE_NAME_SUFFIX);
+	}
 
 	/**
 	 * Change the name of the file's prefix to template's name.
