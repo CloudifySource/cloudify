@@ -428,6 +428,11 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 			throw new CloudProvisioningException("Failed to lookup existing management servers.", e);
 		}
 
+        if (managementServers == null || managementServers.size() == 0) {
+        	publishEvent("prov_management_lookup_failed");
+        	throw new IllegalStateException("No management servers were found");
+        }
+        
         final int stopTimeoutPerAgent = stopManagementMachinesTimeoutInMinutes / managementServers.size();
 
         for (final CustomNode customNode : managementServers) {
