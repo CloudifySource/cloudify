@@ -49,7 +49,6 @@ public abstract class AbstractManagementServiceInstaller {
 	protected final Logger logger = Logger.getLogger(this.getClass().getName());
 	protected Admin admin;
 	protected boolean verbose;
-	protected int memoryInMB;
 	protected String serviceName;
 	protected String agentZone;
 	protected long progressInSeconds;
@@ -88,18 +87,6 @@ public abstract class AbstractManagementServiceInstaller {
 	 */
 	public void setVerbose(final boolean verbose) {
 		this.verbose = verbose;
-	}
-
-	/**
-	 * Set the memory in various memory units.
-	 *
-	 * @param memory
-	 *            number of memory units
-	 * @param unit
-	 *            Memory unit to use
-	 */
-	public void setMemory(final long memory, final MemoryUnit unit) {
-		this.memoryInMB = (int) unit.toMegaBytes(memory);
 	}
 
 	/**

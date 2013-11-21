@@ -64,6 +64,7 @@ import org.openspaces.admin.AgentGridComponent;
 import org.openspaces.admin.esm.ElasticServiceManager;
 import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.gsa.GridServiceContainerOptions;
+import org.openspaces.admin.gsc.GridServiceContainer;
 import org.openspaces.admin.gsm.GridServiceManager;
 import org.openspaces.admin.internal.gsa.InternalGridServiceAgent;
 import org.openspaces.admin.internal.support.NetworkExceptionHelper;
@@ -79,6 +80,10 @@ import com.gigaspaces.grid.gsa.GSA;
 import com.gigaspaces.internal.client.spaceproxy.ISpaceProxy;
 import com.gigaspaces.internal.utils.StringUtils;
 import com.j_spaces.kernel.Environment;
+import static org.cloudifysource.dsl.internal.CloudifyConstants.MANAGEMENT_SPACE_NAME;
+import static org.cloudifysource.dsl.internal.CloudifyConstants.MANAGEMENT_REST_SERVICE_NAME;
+import static org.cloudifysource.dsl.internal.CloudifyConstants.MANAGEMENT_WEBUI_SERVICE_NAME;
+import static org.cloudifysource.dsl.internal.CloudifyConstants.MANAGEMENT_SPACE_MEMORY_IN_MB;
 
 /**
  * @author rafi, barakm, adaml, noak
@@ -105,9 +110,9 @@ public class LocalhostGridAgentBootstrapper {
 	private static final int WAIT_AFTER_ADMIN_CLOSED_MILLIS = 10 * 1000;
 	private static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out waiting for the agent to start."
 			+ " Configure the timeout using the -timeout flag.";
+	private static final String CONTAINER_TIMEOUT_ERROR_MESSAGE = "The operation timed out waiting for the container to start."
+			+ " Configure the timeout using the -timeout flag.";
 	private static final String REST_FILE = "tools" + File.separator + "rest" + File.separator + "rest.war";
-
-	private static final String MANAGEMENT_SPACE_NAME = CloudifyConstants.MANAGEMENT_SPACE_NAME;
 
 	private static final String LINUX_SCRIPT_PREFIX = "#!/bin/bash\n";
 	private static final String MANAGEMENT_ZONE = "management";
@@ -995,7 +1000,8 @@ public class LocalhostGridAgentBootstrapper {
 					TimeUnit.MILLISECONDS);
 
 			if (isLocalCloud) {
-				startLocalCloudManagementServicesContainer(agent);
+				startLocalCloudManagementServicesContainerAndWait(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
+						TimeUnit.MILLISECONDS);
 			}
 
 			String cloudName = null;
@@ -1007,22 +1013,25 @@ public class LocalhostGridAgentBootstrapper {
 
 			connectionLogs.supressConnectionErrors();
 			try {
+				if (!isLocalCloud) {
+					// Cannot be elastic PU. Need to manually start the container.
+					// The ESM now depends on managementSpace for state backup, so it cannot also manage it.
+					startManagementSpaceContainerAndWait(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
+							TimeUnit.MILLISECONDS);
+				}
 				ManagementSpaceServiceInstaller managementSpaceInstaller = null;
 				if (!noManagementSpace) {
+					
 					final boolean highlyAvailable = !isLocalCloud && !notHighlyAvailableManagementSpace;
-					final String gscLrmiCommandLineArg = getGscLrmiCommandLineArg();
 					managementSpaceInstaller = new ManagementSpaceServiceInstaller();
 					managementSpaceInstaller.setAdmin(agent.getAdmin());
 					managementSpaceInstaller.setVerbose(verbose);
 					managementSpaceInstaller.setProgress(progressInSeconds, TimeUnit.SECONDS);
-					managementSpaceInstaller.setMemory(CloudifyConstants.MANAGEMENT_SPACE_MEMORY_IN_MB,
-							MemoryUnit.MEGABYTES);
 					managementSpaceInstaller.setServiceName(MANAGEMENT_SPACE_NAME);
 					managementSpaceInstaller.setManagementZone(MANAGEMENT_ZONE);
 					managementSpaceInstaller.setHighlyAvailable(highlyAvailable);
 					managementSpaceInstaller.addListeners(this.eventsListenersList);
 					managementSpaceInstaller.setIsLocalCloud(isLocalCloud);
-					managementSpaceInstaller.setLrmiCommandLineArgument(gscLrmiCommandLineArg);
 					managementSpaceInstaller.setCloudName(cloudName);
 
 					if (!this.isLocalCloud) {
@@ -1295,11 +1304,31 @@ public class LocalhostGridAgentBootstrapper {
 		return port;
 	}
 
-	private void startLocalCloudManagementServicesContainer(final GridServiceAgent agent) {
+	private void startLocalCloudManagementServicesContainerAndWait(final GridServiceAgent agent, long timeout, TimeUnit timeunit) throws TimeoutException {
 		final GridServiceContainerOptions options = new GridServiceContainerOptions().vmInputArgument(
 				"-Xmx" + CloudifyConstants.DEFAULT_LOCALCLOUD_REST_WEBUI_SPACE_MEMORY_IN_MB + "m").vmInputArgument(
-				"-Dcom.gs.zones=rest,cloudifyManagementSpace,webui");
-		agent.startGridServiceAndWait(options);
+				"-Xms" + CloudifyConstants.DEFAULT_LOCALCLOUD_REST_WEBUI_SPACE_MEMORY_IN_MB + "m").vmInputArgument(
+				"-Dcom.gs.zones="+MANAGEMENT_REST_SERVICE_NAME + "," + MANAGEMENT_WEBUI_SERVICE_NAME + "," + MANAGEMENT_SPACE_NAME);
+		final GridServiceContainer container = agent.startGridServiceAndWait(options, timeout, timeunit);
+		if (container == null) {
+			throw new TimeoutException(CONTAINER_TIMEOUT_ERROR_MESSAGE);
+		}
+	}
+	
+	private void startManagementSpaceContainerAndWait(final GridServiceAgent agent, long timeout, TimeUnit timeunit) throws TimeoutException {
+		final GridServiceContainerOptions options = new GridServiceContainerOptions().vmInputArgument(
+				"-Xmx" + MANAGEMENT_SPACE_MEMORY_IN_MB + "m").vmInputArgument(
+				"-Xms" + MANAGEMENT_SPACE_MEMORY_IN_MB + "m").vmInputArgument(
+				"-Dcom.gs.zones="+MANAGEMENT_SPACE_NAME);
+		final String gscLrmiCommandLineArg = getGscLrmiCommandLineArg();
+		if (!org.apache.commons.lang.StringUtils.isEmpty(gscLrmiCommandLineArg)) {
+			options.vmInputArgument(gscLrmiCommandLineArg);
+		}
+		
+		final GridServiceContainer container = agent.startGridServiceAndWait(options, timeout, timeunit);
+		if (container == null) {
+			throw new TimeoutException(CONTAINER_TIMEOUT_ERROR_MESSAGE);
+		}
 	}
 
 	private boolean fastExistingAgentCheck() {
