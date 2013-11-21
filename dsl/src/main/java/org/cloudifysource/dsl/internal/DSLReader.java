@@ -18,7 +18,6 @@ import groovy.lang.GroovyShell;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import groovy.util.ConfigObject;
-import groovy.util.ConfigSlurper;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -266,18 +265,21 @@ public class DSLReader {
 		if (file == null && script == null) {
 			return;
 		}
+		final GroovyPropertiesFileReader reader = new GroovyPropertiesFileReader();
+		ConfigObject parse = null;
+
 		if (file != null) {
 			try {
-				final ConfigObject parse = new ConfigSlurper().parse(file.toURI().toURL());
-				parse.flatten(overridesMap);
+				parse = (ConfigObject) reader.readPropertiesFile(file);
 			} catch (final Exception e) {
 				throw new IOException("Failed to read overrides file: " + file, e);
 			}
+		} else {
+			// must be a script
+			parse = (ConfigObject) reader.readPropertiesScript(script);
 		}
-		if (script != null) {
-			final ConfigObject parse = new ConfigSlurper().parse(script);
-			parse.flatten(overridesMap);
-		}
+
+		parse.flatten(overridesMap);
 	}
 
 	private Map<String, Object> createApplicationProperties() throws IOException {
@@ -473,6 +475,8 @@ public class DSLReader {
 				throw new IllegalArgumentException("Could not resolve DSL entry with name: " + e.getProperty(), e);
 			} catch (final DSLValidationRuntimeException e) {
 				throw e.getDSLValidationException();
+			} catch (final CompilationFailedException e) {
+				throw new IllegalArgumentException("Could not parse " + dslFile + ": " + e.getMessage(), e);
 			} finally {
 				if (sis != null) {
 					try {
@@ -568,20 +572,12 @@ public class DSLReader {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private LinkedHashMap<Object, Object> createDSLProperties()
 			throws IOException {
 
-		if (this.propertiesFile == null) {
-			return new LinkedHashMap<Object, Object>();
-		}
-
-		try {
-			final ConfigObject config = new ConfigSlurper().parse(propertiesFile.toURI().toURL());
-			return config;
-		} catch (final Exception e) {
-			throw new IOException("Failed to read properties file: " + propertiesFile, e);
-		}
+		final LinkedHashMap<Object, Object> result =
+				new GroovyPropertiesFileReader().readPropertiesFile(this.propertiesFile);
+		return result;
 
 	}
 
