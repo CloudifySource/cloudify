@@ -417,7 +417,7 @@ public class ByonDeployer {
 	 * @throws CloudProvisioningException
 	 *             Indicates the servers list could not be obtained for the given template name
 	 */
-	public Set<CustomNode> getAllNodesByTemplateName(final String templateName)
+	public synchronized Set<CustomNode> getAllNodesByTemplateName(final String templateName)
 			throws CloudProvisioningException {
 		final Set<CustomNode> allNodes = new HashSet<CustomNode>();
 
@@ -451,7 +451,7 @@ public class ByonDeployer {
 	 * @throws CloudProvisioningException
 	 *             Indicates the servers list could not be obtained for the given template name
 	 */
-	public Set<CustomNode> getFreeNodesByTemplateName(final String templateName)
+	public synchronized Set<CustomNode> getFreeNodesByTemplateName(final String templateName)
 			throws CloudProvisioningException {
 		final Set<CustomNode> allNodes = new HashSet<CustomNode>();
 
@@ -477,7 +477,7 @@ public class ByonDeployer {
 	 * @throws CloudProvisioningException
 	 *             Indicates the servers list could not be obtained for the given template name
 	 */
-	public Set<CustomNode> getAllocatedNodesByTemplateName(
+	public synchronized Set<CustomNode> getAllocatedNodesByTemplateName(
 			final String templateName) throws CloudProvisioningException {
 		final Set<CustomNode> allNodes = new HashSet<CustomNode>();
 
@@ -503,7 +503,7 @@ public class ByonDeployer {
 	 * @throws CloudProvisioningException
 	 *             Indicates the servers list could not be obtained for the given template name
 	 */
-	public Set<CustomNode> getInvalidNodesByTemplateName(
+	public synchronized Set<CustomNode> getInvalidNodesByTemplateName(
 			final String templateName) throws CloudProvisioningException {
 		final Set<CustomNode> allNodes = new HashSet<CustomNode>();
 
@@ -566,7 +566,7 @@ public class ByonDeployer {
 		// Do nothing
 	}
 
-	private List<CustomNode> getAllNodes() throws CloudProvisioningException {
+	private synchronized List<CustomNode> getAllNodes() throws CloudProvisioningException {
 		final List<CustomNode> allNodes = new ArrayList<CustomNode>();
 
 		for (final String templateName : nodesListsByTemplates.keySet()) {
@@ -669,13 +669,25 @@ public class ByonDeployer {
 		return totalList;
 	}
 
-	public List<String> getTemplatesList() {
+	/**
+	 * Gets a list of the templates being used.
+	 * @return a list of the templates being used
+	 */
+	public synchronized List<String> getTemplatesList() {
 		List<String> templatesList = new LinkedList<String>();
 		templatesList.addAll(nodesListsByTemplates.keySet());
 		return templatesList;
 	}
 
-	public void removeTemplates(List<String> redundantTemplates) throws CloudProvisioningException {
+	
+	/**
+	 * Removes templates that should not be used, as long as they are not already being used
+	 * (i.e. template's nodes are allocated) 
+	 * @param redundantTemplates The names of the template to be removed
+	 * @throws CloudProvisioningException Indicates one or more of the template's nodes are allocated, 
+	 * and so the template cannot be removed
+	 */
+	public synchronized void removeTemplates(final List<String> redundantTemplates) throws CloudProvisioningException {
 		for (String templateName : redundantTemplates) {
 			Map<String, List<CustomNode>> nodesMap = nodesListsByTemplates.get(templateName);
 			List<CustomNode> allocatedNodesList = nodesMap.get(NODES_LIST_ALLOCATED);
