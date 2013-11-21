@@ -39,6 +39,10 @@ public class CloudifyAuthorizationDetails implements AuthorizationDetails {
 	
 	private Logger logger = java.util.logging.Logger.getLogger(CloudifyAuthorizationDetails.class.getName());
 	
+	
+	public CloudifyAuthorizationDetails() {
+	}
+	
 	public CloudifyAuthorizationDetails(final Authentication authentication) {
 		init(authentication);
 	}
