@@ -10,44 +10,8 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  ******************************************************************************/
-package org.cloudifysource.esc.driver.provisioning.openstack.rest;
+package org.cloudifysource.esc.driver.provisioning.network.openstack;
 
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
-
-/**
- * @author victor
- * @since 2.7.0
+/**********************************
+ * Implementation of the Openstack network provisioning driver.
  */
-public class NovaServerNetwork {
-	private String uuid;
-	private String port;
-
-	public NovaServerNetwork() {
-	}
-
-	public NovaServerNetwork(final String uuid) {
-		this.uuid = uuid;
-	}
-
-	public String getUuid() {
-		return uuid;
-	}
-
-	public void setUuid(final String uuid) {
-		this.uuid = uuid;
-	}
-
-	public String getPort() {
-		return port;
-	}
-
-	public void setPort(final String port) {
-		this.port = port;
-	}
-
-	@Override
-	public String toString() {
-		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
-	}
-}
