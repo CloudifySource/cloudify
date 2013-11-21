@@ -460,19 +460,26 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 				managementIP = server.getPrivateIP();
 				break;
 			} catch (final Exception ex) {
+				logger.info("******** getExistingManagementServers failed to connect to byon node: " 
+						+ server.getPrivateIP() + " on port " + this.restPort + ". Reported error: " + ex.getMessage());
+				logger.info("******** This is OK if this is not a management machine, othewise this indicates a "
+						+ "communication " + "error");
+				ex.printStackTrace();
 				// the connection to the REST failed because this is not a
 				// management server, continue.
 			}
 		}
 
-		// If a management server was found - connect it and get all management
-		// machines
+		// If a management server was found - connect to it and get all management machines
 		if (StringUtils.isNotBlank(managementIP)) {
-			// TODO don't fly if timeout reached because expectedGsmCount wasn't
-			// reached
+			logger.info("******** found management machine: " + managementIP);
+			// TODO don't fly if timeout reached because expectedGsmCount wasn't reached
 			final Integer discoveryPort = getLusPort();
+			logger.info("******** Attempting to create admin with locator " + IPUtils.getSafeIpAddress(managementIP) 
+					+ ":" + discoveryPort);
 			final Admin admin = Utils.getAdminObject(managementIP, expectedGsmCount, discoveryPort);
 			try {
+				logger.info("******** trying to discover GSMs");
 				final GridServiceManagers gsms = admin.getGridServiceManagers();
 				// make sure a GSM is discovered
 				gsms.waitForAtLeastOne(MANAGEMENT_LOCATION_TIMEOUT, TimeUnit.SECONDS);
@@ -483,6 +490,9 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 						existingManagementServers.add(managementServer);
 					}
 				}
+			} catch (Exception e) {
+				logger.info("******** Exception thrown while trying to discover GSMs, reported error: " 
+						+ e.getMessage());
 			} finally {
 				admin.close();
 			}
