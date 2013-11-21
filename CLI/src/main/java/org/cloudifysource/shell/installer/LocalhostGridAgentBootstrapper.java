@@ -995,12 +995,19 @@ public class LocalhostGridAgentBootstrapper {
 				connectionLogs.restoreConnectionErrors();
 			}
 
-			// waiting for LUS, GSM and ESM services to start
-			waitForManagementProcesses(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
+			// waiting for LUS, GSM services to start
+			waitForGsmLus(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
 					TimeUnit.MILLISECONDS);
 
 			if (isLocalCloud) {
+				// container for cloudifyManagementSpace, webui, rest
 				startLocalCloudManagementServicesContainerAndWait(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
+						TimeUnit.MILLISECONDS);
+			}
+			else {
+				// container for cloudifyManagementSpace
+				// cloudifyManagementSpace cannot be elastic PU since the ESM now depends on managementSpace for state backup.
+				startManagementSpaceContainerAndWait(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
 						TimeUnit.MILLISECONDS);
 			}
 
@@ -1013,12 +1020,6 @@ public class LocalhostGridAgentBootstrapper {
 
 			connectionLogs.supressConnectionErrors();
 			try {
-				if (!isLocalCloud) {
-					// Cannot be elastic PU. Need to manually start the container.
-					// The ESM now depends on managementSpace for state backup, so it cannot also manage it.
-					startManagementSpaceContainerAndWait(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
-							TimeUnit.MILLISECONDS);
-				}
 				ManagementSpaceServiceInstaller managementSpaceInstaller = null;
 				if (!noManagementSpace) {
 					
@@ -1051,7 +1052,11 @@ public class LocalhostGridAgentBootstrapper {
 						}
 					}
 				}
-
+				
+				//wait for ESM we didn't wait before
+				waitForEsm(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
+						TimeUnit.MILLISECONDS);
+				
 				if (!noWebServices) {
 					installWebServices(username, password, isLocalCloud,
 							ShellUtils.isSecureConnection(securityProfile), agent, managementServicesInstallers,
@@ -1131,10 +1136,10 @@ public class LocalhostGridAgentBootstrapper {
 			}
 
 			try {
-				// wait for LUS, GSM and ESM components to start
+				// wait for LUS, GSM and ESM are running
 				logger.fine("Attempting to find the running management componenets (LUS, GSM and ESM)...");
-				waitForManagementProcesses(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
-						TimeUnit.MILLISECONDS);
+				waitForGsmLus(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
+				waitForEsm(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
 				logger.fine("OK, LUS, GSM and ESM are up and running.");
 			} catch (final Exception e) {
 				// LUS, GSM or ESM not found
@@ -1430,7 +1435,17 @@ public class LocalhostGridAgentBootstrapper {
 		}
 	}
 
-	private void waitForManagementProcesses(final GridServiceAgent agent, final long timeout, final TimeUnit timeunit)
+	private void waitForGsmLus(final GridServiceAgent agent, final long timeout, final TimeUnit timeunit)
+			throws TimeoutException, InterruptedException, CLIException {
+		waitForManagementProcesses(agent, true, true, false, timeout, timeunit);
+	}
+	
+	private void waitForEsm(final GridServiceAgent agent, final long timeout, final TimeUnit timeunit)
+			throws TimeoutException, InterruptedException, CLIException {
+		waitForManagementProcesses(agent, false, false, true, timeout, timeunit);
+	}
+	
+	private void waitForManagementProcesses(final GridServiceAgent agent, final boolean waitForLus, final boolean waitForGsm, final boolean waitForEsm, final long timeout, final TimeUnit timeunit)
 			throws TimeoutException, InterruptedException, CLIException {
 
 		final Admin admin = agent.getAdmin();
@@ -1445,7 +1460,7 @@ public class LocalhostGridAgentBootstrapper {
 
 				boolean isDone = true;
 
-				if (!isDone(admin.getLookupServices(), "LUS")) {
+				if (waitForLus && !isDone(admin.getLookupServices(), "LUS")) {
 					if (verbose) {
 						logger.fine("Waiting for Lookup Service");
 						publishEvent("Waiting for Lookup Service");
@@ -1453,7 +1468,7 @@ public class LocalhostGridAgentBootstrapper {
 					isDone = false;
 				}
 
-				if (!isDone(admin.getGridServiceManagers(), "GSM")) {
+				if (waitForGsm && !isDone(admin.getGridServiceManagers(), "GSM")) {
 					if (verbose) {
 						logger.fine("Waiting for Grid Service Manager");
 						publishEvent("Waiting for Grid Service Manager");
@@ -1461,7 +1476,7 @@ public class LocalhostGridAgentBootstrapper {
 					isDone = false;
 				}
 
-				if (admin.getElasticServiceManagers().isEmpty()) {
+				if (waitForEsm && admin.getElasticServiceManagers().isEmpty()) {
 					if (verbose) {
 						logger.fine("Waiting for Elastic Service Manager");
 						publishEvent("Waiting for Elastic Service Manager");
