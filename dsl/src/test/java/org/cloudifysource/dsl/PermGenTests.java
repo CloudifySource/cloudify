@@ -14,15 +14,21 @@ import groovy.lang.Script;
 import groovy.util.ConfigObject;
 import groovy.util.ConfigSlurper;
 
-import org.cloudifysource.domain.Service;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.DSLReader;
 import org.cloudifysource.dsl.internal.DSLUtils;
 import org.codehaus.groovy.control.CompilationFailedException;
+import org.junit.Ignore;
 import org.junit.Test;
 
+/*********
+ * long running tests for permgen research around Groovy ConfigSlurper. They are disabled as they take a long time to run.
+ * @author barakme
+ *
+ */
 public class PermGenTests {
 
+	@Ignore
 	@Test
 	public void testConfigSlurperPermGen() throws CompilationFailedException, InstantiationException, IllegalAccessException {
 		for (int i = 0; i < 50000; i++) {
@@ -37,6 +43,8 @@ public class PermGenTests {
 		}
 	}
 	
+	
+	@Ignore
 	@Test
 	public void testConfigSlurperPermGenFromFile() throws CompilationFailedException, InstantiationException, IllegalAccessException, IOException {
 		final File permgenFile = new File("src/test/resources/permgen/permgen.properties");
@@ -52,6 +60,7 @@ public class PermGenTests {
 	}
 	
 	
+	@Ignore
 	@Test
 	public void testConfigSlurperFromDSLReader() throws MalformedURLException {
 		
@@ -62,6 +71,7 @@ public class PermGenTests {
 		
 	}
 	
+	@Ignore
 	@Test
 	public void testDNSApplicationWithExternalProperties() throws MalformedURLException, DSLException, InterruptedException {
 		final File propertiesFile = new File("src/test/resources/permgen/dns-application/dns-application.properties");
