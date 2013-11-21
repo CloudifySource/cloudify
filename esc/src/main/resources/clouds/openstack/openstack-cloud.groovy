@@ -11,13 +11,12 @@ cloud {
 	configuration {
 		// Optional. The cloud implementation class. Defaults to the build in jclouds-based provisioning driver.
 		className "org.cloudifysource.esc.driver.provisioning.openstack.OpenStackCloudifyDriver"
+		networkDriverClassName "org.cloudifysource.esc.driver.provisioning.network.openstack.OpenstackNetworkDriver"
+		
 		// Optional. The template name for the management machines. Defaults to the first template in the templates section below.
-		managementMachineTemplate "SMALL_LINUX"
+		managementMachineTemplate "MEDIUM_LINUX"
 		// Optional. Indicates whether internal cluster communications should use the machine private IP. Defaults to true.
 		connectToPrivateIp true
-		
-		// Optional. Path to folder where management state will be written. Null indicates state will not be written.
-		persistentStoragePath persistencePath
 	}
 
 	/*************
@@ -35,14 +34,12 @@ cloud {
 		// different HTTP server instead.
 		// IMPORTANT: the default linux bootstrap script appends '.tar.gz' to the url whereas the default windows script appends '.zip'.
 		// Therefore, if setting a custom URL, make sure to leave out the suffix.
-		cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.7.0-5988-M5/gigaspaces-cloudify-2.7.0-m5-b5988"
-
+		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.7.0-SNAPSHOT/gigaspaces-cloudify-2.7.0-m7-b5991-141"
 
 		// Mandatory. The prefix for new machines started for servies.
 		machineNamePrefix "cloudify-agent-"
 		// Optional. Defaults to true. Specifies whether cloudify should try to deploy services on the management machine.
 		// Do not change this unless you know EXACTLY what you are doing.
-
 
 		//
 		managementOnlyFiles ([])
@@ -54,7 +51,6 @@ cloud {
 		managementGroup "cloudify-manager-"
 		// Mandatory. Number of management machines to start on bootstrap-cloud. In production, should be 2. Can be 1 for dev.
 		numberOfManagementMachines 1
-
 
 		reservedMemoryCapacityPerMachineInMB 1024
 
@@ -96,7 +92,7 @@ cloud {
 					}
 				])
 				
-				custom ([ "application.network.custom.setting" : "Some other value" ])
+				custom ([ "associateFloatingIpOnBootstrap" : "true" ])
 			}
 		}
 
@@ -109,7 +105,7 @@ cloud {
 					subnet {
 						name "Cloudify-Application-Subnet"
 						range "160.0.0.0/24"
-						options { gateway "160.0.0.1" }
+						options { gateway "null" }
 					}
 					subnet {
 						range "160.1.0.0/24"
@@ -117,7 +113,7 @@ cloud {
 					}
 				}
 
-				custom ([ "application.network.custom.setting" : "Some other value" ])
+				custom ([ "associateFloatingIpOnBootstrap" : "true" ])
 			}
 		])
 
@@ -130,11 +126,11 @@ cloud {
 		 * Cloud machine templates available with this cloud.
 		 */
 		templates ([
-					SMALL_LINUX : computeTemplate{
+					MEDIUM_LINUX : computeTemplate{
 						// Mandatory. Image ID.
-						imageId linuxImageId
+						imageId imageId
 						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
-						remoteDirectory "/home/nour/gs-files"
+						remoteDirectory remoteDirectory
 						// Mandatory. Amount of RAM available to machine.
 						machineMemoryMB 1600
 						// Mandatory. Hardware ID.
@@ -146,7 +142,6 @@ cloud {
 						keyFile keyFile
 						// file transfer protocol
 						fileTransfer org.cloudifysource.domain.cloud.FileTransferModes.SCP
-						// javaUrl "NO_INSTALL"
 	
 						username "root"
 						// Additional template options.
@@ -171,7 +166,7 @@ cloud {
 	
 						// optional. A native command line to be executed before the cloudify agent is started.
 						// initializationCommand "echo Cloudify agent is about to start"
-					}	
+					}
 				])
 	
 	}

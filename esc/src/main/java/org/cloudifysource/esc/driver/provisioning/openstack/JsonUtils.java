@@ -220,7 +220,7 @@ public final class JsonUtils {
 			}
 			mapper.setSerializationInclusion(Inclusion.NON_EMPTY);
 			mapper.configure(SerializationConfig.Feature.WRAP_ROOT_VALUE, true);
-			mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
+			// mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
 			mapper.configure(SerializationConfig.Feature.AUTO_DETECT_FIELDS, true);
 			mapper.setVisibilityChecker(mapper.getSerializationConfig().getDefaultVisibilityChecker()
 					.withFieldVisibility(JsonAutoDetect.Visibility.ANY)

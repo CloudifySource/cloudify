@@ -25,67 +25,62 @@ import org.cloudifysource.esc.driver.provisioning.openstack.rest.RouterInterface
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.SecurityGroup;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.SecurityGroupRule;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Subnet;
+import org.springframework.util.StringUtils;
 
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 
 /**
- * A client for Openstack Quantum.
+ * A client for Openstack Network API.
  * 
  * @author victor
  * @since 2.7.0
  * 
  */
-public class OpenStackQuantumClient extends OpenStackBaseClient {
+public class OpenStackNetworkClient extends OpenStackBaseClient {
 
-	private static final Logger logger = Logger.getLogger(OpenStackQuantumClient.class.getName());
+	private static final Logger logger = Logger.getLogger(OpenStackNetworkClient.class.getName());
 
 	private static final byte[] MUTEX_CREATE_SECURITY_GROUPS = new byte[0];
 	private static final byte[] MUTEX_CREATE_NETWORK = new byte[0];
 
-	private String quantumVersion;
+	private final String serviceName;
+	private final String networkApiVersion;
 
-	public OpenStackQuantumClient(final String endpoint, final String username, final String password,
-			final String tenant, final String region, final String quantumVersion)
+	public OpenStackNetworkClient(final String endpoint, final String username, final String password,
+			final String tenant, final String region)
+			throws OpenstackJsonSerializationException {
+		this(endpoint, username, password, tenant, region, null, null);
+	}
+
+	public OpenStackNetworkClient(final String endpoint, final String username, final String password,
+			final String tenant, final String region, final String serviceName)
+			throws OpenstackJsonSerializationException {
+		this(endpoint, username, password, tenant, region, serviceName, null);
+	}
+
+	public OpenStackNetworkClient(final String endpoint, final String username, final String password,
+			final String tenant, final String region, final String serviceName, final String networkApiVersion)
 			throws OpenstackJsonSerializationException {
 		super(endpoint, username, password, tenant, region);
-		this.quantumVersion = quantumVersion;
-		logger.info("Openstack quantum version: " + this.quantumVersion);
+		this.serviceName = StringUtils.isEmpty(serviceName) ? "neutron" : serviceName;
+		this.networkApiVersion = StringUtils.isEmpty(networkApiVersion) ? "v2.0" : networkApiVersion;
+		logger.info("Openstack " + this.serviceName + " api version: " + this.networkApiVersion);
+		this.initToken();
 	}
 
 	@Override
 	protected WebResource getWebResource() throws OpenstackException {
 		WebResource webResource = super.getWebResource();
-		if (this.quantumVersion != null) {
-			webResource = webResource.path(this.quantumVersion);
+		if (this.networkApiVersion != null) {
+			webResource = webResource.path(this.networkApiVersion);
 		}
 		return webResource;
 	}
 
 	@Override
 	protected String getServiceName() {
-		return "quantum";
-	}
-
-	/**
-	 * Retrieve the floating ip address associated with a fixed ip address.
-	 * 
-	 * @param fixedIpAddress
-	 *            The fixed ip address.
-	 * @return The associated floating ip address or <code>null</code> if no floating ip attached.
-	 * @throws OpenstackException
-	 *             Thrown when something went wrong with the request.
-	 */
-	public String getFloatingIpByFixedIpAddress(final String fixedIpAddress) throws OpenstackException {
-
-		final String response = this.doGet("floatingips",
-				new String[] { "fixed_ip_address", fixedIpAddress });
-
-		final List<FloatingIp> floatingips = JsonUtils.unwrapRootToList(FloatingIp.class, response);
-		if (floatingips != null && !floatingips.isEmpty()) {
-			return floatingips.get(0).getFloatingIpAddress();
-		}
-		return null;
+		return this.serviceName;
 	}
 
 	/**
@@ -97,14 +92,111 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 * @throws OpenstackException
 	 *             Thrown when something went wrong with the request.
 	 */
-	public String getFloatingIpByPortId(final String portId) throws OpenstackException {
+	public FloatingIp getFloatingIpByPortId(final String portId) throws OpenstackException {
 		final String response = this.doGet("floatingips", new String[] { "port_id", portId });
 
 		final List<FloatingIp> floatingips = JsonUtils.unwrapRootToList(FloatingIp.class, response);
 		if (floatingips != null && !floatingips.isEmpty()) {
-			return floatingips.get(0).getFloatingIpAddress();
+			return floatingips.get(0);
 		}
 		return null;
+	}
+
+	/**
+	 * Retrieve floating ip by its ip address.
+	 * 
+	 * @param floatingIp
+	 *            The ip address of the floating ip.
+	 * @return The floating ip object.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
+	 */
+	public FloatingIp getFloatingIpByIp(final String floatingIp) throws OpenstackException {
+		final String response = this.doGet("floatingips", new String[] { "floating_ip_address", floatingIp });
+
+		final List<FloatingIp> floatingips = JsonUtils.unwrapRootToList(FloatingIp.class, response);
+		if (floatingips != null && !floatingips.isEmpty()) {
+			return floatingips.get(0);
+		}
+		return null;
+	}
+
+	/**
+	 * Allocation a floating ip for a network.
+	 * 
+	 * @param extNetworkName
+	 *            The network name.
+	 * @return The allocated floating ip.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
+	 */
+	public FloatingIp allocateFloatingIp(final String extNetworkName) throws OpenstackException {
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Allocate floatingIp from network=" + extNetworkName);
+		}
+		final Network extNetwork = this.getNetworkByName(extNetworkName);
+		if (extNetwork == null) {
+			throw new OpenstackException("External network not found: " + extNetworkName);
+		}
+		final String input = String.format("{\"floatingip\":{\"floating_network_id\":\"%s\"}}", extNetwork.getId());
+		final String response = doPost("floatingips", input);
+		final FloatingIp floatingIp = JsonUtils.unwrapRootToObject(FloatingIp.class, response);
+		return floatingIp;
+	}
+
+	/**
+	 * Release a floating ip to free a slot in the pool.
+	 * 
+	 * @param floatingIpId
+	 *            The id of the floating ip to free.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
+	 */
+	public void releaseFloatingIp(final String floatingIpId) throws OpenstackException {
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Release floatingIp=" + floatingIpId);
+		}
+		this.doDelete("floatingips/" + floatingIpId, CODE_OK_204);
+	}
+
+	/**
+	 * Assign a floating ip to a port.
+	 * 
+	 * @param floatingId
+	 *            The floating ip to assign.
+	 * @param portId
+	 *            The port.
+	 * @return The updated floating ip object.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
+	 */
+	public FloatingIp assignFloatingIp(final String floatingId, final String portId) throws OpenstackException {
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Assign floating ip for floatingId=" + floatingId + " to portId=" + portId);
+		}
+		final String input = String.format("{\"floatingip\":{\"port_id\":\"%s\"}}", portId);
+		final String response = this.doPut("floatingips/" + floatingId, input);
+		final FloatingIp floatingIp = JsonUtils.unwrapRootToObject(FloatingIp.class, response);
+		return floatingIp;
+	}
+
+	/**
+	 * Unassign a floating ip.
+	 * 
+	 * @param floatingId
+	 *            The id of the floating ip to unsassign.
+	 * @return The updated floating ip object.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
+	 */
+	public FloatingIp unassignFloatingIp(final String floatingId) throws OpenstackException {
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Unassign floating ip for floatingId=" + floatingId);
+		}
+		final String input = String.format("{\"floatingip\":{\"port_id\":null}}");
+		final String response = this.doPut("floatingips/" + floatingId, input);
+		final FloatingIp floatingIp = JsonUtils.unwrapRootToObject(FloatingIp.class, response);
+		return floatingIp;
 	}
 
 	/**
@@ -120,6 +212,9 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 */
 	public String createAndAssociateFloatingIp(final String deviceId, final String networkId)
 			throws OpenstackException {
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Create and associate floating ip for devideId=" + deviceId + "/networkId=" + networkId);
+		}
 		if (networkId == null) {
 			throw new OpenstackException("Public network not found for deviceId=" + deviceId);
 		}
@@ -133,17 +228,7 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 		try {
 			final String input = String.format("{\"floatingip\":{\"floating_network_id\":\"%s\",\"port_id\":\"%s\"}}",
 					floatingNetworkId, port.getId());
-
-			if (logger.isLoggable(Level.FINER)) {
-				logger.finer("Requesting creation and association request=" + input);
-			}
-
 			final String response = this.doPost("floatingips", input);
-
-			if (logger.isLoggable(Level.FINER)) {
-				logger.finer("Response creation and association response=" + response);
-			}
-
 			final FloatingIp floatingIp = JsonUtils.unwrapRootToObject(FloatingIp.class, response);
 			return floatingIp.getFloatingIpAddress();
 		} catch (final UniformInterfaceException e) {
@@ -165,6 +250,9 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 *             Thrown if something went wrong with the request.
 	 */
 	public RouterInterface addRouterInterface(final String routerId, final String subnetId) throws OpenstackException {
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Add interface subnetId=" + subnetId + " from routerId=" + routerId);
+		}
 		final String path = "routers/" + routerId + "/add_router_interface";
 		final String input = "{\"subnet_id\":\"" + subnetId + "\"}";
 		final String response = this.doPut(path, input);
@@ -183,6 +271,9 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 *             Thrown if something went wrong with the request.
 	 */
 	public void deleteRouterInterface(final String routerId, final String subnetId) throws OpenstackException {
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Remove interface subnetId=" + subnetId + " from routerId=" + routerId);
+		}
 		final String path = "routers/" + routerId + "/remove_router_interface";
 		final String input = "{\"subnet_id\":\"" + subnetId + "\"}";
 		this.doPut(path, input);
@@ -198,6 +289,9 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 *             Thrown if something went wrong with the request.
 	 */
 	public Router createRouter(final Router request) throws OpenstackException {
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Create router=" + request);
+		}
 		final String jsonRequest = JsonUtils.toJson(request);
 		final String response = this.doPost("routers", jsonRequest);
 		final Router router = JsonUtils.unwrapRootToObject(Router.class, response);
@@ -213,16 +307,10 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 *             Thrown if something went wrong with the request.
 	 */
 	public void deleteRouter(final String routerId) throws OpenstackException {
-		if (logger.isLoggable(Level.FINEST)) {
-			logger.finest("Deleting router with id=" + routerId);
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Delete routerId=" + routerId);
 		}
-
 		this.doDelete("routers/" + routerId, CODE_OK_204);
-
-		if (logger.isLoggable(Level.FINER)) {
-			logger.finer("Deleted router with id=" + routerId);
-		}
-
 	}
 
 	/**
@@ -265,6 +353,9 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 				return null;
 			}
 
+			if (logger.isLoggable(Level.FINE)) {
+				logger.fine("Create network=" + request);
+			}
 			final String json = JsonUtils.toJson(request);
 			final String response = this.doPost("networks", json);
 			final Network network = JsonUtils.unwrapRootToObject(Network.class, response);
@@ -281,16 +372,10 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 *             Thrown if something went wrong with the request.
 	 */
 	public void deleteNetwork(final String networkId) throws OpenstackException {
-		if (logger.isLoggable(Level.FINEST)) {
-			logger.finest("Deleting network with id=" + networkId);
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Delete networkId=" + networkId);
 		}
-
 		this.doDelete("networks/" + networkId, CODE_OK_204);
-
-		if (logger.isLoggable(Level.FINER)) {
-			logger.finer("Deleted network with id=" + networkId);
-		}
-
 	}
 
 	/**
@@ -302,6 +387,9 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 *             Thrown if something went wrong with the request.
 	 */
 	public void deleteNetworkByName(final String networkName) throws OpenstackException {
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Delete network=" + networkName);
+		}
 		final Network network = this.getNetworkByName(networkName);
 		if (network != null) {
 			this.deleteNetwork(network.getId());
@@ -331,16 +419,8 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 *             Thrown when something went wrong with the request.
 	 */
 	public List<Network> getPublicNetwork() throws OpenstackException {
-		if (logger.isLoggable(Level.FINE)) {
-			logger.fine("Requesting networks list");
-		}
-
 		final String response = this.doGet("networks", new String[] { "router:external", "true" });
 		final List<Network> networks = JsonUtils.unwrapRootToList(Network.class, response);
-
-		if (logger.isLoggable(Level.FINE)) {
-			logger.fine("Response for networks list: " + networks);
-		}
 		return networks;
 	}
 
@@ -354,9 +434,6 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 *             Thrown if something went wrong with the request.
 	 */
 	public Network getNetworkByName(final String networkName) throws OpenstackException {
-		if (logger.isLoggable(Level.FINE)) {
-			logger.fine("Requesting networks list");
-		}
 		final String response = this.doGet("networks", new String[] { "name", networkName });
 		final List<Network> networks = JsonUtils.unwrapRootToList(Network.class, response);
 		if (networks != null) {
@@ -380,9 +457,6 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 *             Thrown if something went wrong with the request.
 	 */
 	public List<Network> getNetworkByPrefix(final String prefix) throws OpenstackException {
-		if (logger.isLoggable(Level.FINE)) {
-			logger.fine("Requesting networks by prefix");
-		}
 		final String response = this.doGet("networks");
 		final List<Network> list = JsonUtils.unwrapRootToList(Network.class, response);
 		final List<Network> networksToReturn = new ArrayList<Network>();
@@ -417,6 +491,41 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	}
 
 	/**
+	 * Retrieve all ports attached to a server.
+	 * 
+	 * @param serverId
+	 *            The server to request.
+	 * @return The list ports attached to the server.
+	 * @throws OpenstackException
+	 *             Thrown if something went wrong with the request.
+	 */
+	public List<Port> getPortsByServerId(final String serverId) throws OpenstackException {
+		final String[] params = new String[] { "device_id", serverId };
+		final String response = this.doGet("ports", params);
+		final List<Port> ports = JsonUtils.unwrapRootToList(Port.class, response);
+		return ports;
+	}
+
+	/**
+	 * Create a port.
+	 * 
+	 * @param request
+	 *            The request.
+	 * @return The created port.
+	 * @throws OpenstackException
+	 *             Thrown if something went wrong with the request.
+	 */
+	public Port createPort(final Port request) throws OpenstackException {
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Create port=" + request);
+		}
+		final String jsonRequest = JsonUtils.toJson(request);
+		final String response = this.doPost("ports", jsonRequest);
+		final Port port = JsonUtils.unwrapRootToObject(Port.class, response);
+		return port;
+	}
+
+	/**
 	 * Update a port (to add security groups for instance).
 	 * 
 	 * @param request
@@ -427,6 +536,9 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 */
 	public Port updatePort(final Port request) throws OpenstackException {
 		final String portId = request.getId();
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Update portId=" + portId);
+		}
 		try {
 			// TODO Should handle the request properly without changing the request object.
 			request.setId(null);
@@ -440,6 +552,21 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	}
 
 	/**
+	 * Delete a port.
+	 * 
+	 * @param portId
+	 *            The id of the port to delete.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
+	 */
+	public void deletePort(final String portId) throws OpenstackException {
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Delete portId=" + portId);
+		}
+		this.doDelete("ports/" + portId, CODE_OK_204);
+	}
+
+	/**
 	 * Disassociate and release a floating ip which was mapped to a fixed ip address.
 	 * 
 	 * @param fixedIp
@@ -448,6 +575,9 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 *             Thrown when something went wrong with the request.
 	 */
 	public void deleteFloatingIPByFixedIp(final String fixedIp) throws OpenstackException {
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Delete floatingIp associated to fixedIp=" + fixedIp);
+		}
 		final String response = this.doGet("floatingips",
 				new String[] { "fixed_ip_address", fixedIp });
 		final List<FloatingIp> floatingIPs = JsonUtils.unwrapRootToList(FloatingIp.class, response);
@@ -470,12 +600,9 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 */
 	public void deleteFloatingIP(final String floatingIPId) throws OpenstackException {
 		if (logger.isLoggable(Level.FINE)) {
-			logger.fine("Deleting floating id=" + floatingIPId);
+			logger.fine("Delete floatingIp=" + floatingIPId);
 		}
 		this.doDelete("floatingips/" + floatingIPId, CODE_OK_204);
-		if (logger.isLoggable(Level.FINER)) {
-			logger.finer("Deleted floating id=" + floatingIPId);
-		}
 	}
 
 	/**
@@ -533,7 +660,7 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 *             Thrown when something went wrong with the request.
 	 */
 	public SecurityGroup getSecurityGroupsById(final String securityGroupId) throws OpenstackException {
-		final String response = this.doGet("security-groups", new String[] { "id", securityGroupId });
+		final String response = this.doGet("security-groups/" + securityGroupId);
 		final SecurityGroup securityGroup = JsonUtils.unwrapRootToObject(SecurityGroup.class, response);
 		return securityGroup;
 	}
@@ -557,7 +684,9 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 					logger.info("Security group '" + request.getName() + "' already exists.");
 					return null;
 				}
-				logger.info("Create security group : " + request.getName());
+				if (logger.isLoggable(Level.FINE)) {
+					logger.fine("Create security group : " + request.getName());
+				}
 				final String response = this.doPost("security-groups", jsonRequest);
 				final SecurityGroup created = JsonUtils.unwrapRootToObject(SecurityGroup.class, response);
 				return created;
@@ -576,13 +705,7 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 *             Thrown when something went wrong with the request.
 	 */
 	public void deleteSecurityGroup(final String securityGroupId) throws OpenstackException {
-		if (logger.isLoggable(Level.FINEST)) {
-			logger.finest("Deleting security group id=" + securityGroupId);
-		}
 		this.doDelete("security-groups/" + securityGroupId, CODE_OK_204);
-		if (logger.isLoggable(Level.FINER)) {
-			logger.finer("Deleted security group id=" + securityGroupId);
-		}
 	}
 
 	/**
@@ -595,8 +718,8 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 *             Thrown when something went wrong with the request.
 	 */
 	public SecurityGroupRule createSecurityGroupRule(final SecurityGroupRule request) throws OpenstackException {
-		if (logger.isLoggable(Level.FINEST)) {
-			logger.finest("Create security group rule " + request);
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Create securityGroupRule=" + request);
 		}
 		final String jsonRequest = JsonUtils.toJson(request);
 		String response = null;
@@ -623,14 +746,7 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 *             Thrown if something went wrong with the request.
 	 */
 	public void deleteSecurityGroupRule(final String securityGroupRuleId) throws OpenstackException {
-		if (logger.isLoggable(Level.FINEST)) {
-			logger.finest("Deleting security group rule id=" + securityGroupRuleId);
-		}
 		this.doDelete("security-group-rules/" + securityGroupRuleId, CODE_OK_204);
-		if (logger.isLoggable(Level.FINER)) {
-			logger.finer("Deleted security group id=" + securityGroupRuleId);
-		}
-
 	}
 
 	/**
@@ -643,6 +759,9 @@ public class OpenStackQuantumClient extends OpenStackBaseClient {
 	 *             Thrown if something went wrong with the request.
 	 */
 	public Subnet createSubnet(final Subnet request) throws OpenstackException {
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Create subnet=" + request);
+		}
 		String jsonRequest = JsonUtils.toJson(request);
 		// When getwayIp="null" this means that Openstack should not automatically assign a gateway to the subnet.
 		jsonRequest = jsonRequest.replaceAll("\"gateway_ip\"\\s*:\\s*\"null\"", "\"gateway_ip\" : null");

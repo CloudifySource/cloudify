@@ -27,7 +27,6 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 
-
 /**
  * A base class for openstack clients.<br />
  * It handle tokens.
@@ -66,7 +65,6 @@ public abstract class OpenStackBaseClient {
 		this.password = password;
 		this.tenant = tenant;
 		this.region = region;
-		this.initToken();
 	}
 
 	/**
@@ -109,7 +107,13 @@ public abstract class OpenStackBaseClient {
 		return current > tokenExpires;
 	}
 
-	private void initToken() throws OpenstackJsonSerializationException {
+	/**
+	 * Initialize Openstack token.
+	 * 
+	 * @throws OpenstackJsonSerializationException
+	 *             A problem occurs when requesting Openstack server.
+	 */
+	protected void initToken() throws OpenstackJsonSerializationException {
 		final Client client = Client.create();
 		try {
 			logger.info("Request openstack " + this.getServiceName() + " new token.");
@@ -199,15 +203,25 @@ public abstract class OpenStackBaseClient {
 			}
 			WebResource webResource = this.getWebResource();
 			webResource = webResource.path(path);
+
 			if (params != null) {
 				for (int i = 0; i < params.length - 1; i += 2) {
 					webResource = webResource.queryParam(params[i], params[i + 1]);
 				}
 			}
+
+			if (logger.isLoggable(Level.FINER)) {
+				logger.finer("GET '" + webResource + "'");
+			}
+
 			final String response = webResource.type(MediaType.APPLICATION_JSON_TYPE)
 					.accept(MediaType.APPLICATION_JSON)
 					.header("X-Auth-Token", this.getTokenId())
 					.get(String.class);
+
+			if (logger.isLoggable(Level.FINEST)) {
+				logger.finest("GET '" + webResource + "' got response: " + response);
+			}
 			return response;
 		} catch (final UniformInterfaceException e) {
 			throw this.createOpenstackServerException(e);
@@ -240,17 +254,25 @@ public abstract class OpenStackBaseClient {
 	protected void doDelete(final String path, final int expectedStatus) throws OpenstackException {
 		try {
 			final WebResource webResource = this.getWebResource();
+
+			if (logger.isLoggable(Level.FINER)) {
+				logger.finer("DELETE request: '" + webResource + "'");
+			}
+
 			final ClientResponse response = webResource.path(path)
 					.type(MediaType.APPLICATION_JSON_TYPE)
 					.accept(MediaType.APPLICATION_JSON)
 					.header("X-Auth-Token", this.getTokenId())
 					.delete(ClientResponse.class);
 
+			if (logger.isLoggable(Level.FINEST)) {
+				logger.finest("DELETE '" + webResource + "' got response status: " + response.getStatus());
+			}
+
 			if (expectedStatus != response.getStatus()) {
 				final String entity = response.getEntity(String.class);
 				throw new OpenstackServerException(expectedStatus, response.getStatus(), entity);
 			}
-
 		} catch (final UniformInterfaceException e) {
 			throw this.createOpenstackServerException(e);
 		}
@@ -269,11 +291,22 @@ public abstract class OpenStackBaseClient {
 	 */
 	protected String doPost(final String path, final String input) throws OpenstackException {
 		try {
-			final String response = this.getWebResource().path(path)
-					.type(MediaType.APPLICATION_JSON_TYPE)
+			final WebResource webResource = this.getWebResource().path(path);
+
+			if (logger.isLoggable(Level.FINER)) {
+				logger.finer("POST '" + webResource + "' with body: '" + input + "'");
+			}
+
+			final String response = webResource.type(MediaType.APPLICATION_JSON_TYPE)
 					.accept(MediaType.APPLICATION_JSON)
 					.header("X-Auth-Token", this.getTokenId())
 					.post(String.class, input);
+
+			if (logger.isLoggable(Level.FINEST)) {
+				logger.finest("POST '" + webResource + "' with body: '" + input + "' got response: "
+						+ response);
+			}
+
 			return response;
 		} catch (final UniformInterfaceException e) {
 			throw this.createOpenstackServerException(e);
@@ -293,11 +326,23 @@ public abstract class OpenStackBaseClient {
 	 */
 	protected String doPut(final String path, final String input) throws OpenstackException {
 		try {
-			final String response = this.getWebResource().path(path)
+			final WebResource webResource = this.getWebResource().path(path);
+
+			if (logger.isLoggable(Level.FINER)) {
+				logger.finer("PUT '" + webResource + "' with body: '" + input + "'");
+			}
+
+			final String response = webResource
 					.type(MediaType.APPLICATION_JSON_TYPE)
 					.accept(MediaType.APPLICATION_JSON)
 					.header("X-Auth-Token", this.getTokenId())
 					.put(String.class, input);
+
+			if (logger.isLoggable(Level.FINEST)) {
+				logger.finest("PUT '" + webResource + "' with body: '" + input + "' got response: "
+						+ response);
+			}
+
 			return response;
 		} catch (final UniformInterfaceException e) {
 			throw this.createOpenstackServerException(e);

@@ -33,9 +33,13 @@ public class Subnet {
 	private String networkId;
 	private String tenantId;
 	private String ipVersion;
+	private String cidr;
+
+	// Don't ignore this gatewayIp field to be able to have a null value on the request.
+	// When a null value is set, Openstack API don't set the gateway to the subnet.
 	@JsonIgnore(value = false)
 	private String gatewayIp;
-	private String cidr;
+
 	private List<String> dnsNameservers = new ArrayList<String>();
 	private List<HostRoute> hostRoutes = new ArrayList<HostRoute>();
 

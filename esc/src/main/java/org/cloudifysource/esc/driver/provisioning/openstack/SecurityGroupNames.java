@@ -54,9 +54,4 @@ public class SecurityGroupNames {
 	public String getServiceName() {
 		return this.prefix + this.applicationName + "-" + this.serviceName;
 	}
-
-	public String getServicePublicName() {
-		return this.prefix + this.applicationName + "-" + this.serviceName + "-public";
-	}
-
 }
