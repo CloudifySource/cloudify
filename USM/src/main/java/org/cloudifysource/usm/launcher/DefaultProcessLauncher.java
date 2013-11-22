@@ -13,6 +13,7 @@
 package org.cloudifysource.usm.launcher;
 
 import groovy.lang.Closure;
+import groovy.lang.MissingMethodException;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -668,6 +669,13 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 				}
 
 				return closure.call(paramsList.toArray());
+			} catch (MissingMethodException mme) {
+				String method = (String) params.get(CloudifyConstants.INVOCATION_PARAMETER_COMMAND_NAME);
+				String argsStr = Arrays.toString(paramsList.toArray());
+				String errorMessage = "A closure entry failed to call method \"" + method + "\" with arguments \"" 
+						+ argsStr + "\". Invalid method name or arguments.";
+				logger.log(Level.SEVERE, errorMessage + " Groovy reported error: " + mme.getMessage(), mme);
+				throw new USMException(errorMessage);
 			} catch (final Exception e) {
 				logger.log(Level.SEVERE,
 						"A closure entry failed to execute: " + e.getMessage(),
