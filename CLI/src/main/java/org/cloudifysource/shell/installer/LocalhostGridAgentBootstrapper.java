@@ -64,6 +64,7 @@ import org.openspaces.admin.AgentGridComponent;
 import org.openspaces.admin.esm.ElasticServiceManager;
 import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.gsa.GridServiceContainerOptions;
+import org.openspaces.admin.gsc.GridServiceContainer;
 import org.openspaces.admin.gsm.GridServiceManager;
 import org.openspaces.admin.internal.gsa.InternalGridServiceAgent;
 import org.openspaces.admin.internal.support.NetworkExceptionHelper;
@@ -79,6 +80,10 @@ import com.gigaspaces.grid.gsa.GSA;
 import com.gigaspaces.internal.client.spaceproxy.ISpaceProxy;
 import com.gigaspaces.internal.utils.StringUtils;
 import com.j_spaces.kernel.Environment;
+import static org.cloudifysource.dsl.internal.CloudifyConstants.MANAGEMENT_SPACE_NAME;
+import static org.cloudifysource.dsl.internal.CloudifyConstants.MANAGEMENT_REST_SERVICE_NAME;
+import static org.cloudifysource.dsl.internal.CloudifyConstants.MANAGEMENT_WEBUI_SERVICE_NAME;
+import static org.cloudifysource.dsl.internal.CloudifyConstants.MANAGEMENT_SPACE_MEMORY_IN_MB;
 
 /**
  * @author rafi, barakm, adaml, noak
@@ -105,9 +110,9 @@ public class LocalhostGridAgentBootstrapper {
 	private static final int WAIT_AFTER_ADMIN_CLOSED_MILLIS = 10 * 1000;
 	private static final String TIMEOUT_ERROR_MESSAGE = "The operation timed out waiting for the agent to start."
 			+ " Configure the timeout using the -timeout flag.";
+	private static final String CONTAINER_TIMEOUT_ERROR_MESSAGE = "The operation timed out waiting for the container to start."
+			+ " Configure the timeout using the -timeout flag.";
 	private static final String REST_FILE = "tools" + File.separator + "rest" + File.separator + "rest.war";
-
-	private static final String MANAGEMENT_SPACE_NAME = CloudifyConstants.MANAGEMENT_SPACE_NAME;
 
 	private static final String LINUX_SCRIPT_PREFIX = "#!/bin/bash\n";
 	private static final String MANAGEMENT_ZONE = "management";
@@ -156,7 +161,6 @@ public class LocalhostGridAgentBootstrapper {
 	private int progressInSeconds;
 	private AdminFacade adminFacade;
 	private boolean noWebServices;
-	private boolean noManagementSpace;
 	private boolean notHighlyAvailableManagementSpace;
 	// private int lusPort = OpenspacesConstants.DEFAULT_LUS_PORT;
 	private boolean waitForWebUi;
@@ -237,17 +241,6 @@ public class LocalhostGridAgentBootstrapper {
 	 */
 	public void setNoWebServices(final boolean noWebServices) {
 		this.noWebServices = noWebServices;
-	}
-
-	/**
-	 * Sets management space limitation mode.
-	 * 
-	 * @param noManagementSpace
-	 *            noManagementSpace limitation mode (true - management space will not be installed, false - it will be
-	 *            installed)
-	 */
-	public void setNoManagementSpace(final boolean noManagementSpace) {
-		this.noManagementSpace = noManagementSpace;
 	}
 
 	/**
@@ -990,12 +983,20 @@ public class LocalhostGridAgentBootstrapper {
 				connectionLogs.restoreConnectionErrors();
 			}
 
-			// waiting for LUS, GSM and ESM services to start
-			waitForManagementProcesses(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
+			// waiting for LUS, GSM services to start
+			waitForGsmLus(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
 					TimeUnit.MILLISECONDS);
 
 			if (isLocalCloud) {
-				startLocalCloudManagementServicesContainer(agent);
+				// container for cloudifyManagementSpace, webui, rest
+				startLocalCloudManagementServicesContainerAndWait(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
+						TimeUnit.MILLISECONDS);
+			}
+			else {
+				// container for cloudifyManagementSpace
+				// cloudifyManagementSpace cannot be elastic PU since the ESM now depends on managementSpace for state backup.
+				startManagementSpaceContainerAndWait(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
+						TimeUnit.MILLISECONDS);
 			}
 
 			String cloudName = null;
@@ -1008,41 +1009,39 @@ public class LocalhostGridAgentBootstrapper {
 			connectionLogs.supressConnectionErrors();
 			try {
 				ManagementSpaceServiceInstaller managementSpaceInstaller = null;
-				if (!noManagementSpace) {
-					final boolean highlyAvailable = !isLocalCloud && !notHighlyAvailableManagementSpace;
-					final String gscLrmiCommandLineArg = getGscLrmiCommandLineArg();
-					managementSpaceInstaller = new ManagementSpaceServiceInstaller();
-					managementSpaceInstaller.setAdmin(agent.getAdmin());
-					managementSpaceInstaller.setVerbose(verbose);
-					managementSpaceInstaller.setProgress(progressInSeconds, TimeUnit.SECONDS);
-					managementSpaceInstaller.setMemory(CloudifyConstants.MANAGEMENT_SPACE_MEMORY_IN_MB,
-							MemoryUnit.MEGABYTES);
-					managementSpaceInstaller.setServiceName(MANAGEMENT_SPACE_NAME);
-					managementSpaceInstaller.setManagementZone(MANAGEMENT_ZONE);
-					managementSpaceInstaller.setHighlyAvailable(highlyAvailable);
-					managementSpaceInstaller.addListeners(this.eventsListenersList);
-					managementSpaceInstaller.setIsLocalCloud(isLocalCloud);
-					managementSpaceInstaller.setLrmiCommandLineArgument(gscLrmiCommandLineArg);
-					managementSpaceInstaller.setCloudName(cloudName);
+				final boolean highlyAvailable = !isLocalCloud && !notHighlyAvailableManagementSpace;
+				managementSpaceInstaller = new ManagementSpaceServiceInstaller();
+				managementSpaceInstaller.setAdmin(agent.getAdmin());
+				managementSpaceInstaller.setVerbose(verbose);
+				managementSpaceInstaller.setProgress(progressInSeconds, TimeUnit.SECONDS);
+				managementSpaceInstaller.setServiceName(MANAGEMENT_SPACE_NAME);
+				managementSpaceInstaller.setManagementZone(MANAGEMENT_ZONE);
+				managementSpaceInstaller.setHighlyAvailable(highlyAvailable);
+				managementSpaceInstaller.addListeners(this.eventsListenersList);
+				managementSpaceInstaller.setIsLocalCloud(isLocalCloud);
+				managementSpaceInstaller.setCloudName(cloudName);
 
-					if (!this.isLocalCloud) {
-						final String persistentStoragePath = this.cloud.getConfiguration().getPersistentStoragePath();
-						if (persistentStoragePath != null) {
-							final String spaceStoragePath = persistentStoragePath + "/management-space/db.h2";
-							managementSpaceInstaller.setPersistentStoragePath(spaceStoragePath);
-						}
-					}
-					try {
-						managementSpaceInstaller.installSpace();
-						managementServicesInstallers.add(managementSpaceInstaller);
-					} catch (final ProcessingUnitAlreadyDeployedException e) {
-						if (verbose) {
-							logger.fine("Service " + MANAGEMENT_SPACE_NAME + " already installed");
-							publishEvent("Service " + MANAGEMENT_SPACE_NAME + " already installed");
-						}
+				if (!this.isLocalCloud) {
+					final String persistentStoragePath = this.cloud.getConfiguration().getPersistentStoragePath();
+					if (persistentStoragePath != null) {
+						final String spaceStoragePath = persistentStoragePath + "/management-space/db.h2";
+						managementSpaceInstaller.setPersistentStoragePath(spaceStoragePath);
 					}
 				}
-
+				try {
+					managementSpaceInstaller.install();
+					managementServicesInstallers.add(managementSpaceInstaller);
+				} catch (final ProcessingUnitAlreadyDeployedException e) {
+					if (verbose) {
+						logger.fine("Service " + MANAGEMENT_SPACE_NAME + " already installed");
+						publishEvent("Service " + MANAGEMENT_SPACE_NAME + " already installed");
+					}
+				}
+				
+				//wait for ESM we didn't wait before
+				waitForEsm(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
+						TimeUnit.MILLISECONDS);
+				
 				if (!noWebServices) {
 					installWebServices(username, password, isLocalCloud,
 							ShellUtils.isSecureConnection(securityProfile), agent, managementServicesInstallers,
@@ -1122,10 +1121,10 @@ public class LocalhostGridAgentBootstrapper {
 			}
 
 			try {
-				// wait for LUS, GSM and ESM components to start
+				// wait for LUS, GSM and ESM are running
 				logger.fine("Attempting to find the running management componenets (LUS, GSM and ESM)...");
-				waitForManagementProcesses(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
-						TimeUnit.MILLISECONDS);
+				waitForGsmLus(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
+				waitForEsm(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end), TimeUnit.MILLISECONDS);
 				logger.fine("OK, LUS, GSM and ESM are up and running.");
 			} catch (final Exception e) {
 				// LUS, GSM or ESM not found
@@ -1295,11 +1294,31 @@ public class LocalhostGridAgentBootstrapper {
 		return port;
 	}
 
-	private void startLocalCloudManagementServicesContainer(final GridServiceAgent agent) {
+	private void startLocalCloudManagementServicesContainerAndWait(final GridServiceAgent agent, long timeout, TimeUnit timeunit) throws TimeoutException {
 		final GridServiceContainerOptions options = new GridServiceContainerOptions().vmInputArgument(
 				"-Xmx" + CloudifyConstants.DEFAULT_LOCALCLOUD_REST_WEBUI_SPACE_MEMORY_IN_MB + "m").vmInputArgument(
-				"-Dcom.gs.zones=rest,cloudifyManagementSpace,webui");
-		agent.startGridServiceAndWait(options);
+				"-Xms" + CloudifyConstants.DEFAULT_LOCALCLOUD_REST_WEBUI_SPACE_MEMORY_IN_MB + "m").vmInputArgument(
+				"-Dcom.gs.zones="+MANAGEMENT_REST_SERVICE_NAME + "," + MANAGEMENT_WEBUI_SERVICE_NAME + "," + MANAGEMENT_SPACE_NAME);
+		final GridServiceContainer container = agent.startGridServiceAndWait(options, timeout, timeunit);
+		if (container == null) {
+			throw new TimeoutException(CONTAINER_TIMEOUT_ERROR_MESSAGE);
+		}
+	}
+	
+	private void startManagementSpaceContainerAndWait(final GridServiceAgent agent, long timeout, TimeUnit timeunit) throws TimeoutException {
+		final GridServiceContainerOptions options = new GridServiceContainerOptions().vmInputArgument(
+				"-Xmx" + MANAGEMENT_SPACE_MEMORY_IN_MB + "m").vmInputArgument(
+				"-Xms" + MANAGEMENT_SPACE_MEMORY_IN_MB + "m").vmInputArgument(
+				"-Dcom.gs.zones="+MANAGEMENT_SPACE_NAME);
+		final String gscLrmiCommandLineArg = getGscLrmiCommandLineArg();
+		if (!org.apache.commons.lang.StringUtils.isEmpty(gscLrmiCommandLineArg)) {
+			options.vmInputArgument(gscLrmiCommandLineArg);
+		}
+		
+		final GridServiceContainer container = agent.startGridServiceAndWait(options, timeout, timeunit);
+		if (container == null) {
+			throw new TimeoutException(CONTAINER_TIMEOUT_ERROR_MESSAGE);
+		}
 	}
 
 	private boolean fastExistingAgentCheck() {
@@ -1401,7 +1420,17 @@ public class LocalhostGridAgentBootstrapper {
 		}
 	}
 
-	private void waitForManagementProcesses(final GridServiceAgent agent, final long timeout, final TimeUnit timeunit)
+	private void waitForGsmLus(final GridServiceAgent agent, final long timeout, final TimeUnit timeunit)
+			throws TimeoutException, InterruptedException, CLIException {
+		waitForManagementProcesses(agent, true, true, false, timeout, timeunit);
+	}
+	
+	private void waitForEsm(final GridServiceAgent agent, final long timeout, final TimeUnit timeunit)
+			throws TimeoutException, InterruptedException, CLIException {
+		waitForManagementProcesses(agent, false, false, true, timeout, timeunit);
+	}
+	
+	private void waitForManagementProcesses(final GridServiceAgent agent, final boolean waitForLus, final boolean waitForGsm, final boolean waitForEsm, final long timeout, final TimeUnit timeunit)
 			throws TimeoutException, InterruptedException, CLIException {
 
 		final Admin admin = agent.getAdmin();
@@ -1416,7 +1445,7 @@ public class LocalhostGridAgentBootstrapper {
 
 				boolean isDone = true;
 
-				if (!isDone(admin.getLookupServices(), "LUS")) {
+				if (waitForLus && !isDone(admin.getLookupServices(), "LUS")) {
 					if (verbose) {
 						logger.fine("Waiting for Lookup Service");
 						publishEvent("Waiting for Lookup Service");
@@ -1424,7 +1453,7 @@ public class LocalhostGridAgentBootstrapper {
 					isDone = false;
 				}
 
-				if (!isDone(admin.getGridServiceManagers(), "GSM")) {
+				if (waitForGsm && !isDone(admin.getGridServiceManagers(), "GSM")) {
 					if (verbose) {
 						logger.fine("Waiting for Grid Service Manager");
 						publishEvent("Waiting for Grid Service Manager");
@@ -1432,7 +1461,7 @@ public class LocalhostGridAgentBootstrapper {
 					isDone = false;
 				}
 
-				if (admin.getElasticServiceManagers().isEmpty()) {
+				if (waitForEsm && admin.getElasticServiceManagers().isEmpty()) {
 					if (verbose) {
 						logger.fine("Waiting for Elastic Service Manager");
 						publishEvent("Waiting for Elastic Service Manager");

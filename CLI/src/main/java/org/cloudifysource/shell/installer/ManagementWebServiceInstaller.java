@@ -70,7 +70,8 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 	private boolean isSecureConnection; // Indicates whether the connection to this web server is secure (SSL)
 	private String lrmiCommandLineArgument = "";
 	private String cloudName;
-
+	private int memoryInMB;
+	
 	/**
 	 * Sets the service's port.
 	 * 
@@ -132,8 +133,7 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 				.name(serviceName)
 				// All PUs on this role share the same machine. Machines
 				// are identified by zone.
-				.sharedMachineProvisioning(
-						"public",
+				.publicMachineProvisioning(
 						new DiscoveredMachineProvisioningConfigurer().addGridServiceAgentZone(agentZone)
 								.reservedMemoryCapacityPerMachine(RESERVED_MEMORY_IN_MB, MemoryUnit.MEGABYTES)
 								.create())
@@ -578,4 +578,15 @@ public class ManagementWebServiceInstaller extends AbstractManagementServiceInst
 		return cloudName;
 	}
 
+	/**
+	 * Set the memory in various memory units.
+	 *
+	 * @param memory
+	 *            number of memory units
+	 * @param unit
+	 *            Memory unit to use
+	 */
+	public void setMemory(final long memory, final MemoryUnit unit) {
+		this.memoryInMB = (int) unit.toMegaBytes(memory);
+	}
 }

@@ -28,13 +28,9 @@ import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.pu.ProcessingUnitAlreadyDeployedException;
 import org.openspaces.admin.pu.ProcessingUnitDeployment;
 import org.openspaces.admin.pu.dependency.ProcessingUnitDeploymentDependenciesConfigurer;
-import org.openspaces.admin.pu.elastic.ElasticStatefulProcessingUnitDeployment;
-import org.openspaces.admin.pu.elastic.config.DiscoveredMachineProvisioningConfigurer;
-import org.openspaces.admin.pu.elastic.config.EagerScaleConfigurer;
 import org.openspaces.admin.space.Space;
 import org.openspaces.admin.space.SpacePartition;
 import org.openspaces.core.GigaSpace;
-import org.openspaces.core.util.MemoryUnit;
 
 import com.j_spaces.kernel.Environment;
 
@@ -56,11 +52,7 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 
 	private boolean isLocalcloud;
 
-	private String lrmiCommandLineArgument = "";
-
 	private String persistentStoragePath;
-
-	private String cloudName;
 
 	/**
 	 * Sets the management space availability behavior. A highly-available space is a space that must always have a
@@ -71,20 +63,6 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 	 */
 	public void setHighlyAvailable(final boolean highlyAvailable) {
 		this.highlyAvailable = highlyAvailable;
-	}
-
-	/******
-	 * Installs the management space.
-	 *
-	 * @throws ProcessingUnitAlreadyDeployedException .
-	 * @throws CLIException .
-	 */
-	public void installSpace() throws ProcessingUnitAlreadyDeployedException, CLIException {
-		if (isLocalcloud) {
-			installOnLocalCloud();
-		} else {
-			install();
-		}
 	}
 
 	@Override
@@ -100,99 +78,48 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 	}
 
 	/**
-	 * Installs the management space with the configured settings (e.g. memory, scale). If a dependency on another PU is
+	 * Installs the management space with the configured settings. If a dependency on another PU is
 	 * set, the deployment will wait until at least 1 instance of that PU is available.
 	 *
-	 * @throws ProcessingUnitAlreadyDeployedException
-	 *             Reporting installation failure because the PU is already installed
 	 * @throws CLIException
 	 *             Reporting a failure to get the Grid Service Manager (GSM) to install the service
 	 */
 	@Override
 	public void install() throws ProcessingUnitAlreadyDeployedException, CLIException {
 
-		if (agentZone == null) {
-			throw new IllegalStateException("Management services must be installed on management zone");
-		}
-
-		final File puFile = getManagementSpacePUFile();
-
-		// final ElasticSpaceDeployment deployment = new ElasticSpaceDeployment(serviceName)
-		final ElasticStatefulProcessingUnitDeployment deployment =
-				new ElasticStatefulProcessingUnitDeployment(puFile).name(serviceName)
-						.memoryCapacityPerContainer(memoryInMB, MemoryUnit.MEGABYTES).highlyAvailable(highlyAvailable)
-						.numberOfPartitions(1)
-						// All PUs on this role share the same machine. Machines
-						// are identified by zone.
-						.sharedMachineProvisioning(
-								"public",
-								new DiscoveredMachineProvisioningConfigurer().addGridServiceAgentZone(agentZone)
-										.reservedMemoryCapacityPerMachine(RESERVED_MEMORY_IN_MB, MemoryUnit.MEGABYTES)
-										.create())
-						// Eager scale (1 container per machine per PU)
-						.scale(new EagerScaleConfigurer().atMostOneContainerPerMachine().create())
-						.addCommandLineArgument(this.lrmiCommandLineArgument);
-
-		// if (this.persistentStoragePath != null) {
-		// deployment.addCommandLineArgument("-Dspring.profiles.active=persistent");
-		// }
-
-		for (final Entry<Object, Object> prop : getContextProperties().entrySet()) {
-			deployment.addContextProperty(prop.getKey().toString(), prop.getValue().toString());
-		}
-
-		for (final String requiredPUName : dependencies) {
-			deployment.addDependencies(new ProcessingUnitDeploymentDependenciesConfigurer()
-					.dependsOnMinimumNumberOfDeployedInstancesPerPartition(requiredPUName, 1).create());
-		}
-		// The gsc java options define the lrmi port range and memory size if not defined.
 		try {
+			if (agentZone == null) {
+				throw new IllegalStateException("Management services must be installed on management zone");
+			}
+			
+			final File puFile = getManagementSpacePUFile();
+			
+			final int numberOfBackups = highlyAvailable?1:0;
+			final ProcessingUnitDeployment deployment =
+					new ProcessingUnitDeployment(puFile)
+					.name(serviceName)
+					.addZone(serviceName)
+					.partitioned(1, numberOfBackups);
+			
+			for (final Entry<Object, Object> prop : getContextProperties().entrySet()) {
+				deployment.setContextProperty(prop.getKey().toString(), prop.getValue().toString());
+			}
+			
+			for (final String requiredPUName : dependencies) {
+				deployment.addDependencies(new ProcessingUnitDeploymentDependenciesConfigurer()
+						.dependsOnMinimumNumberOfDeployedInstancesPerPartition(requiredPUName, 1).create());
+			}
+			
 			getGridServiceManager().deploy(deployment);
 		} catch (final ProcessingUnitAlreadyDeployedException e) {
+			if (isLocalcloud) {
+				throw e;
+			}
 			// this is possible in a re-bootstrap scenario
 			logger.warning("Deployment of management space failed because a Processing unit with the "
 					+ "same name already exists. If this error occured during recovery of management machines, "
 					+ "this error is normal and can be ignored.");
-
 		}
-
-	}
-
-	/**
-	 * Installs the management space with the configured settings inside the localcloud dedicated management service
-	 * container. If a dependency on another PU is set, the deployment will wait until at least 1 instance of that PU is
-	 * available.
-	 *
-	 * @throws ProcessingUnitAlreadyDeployedException
-	 *             Reporting installation failure because the PU is already installed
-	 * @throws CLIException
-	 *             Reporting a failure to get the Grid Service Manager (GSM) to install the service
-	 */
-	public void installOnLocalCloud()
-			throws ProcessingUnitAlreadyDeployedException, CLIException {
-
-		if (agentZone == null) {
-			throw new IllegalStateException("Management services must be installed on management zone");
-		}
-
-		final File puFile = getManagementSpacePUFile();
-
-		final ProcessingUnitDeployment deployment =
-				new ProcessingUnitDeployment(puFile).name(serviceName).addZone(serviceName);
-
-		// SpaceDeployment deployment = new SpaceDeployment(serviceName).addZone(serviceName);
-
-		for (final Entry<Object, Object> prop : getContextProperties().entrySet()) {
-			deployment.setContextProperty(prop.getKey().toString(), prop.getValue().toString());
-		}
-
-		for (final String requiredPUName : dependencies) {
-			deployment.addDependencies(new ProcessingUnitDeploymentDependenciesConfigurer()
-					.dependsOnMinimumNumberOfDeployedInstancesPerPartition(requiredPUName, 1).create());
-		}
-
-		getGridServiceManager().deploy(deployment);
-
 	}
 
 	private File getManagementSpacePUFile() {
@@ -303,10 +230,6 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 
 	public void setIsLocalCloud(final boolean isLocalCloud) {
 		this.isLocalcloud = isLocalCloud;
-	}
-
-	public void setLrmiCommandLineArgument(final String lrmiCommandLineArgument) {
-		this.lrmiCommandLineArgument = lrmiCommandLineArgument;
 	}
 
 	public String getPersistentStoragePath() {
