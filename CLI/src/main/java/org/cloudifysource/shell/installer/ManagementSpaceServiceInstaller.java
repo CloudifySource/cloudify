@@ -65,20 +65,6 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 		this.highlyAvailable = highlyAvailable;
 	}
 
-	/******
-	 * Installs the management space.
-	 *
-	 * @throws ProcessingUnitAlreadyDeployedException .
-	 * @throws CLIException .
-	 */
-	public void installSpace() throws ProcessingUnitAlreadyDeployedException, CLIException {
-		if (isLocalcloud) {
-			installOnLocalCloud();
-		} else {
-			install();
-		}
-	}
-
 	@Override
 	protected Properties getContextProperties() {
 
@@ -98,58 +84,42 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 	 * @throws CLIException
 	 *             Reporting a failure to get the Grid Service Manager (GSM) to install the service
 	 */
-
 	@Override
 	public void install() throws ProcessingUnitAlreadyDeployedException, CLIException {
 
 		try {
-			installOnLocalCloud();
+			if (agentZone == null) {
+				throw new IllegalStateException("Management services must be installed on management zone");
+			}
+			
+			final File puFile = getManagementSpacePUFile();
+			
+			final int numberOfBackups = highlyAvailable?1:0;
+			final ProcessingUnitDeployment deployment =
+					new ProcessingUnitDeployment(puFile)
+					.name(serviceName)
+					.addZone(serviceName)
+					.partitioned(1, numberOfBackups);
+			
+			for (final Entry<Object, Object> prop : getContextProperties().entrySet()) {
+				deployment.setContextProperty(prop.getKey().toString(), prop.getValue().toString());
+			}
+			
+			for (final String requiredPUName : dependencies) {
+				deployment.addDependencies(new ProcessingUnitDeploymentDependenciesConfigurer()
+						.dependsOnMinimumNumberOfDeployedInstancesPerPartition(requiredPUName, 1).create());
+			}
+			
+			getGridServiceManager().deploy(deployment);
 		} catch (final ProcessingUnitAlreadyDeployedException e) {
+			if (isLocalcloud) {
+				throw e;
+			}
 			// this is possible in a re-bootstrap scenario
 			logger.warning("Deployment of management space failed because a Processing unit with the "
 					+ "same name already exists. If this error occured during recovery of management machines, "
 					+ "this error is normal and can be ignored.");
-
 		}
-	}
-
-	/**
-	 * Installs the management space with the configured settings inside the localcloud dedicated management service
-	 * container. If a dependency on another PU is set, the deployment will wait until at least 1 instance of that PU is
-	 * available.
-	 *
-	 * @throws ProcessingUnitAlreadyDeployedException
-	 *             Reporting installation failure because the PU is already installed
-	 * @throws CLIException
-	 *             Reporting a failure to get the Grid Service Manager (GSM) to install the service
-	 */
-	public void installOnLocalCloud()
-			throws ProcessingUnitAlreadyDeployedException, CLIException {
-
-		if (agentZone == null) {
-			throw new IllegalStateException("Management services must be installed on management zone");
-		}
-
-		final File puFile = getManagementSpacePUFile();
-
-		final int numberOfBackups = highlyAvailable?1:0;
-		final ProcessingUnitDeployment deployment =
-				new ProcessingUnitDeployment(puFile)
-				.name(serviceName)
-				.addZone(serviceName)
-				.partitioned(1, numberOfBackups);
-
-		for (final Entry<Object, Object> prop : getContextProperties().entrySet()) {
-			deployment.setContextProperty(prop.getKey().toString(), prop.getValue().toString());
-		}
-
-		for (final String requiredPUName : dependencies) {
-			deployment.addDependencies(new ProcessingUnitDeploymentDependenciesConfigurer()
-					.dependsOnMinimumNumberOfDeployedInstancesPerPartition(requiredPUName, 1).create());
-		}
-
-		getGridServiceManager().deploy(deployment);
-
 	}
 
 	private File getManagementSpacePUFile() {

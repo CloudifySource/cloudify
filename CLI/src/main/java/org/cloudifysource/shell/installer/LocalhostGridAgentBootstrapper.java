@@ -1043,7 +1043,7 @@ public class LocalhostGridAgentBootstrapper {
 						}
 					}
 					try {
-						managementSpaceInstaller.installSpace();
+						managementSpaceInstaller.install();
 						managementServicesInstallers.add(managementSpaceInstaller);
 					} catch (final ProcessingUnitAlreadyDeployedException e) {
 						if (verbose) {
