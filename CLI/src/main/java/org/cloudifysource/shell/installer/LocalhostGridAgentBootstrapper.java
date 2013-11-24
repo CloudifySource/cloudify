@@ -161,7 +161,6 @@ public class LocalhostGridAgentBootstrapper {
 	private int progressInSeconds;
 	private AdminFacade adminFacade;
 	private boolean noWebServices;
-	private boolean noManagementSpace;
 	private boolean notHighlyAvailableManagementSpace;
 	// private int lusPort = OpenspacesConstants.DEFAULT_LUS_PORT;
 	private boolean waitForWebUi;
@@ -242,17 +241,6 @@ public class LocalhostGridAgentBootstrapper {
 	 */
 	public void setNoWebServices(final boolean noWebServices) {
 		this.noWebServices = noWebServices;
-	}
-
-	/**
-	 * Sets management space limitation mode.
-	 * 
-	 * @param noManagementSpace
-	 *            noManagementSpace limitation mode (true - management space will not be installed, false - it will be
-	 *            installed)
-	 */
-	public void setNoManagementSpace(final boolean noManagementSpace) {
-		this.noManagementSpace = noManagementSpace;
 	}
 
 	/**
@@ -1021,35 +1009,32 @@ public class LocalhostGridAgentBootstrapper {
 			connectionLogs.supressConnectionErrors();
 			try {
 				ManagementSpaceServiceInstaller managementSpaceInstaller = null;
-				if (!noManagementSpace) {
-					
-					final boolean highlyAvailable = !isLocalCloud && !notHighlyAvailableManagementSpace;
-					managementSpaceInstaller = new ManagementSpaceServiceInstaller();
-					managementSpaceInstaller.setAdmin(agent.getAdmin());
-					managementSpaceInstaller.setVerbose(verbose);
-					managementSpaceInstaller.setProgress(progressInSeconds, TimeUnit.SECONDS);
-					managementSpaceInstaller.setServiceName(MANAGEMENT_SPACE_NAME);
-					managementSpaceInstaller.setManagementZone(MANAGEMENT_ZONE);
-					managementSpaceInstaller.setHighlyAvailable(highlyAvailable);
-					managementSpaceInstaller.addListeners(this.eventsListenersList);
-					managementSpaceInstaller.setIsLocalCloud(isLocalCloud);
-					managementSpaceInstaller.setCloudName(cloudName);
+				final boolean highlyAvailable = !isLocalCloud && !notHighlyAvailableManagementSpace;
+				managementSpaceInstaller = new ManagementSpaceServiceInstaller();
+				managementSpaceInstaller.setAdmin(agent.getAdmin());
+				managementSpaceInstaller.setVerbose(verbose);
+				managementSpaceInstaller.setProgress(progressInSeconds, TimeUnit.SECONDS);
+				managementSpaceInstaller.setServiceName(MANAGEMENT_SPACE_NAME);
+				managementSpaceInstaller.setManagementZone(MANAGEMENT_ZONE);
+				managementSpaceInstaller.setHighlyAvailable(highlyAvailable);
+				managementSpaceInstaller.addListeners(this.eventsListenersList);
+				managementSpaceInstaller.setIsLocalCloud(isLocalCloud);
+				managementSpaceInstaller.setCloudName(cloudName);
 
-					if (!this.isLocalCloud) {
-						final String persistentStoragePath = this.cloud.getConfiguration().getPersistentStoragePath();
-						if (persistentStoragePath != null) {
-							final String spaceStoragePath = persistentStoragePath + "/management-space/db.h2";
-							managementSpaceInstaller.setPersistentStoragePath(spaceStoragePath);
-						}
+				if (!this.isLocalCloud) {
+					final String persistentStoragePath = this.cloud.getConfiguration().getPersistentStoragePath();
+					if (persistentStoragePath != null) {
+						final String spaceStoragePath = persistentStoragePath + "/management-space/db.h2";
+						managementSpaceInstaller.setPersistentStoragePath(spaceStoragePath);
 					}
-					try {
-						managementSpaceInstaller.install();
-						managementServicesInstallers.add(managementSpaceInstaller);
-					} catch (final ProcessingUnitAlreadyDeployedException e) {
-						if (verbose) {
-							logger.fine("Service " + MANAGEMENT_SPACE_NAME + " already installed");
-							publishEvent("Service " + MANAGEMENT_SPACE_NAME + " already installed");
-						}
+				}
+				try {
+					managementSpaceInstaller.install();
+					managementServicesInstallers.add(managementSpaceInstaller);
+				} catch (final ProcessingUnitAlreadyDeployedException e) {
+					if (verbose) {
+						logger.fine("Service " + MANAGEMENT_SPACE_NAME + " already installed");
+						publishEvent("Service " + MANAGEMENT_SPACE_NAME + " already installed");
 					}
 				}
 				

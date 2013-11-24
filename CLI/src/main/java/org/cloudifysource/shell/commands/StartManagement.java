@@ -54,12 +54,11 @@ import org.cloudifysource.shell.installer.LocalhostGridAgentBootstrapper;
  *        auto-shutdown - determines if undeploying or scaling-in the last service instance on the machine also
  *        triggers agent shutdown (default: false).
  *        no-web-services - if set, no attempt to deploy the rest admin and web-ui will be made.
- *        no-management-space - if set, no attempt to deploy the management space will be made.
  *        cloud-file - if set, designates the location of the cloud configuration file.
  *
  *        Command syntax: start-management [-lookup-groups lookup-groups] [-nicAddress nicAddress] [-user username]
  *        [-password password] [-timeout timeout] [-lookup-locators lookup-locators] 
- *        [-no-web-services no-web-services] [-no-management-space no-management-space] [-cloud-file cloud-file]
+ *        [-no-web-services no-web-services] [-cloud-file cloud-file]
  */
 @Command(
 		scope = "cloudify",
@@ -107,10 +106,6 @@ public class StartManagement extends AbstractGSCommand {
 			+ " done. By default waits 5 minutes.")
 	private int timeoutInMinutes = DEFAULT_TIMEOUNT_MINUTES;
 
-	@Option(required = false, name = "-no-management-space", description = "if set, no attempt to deploy the"
-			+ " management space will be made")
-	private boolean noManagementSpace;
-
 	@Option(required = false, name = "-cloud-file", description = "if set, designated the location of the cloud"
 			+ " configuration file")
 	private String cloudFileName;
@@ -157,7 +152,6 @@ public class StartManagement extends AbstractGSCommand {
 		installer.setProgressInSeconds(DEFAULT_PROGRESS_INTERVAL_SECONDS);
 		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
 		installer.setNoWebServices(noWebServices);
-		installer.setNoManagementSpace(noManagementSpace);
 		installer.setNotHighlyAvailableManagementSpace(isNotHAManagementSpace());
 		installer.setWaitForWebui(true);
 		installer.setCloudFilePath(cloudFileName);
