@@ -201,7 +201,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 
 	@SuppressWarnings("unchecked")
 	private void setCustomSettings(final Cloud cloud) {
-		initRestPort(cloud.getConfiguration().getComponents().getRest().getPort());
+		initRestPort(cloud.getConfiguration().getComponents().getDiscovery().getPort());
 		// set custom settings
 		final Map<String, Object> customSettings = cloud.getCustom();
 		if (customSettings != null) {
@@ -460,11 +460,6 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 				managementIP = server.getPrivateIP();
 				break;
 			} catch (final Exception ex) {
-				logger.info("******** getExistingManagementServers failed to connect to byon node: " 
-						+ server.getPrivateIP() + " on port " + this.restPort + ". Reported error: " + ex.getMessage());
-				logger.info("******** This is OK if this is not a management machine, othewise this indicates a "
-						+ "communication " + "error");
-				ex.printStackTrace();
 				// the connection to the REST failed because this is not a
 				// management server, continue.
 			}
@@ -472,14 +467,11 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 
 		// If a management server was found - connect to it and get all management machines
 		if (StringUtils.isNotBlank(managementIP)) {
-			logger.info("******** found management machine: " + managementIP);
+			logger.fine("found management machine: " + managementIP);
 			// TODO don't fly if timeout reached because expectedGsmCount wasn't reached
 			final Integer discoveryPort = getLusPort();
-			logger.info("******** Attempting to create admin with locator " + IPUtils.getSafeIpAddress(managementIP) 
-					+ ":" + discoveryPort);
 			final Admin admin = Utils.getAdminObject(managementIP, expectedGsmCount, discoveryPort);
 			try {
-				logger.info("******** trying to discover GSMs");
 				final GridServiceManagers gsms = admin.getGridServiceManagers();
 				// make sure a GSM is discovered
 				gsms.waitForAtLeastOne(MANAGEMENT_LOCATION_TIMEOUT, TimeUnit.SECONDS);
@@ -491,7 +483,7 @@ public class ByonProvisioningDriver extends BaseProvisioningDriver {
 					}
 				}
 			} catch (Exception e) {
-				logger.info("******** Exception thrown while trying to discover GSMs, reported error: " 
+				logger.info("Exception thrown while trying to discover GSMs, reported error: " 
 						+ e.getMessage());
 			} finally {
 				admin.close();
