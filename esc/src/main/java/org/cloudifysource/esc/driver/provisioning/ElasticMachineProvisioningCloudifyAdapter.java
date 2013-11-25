@@ -98,6 +98,8 @@ import org.openspaces.grid.gsm.machines.plugins.events.MachineStoppedEvent;
 import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticGridServiceAgentProvisioningException;
 import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticMachineProvisioningException;
 
+import com.gigaspaces.document.SpaceDocument;
+
 /****************************
  * An ESM machine provisioning implementation used by the Cloudify cloud driver. All calls to start/stop a machine are
  * delegated to the CloudifyProvisioning implementation. If the started machine does not have an agent running, this
@@ -121,7 +123,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private static final int MILLISECONDS_IN_SECOND = 1000;
 
 	private static final int DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE = 5;
-	
+
 	/**********
 	 * .
 	 */
@@ -161,7 +163,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	// this is to make sure that the setConfig call is called on the dedicated scale out/in thread and not
 	// in the ESM thread which calls afterPropertiesSet()
 	private boolean driversConfigured = false;
-
 
 	private Admin getGlobalAdminInstance(final Admin esmAdminInstance) throws InterruptedException,
 			ElasticMachineProvisioningException {
@@ -453,7 +454,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 						+ " was missing from its environment variables.");
 			}
 
-			final Object context = null;// new MachineDetailsDocumentConverter().toDocument(machineDetails); 
+			final Object context = new MachineDetailsDocumentConverter().toDocument(machineDetails);
 			return new StartedGridServiceAgent(gsa, context);
 		} catch (final ElasticMachineProvisioningException e) {
 			logger.info("ElasticMachineProvisioningException occurred, " + e.getMessage());
@@ -492,18 +493,16 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		if (context == null) {
 			return null;
 		}
-		
-		return null;
-		
-//		if (!(context instanceof SpaceDocument)) {
-//			throw new IllegalStateException("Expected to get a space document in the failed agent context, but got a: "
-//					+ context.getClass().getName());
-//		}
-//
-//		final SpaceDocument mdDocument = (SpaceDocument) context;
-//		final MachineDetails md = new MachineDetailsDocumentConverter().toMachineDetails(mdDocument);
-//
-//		return md;
+
+		if (!(context instanceof SpaceDocument)) {
+			throw new IllegalStateException("Expected to get a space document in the failed agent context, but got a: "
+					+ context.getClass().getName());
+		}
+
+		final SpaceDocument mdDocument = (SpaceDocument) context;
+		final MachineDetails md = new MachineDetailsDocumentConverter().toMachineDetails(mdDocument);
+
+		return md;
 
 	}
 
@@ -961,7 +960,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			// load the provisioning class and set it up
 			try {
 				final ProvisioningDriverClassBuilder builder = new ProvisioningDriverClassBuilder();
-				final Object computeProvisioningInstance = builder.build(cloudConfigDirectoryPath, 
+				final Object computeProvisioningInstance = builder.build(cloudConfigDirectoryPath,
 						this.cloud.getConfiguration().getClassName());
 				// validate instance for depreciation reasons
 				this.cloudifyProvisioning = ComputeDriverProvisioningAdapter.create(computeProvisioningInstance);
@@ -982,8 +981,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					// dynamic allocation at runtime.
 					logger.info("creating storage provisioning driver.");
 					this.storageProvisioning = (StorageProvisioningDriver) builder
-										.build(cloudConfigDirectoryPath, storageClassName);
-					
+							.build(cloudConfigDirectoryPath, storageClassName);
+
 					this.storageTemplateName = config.getStorageTemplateName();
 
 					logger.info("storage provisioning driver created successfully.");
@@ -1103,11 +1102,11 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		File additionalTemplatesParentFolder = cloudConfigDirectory;
 		String persistentStoragePath = cloud.getConfiguration().getPersistentStoragePath();
 		if (persistentStoragePath != null) {
-			logger.fine("[addTemplatesToCloud] - using the persistent storage folder [" 
+			logger.fine("[addTemplatesToCloud] - using the persistent storage folder ["
 					+ persistentStoragePath + "] as the parent of the additional templates folder.");
 			additionalTemplatesParentFolder = new File(persistentStoragePath);
 		}
-		logger.info("[addTemplatesToCloud] - adding templates from directory " 
+		logger.info("[addTemplatesToCloud] - adding templates from directory "
 				+ "[" + additionalTemplatesParentFolder.getAbsolutePath() + "]");
 		final File additionalTemplatesFolder = new File(additionalTemplatesParentFolder,
 				CloudifyConstants.ADDITIONAL_TEMPLATES_FOLDER_NAME);
@@ -1263,7 +1262,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	}
 
 	@Override
-	public Object getExternalApi(final String apiName) throws InterruptedException, 
+	public Object getExternalApi(final String apiName) throws InterruptedException,
 			ElasticMachineProvisioningException {
 		try {
 			configureDrivers();
@@ -1275,14 +1274,14 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					+ e.getMessage(), e);
 		}
 		Object externalApi = null;
-		//TODO: (adaml) extract the names of the apis to constants.
+		// TODO: (adaml) extract the names of the apis to constants.
 		if (apiName.equals(CloudifyConstants.STORAGE_REMOTE_API_KEY)) {
 			externalApi = new RemoteStorageProvisioningDriverAdapter(storageProvisioning, cloud.getCloudStorage().
 					getTemplates().get(storageTemplateName));
 		} else if (apiName.equals(CloudifyConstants.NETWORK_REMOTE_API_KEY)) {
 			externalApi = new RemoteNetworkProvisioningDriverAdapter(this.networkProvisioning);
 		}
-		
+
 		return externalApi;
 	}
 

@@ -31,8 +31,11 @@ public class MachineDetailsDocumentConverter {
 		if (md == null) {
 			return null;
 		}
+		
+		final PersistentMachineDetails pmd = new PersistentMachineDetails();
+		pmd.populateFromMachineDetails(md);
 
-		final SpaceDocument document = com.gigaspaces.document.DocumentObjectConverter.instance().toSpaceDocument(md);
+		final SpaceDocument document = com.gigaspaces.document.DocumentObjectConverter.instance().toSpaceDocument(pmd);
 
 		return document;
 	}
@@ -50,18 +53,19 @@ public class MachineDetailsDocumentConverter {
 			return null;
 		}
 
-		final Object mdObject = com.gigaspaces.document.DocumentObjectConverter.instance().toObject(document);
-		if (mdObject == null) {
+		final Object pmdObject = com.gigaspaces.document.DocumentObjectConverter.instance().toObject(document);
+		if (pmdObject == null) {
 			return null;
 		}
-		if (!(mdObject instanceof MachineDetails)) {
+		if (!(pmdObject instanceof PersistentMachineDetails)) {
 			throw new IllegalStateException(
 					"Unsupported object received in failed agent context. Was expecting MachineDetails but got: "
-							+ mdObject.getClass().getName());
+							+ pmdObject.getClass().getName());
 		}
 
-		final MachineDetails md = (MachineDetails) mdObject;
+		final PersistentMachineDetails pmd = (PersistentMachineDetails) pmdObject;
 
+		final MachineDetails md = pmd.toMachineDetails();
 		return md;
 	}
 }
