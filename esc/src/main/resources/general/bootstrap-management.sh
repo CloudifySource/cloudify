@@ -16,7 +16,8 @@
 #	$NO_WEB_SERVICES - If set to 'true', indicates that the rest and web-ui services should not be deployed in this machine.
 #	$GIGASPACES_CLOUD_IMAGE_ID - If set, indicates the image ID for this machine.
 #	$GIGASPACES_CLOUD_HARDWARE_ID - If set, indicates the hardware ID for this machine.
-#	$PASSWORD - the machine password
+#	$AUTO_RESTART_AGENT - If set to 'true', will allow to perform reboot of agent machine.
+#	$PASSWORD - the machine password.
 #############################################################################
 
 # args:
@@ -311,8 +312,10 @@ fi
 # Execute post-bootstrap customization script if exists
 run_script "post-bootstrap"
 
-# Add agent restart command to scheduled tasks.
-cat <(crontab -l) <(echo "@reboot nohup ~/gigaspaces/tools/cli/cloudify.sh $START_COMMAND $START_COMMAND_ARGS") | crontab -
+if [ "$AUTO_RESTART_AGENT" = "true" ]; then
+	# Add agent restart command to scheduled tasks.
+	cat <(crontab -l) <(echo "@reboot nohup ~/gigaspaces/tools/cli/cloudify.sh $START_COMMAND $START_COMMAND_ARGS") | crontab -
+fi
 
 ./cloudify.sh $START_COMMAND $START_COMMAND_ARGS
 

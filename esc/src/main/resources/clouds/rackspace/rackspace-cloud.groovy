@@ -107,6 +107,9 @@ cloud {
 						localDirectory "upload"
 	
 						username "root"
+						
+						// when set to 'true', agent will automatically start after reboot.
+						autoRestartAgent true
 	
 						// Optional. Overrides to default cloud driver behavior.
 						// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
@@ -140,6 +143,9 @@ cloud {
 						localDirectory "upload"
 	
 						username "root"
+						
+						// when set to 'true', agent will automatically start after reboot.
+						autoRestartAgent true
 	
 						// Optional. Overrides to default cloud driver behavior.
 						// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a

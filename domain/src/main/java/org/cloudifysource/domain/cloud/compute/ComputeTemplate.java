@@ -39,6 +39,7 @@ public class ComputeTemplate {
 	private String locationId;
 	private String localDirectory;
 	private String keyFile;
+	private Boolean autoRestartAgent = true;
 
 	private int numberOfCores = 1;
 
@@ -435,5 +436,13 @@ public class ComputeTemplate {
 
 	public void setComputeNetwork(final ComputeTemplateNetwork computeNetwork) {
 		this.computeNetwork = computeNetwork;
+	}
+
+	public Boolean getAutoRestartAgent() {
+		return autoRestartAgent;
+	}
+
+	public void setAutoRestartAgent(final Boolean autoRestartAgent) {
+		this.autoRestartAgent = autoRestartAgent;
 	}
 }

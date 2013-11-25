@@ -259,6 +259,7 @@ public final class Utils {
 
 		details.setCloudFile(cloudFile);
 		details.setManagement(isManagement);
+		details.setAutoRestartAgent(Boolean.toString(template.getAutoRestartAgent()));
 		final GridComponents componentsConfig = cloud.getConfiguration().getComponents();
 		GridCommandLineBuilder gridCommandBuilder = new GridCommandLineBuilder();
 		if (isManagement) {

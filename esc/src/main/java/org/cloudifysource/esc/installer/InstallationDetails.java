@@ -39,6 +39,9 @@ public class InstallationDetails implements Cloneable {
 	// IPs of the machine to install. ssh must already be running.
 	private String publicIp;
 	private String privateIp;
+	
+	// allow agent/agent-machine restart 
+	private String autoRestartAgent;
 
 	private String zones = "";
 
@@ -563,5 +566,13 @@ public class InstallationDetails implements Cloneable {
 
 	public void setOpenFilesLimit(final String openFilesLimit) {
 		this.openFilesLimit = openFilesLimit;
+	}
+
+	public String getAutoRestartAgent() {
+		return this.autoRestartAgent;
+	}
+
+	public void setAutoRestartAgent(final String autoRestartAgent) {
+		this.autoRestartAgent = autoRestartAgent;
 	}
 }

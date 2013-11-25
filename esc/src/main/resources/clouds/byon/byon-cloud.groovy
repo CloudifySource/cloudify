@@ -94,6 +94,9 @@ cloud {
 					
 					keyFile keyFile
 					
+					// when set to 'true', agent will automatically start after reboot.
+					autoRestartAgent true
+					
 					// Mandatory for BYON.
 					custom ([
 						// Mandatory for BYON. The nodesList custom property lists the nodes that compose this cloud-like environment.

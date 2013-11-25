@@ -62,6 +62,8 @@ public class EnvironmentFileBuilder {
 
 	private static final String CLOUD_FILE = "CLOUD_FILE";
 
+	private static final String AUTO_RESTART_AGENT = "AUTO_RESTART_AGENT";
+
 	/********
 	 * Constructor.
 	 * 
@@ -141,6 +143,7 @@ public class EnvironmentFileBuilder {
 				.exportVar(CloudifyConstants.CLOUDIFY_OVERRIDES_LINK_ENV,
 						details.getOverridesUrl())
 				.exportVar(WORKING_HOME_DIRECTORY_ENV, remoteDirectory)
+				.exportVar(AUTO_RESTART_AGENT, details.getAutoRestartAgent())
 				.exportVar(CloudifyConstants.GIGASPACES_AUTH_GROUPS, authGroups)
 				.exportVar(CloudifyConstants.GIGASPACES_AGENT_ENV_PRIVATE_IP, safePrivateIpAddress)
 				.exportVar(CloudifyConstants.GIGASPACES_AGENT_ENV_PUBLIC_IP, safePublicIpAddress)

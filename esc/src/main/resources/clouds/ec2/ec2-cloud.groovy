@@ -128,6 +128,9 @@ cloud {
 									"securityGroups" : ["default"]as String[],
 									"keyPair" : keyPair
 								])
+						
+						// when set to 'true', agent will automatically start after reboot.
+						autoRestartAgent true
 	
 						// Optional. Overrides to default cloud driver behavior.
 						// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
@@ -166,6 +169,9 @@ cloud {
 									"securityGroups" : ["default"]as String[],
 									"keyPair" : keyPair
 								])
+						
+						// when set to 'true', agent will automatically start after reboot.
+						autoRestartAgent true
 	
 						// Optional. Overrides to default cloud driver behavior.
 						// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
@@ -205,6 +211,9 @@ cloud {
 									"securityGroups" : ["default"]as String[],
 									"keyPair" : keyPair
 								])
+						
+						// when set to 'true', agent will automatically start after reboot.
+						autoRestartAgent true
 	
 						// Optional. Overrides to default cloud driver behavior.
 						// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
