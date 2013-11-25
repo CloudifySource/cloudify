@@ -270,13 +270,13 @@ public class DSLReader {
 
 		if (file != null) {
 			try {
-				parse = (ConfigObject) reader.readPropertiesFile(file);
+				parse = reader.readPropertiesFile(file);
 			} catch (final Exception e) {
 				throw new IOException("Failed to read overrides file: " + file, e);
 			}
 		} else {
 			// must be a script
-			parse = (ConfigObject) reader.readPropertiesScript(script);
+			parse = reader.readPropertiesScript(script);
 		}
 
 		parse.flatten(overridesMap);

@@ -15,10 +15,9 @@ import org.apache.commons.lang.StringUtils;
 
 public class GroovyPropertiesFileReader {
 
-	@SuppressWarnings("unchecked")
-	public LinkedHashMap<Object, Object> readPropertiesFile(final File propertiesFile) throws IOException {
+	public ConfigObject readPropertiesFile(final File propertiesFile) throws IOException {
 		if (propertiesFile == null) {
-			return new LinkedHashMap<Object, Object>();
+			return new ConfigObject();
 		}
 
 		try {
@@ -33,10 +32,9 @@ public class GroovyPropertiesFileReader {
 
 	}
 
-	@SuppressWarnings("unchecked")
-	public LinkedHashMap<Object, Object> readPropertiesScript(final String propertiesScript) throws IOException {
+	public ConfigObject readPropertiesScript(final String propertiesScript) throws IOException {
 		if (propertiesScript == null || StringUtils.isBlank(propertiesScript)) {
-			return new LinkedHashMap<Object, Object>();
+			return new ConfigObject();
 		}
 
 		try {

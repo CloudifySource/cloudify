@@ -1,7 +1,10 @@
 package org.cloudifysource.dsl.internal;
 
+import groovy.util.ConfigObject;
+
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.junit.*;
 import static org.junit.Assert.*;
@@ -94,6 +97,19 @@ public class GroovyPropertiesFileReaderTest {
 
 	}
 
+	@Test
+	public void testReturnObjectIsConfigObject() throws IOException {
+		GroovyPropertiesFileReader fixture = new GroovyPropertiesFileReader();
+		LinkedHashMap<Object, Object> retval = fixture.readPropertiesFile(null);
+		Assert.assertNotNull(retval);
+		Assert.assertTrue(retval instanceof ConfigObject);
+		
+		LinkedHashMap<Object, Object> retval2 = fixture.readPropertiesScript(null);
+		Assert.assertNotNull(retval2);
+		Assert.assertTrue(retval2 instanceof ConfigObject);
+		
+		
+	}
 	/**
 	 * Perform pre-test initialization.
 	 * 
