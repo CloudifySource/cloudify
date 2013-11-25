@@ -25,7 +25,7 @@ import org.openspaces.admin.gsc.GridServiceContainer;
  * container - the GridServiceContainer this matcher will match logs from. <br></br>
  * deploymentId - the operation if this matcher was deidcated to. <br></br>
  */
-public class LogEntryMatcherProviderKey {
+public class ContainerLogEntryMatcherProviderKey {
 
     private GridServiceContainer container;
     private String deploymentId;
@@ -51,7 +51,7 @@ public class LogEntryMatcherProviderKey {
             return false;
         }
 
-        LogEntryMatcherProviderKey that = (LogEntryMatcherProviderKey) o;
+        ContainerLogEntryMatcherProviderKey that = (ContainerLogEntryMatcherProviderKey) o;
 
         return container.getUid().equals(that.container.getUid())
                 && deploymentId.equals(that.deploymentId);

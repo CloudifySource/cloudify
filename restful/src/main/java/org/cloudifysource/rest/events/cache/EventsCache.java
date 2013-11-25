@@ -19,7 +19,7 @@ import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import org.cloudifysource.dsl.rest.response.DeploymentEvent;
 import org.cloudifysource.dsl.rest.response.DeploymentEvents;
-import org.cloudifysource.rest.events.LogEntryMatcherProvider;
+import org.cloudifysource.rest.events.ContainerLogEntryMatcherProvider;
 import org.openspaces.admin.Admin;
 
 import java.util.concurrent.ExecutionException;
@@ -48,7 +48,7 @@ public class EventsCache {
     private static final int CACHE_EXPIRATION_MINUTES = 5;
 
     private final LoadingCache<EventsCacheKey, EventsCacheValue> eventsLoadingCache;
-    private final LogEntryMatcherProvider matcherProvider;
+    private final ContainerLogEntryMatcherProvider matcherProvider;
     private int cacheExpirationPeriod = CACHE_EXPIRATION_MINUTES;
     private TimeUnit cacheExpirationTimeunit = TimeUnit.MINUTES;
 
@@ -64,7 +64,7 @@ public class EventsCache {
 
         final EventsCacheLoader loader = new EventsCacheLoader(new AdminBasedGridServiceContainerProvider(admin));
 
-        this.matcherProvider = loader.getMatcherProvider();
+        this.matcherProvider = loader.getContainerMatcherProvider();
         this.eventsLoadingCache = CacheBuilder.newBuilder()
                 .expireAfterAccess(cacheExpirationPeriod, cacheExpirationTimeunit)
                 .removalListener(new RemovalListener<Object, Object>() {

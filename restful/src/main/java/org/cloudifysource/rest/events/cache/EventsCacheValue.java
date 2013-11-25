@@ -13,6 +13,7 @@
 package org.cloudifysource.rest.events.cache;
 
 import org.cloudifysource.dsl.rest.response.DeploymentEvents;
+import org.openspaces.admin.esm.ElasticServiceManager;
 import org.openspaces.admin.gsc.GridServiceContainer;
 import org.openspaces.admin.pu.ProcessingUnit;
 
@@ -36,6 +37,16 @@ public class EventsCacheValue {
     private volatile Object mutex = new Object();
     private Set<ProcessingUnit> processingUnits = new HashSet<ProcessingUnit>();
     private Set<GridServiceContainer> containers = new HashSet<GridServiceContainer>();
+
+    public ElasticServiceManager getElasticServiceManager() {
+        return elasticServiceManager;
+    }
+
+    public void setElasticServiceManager(final ElasticServiceManager elasticServiceManager) {
+        this.elasticServiceManager = elasticServiceManager;
+    }
+
+    private ElasticServiceManager elasticServiceManager;
 
     public Set<ProcessingUnit> getProcessingUnits() {
         return processingUnits;

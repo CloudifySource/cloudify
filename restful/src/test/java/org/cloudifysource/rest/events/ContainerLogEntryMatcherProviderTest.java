@@ -14,18 +14,18 @@ import org.openspaces.admin.zone.config.ExactZonesConfig;
  * Date: 6/8/13
  * Time: 2:28 PM
  */
-public class LogEntryMatcherProviderTest {
+public class ContainerLogEntryMatcherProviderTest {
 
     @Test
     public void testRemoveAll() throws Exception {
 
-        LogEntryMatcherProvider provider = new LogEntryMatcherProvider();
+        ContainerLogEntryMatcherProvider provider = new ContainerLogEntryMatcherProvider();
 
         GridServiceContainer mockContainer1 = createMockContainer("containerId1");
         GridServiceContainer mockContainer2 = createMockContainer("containerId2");
 
-        LogEntryMatcherProviderKey key1 = createKey(mockContainer1, "deploymentId1");
-        LogEntryMatcherProviderKey key2 = createKey(mockContainer2, "deploymentId1");
+        ContainerLogEntryMatcherProviderKey key1 = createKey(mockContainer1, "deploymentId1");
+        ContainerLogEntryMatcherProviderKey key2 = createKey(mockContainer2, "deploymentId1");
 
         // create two entries for the same deployment
         LogEntryMatcher logEntryMatcher1BeforeRemoval = getLogEntryMatcher(provider, key1);
@@ -47,12 +47,12 @@ public class LogEntryMatcherProviderTest {
     @Test
     public void testGet() throws Exception {
 
-        LogEntryMatcherProvider provider = new LogEntryMatcherProvider();
+        ContainerLogEntryMatcherProvider provider = new ContainerLogEntryMatcherProvider();
 
         GridServiceContainer mockContainer = createMockContainer("containerUid");
 
-        LogEntryMatcherProviderKey key1 = createKey(mockContainer, "deploymentId1");
-        LogEntryMatcherProviderKey key2 = createKey(mockContainer, "deploymentId2");
+        ContainerLogEntryMatcherProviderKey key1 = createKey(mockContainer, "deploymentId1");
+        ContainerLogEntryMatcherProviderKey key2 = createKey(mockContainer, "deploymentId2");
 
         // test get with existing entry returns the existing entry
         Assert.assertEquals(getLogEntryMatcher(provider, key1), getLogEntryMatcher(provider, key1));
@@ -62,14 +62,14 @@ public class LogEntryMatcherProviderTest {
 
     }
 
-    private LogEntryMatcher getLogEntryMatcher(final LogEntryMatcherProvider provider,
-                               final LogEntryMatcherProviderKey key) {
+    private LogEntryMatcher getLogEntryMatcher(final ContainerLogEntryMatcherProvider provider,
+                               final ContainerLogEntryMatcherProviderKey key) {
         return provider.get(key);
     }
 
-    private LogEntryMatcherProviderKey createKey(final GridServiceContainer mockContainer,
+    private ContainerLogEntryMatcherProviderKey createKey(final GridServiceContainer mockContainer,
                                                  final String deploymentId) {
-        LogEntryMatcherProviderKey key = new LogEntryMatcherProviderKey();
+        ContainerLogEntryMatcherProviderKey key = new ContainerLogEntryMatcherProviderKey();
         key.setContainer(mockContainer);
         key.setDeploymentId(deploymentId);
         return key;

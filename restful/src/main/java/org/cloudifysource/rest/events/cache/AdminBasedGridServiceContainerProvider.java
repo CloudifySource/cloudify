@@ -18,6 +18,8 @@ package org.cloudifysource.rest.events.cache;
 
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.openspaces.admin.Admin;
+import org.openspaces.admin.esm.ElasticServiceManager;
+import org.openspaces.admin.esm.ElasticServiceManagers;
 import org.openspaces.admin.gsc.GridServiceContainer;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.zone.Zone;
@@ -36,7 +38,7 @@ import java.util.logging.Logger;
  * This is not a Cache, it performs admin lookup each time a call is made.
  *
  */
-public class AdminBasedGridServiceContainerProvider implements GridServiceContainerProvider {
+public class AdminBasedGridServiceContainerProvider implements GridServiceContainerProvider, ElasticServiceManagerProvider {
 
     private static final Logger logger = Logger.getLogger(AdminBasedGridServiceContainerProvider.class.getName());
 
@@ -44,6 +46,15 @@ public class AdminBasedGridServiceContainerProvider implements GridServiceContai
 
     public AdminBasedGridServiceContainerProvider(final Admin admin) {
         this.admin = admin;
+    }
+
+    @Override
+    public ElasticServiceManager getElasticServiceManager() {
+        ElasticServiceManagers elasticServiceManagers = admin.getElasticServiceManagers();
+        if (elasticServiceManagers == null || elasticServiceManagers.getSize() == 0) {
+            throw new IllegalStateException("Could not find any elastic service managers");
+        }
+        return elasticServiceManagers.getManagers()[0];
     }
 
     @Override

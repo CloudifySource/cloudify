@@ -30,11 +30,13 @@ import static com.gigaspaces.log.LogEntryMatchers.regex;
  */
 public final class EventsUtils {
 
-	private EventsUtils() {
+    private static final String ESM_EVENT_LOGGER_NAME = ".*.ESMEventLogger.*";;
+
+    private static final String USM_EVENT_LOGGER_NAME = ".*.USMEventLogger.*";
+
+    private EventsUtils() {
 
 	}
-
-	private static final String USM_EVENT_LOGGER_NAME = ".*.USMEventLogger.*";
 
 	/**
 	 * Given a log entry, translate to event.
@@ -75,7 +77,22 @@ public final class EventsUtils {
 		return regex(regex);
 	}
 
-	/**
+    /**
+     * Creates a matcher for
+     * {@link org.openspaces.admin.esm.ElasticServiceManager#logEntries(com.gigaspaces.log.LogEntryMatcher)}. This
+     * matcher will find USM related event only using the {@code ESM_EVENT_LOGGER_NAME} regex.
+     *
+     * @return The log entry matcher.
+     */
+    public static LogEntryMatcher createESMEventLoggerMatcher() {
+        final String regex = MessageFormat.format(ESM_EVENT_LOGGER_NAME, new Object() {
+        });
+        return regex(regex);
+    }
+
+
+
+    /**
 	 * Given a set of events and indices, extract only events who's index is in range.
 	 * 
 	 * @param events

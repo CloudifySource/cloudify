@@ -37,19 +37,19 @@ import java.util.logging.Logger;
  * This provides us with a mechanism for retrieving just the last logs we haven't retrieved yet.
  *
  */
-public class LogEntryMatcherProvider {
+public class ContainerLogEntryMatcherProvider {
 
-    private static final Logger logger = Logger.getLogger(LogEntryMatcherProvider.class.getName());
+    private static final Logger logger = Logger.getLogger(ContainerLogEntryMatcherProvider.class.getName());
 
-    private final LoadingCache<LogEntryMatcherProviderKey, ContinuousLogEntryMatcher> matcherCache;
+    private final LoadingCache<ContainerLogEntryMatcherProviderKey, ContinuousLogEntryMatcher> matcherCache;
 
-    public LogEntryMatcherProvider() {
+    public ContainerLogEntryMatcherProvider() {
 
         this.matcherCache = CacheBuilder.newBuilder()
-                .build(new CacheLoader<LogEntryMatcherProviderKey, ContinuousLogEntryMatcher>() {
+                .build(new CacheLoader<ContainerLogEntryMatcherProviderKey, ContinuousLogEntryMatcher>() {
 
                     @Override
-                    public ContinuousLogEntryMatcher load(final LogEntryMatcherProviderKey key) throws Exception {
+                    public ContinuousLogEntryMatcher load(final ContainerLogEntryMatcherProviderKey key) throws Exception {
 
                         logger.fine(EventsUtils.getThreadId() + "Loading matcher cache with matcher for key " + key);
 
@@ -68,8 +68,8 @@ public class LogEntryMatcherProvider {
     public void removeAll(final EventsCacheKey key) {
         logger.fine(EventsUtils.getThreadId() + "Removing matcher for key " + key);
 
-        for (LogEntryMatcherProviderKey logMatcherKey
-                : new HashSet<LogEntryMatcherProviderKey>(matcherCache.asMap().keySet())) {
+        for (ContainerLogEntryMatcherProviderKey logMatcherKey
+                : new HashSet<ContainerLogEntryMatcherProviderKey>(matcherCache.asMap().keySet())) {
             if (logMatcherKey.getDeploymentId().equals(key.getDeploymentId())) {
                 matcherCache.asMap().remove(logMatcherKey);
             }
@@ -81,7 +81,7 @@ public class LogEntryMatcherProvider {
      * @param key The key.
      * @return The matching matcher.
      */
-    public LogEntryMatcher get(final LogEntryMatcherProviderKey key) {
+    public LogEntryMatcher get(final ContainerLogEntryMatcherProviderKey key) {
         return matcherCache.getUnchecked(key);
     }
 }

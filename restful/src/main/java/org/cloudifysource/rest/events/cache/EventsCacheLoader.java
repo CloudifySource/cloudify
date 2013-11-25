@@ -14,15 +14,17 @@ package org.cloudifysource.rest.events.cache;
 
 import com.gigaspaces.log.LogEntries;
 import com.gigaspaces.log.LogEntry;
-import com.gigaspaces.log.LogEntryMatcher;
 import com.google.common.cache.CacheLoader;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.cloudifysource.dsl.rest.response.DeploymentEvent;
 import org.cloudifysource.dsl.rest.response.DeploymentEvents;
+import org.cloudifysource.rest.events.ContainerLogEntryMatcherProvider;
+import org.cloudifysource.rest.events.ContainerLogEntryMatcherProviderKey;
+import org.cloudifysource.rest.events.ElasticServiceManagerLogEntryMatcherProvider;
+import org.cloudifysource.rest.events.ElasticServiceManagerLogEntryMatcherProviderKey;
 import org.cloudifysource.rest.events.EventsUtils;
-import org.cloudifysource.rest.events.LogEntryMatcherProvider;
-import org.cloudifysource.rest.events.LogEntryMatcherProviderKey;
+import org.openspaces.admin.esm.ElasticServiceManager;
 import org.openspaces.admin.gsc.GridServiceContainer;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
@@ -50,13 +52,20 @@ public class EventsCacheLoader extends CacheLoader<EventsCacheKey, EventsCacheVa
 
     private static final Logger logger = Logger.getLogger(EventsCacheLoader.class.getName());
 
-    private final LogEntryMatcherProvider matcherProvider;
+    private final ContainerLogEntryMatcherProvider containerMatcherProvider;
     private final GridServiceContainerProvider containerProvider;
 
-    public EventsCacheLoader(final GridServiceContainerProvider containerProvider) {
+    private final ElasticServiceManagerLogEntryMatcherProvider elasticServiceManagerMatcherProvider;
+    private final ElasticServiceManagerProvider elasticServiceManagerProvider;
 
-        this.matcherProvider = new LogEntryMatcherProvider();
+    public EventsCacheLoader(final GridServiceContainerProvider containerProvider,
+                             final ElasticServiceManagerProvider elasticServiceManagerProvider) {
+
+        this.containerMatcherProvider = new ContainerLogEntryMatcherProvider();
+        this.elasticServiceManagerMatcherProvider = new ElasticServiceManagerLogEntryMatcherProvider();
         this.containerProvider = containerProvider;
+        this.elasticServiceManagerProvider = elasticServiceManagerProvider;
+
     }
 
     @Override
@@ -82,26 +91,19 @@ public class EventsCacheLoader extends CacheLoader<EventsCacheKey, EventsCacheVa
                 processingUnitsForDeployment.add(processingUnitInstances[0].getProcessingUnit());
             }
 
-            LogEntryMatcherProviderKey logEntryMatcherProviderKey = createKey(container, key);
-
-            if (container.isDiscovered()) {
-                LogEntries logEntries = container.logEntries(matcherProvider.get(logEntryMatcherProviderKey));
-                for (LogEntry logEntry : logEntries) {
-                    if (logEntry.isLog()) {
-                        DeploymentEvent event = EventsUtils.logToEvent(logEntry,
-                                logEntries.getHostName(), logEntries.getHostAddress());
-                        event.setIndex(++index);
-                        events.getEvents().add(event);
-                    }
-                }
-            }
+            index = addEventsFromContainer(index, container, key.getDeploymentId(), events);
         }
+
+        // add logs from the esm.
+        ElasticServiceManager elasticServiceManager = elasticServiceManagerProvider.getElasticServiceManager();
+        index = addEventsFromElasticServiceManager(index, elasticServiceManager, key.getDeploymentId(), events);
 
         EventsCacheValue value = new EventsCacheValue();
         value.setLastEventIndex(index);
         value.setEvents(events);
         value.getProcessingUnits().addAll(processingUnitsForDeployment);
         value.setContainers(containersForDeployment);
+        value.setElasticServiceManager(elasticServiceManager);
         value.setLastRefreshedTimestamp(System.currentTimeMillis());
         return value;
     }
@@ -119,30 +121,7 @@ public class EventsCacheLoader extends CacheLoader<EventsCacheKey, EventsCacheVa
         if (!oldValue.getContainers().isEmpty()) {
             int index = oldValue.getLastEventIndex();
             for (GridServiceContainer container : oldValue.getContainers()) {
-
-                // this will give us just the new logs.
-                LogEntryMatcherProviderKey logEntryMatcherProviderKey = createKey(container, key);
-                LogEntryMatcher matcher = matcherProvider.get(logEntryMatcherProviderKey);
-                if (container.isDiscovered()) {
-                    // don't fetch logs from undiscovered containers
-                    logger.fine(EventsUtils.getThreadId() + "Retrieving logs from container " + container.getUid() +
-                            container.getExactZones().getZones());
-                    LogEntries logEntries = container.logEntries(matcher);
-                    for (LogEntry logEntry : logEntries) {
-                        if (logEntry.isLog()) {
-                            logger.finest(EventsUtils.getThreadId() + "Found log " + logEntry.getText() + " for " +
-                                    "deployment id " + key.getDeploymentId() + " from container "
-                                    + container.getUid() + container.getExactZones().getZones());
-                            DeploymentEvent event = EventsUtils.logToEvent(
-                                    logEntry, logEntries.getHostName(), logEntries.getHostAddress());
-                            event.setIndex(++index);
-                            oldValue.getEvents().getEvents().add(event);
-                        }
-                    }
-                } else {
-                    logger.fine(EventsUtils.getThreadId() + "Not retrieving logs from container " + container.getUid()
-                            + container.getExactZones().getZones() + " since it is not discovered by the admin");
-                }
+                index = addEventsFromContainer(index, container, key.getDeploymentId(), oldValue.getEvents());
             }
 
             // update refresh time.
@@ -152,15 +131,79 @@ public class EventsCacheLoader extends CacheLoader<EventsCacheKey, EventsCacheVa
         return Futures.immediateFuture(oldValue);
     }
 
-    public LogEntryMatcherProvider getMatcherProvider() {
-        return matcherProvider;
+    public ContainerLogEntryMatcherProvider getContainerMatcherProvider() {
+        return containerMatcherProvider;
     }
 
-    private LogEntryMatcherProviderKey createKey(final GridServiceContainer container,
-                                                 final EventsCacheKey key) {
-        LogEntryMatcherProviderKey logEntryMatcherProviderKey = new LogEntryMatcherProviderKey();
-        logEntryMatcherProviderKey.setDeploymentId(key.getDeploymentId());
-        logEntryMatcherProviderKey.setContainer(container);
-        return logEntryMatcherProviderKey;
+    private ContainerLogEntryMatcherProviderKey createKey(final GridServiceContainer container,
+                                                          final String deploymentId) {
+        ContainerLogEntryMatcherProviderKey
+                containerLogEntryMatcherProviderKey = new ContainerLogEntryMatcherProviderKey();
+        containerLogEntryMatcherProviderKey.setDeploymentId(deploymentId);
+        containerLogEntryMatcherProviderKey.setContainer(container);
+        return containerLogEntryMatcherProviderKey;
     }
+
+    private ElasticServiceManagerLogEntryMatcherProviderKey createKey(final ElasticServiceManager elasticServiceManager,
+                                                                      final String deploymentId) {
+        ElasticServiceManagerLogEntryMatcherProviderKey
+                elasticServiceManagerLogEntryMatcherProviderKey = new ElasticServiceManagerLogEntryMatcherProviderKey
+                ();
+        elasticServiceManagerLogEntryMatcherProviderKey.setDeploymentId(deploymentId);
+        elasticServiceManagerLogEntryMatcherProviderKey.setManager(elasticServiceManager);
+        return elasticServiceManagerLogEntryMatcherProviderKey;
+
+    }
+
+    private int addEventsFromContainer(final int previousIndex,
+                                        final GridServiceContainer container,
+                                        final String deploymentId,
+                                        final DeploymentEvents events) {
+        int index = previousIndex;
+        ContainerLogEntryMatcherProviderKey containerLogEntryMatcherProviderKey = createKey(container, deploymentId);
+
+        if (container.isDiscovered()) {
+            LogEntries logEntries = container.logEntries(containerMatcherProvider.get(
+                    containerLogEntryMatcherProviderKey));
+            for (LogEntry logEntry : logEntries) {
+                if (logEntry.isLog()) {
+                    DeploymentEvent event = EventsUtils.logToEvent(logEntry,
+                            logEntries.getHostName(), logEntries.getHostAddress());
+                    event.setIndex(++index);
+                    events.getEvents().add(event);
+                }
+            }
+        } else {
+            logger.fine(EventsUtils.getThreadId() + "Not retrieving logs from container " + container.getUid()
+                    + container.getExactZones().getZones() +  " since it is not discovered by the admin");
+        }
+        return index;
+    }
+
+    private int addEventsFromElasticServiceManager(final int previousIndex,
+                                       final ElasticServiceManager manager,
+                                       final String deploymentId,
+                                       final DeploymentEvents events) {
+        int index = previousIndex;
+        ElasticServiceManagerLogEntryMatcherProviderKey elasticServiceManagerLogEntryMatcherProviderKey
+                = createKey(manager, deploymentId);
+
+        if (manager.isDiscovered()) {
+            LogEntries logEntries = manager.logEntries(elasticServiceManagerMatcherProvider.get(
+                    elasticServiceManagerLogEntryMatcherProviderKey));
+            for (LogEntry logEntry : logEntries) {
+                if (logEntry.isLog()) {
+                    DeploymentEvent event = EventsUtils.logToEvent(logEntry,
+                            logEntries.getHostName(), logEntries.getHostAddress());
+                    event.setIndex(++index);
+                    events.getEvents().add(event);
+                }
+            }
+        } else {
+            logger.fine(EventsUtils.getThreadId() + "Not retrieving logs from esm " + manager.getUid()
+                    + " since it is not discovered by the admin");
+        }
+        return index;
+    }
+
 }
