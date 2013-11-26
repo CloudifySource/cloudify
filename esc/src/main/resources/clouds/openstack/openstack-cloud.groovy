@@ -148,8 +148,9 @@ cloud {
 						// When used with the default driver, the option names are considered
 						// method names invoked on the TemplateOptions object with the value as the parameter.
 						options ([
-									"keyPairName" : keyPair,
-									"quantumVersion": "v2.0"
+									"networkServiceName" : "neutron", // optional property (default: neutron) 
+									"networkApiVersion" : "v2.0", // optional property (default: v2.0)
+									"keyPairName" : keyPair
 								])
 	
 						// Optional. Overrides to default cloud driver behavior.
