@@ -136,14 +136,55 @@ cloud {
 							"jclouds.timeouts.AccountClient.getActivePackages":"6000000",
 						     "jclouds.timeouts.ProductPackageClient.getProductPackage":"6000000"
 						])
-	
-						// enable sudo.
+
+                        // enable sudo.
 						privileged true
 	
 						// optional. A native command line to be executed before the cloudify agent is started.
 						// initializationCommand "echo Cloudify agent is about to start"
 	
-					}
+					},
+                    // Mandatory. Template Name.
+                    SMALL_LINUX_BMI : computeTemplate{
+                        // Mandatory. Image ID.
+                        imageId bmiLinuxImageId
+                        // Mandatory. Files from the local directory will be copied to this directory on the remote machine.
+                        remoteDirectory "/tmp/gs-files"
+                        // Mandatory. Amount of RAM available to machine.
+                        machineMemoryMB 1600
+                        // Mandatory. Hardware ID.
+                        hardwareId bmiHardwareId
+                        // Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
+                        localDirectory "upload"
+                        // Optional. Name of key file to use for authenticating to the remote machine. Remove this line if key files
+                        // are not used.
+                        locationId locationId
+                        username "root"
+
+                        options ([
+                                "domainName":"cloudify.org"
+                        ])
+
+                        // Optional. Overrides to default cloud driver behavior.
+                        // When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
+                        overrides ([
+                                "jclouds.timeouts.AccountClient.getActivePackages":"6000000",
+                                "jclouds.timeouts.ProductPackageClient.getProductPackage":"6000000"
+                        ])
+
+                        custom ([
+                                "org.cloudifysource.softlayer.bmi":true
+                        ])
+
+
+                        // enable sudo.
+                        privileged true
+
+                        // optional. A native command line to be executed before the cloudify agent is started.
+                        // initializationCommand "echo Cloudify agent is about to start"
+
+                    }
+
 	
 	
 				])
