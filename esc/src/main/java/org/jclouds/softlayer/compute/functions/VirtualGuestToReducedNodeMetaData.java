@@ -31,6 +31,8 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Overrides the default jclouds transformation to boost performance.
  * This transformation does not include location and image information in the returned NodeMetaData Object.
@@ -47,12 +49,15 @@ import java.util.Set;
 @Singleton
 public class VirtualGuestToReducedNodeMetaData extends VirtualGuestToNodeMetadata {
 
+    private final GroupNamingConvention nodeNamingConvention;
+
     @Inject
     VirtualGuestToReducedNodeMetaData(
             @Memoized Supplier<Set<? extends Location>> locations,
             GetHardwareForVirtualGuest hardware,
             GetImageForVirtualGuest images, GroupNamingConvention.Factory namingConvention) {
         super(locations, hardware, images, namingConvention);
+        this.nodeNamingConvention = checkNotNull(namingConvention, "namingConvention").createWithoutPrefix();
     }
 
     @Override
@@ -64,6 +69,7 @@ public class VirtualGuestToReducedNodeMetaData extends VirtualGuestToNodeMetadat
         builder.name(from.getHostname());
         builder.hostname(from.getHostname());
         builder.status(serverStateToNodeStatus.get(from.getPowerState().getKeyName()));
+        builder.group(nodeNamingConvention.groupInUniqueNameOrNull(from.getHostname()));
 
         // These are null for 'bad' guest orders in the HALTED state.
         if (from.getPrimaryIpAddress() != null)

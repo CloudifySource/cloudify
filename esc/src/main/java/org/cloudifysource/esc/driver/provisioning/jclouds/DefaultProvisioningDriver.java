@@ -488,13 +488,14 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
     @Override
     public MachineDetails[] getExistingManagementServers() throws CloudProvisioningException {
         final String managementMachinePrefix = this.serverNamePrefix;
-        Set<? extends NodeMetadata> existingManagementServers = null;
+        Set<? extends NodeMetadata> existingManagementServers;
         try {
             Predicate<ComputeMetadata> filter = new Predicate<ComputeMetadata>() {
 
                 @Override
                 public boolean apply(final ComputeMetadata input) {
                     final NodeMetadata node = (NodeMetadata) input;
+                    logger.finest("Found server " + node);
                     if (node.getGroup() == null) {
                         return false;
                     }
