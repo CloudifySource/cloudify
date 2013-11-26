@@ -20,7 +20,11 @@ package org.cloudifysource.esc.driver.provisioning.jclouds.softlayer;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
+import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
+import org.cloudifysource.esc.driver.provisioning.ComputeDriverConfiguration;
 import org.cloudifysource.esc.driver.provisioning.jclouds.DefaultProvisioningDriver;
+import org.cloudifysource.esc.util.Utils;
 import org.jclouds.softlayer.compute.functions.VirtualGuestToNodeMetadata;
 import org.jclouds.softlayer.compute.functions.VirtualGuestToReducedNodeMetaData;
 
@@ -35,16 +39,32 @@ import java.util.Set;
 
 public class SoftlayerProvisioningDriver extends DefaultProvisioningDriver {
 
+    private boolean bareMetal;
+
+    @Override
+    public void setConfig(final ComputeDriverConfiguration configuration) throws CloudProvisioningException {
+
+        ComputeTemplate computeTemplate =
+                configuration.getCloud().getCloudCompute().getTemplates().get(configuration.getCloudTemplate());
+        bareMetal = Utils.getBoolean(computeTemplate.getCustom()
+                .get("org.cloudifysource.softlayer.bmi"), false);
+        if (bareMetal) {
+            configuration.getCloud().getProvider().setProvider("softlayer-bmi");
+        }
+        super.setConfig(configuration);
+    }
+
     @Override
     public Set<Module> setupModules() {
         Set<Module> modules = super.setupModules();
-
-        modules.add(new AbstractModule() {
-            @Override
-            protected void configure() {
-                bind(VirtualGuestToNodeMetadata.class).to(VirtualGuestToReducedNodeMetaData.class);
-            }
-        });
+        if (!bareMetal) {
+            modules.add(new AbstractModule() {
+                @Override
+                protected void configure() {
+                    bind(VirtualGuestToNodeMetadata.class).to(VirtualGuestToReducedNodeMetaData.class);
+                }
+            });
+        }
         return modules;
     }
 }

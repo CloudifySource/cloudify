@@ -84,6 +84,14 @@ public final class Utils {
 		}
 	}
 
+    public static boolean getBoolean(final Object obj, final boolean defaultValue) {
+        if (obj == null) {
+            return defaultValue;
+        } else {
+            return (Boolean) obj;
+        }
+    }
+
 	/**
 	 * Gets a "full" admin object. The function waits until all GridServiceManagers are found before returning the
 	 * object.
