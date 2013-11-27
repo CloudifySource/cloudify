@@ -345,13 +345,8 @@ public final class Utils {
 
 		// Add the template initialization command
 		if (!org.apache.commons.lang.StringUtils.isBlank(template.getInitializationCommand())) {
-			// the initialization command may include command separators (like
-			// ';') so quote it
-			final String command = template.getInitializationCommand();
-			final String quotedCommand = "\"" + command + "\"";
-
 			details.getExtraRemoteEnvironmentVariables().put(CloudifyConstants.GIGASPACES_AGENT_ENV_INIT_COMMAND,
-					quotedCommand);
+					template.getInitializationCommand());
 		}
 
 		// Add the template custom environment
