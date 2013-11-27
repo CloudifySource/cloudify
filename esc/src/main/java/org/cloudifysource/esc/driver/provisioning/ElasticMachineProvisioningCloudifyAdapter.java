@@ -125,7 +125,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	private static final int DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE = 5;
 
-	private static final double START_MACHINE_INVOKATION_LIMIT_PER_SECOND = 0.01;
+	private static final double START_MACHINE_INVOKATION_LIMIT_PER_SECOND = 0.1;
 
 	/**********
 	 * .
@@ -344,12 +344,15 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			throws ElasticMachineProvisioningException,
 			ElasticGridServiceAgentProvisioningException, InterruptedException, TimeoutException {
 		
-		// allow 1 request every 10 seconds.
-		throttler.acquire();
 		
 		logger.info("Cloudify Adapter is starting a new machine with zones " + zones.getZones()
 				+ " and reservation id " + reservationId);
-
+		
+		// allow 1 request every 10 seconds.
+		logger.fine("throttling start-machine request. limit is one request every ten seconds.");
+		throttler.acquire();
+		logger.fine("start-machine request throttling ended. starting new instance.");
+		
 		// calculate timeout
 		final long end = System.currentTimeMillis() + unit.toMillis(duration);
 
