@@ -348,17 +348,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		// calculate timeout
 		final long end = System.currentTimeMillis() + unit.toMillis(duration);
 
-		// configure drivers if this is first time
-		try {
-			configureDrivers();
-		} catch (final CloudProvisioningException e) {
-			throw new ElasticMachineProvisioningException("Failed to configure cloud driver for first use: "
-					+ e.getMessage(), e);
-		} catch (final StorageProvisioningException e) {
-			throw new ElasticMachineProvisioningException("Failed to configure storage driver for first use: "
-					+ e.getMessage(), e);
-		}
-
 		// provision the machine
 		logger.info("Calling provisioning implementation for new machine");
 		MachineDetails machineDetails;
@@ -798,17 +787,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		final long endTime = System.currentTimeMillis() + unit.toMillis(duration);
 		final GridServiceAgent agent = startedAgent.getAgent();
 		final String machineIp = agent.getMachine().getHostAddress();
-
-		// configure drivers if this is first time
-		try {
-			configureDrivers();
-		} catch (final CloudProvisioningException e) {
-			throw new ElasticMachineProvisioningException("Failed to configure cloud driver for first use: "
-					+ e.getMessage(), e);
-		} catch (StorageProvisioningException e) {
-			throw new ElasticMachineProvisioningException("Failed to configure storage driver for first use: "
-					+ e.getMessage(), e);
-		}
 
 		Exception failedToShutdownAgentException = null;
 		final GridServiceAgentStopRequestedEvent agentStopEvent = new GridServiceAgentStopRequestedEvent();
@@ -1264,15 +1242,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	@Override
 	public Object getExternalApi(final String apiName) throws InterruptedException,
 			ElasticMachineProvisioningException {
-		try {
-			configureDrivers();
-		} catch (final CloudProvisioningException e) {
-			throw new ElasticMachineProvisioningException("Failed to configure cloud driver for first use: "
-					+ e.getMessage(), e);
-		} catch (final StorageProvisioningException e) {
-			throw new ElasticMachineProvisioningException("Failed to configure storage driver for first use: "
-					+ e.getMessage(), e);
-		}
 		Object externalApi = null;
 		// TODO: (adaml) extract the names of the apis to constants.
 		if (apiName.equals(CloudifyConstants.STORAGE_REMOTE_API_KEY)) {
