@@ -13,6 +13,12 @@
  */
 package org.cloudifysource.dsl.rest;
 
+import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
+
+import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.cloudifysource.dsl.rest.response.AddTemplateResponse;
 import org.cloudifysource.dsl.rest.response.AddTemplatesResponse;
 
 /**
@@ -34,6 +40,24 @@ public class AddTemplatesException extends Exception {
 
 	public AddTemplatesResponse getAddTemplatesResponse() {
 		return addTemplatesResponse;
+	}
+	
+	
+	@Override
+	public String toString() {
+		Map<String, AddTemplateResponse> templates = addTemplatesResponse.getTemplates();
+		Set<Entry<String, AddTemplateResponse>> entrySet = templates.entrySet();
+		StringBuilder string = 
+				new StringBuilder("AddTemplatesException[Status: " + addTemplatesResponse.getStatus() 
+						+ ", Response per template:");
+		for (Entry<String, AddTemplateResponse> entry : entrySet) {
+			AddTemplateResponse templateResponse = entry.getValue();
+			string.append(CloudifyConstants.NEW_LINE
+					+ "template " + entry.getKey() 
+					+ ": hosts that failed to add the template: " + templateResponse.getFailedToAddHosts() 
+					+  ", hosts that added the tempalte successfully: " + templateResponse.getSuccessfullyAddedHosts());
+		}
+		return string.toString();
 	}
 
 }
