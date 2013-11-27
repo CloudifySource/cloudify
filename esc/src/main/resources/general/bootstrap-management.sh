@@ -20,6 +20,14 @@
 #	$PASSWORD - the machine password.
 #############################################################################
 
+# some distro do not have which installed so we're checking if the file exists 
+if [ -f /usr/bin/wget ]; then
+	DOWNLOADER="wget"
+elif [ -f /usr/bin/curl ]; then
+	DOWNLOADER="curl"
+fi
+
+
 # args:
 # $2 the error code of the last command (should be explicitly passed)
 # $3 the message to print in case of an error
@@ -178,7 +186,11 @@ else
 	export GIGASPACES_ORIGINAL_JAVA_HOME=$JAVA_HOME
 
 	echo Downloading JDK from $GIGASPACES_AGENT_ENV_JAVA_URL
-	wget -q -O $WORKING_HOME_DIRECTORY/java.bin $GIGASPACES_AGENT_ENV_JAVA_URL || error_exit $? 101 "Failed downloading Java installation from $GIGASPACES_AGENT_ENV_JAVA_URL"
+	if [ "$DOWNLOADER" = "wget" ];then
+		$DOWNLOADER -q -O $WORKING_HOME_DIRECTORY/java.bin $GIGASPACES_AGENT_ENV_JAVA_URL || error_exit $? 101 "Failed downloading Java installation from $GIGASPACES_AGENT_ENV_JAVA_URL"
+	elif [ "$DOWNLOADER" = "curl" ];then
+		$DOWNLOADER --silent -o $WORKING_HOME_DIRECTORY/java.bin -O $GIGASPACES_AGENT_ENV_JAVA_URL || error_exit $? 101 "Failed downloading Java installation from $GIGASPACES_AGENT_ENV_JAVA_URL"
+	fi
 	chmod +x $WORKING_HOME_DIRECTORY/java.bin
 	echo -e "\n" > $WORKING_HOME_DIRECTORY/input.txt
 	rm -rf ~/java || error_exit $? 102 "Failed removing old java installation directory"
@@ -197,12 +209,20 @@ export EXT_JAVA_OPTIONS="-Dcom.gs.multicast.enabled=false"
 
 if [ ! -z "$GIGASPACES_LINK" ]; then
 	echo Downloading cloudify installation from $GIGASPACES_LINK.tar.gz
-	wget -q $GIGASPACES_LINK.tar.gz -O $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz || error_exit $? 104 "Failed downloading cloudify installation"
+	if [ "$DOWNLOADER" = "wget" ];then
+		$DOWNLOADER -q $GIGASPACES_LINK.tar.gz -O $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz || error_exit $? 104 "Failed downloading cloudify installation"
+	elif [ "$DOWNLOADER" = "curl" ];then
+		$DOWNLOADER --silent -o $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz -O $GIGASPACES_LINK.tar.gz  || error_exit $? 104 "Failed downloading cloudify installation"
+	fi
 fi
 
 if [ ! -z "$GIGASPACES_OVERRIDES_LINK" ]; then
 	echo Downloading cloudify overrides from $GIGASPACES_OVERRIDES_LINK.tar.gz
-	wget -q $GIGASPACES_OVERRIDES_LINK.tar.gz -O $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz || error_exit $? 105 "Failed downloading cloudify overrides"
+	if [ "$DOWNLOADER" = "wget" ];then
+		$DOWNLOADER -q $GIGASPACES_OVERRIDES_LINK.tar.gz -O $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz || error_exit $? 105 "Failed downloading cloudify overrides"
+	elif [ "$DOWNLOADER" = "curl" ];then
+		$DOWNLOADER --silent -o $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz -O $GIGASPACES_OVERRIDES_LINK.tar.gz  || error_exit $? 105 "Failed downloading cloudify overrides"
+	fi
 fi
 
 # Todo: Check this condition
