@@ -166,11 +166,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	// used to prevent loop of constantly trying to create new machines and failing. 
 	private RateLimiter throttler = RateLimiter.create(START_MACHINE_INVOKATION_LIMIT_PER_SECOND);
 
-	// the setConfig method of cloud and storage drivers is called the first time start/stop machine is called
-	// this is to make sure that the setConfig call is called on the dedicated scale out/in thread and not
-	// in the ESM thread which calls afterPropertiesSet()
-	private boolean driversConfigured = false;
-
 	private Admin getGlobalAdminInstance(final Admin esmAdminInstance) throws InterruptedException,
 			ElasticMachineProvisioningException {
 		synchronized (GLOBAL_ADMIN_MUTEX) {
@@ -1014,12 +1009,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	 * @throws ElasticMachineProvisioningException .
 	 * @throws CloudProvisioningException .
 	 */
-	private synchronized void configureDrivers() throws InterruptedException, ElasticMachineProvisioningException,
+	private void configureDrivers() throws InterruptedException, ElasticMachineProvisioningException,
 			CloudProvisioningException, StorageProvisioningException {
-
-		if (this.driversConfigured) {
-			return;
-		}
 
 		// initialize the provisioning driver
 		final ComputeDriverConfiguration configuration = new ComputeDriverConfiguration();
@@ -1047,8 +1038,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			networkConfig.setCloud(cloud);
 			this.networkProvisioning.setConfig(networkConfig);
 		}
-
-		this.driversConfigured = true;
 	}
 
 	private ServiceNetwork createNetworkObject() throws ElasticMachineProvisioningException {
