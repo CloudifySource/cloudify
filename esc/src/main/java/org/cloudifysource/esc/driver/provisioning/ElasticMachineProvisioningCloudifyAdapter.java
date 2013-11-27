@@ -348,10 +348,11 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		logger.info("Cloudify Adapter is starting a new machine with zones " + zones.getZones()
 				+ " and reservation id " + reservationId);
 		
-		// allow 1 request every 10 seconds.
-		logger.fine("throttling start-machine request. limit is one request every ten seconds.");
-		throttler.acquire();
-		logger.fine("start-machine request throttling ended. starting new instance.");
+		
+//		// should be done only in case something bad happens and for a long period(adaml).
+//		logger.fine("throttling start-machine request. limit is one request every ten seconds.");
+//		throttler.acquire();
+//		logger.fine("start-machine request throttling ended. starting new instance.");
 		
 		// calculate timeout
 		final long end = System.currentTimeMillis() + unit.toMillis(duration);
