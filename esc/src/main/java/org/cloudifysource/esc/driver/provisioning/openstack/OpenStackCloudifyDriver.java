@@ -93,17 +93,32 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	 * */
 	public static final String JCLOUDS_ENDPOINT = "jclouds.endpoint";
 	/**
-	 * Key to set networkServiceName (default="neutron"). <br />
+	 * Set the name to search to find openstack compute endpoint (default="nova"). <br />
+	 * For instance: <code>computeServiceName="nova"</code>
+	 */
+	public static final String OPT_COMPUTE_SERVICE_NAME = "computeServiceName";
+	/**
+	 * Set the name to search to find openstack networking endpoint (default="neutron"). <br />
 	 * For instance: <code>networkServiceName="quantum"</code>
 	 */
-	public static final Object OPT_NETWORK_SERVICE_NAME = "networkServiceName";
+	public static final String OPT_NETWORK_SERVICE_NAME = "networkServiceName";
 	/**
-	 * Key to set networkApiVersion (default="v2.0"). <br />
+	 * Set the network api version (default="v2.0"). <br />
 	 * The Openstack network api need version in the URL (i.e.: https://192.168.2.100:9696/<b>v2.0</b>/networks). So we
 	 * might need to provide the version number to the cloud driver. <br />
 	 * For instance: <code>networkApiVersion="v2.0"</code>
 	 * */
 	public static final String OPT_NETWORK_API_VERSION = "networkApiVersion";
+	/**
+	 * Use an existing external router.
+	 * */
+	public static final String OPT_EXTERNAL_ROUTER_NAME = "externalRouterName";
+	/**
+	 * Specify an external network to use. If no name is configured, the driver will pick the first external network it
+	 * will find.<br />
+	 * If you specify <code>externalRouterName</code>, this property is ignored.
+	 * */
+	public static final String OPT_EXTERNAL_NETWORK_NAME = "externalNetworkName";
 
 	private OpenStackComputeClient computeApi;
 	private OpenStackNetworkClient networkApi;
@@ -116,6 +131,8 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 	private String applicationName;
 
+	private String externalRouterName;
+	private String externalNetworkName;
 	private boolean associateFloatingIp;
 
 	public static String getDefaultMangementPrefix() {
@@ -164,7 +181,16 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 			this.applicationNetworkName = this.securityGroupNames.getPrefix() + networkConfiguration.getName();
 		} else {
+			final ComputeTemplate template = this.cloud.getCloudCompute().getTemplates()
+					.get(this.cloud.getConfiguration().getManagementMachineTemplate());
+			final String extRouterName = (String) template.getOptions().get(OPT_EXTERNAL_ROUTER_NAME);
+			this.externalRouterName = StringUtils.isEmpty(extRouterName) ? null : extRouterName;
+
+			final String extNetName = (String) template.getOptions().get(OPT_EXTERNAL_NETWORK_NAME);
+			this.externalNetworkName = StringUtils.isEmpty(extNetName) ? null : extNetName;
+
 			this.networkConfiguration = managementNetworkConfig;
+
 		}
 
 		final String associateFloatingIp = this.networkConfiguration.getCustom().get("associateFloatingIpOnBootstrap");
@@ -237,6 +263,11 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			final String publicPortRange = StringUtils.join(publicPorts, ",");
 			this.createManagementRule(managementSecurityGroup.getId(), publicPortRange, null);
 		} catch (final Exception e) {
+			try {
+				this.cleanAllSecurityGroups();
+			} catch (OpenstackException e1) {
+				logger.warning("Couldn't clean all security groups: " + e1.getMessage());
+			}
 			throw new CloudProvisioningException(e);
 		}
 	}
@@ -294,7 +325,8 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		}
 
 		final String networkApiVersion = (String) cloudTemplate.getOptions().get(OPT_NETWORK_API_VERSION);
-		final String serviceName = (String) cloudTemplate.getOptions().get(OPT_NETWORK_SERVICE_NAME);
+		final String networkServiceName = (String) cloudTemplate.getOptions().get(OPT_NETWORK_SERVICE_NAME);
+		final String computeServiceName = (String) cloudTemplate.getOptions().get(OPT_COMPUTE_SERVICE_NAME);
 
 		final String cloudImageId = cloudTemplate.getImageId();
 		final String region = cloudImageId.split("/")[0];
@@ -307,9 +339,10 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		final String username = st.hasMoreElements() ? (String) st.nextToken() : null;
 
 		try {
-			this.computeApi = new OpenStackComputeClient(endpoint, username, password, tenant, region);
+			this.computeApi = new OpenStackComputeClient(endpoint, username, password, tenant, region,
+					computeServiceName);
 			this.networkApi = new OpenStackNetworkClient(endpoint, username, password, tenant, region,
-					serviceName, networkApiVersion);
+					networkServiceName, networkApiVersion);
 		} catch (OpenstackJsonSerializationException e) {
 			throw new IllegalStateException(e);
 		}
@@ -428,16 +461,45 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			final Subnet subnet = networkApi.createSubnet(subnetRequest);
 
 			// Router
-			final String publicNetworkId = networkApi.getPublicNetworkId();
-			final Router request = new Router();
-			request.setName(this.securityGroupNames.getPrefix() + MANAGEMENT_PUBLIC_ROUTER_NAME);
-			request.setAdminStateUp(true);
-			request.setExternalGatewayInfo(new RouterExternalGatewayInfo(publicNetworkId));
-			final Router router = networkApi.createRouter(request);
+			final Router router;
+			if (this.externalRouterName == null) {
+				final String publicNetworkId;
+				if (this.externalNetworkName == null) {
+					publicNetworkId = networkApi.getPublicNetworkId();
+				} else {
+					Network extNetwork = networkApi.getNetworkByName(this.externalNetworkName);
+					if (extNetwork == null) {
+						throw new CloudProvisioningException("Couldn't find external network '"
+								+ this.externalNetworkName + "'");
+					}
+					if (!BooleanUtils.toBoolean(extNetwork.getRouterExternal())) {
+						throw new CloudProvisioningException("The network '"
+								+ this.externalNetworkName + "' is not an external network");
+					}
+
+					publicNetworkId = extNetwork.getId();
+				}
+				final Router request = new Router();
+				request.setName(this.securityGroupNames.getPrefix() + MANAGEMENT_PUBLIC_ROUTER_NAME);
+				request.setAdminStateUp(true);
+				request.setExternalGatewayInfo(new RouterExternalGatewayInfo(publicNetworkId));
+				router = networkApi.createRouter(request);
+			} else {
+				router = networkApi.getRouterByName(this.externalRouterName);
+				if (router == null) {
+					throw new CloudProvisioningException("Couldn't find external router '" + this.externalRouterName
+							+ "'");
+				}
+			}
 
 			// Add interface
 			networkApi.addRouterInterface(router.getId(), subnet.getId());
 		} catch (final Exception e) {
+			try {
+				this.cleanAllNetworks();
+			} catch (OpenstackException e1) {
+				logger.warning("Couldn't clean all networks: " + e1.getMessage());
+			}
 			throw new CloudProvisioningException(e);
 		}
 	}
@@ -463,30 +525,34 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		return subnetRequest;
 	}
 
-	private void cleanAllNetworks() throws CloudProvisioningException {
-		try {
-			// Delete management networks
-			final Router router =
-					networkApi.getRouterByName(this.securityGroupNames.getPrefix() + MANAGEMENT_PUBLIC_ROUTER_NAME);
-			final Network network = networkApi.getNetworkByName(this.managementNetworkName);
-			if (router != null) {
-				if (network != null) {
-					networkApi.deleteRouterInterface(router.getId(), network.getSubnets()[0]);
-				}
+	private void cleanAllNetworks() throws OpenstackException {
+		// Delete management networks
+
+		final Router router;
+		if (this.externalRouterName == null) {
+			router = networkApi.getRouterByName(this.securityGroupNames.getPrefix() + MANAGEMENT_PUBLIC_ROUTER_NAME);
+		} else {
+			router = networkApi.getRouterByName(this.externalRouterName);
+		}
+
+		final Network network = networkApi.getNetworkByName(this.managementNetworkName);
+		if (router != null) {
+			if (network != null) {
+				networkApi.deleteRouterInterface(router.getId(), network.getSubnets()[0]);
+			}
+			if (this.externalRouterName == null) {
 				networkApi.deleteRouter(router.getId());
 			}
-			if (network != null) {
-				networkApi.deleteNetwork(network.getId());
-			}
+		}
+		if (network != null) {
+			networkApi.deleteNetwork(network.getId());
+		}
 
-			// Delete remaining application networks
-			List<Network> appliNetworks = networkApi.getNetworkByPrefix(this.securityGroupNames.getPrefix());
-			for (Network n : appliNetworks) {
-				networkApi.deleteNetwork(n.getId());
+		// Delete remaining application networks
+		List<Network> appliNetworks = networkApi.getNetworkByPrefix(this.securityGroupNames.getPrefix());
+		for (Network n : appliNetworks) {
+			networkApi.deleteNetwork(n.getId());
 
-			}
-		} catch (final Exception e) {
-			throw new CloudProvisioningException(e);
 		}
 	}
 
@@ -560,6 +626,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			request.setImageRef(imageId);
 			request.setFlavorRef(hardwareId);
 			request.addNetworks(managementNetwork.getId());
+
 			if (!management) {
 				// Attach application network to the server
 				final Network appliNetwork = networkApi.getNetworkByName(this.applicationNetworkName);
@@ -864,7 +931,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			}
 		}
 		throw new CloudProvisioningException(
-				"One or more managememnt machines failed. The first encountered error was: "
+				"One or more management machines failed. The first encountered error was: "
 						+ firstCreationException.getMessage(), firstCreationException);
 	}
 

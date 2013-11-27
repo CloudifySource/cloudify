@@ -27,7 +27,6 @@ cloud {
 		// When using the default cloud driver, maps to the Compute Service Context provider name.
 		provider "openstack-nova"
 
-
 		// Optional. The HTTP/S URL where cloudify can be downloaded from by newly started machines. Defaults to downloading the
 		// cloudify version matching that of the client from the cloudify CDN.
 		// Change this if your compute nodes do not have access to an internet connection, or if you prefer to use a
@@ -80,10 +79,7 @@ cloud {
 		// Details of the management network, which is shared among all instances of the Cloudify Cluster.
 		management {
 			networkConfiguration {
-				// The network name
 				name  "Cloudify-Management-Network"
-
-				// Subnets
 				subnets ([
 					subnet {
 						name "Cloudify-Management-Subnet"
@@ -91,7 +87,6 @@ cloud {
 						options ([ "gateway" : "177.86.0.111" ])
 					}
 				])
-				
 				custom ([ "associateFloatingIpOnBootstrap" : "true" ])
 			}
 		}
@@ -107,17 +102,10 @@ cloud {
 						range "160.0.0.0/24"
 						options { gateway "null" }
 					}
-					subnet {
-						range "160.1.0.0/24"
-						options ([ "gateway" : "null" ])
-					}
 				}
-
 				custom ([ "associateFloatingIpOnBootstrap" : "true" ])
 			}
 		])
-
-		custom ([ "global.network.custom.setting" : "Some other other value" ])
 	}
 	
 	cloudCompute {
@@ -148,8 +136,20 @@ cloud {
 						// When used with the default driver, the option names are considered
 						// method names invoked on the TemplateOptions object with the value as the parameter.
 						options ([
-									"networkServiceName" : "neutron", // optional property (default: neutron) 
-									"networkApiVersion" : "v2.0", // optional property (default: v2.0)
+									// Optional. Set the name to search to find openstack compute endpoint.
+									// "computeServiceName" : "nova",
+							
+									// Optional. Set the name to search to find openstack compute endpoint.
+									// "networkServiceName" : "neutron",
+							
+									// Optional. Set the network api version .
+									// "networkApiVersion"  : "v2.0",
+							
+									// Optional. Specify an existing external router name to use.
+									// "externalRouterName" : "router-ext",
+							
+									// Optional. Specify an external network name to use.
+									// "externalNetworkName": "net-ext", 
 									"keyPairName" : keyPair
 								])
 						

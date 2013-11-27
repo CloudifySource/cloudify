@@ -14,6 +14,7 @@ package org.cloudifysource.esc.driver.provisioning.openstack.rest;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonRootName;
 
 /**
@@ -28,6 +29,8 @@ public class Network {
 	private String tenantId;
 	private Boolean adminStateUp;
 	private String[] subnets;
+	@JsonProperty("router:external")
+	private Boolean routerExternal;
 
 	public String getStatus() {
 		return status;
@@ -79,6 +82,14 @@ public class Network {
 
 	public void setSubnets(final String[] subnets) {
 		this.subnets = subnets;
+	}
+
+	public Boolean getRouterExternal() {
+		return routerExternal;
+	}
+
+	public void setRouterExternal(Boolean routerExternal) {
+		this.routerExternal = routerExternal;
 	}
 
 	@Override

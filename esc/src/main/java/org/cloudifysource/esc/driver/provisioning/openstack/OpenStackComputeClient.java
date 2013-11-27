@@ -35,19 +35,28 @@ public class OpenStackComputeClient extends OpenStackBaseClient {
 	private static final int RESOURCE_NOT_FOUND_STATUS = 404;
 	private static final Logger logger = Logger.getLogger(OpenStackComputeClient.class.getName());
 
+	private String serviceName;
+
 	public OpenStackComputeClient() {
 		super();
 	}
 
 	public OpenStackComputeClient(final String endpoint, final String username, final String password,
 			final String tenant, final String region) throws OpenstackJsonSerializationException {
+		this(endpoint, username, password, tenant, region, null);
+	}
+
+	public OpenStackComputeClient(final String endpoint, final String username, final String password,
+			final String tenant, final String region, final String serviceName)
+			throws OpenstackJsonSerializationException {
 		super(endpoint, username, password, tenant, region);
+		this.serviceName = StringUtils.isEmpty(serviceName) ? "nova" : serviceName;
 		this.initToken();
 	}
 
 	@Override
 	protected String getServiceName() {
-		return "nova";
+		return this.serviceName;
 	}
 
 	/**
