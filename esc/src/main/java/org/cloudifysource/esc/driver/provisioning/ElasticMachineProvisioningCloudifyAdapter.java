@@ -99,6 +99,7 @@ import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticGridServiceAge
 import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticMachineProvisioningException;
 
 import com.gigaspaces.document.SpaceDocument;
+import com.google.common.util.concurrent.RateLimiter;
 
 /****************************
  * An ESM machine provisioning implementation used by the Cloudify cloud driver. All calls to start/stop a machine are
@@ -123,6 +124,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private static final int MILLISECONDS_IN_SECOND = 1000;
 
 	private static final int DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE = 5;
+
+	private static final double START_MACHINE_INVOKATION_LIMIT_PER_SECOND = 0.01;
 
 	/**********
 	 * .
@@ -158,6 +161,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private ElasticMachineProvisioningProgressChangedEventListener machineEventListener;
 	private ElasticGridServiceAgentProvisioningProgressChangedEventListener agentEventListener;
 	private File cloudDslFile;
+	
+	//defines the allowed number of operations in one second.
+	// used to prevent loop of constantly trying to create new machines and failing. 
+	private RateLimiter throttler = RateLimiter.create(START_MACHINE_INVOKATION_LIMIT_PER_SECOND);
 
 	// the setConfig method of cloud and storage drivers is called the first time start/stop machine is called
 	// this is to make sure that the setConfig call is called on the dedicated scale out/in thread and not
@@ -341,7 +348,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			final FailedGridServiceAgent failedAgent, final long duration, final TimeUnit unit)
 			throws ElasticMachineProvisioningException,
 			ElasticGridServiceAgentProvisioningException, InterruptedException, TimeoutException {
-
+		
+		// allow 1 request every 10 seconds.
+		throttler.acquire();
+		
 		logger.info("Cloudify Adapter is starting a new machine with zones " + zones.getZones()
 				+ " and reservation id " + reservationId);
 
