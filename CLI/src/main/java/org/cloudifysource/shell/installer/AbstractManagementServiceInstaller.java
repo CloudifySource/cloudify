@@ -31,7 +31,6 @@ import org.openspaces.admin.Admin;
 import org.openspaces.admin.gsa.GridServiceAgent;
 import org.openspaces.admin.gsm.GridServiceManager;
 import org.openspaces.admin.pu.ProcessingUnitAlreadyDeployedException;
-import org.openspaces.core.util.MemoryUnit;
 
 /**
  * @author eitany
