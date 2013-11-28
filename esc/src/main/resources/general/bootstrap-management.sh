@@ -7,13 +7,13 @@
 # Parameters the should be exported beforehand:
 # 	$LUS_IP_ADDRESS - Ip of the head node that runs a LUS and ESM. May be my IP. (Required)
 #   $GSA_MODE - 'agent' if this node should join an already running node. Otherwise, any value.
-#	$NO_WEB_SERVICES - 'true' if web-services (rest, webui) should not be deployed (only if GSA_MODE != 'agent')
+#   $NO_WEB_SERVICES - 'true' if web-services (rest, webui) should not be deployed (only if GSA_MODE != 'agent')
+#   $NO_MANAGEMENT_SPACE - 'true' if cloudifyManagementSpace should not be deployed (only if GSA_MODE != 'agent')
 #   $MACHINE_IP_ADDRESS - The IP of this server (Useful if multiple NICs exist)
 # 	$WORKING_HOME_DIRECTORY - This is where the files were copied to (cloudify installation, etc..)
 #	$GIGASPACES_LINK - If this url is found, it will be downloaded to $WORKING_HOME_DIRECTORY/gigaspaces.zip
 #	$GIGASPACES_OVERRIDES_LINK - If this url is found, it will be downloaded and unzipped into the same location as cloudify
 #	$CLOUD_FILE - Location of the cloud configuration file. Only available in bootstrap of management machines.
-#	$NO_WEB_SERVICES - If set to 'true', indicates that the rest and web-ui services should not be deployed in this machine.
 #	$GIGASPACES_CLOUD_IMAGE_ID - If set, indicates the image ID for this machine.
 #	$GIGASPACES_CLOUD_HARDWARE_ID - If set, indicates the hardware ID for this machine.
 #	$AUTO_RESTART_AGENT - If set to 'true', will allow to perform reboot of agent machine.
@@ -325,8 +325,11 @@ else
 	START_COMMAND="start-management"
 	START_COMMAND_ARGS="${START_COMMAND_ARGS} -cloud-file ${CLOUD_FILE}"
 	if [ "$NO_WEB_SERVICES" = "true" ]; then
-		START_COMMAND_ARGS="${START_COMMAND_ARGS} -no-web-services -no-management-space"
+		START_COMMAND_ARGS="${START_COMMAND_ARGS} -no-web-services"
 	fi
+	if [ "$NO_MANAGEMENT_SPACE" = "true" ]; then
+		START_COMMAND_ARGS="${START_COMMAND_ARGS} -no-management-space"
+	fi	
 fi	
 
 # Execute post-bootstrap customization script if exists

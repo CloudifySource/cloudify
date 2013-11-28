@@ -109,7 +109,9 @@ public class ProvisioningContextImpl implements ProvisioningContext, ManagementP
 			final Map<String, String> externalEnvVars = installationDetails.getExtraRemoteEnvironmentVariables();
 			final EnvironmentFileBuilder fileBuilder = new EnvironmentFileBuilder(scriptLanguage, externalEnvVars);
 
-			installationDetails.setNoWebServices(i != 0);
+			final boolean notFirstManagementMachine = (i != 0);
+			installationDetails.setNoWebServices(notFirstManagementMachine);
+			installationDetails.setNoManagementSpace(notFirstManagementMachine);
 			fileBuilder.loadEnvironmentFileFromDetails(installationDetails);
 			fileBuilder.build();
 			final String fileContents = fileBuilder.toString();

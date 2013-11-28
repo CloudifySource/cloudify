@@ -55,6 +55,8 @@ public class EnvironmentFileBuilder {
 	private static final String GSA_MODE_ENV = "GSA_MODE";
 
 	private static final String NO_WEB_SERVICES_ENV = "NO_WEB_SERVICES";
+	
+	private static final String NO_MANAGEMENT_SPACE_ENV = "NO_MANAGEMENT_SPACE";
 
 	private static final String LUS_IP_ADDRESS_ENV = "LUS_IP_ADDRESS";
 
@@ -134,7 +136,8 @@ public class EnvironmentFileBuilder {
 				.exportVar(CloudifyConstants.SPRING_ACTIVE_PROFILE_ENV_VAR, springProfiles)
 				.exportVar(NO_WEB_SERVICES_ENV,
 						details.isNoWebServices() ? "true" : "false")
-
+				.exportVar(NO_MANAGEMENT_SPACE_ENV,
+						details.isNoManagementSpace() ? "true" : "false")
 				.exportVar(
 						CloudifyConstants.CLOUDIFY_CLOUD_MACHINE_IP_ADDRESS_ENV,
 						details.isBindToPrivateIp() ? safePrivateIpAddress : safePublicIpAddress)

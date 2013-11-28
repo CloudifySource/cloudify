@@ -741,11 +741,19 @@ public class CloudGridAgentBootstrapper {
 				template, securityProfile, keystorePassword);
 		// only one machine should try and deploy the WebUI and Rest Admin unless
 		// noWebServices is true
-		int i = isNoWebServices() ? 0 : 1;
-		for (; i < installations.length; i++) {
-			installations[i].setNoWebServices(true);
+		
+		//Used for ESM testing purposes.
+		if (isNoWebServices() && installations.length > 0) {
+			installations[0].setNoWebServices(true);
 		}
 
+		//They were installed by the first management machine
+		//and will automatically deployed on the other machines. 
+		for (int i = 1; i < installations.length; i++) {
+			installations[i].setNoWebServices(true);
+			installations[i].setNoManagementSpace(true);
+		}
+		
 		final String lookup = createLocatorsString(installations);
 		for (final InstallationDetails detail : installations) {
 			detail.setLocator(lookup);
