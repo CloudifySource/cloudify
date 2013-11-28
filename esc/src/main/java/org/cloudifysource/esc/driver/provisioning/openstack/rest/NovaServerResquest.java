@@ -40,10 +40,11 @@ public class NovaServerResquest {
 	@JsonProperty("key_name")
 	private String keyName;
 
+	private String userData;
+
 	private List<NovaServerSecurityGroup> securityGroups = new ArrayList<NovaServerSecurityGroup>();
 	private List<NovaServerNetwork> networks = new ArrayList<NovaServerNetwork>();
 
-	// private String userData;
 	// private String availabilityZone;
 	// private String metadata;
 	// private String personality;
@@ -83,12 +84,42 @@ public class NovaServerResquest {
 		this.keyName = keyName;
 	}
 
+	public String getUserData() {
+		return userData;
+	}
+
+	public void setUserData(final String userData) {
+		this.userData = userData;
+	}
+
+	/**
+	 * Add a security group.
+	 * 
+	 * @param securityGroup
+	 *            A security group name;
+	 */
 	public void addSecurityGroup(final String securityGroup) {
 		this.securityGroups.add(new NovaServerSecurityGroup(securityGroup));
 	}
 
+	/**
+	 * Add a network.
+	 * 
+	 * @param idNetwork
+	 *            The network id.
+	 */
 	public void addNetworks(final String idNetwork) {
 		this.networks.add(new NovaServerNetwork(idNetwork));
+	}
+
+	/**
+	 * Add a network.
+	 * 
+	 * @param novaServerNetwork
+	 *            The network object.
+	 */
+	public void addNetworks(final NovaServerNetwork novaServerNetwork) {
+		this.networks.add(novaServerNetwork);
 	}
 
 	@Override

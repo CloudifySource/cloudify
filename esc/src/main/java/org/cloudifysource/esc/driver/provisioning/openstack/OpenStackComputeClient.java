@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServer;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServerAddress;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServerResquest;
+import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServerSecurityGroup;
 
 /**
  * A client for Openstack Nova.
@@ -29,23 +30,33 @@ import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServerResqu
  * @since 2.7.0
  * 
  */
-public class OpenStackNovaClient extends OpenStackBaseClient {
+public class OpenStackComputeClient extends OpenStackBaseClient {
 
 	private static final int RESOURCE_NOT_FOUND_STATUS = 404;
-	private static final Logger logger = Logger.getLogger(OpenStackNovaClient.class.getName());
+	private static final Logger logger = Logger.getLogger(OpenStackComputeClient.class.getName());
 
-	public OpenStackNovaClient() {
+	private String serviceName;
+
+	public OpenStackComputeClient() {
 		super();
 	}
 
-	public OpenStackNovaClient(final String endpoint, final String username, final String password,
+	public OpenStackComputeClient(final String endpoint, final String username, final String password,
 			final String tenant, final String region) throws OpenstackJsonSerializationException {
+		this(endpoint, username, password, tenant, region, null);
+	}
+
+	public OpenStackComputeClient(final String endpoint, final String username, final String password,
+			final String tenant, final String region, final String serviceName)
+			throws OpenstackJsonSerializationException {
 		super(endpoint, username, password, tenant, region);
+		this.serviceName = StringUtils.isEmpty(serviceName) ? "nova" : serviceName;
+		this.initToken();
 	}
 
 	@Override
 	protected String getServiceName() {
-		return "nova";
+		return this.serviceName;
 	}
 
 	/**
@@ -58,10 +69,10 @@ public class OpenStackNovaClient extends OpenStackBaseClient {
 	 *             Thrown when a problem occurs with the request.
 	 */
 	public NovaServer createServer(final NovaServerResquest request) throws OpenstackException {
-		final String computeRequest = JsonUtils.toJson(request, false);
-		if (logger.isLoggable(Level.FINER)) {
-			logger.log(Level.FINER, "Request=createServer: " + computeRequest);
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Launch instance=" + request);
 		}
+		final String computeRequest = JsonUtils.toJson(request, false);
 		final String response = this.doPost("servers", computeRequest);
 		final NovaServer nsr = JsonUtils.unwrapRootToObject(NovaServer.class, response);
 		return nsr;
@@ -75,9 +86,6 @@ public class OpenStackNovaClient extends OpenStackBaseClient {
 	 *             Thrown when a problem occurs with the request.
 	 */
 	public List<NovaServer> getServers() throws OpenstackException {
-		if (logger.isLoggable(Level.FINER)) {
-			logger.log(Level.FINER, "Request=getServerDetails");
-		}
 		final String response = this.doGet("servers");
 		final List<NovaServer> list = JsonUtils.unwrapRootToList(NovaServer.class, response);
 		return list;
@@ -93,9 +101,6 @@ public class OpenStackNovaClient extends OpenStackBaseClient {
 	 *             Thrown when something went wrong with the request.
 	 */
 	public List<NovaServer> getServersByPrefix(final String prefix) throws OpenstackException {
-		if (logger.isLoggable(Level.FINER)) {
-			logger.log(Level.FINER, "Request=getServerWithName");
-		}
 		final String response;
 		try {
 			response = this.doGet("servers", new String[] { "name", prefix });
@@ -125,10 +130,6 @@ public class OpenStackNovaClient extends OpenStackBaseClient {
 	 *             Thrown when something went wrong with the request.
 	 */
 	public NovaServer getServerByIp(final String serverIp) throws OpenstackException {
-		if (logger.isLoggable(Level.FINER)) {
-			logger.log(Level.FINER, "Request=getServerWithIp");
-		}
-
 		final List<NovaServer> servers = this.getServers();
 
 		for (final NovaServer server : servers) {
@@ -149,6 +150,42 @@ public class OpenStackNovaClient extends OpenStackBaseClient {
 	}
 
 	/**
+	 * Get an instance by ip and security group name.
+	 * 
+	 * @param serverIp
+	 *            The ip of the server.
+	 * @param secgroupName
+	 *            The security group name which must be present in the server.
+	 * @return The server instance which match the request.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
+	 */
+	public NovaServer getServerByIpAndSecurityGroup(final String serverIp, final String secgroupName)
+			throws OpenstackException {
+		final List<NovaServer> servers = this.getServers();
+
+		for (final NovaServer server : servers) {
+			final NovaServer serverDetails = this.getServerDetails(server.getId());
+			if (serverDetails != null) {
+				final List<NovaServerAddress> addresses = serverDetails.getAddresses();
+				if (addresses != null) {
+					for (final NovaServerAddress novaServerAddress : addresses) {
+						final String addr = novaServerAddress.getAddr();
+						if (StringUtils.equals(addr, serverIp)) {
+							for (final NovaServerSecurityGroup secgroup : serverDetails.getSecurityGroups()) {
+								if (secgroup.getName().equals(secgroupName)) {
+									return serverDetails;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Retrieve server's details.
 	 * 
 	 * @param serverId
@@ -158,11 +195,6 @@ public class OpenStackNovaClient extends OpenStackBaseClient {
 	 *             Thrown when something went wrong with the request.
 	 */
 	public NovaServer getServerDetails(final String serverId) throws OpenstackException {
-
-		if (logger.isLoggable(Level.FINER)) {
-			logger.log(Level.FINER, "Request=getServerDetails: " + serverId);
-		}
-
 		final String response;
 		try {
 			response = doGet("servers/" + serverId);
@@ -186,10 +218,9 @@ public class OpenStackNovaClient extends OpenStackBaseClient {
 	 *             Thrown when something went wrong with the request.
 	 */
 	public void deleteServer(final String serverId) throws OpenstackException {
-		if (logger.isLoggable(Level.FINER)) {
-			logger.log(Level.FINER, "Request=deleteServer: " + serverId);
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("Terminate serverId=" + serverId);
 		}
 		this.doDelete("servers/" + serverId, CODE_OK_204);
 	}
-
 }

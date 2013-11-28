@@ -14,6 +14,7 @@ package org.cloudifysource.esc.driver.provisioning.openstack.rest;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
  * @author victor
@@ -24,6 +25,8 @@ public class NovaServerAddress {
 	private String name;
 	private String version;
 	private String addr;
+	@JsonProperty("OS-EXT-IPS:type")
+	private String type;
 
 	public String getName() {
 		return name;
@@ -47,6 +50,14 @@ public class NovaServerAddress {
 
 	public void setAddr(final String addr) {
 		this.addr = addr;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(final String type) {
+		this.type = type;
 	}
 
 	@Override
