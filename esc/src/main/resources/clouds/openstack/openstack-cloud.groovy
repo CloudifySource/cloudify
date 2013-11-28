@@ -12,7 +12,7 @@ cloud {
 		// Optional. The cloud implementation class. Defaults to the build in jclouds-based provisioning driver.
 		className "org.cloudifysource.esc.driver.provisioning.openstack.OpenStackCloudifyDriver"
 		networkDriverClassName "org.cloudifysource.esc.driver.provisioning.network.openstack.OpenstackNetworkDriver"
-		
+
 		// Optional. The template name for the management machines. Defaults to the first template in the templates section below.
 		managementMachineTemplate "MEDIUM_LINUX"
 		// Optional. Indicates whether internal cluster communications should use the machine private IP. Defaults to true.
@@ -70,7 +70,7 @@ cloud {
 
 
 	}
-	
+
 	/********************
 	 * Cloud networking configuration.
 	 */
@@ -107,69 +107,74 @@ cloud {
 			}
 		])
 	}
-	
+
 	cloudCompute {
-		
+
 		/***********
 		 * Cloud machine templates available with this cloud.
 		 */
 		templates ([
-					MEDIUM_LINUX : computeTemplate{
-						// Mandatory. Image ID.
-						imageId imageId
-						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
-						remoteDirectory remoteDirectory
-						// Mandatory. Amount of RAM available to machine.
-						machineMemoryMB 1600
-						// Mandatory. Hardware ID.
-						hardwareId hardwareId
-						// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
-						localDirectory "upload"
-						// Optional. Name of key file to use for authenticating to the remot machine. Remove this line if key files
-						// are not used.
-						keyFile keyFile
-						// file transfer protocol
-						fileTransfer org.cloudifysource.domain.cloud.FileTransferModes.SCP
-	
-						username "root"
-						// Additional template options.
-						// When used with the default driver, the option names are considered
-						// method names invoked on the TemplateOptions object with the value as the parameter.
-						options ([
-									// Optional. Set the name to search to find openstack compute endpoint.
-									// "computeServiceName" : "nova",
-							
-									// Optional. Set the name to search to find openstack compute endpoint.
-									// "networkServiceName" : "neutron",
-							
-									// Optional. Set the network api version .
-									// "networkApiVersion"  : "v2.0",
-							
-									// Optional. Specify an existing external router name to use.
-									// "externalRouterName" : "router-ext",
-							
-									// Optional. Specify an external network name to use.
-									// "externalNetworkName": "net-ext", 
-									"keyPairName" : keyPair
-								])
-						
-						// when set to 'true', agent will automatically start after reboot.
-						autoRestartAgent true
-	
-						// Optional. Overrides to default cloud driver behavior.
-						// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
-						overrides ([
-							"jclouds.endpoint": openstackUrl
-						])
-	
-						// enable sudo.
-						privileged true
-	
-						// optional. A native command line to be executed before the cloudify agent is started.
-						// initializationCommand "echo Cloudify agent is about to start"
-					}
+			MEDIUM_LINUX : computeTemplate{
+				// Mandatory. Image ID.
+				imageId imageId
+				// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
+				remoteDirectory remoteDirectory
+				// Mandatory. Amount of RAM available to machine.
+				machineMemoryMB 1600
+				// Mandatory. Hardware ID.
+				hardwareId hardwareId
+				// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
+				localDirectory "upload"
+				// Optional. Name of key file to use for authenticating to the remot machine. Remove this line if key files
+				// are not used.
+				keyFile keyFile
+				// file transfer protocol
+				fileTransfer org.cloudifysource.domain.cloud.FileTransferModes.SCP
+
+				username "root"
+				// Additional template options.
+				// When used with the default driver, the option names are considered
+				// method names invoked on the TemplateOptions object with the value as the parameter.
+				options ([
+					// Optional. Set the name to search to find openstack compute endpoint.
+					// "computeServiceName" : "nova",
+
+					// Optional. Set the name to search to find openstack compute endpoint.
+					// "networkServiceName" : "neutron",
+
+					// Optional. Set the network api version .
+					// "networkApiVersion"  : "v2.0",
+
+					// Optional. Specify an existing external router name to use.
+					// "externalRouterName" : "router-ext",
+
+					// Optional. Specify an external network name to use.
+					// "externalNetworkName": "net-ext",
+
+					// Optional. By default, the driver will create a router and link it to an external network, set to 'false' to ignore this step.
+					// By setting this property to 'false', the properties 'externalRouterName' and 'externalNetworkName' will be ignore.
+					// "skipExternalNetworking": "false",
+					
+					"keyPairName" : keyPair
 				])
-	
+
+				// when set to 'true', agent will automatically start after reboot.
+				autoRestartAgent true
+
+				// Optional. Overrides to default cloud driver behavior.
+				// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
+				overrides ([
+					"jclouds.endpoint": openstackUrl
+				])
+
+				// enable sudo.
+				privileged true
+
+				// optional. A native command line to be executed before the cloudify agent is started.
+				// initializationCommand "echo Cloudify agent is about to start"
+			}
+		])
+
 	}
 
 	/*****************
