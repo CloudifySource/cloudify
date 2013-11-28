@@ -77,6 +77,10 @@ public class InstallationDetails implements Cloneable {
 	// deployed on the target machine
 	private boolean noWebServices;
 
+	// (only relevant in case isLus == true) if true no cloudify management space will be
+	// deployed on the target machine
+	private boolean noManagementSpace;
+	
 	// directory on local machine where installation files are
 	// placed. At a minimum, the start-management.sh should be placed there.
 	// Other files may include the gigaspaces installation, java,
@@ -574,5 +578,13 @@ public class InstallationDetails implements Cloneable {
 
 	public void setAutoRestartAgent(final String autoRestartAgent) {
 		this.autoRestartAgent = autoRestartAgent;
+	}
+
+	public boolean isNoManagementSpace() {
+		return noManagementSpace;
+	}
+	
+	public void setNoManagementSpace(boolean noCloudifyManagementSpace) {
+		this.noManagementSpace = noCloudifyManagementSpace;
 	}
 }
