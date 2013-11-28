@@ -422,6 +422,9 @@ public final class CloudifyConstants {
     public static final String SYSTEM_PROPERTY_ESM_DISCOVERY_POLLING_INTERVAL_SECONDS =
             "com.gs.esm.discovery_polling_interval_seconds";
 
+    public static final String SYSTEM_PROPERTY_ESM_BACKUP_MACHINES_STATE_TO_SPACE_FLAG =
+            "org.openspaces.grid.backup-machines-state-to-cloudify-management-space";
+    
     /*******
      *  Upload file constants.
      */

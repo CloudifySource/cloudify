@@ -175,6 +175,10 @@ public final class GridCommandLineBuilder {
 			esmCommandLineArgs +=
 					" -D" + CloudifyConstants.SYSTEM_PROPERTY_ESM_DISCOVERY_POLLING_INTERVAL_SECONDS + "=20 ";
 		}
+		
+		//CLOUDIFY-2180
+		esmCommandLineArgs += " -D" + CloudifyConstants.SYSTEM_PROPERTY_ESM_BACKUP_MACHINES_STATE_TO_SPACE_FLAG +"=true";
+
 		return esmCommandLineArgs;
 	}
 
