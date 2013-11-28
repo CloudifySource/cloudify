@@ -110,6 +110,12 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	 * */
 	public static final String OPT_NETWORK_API_VERSION = "networkApiVersion";
 	/**
+	 * Specify if you want the driver to handle the external networking (default="false").<br />
+	 * By default, the driver will create a router and link it to an external network. If this property is set to
+	 * <code>false</code> the driver will ignore this step.
+	 */
+	public static final String OPT_SKIP_EXTERNAL_NETWORKING = "skipExternalNetworking";
+	/**
 	 * Use an existing external router.
 	 * */
 	public static final String OPT_EXTERNAL_ROUTER_NAME = "externalRouterName";
@@ -131,6 +137,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 	private String applicationName;
 
+	private boolean skipExternalNetworking;
 	private String externalRouterName;
 	private String externalNetworkName;
 	private boolean associateFloatingIp;
@@ -162,7 +169,20 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		final ManagementNetwork managementNetwork = this.cloud.getCloudNetwork().getManagement();
 		final NetworkConfiguration managementNetworkConfig = managementNetwork.getNetworkConfiguration();
 		this.managementNetworkName = managementGroup + managementNetworkConfig.getName();
-		if (!management) {
+		if (management) {
+			final ComputeTemplate template = this.cloud.getCloudCompute().getTemplates()
+					.get(this.cloud.getConfiguration().getManagementMachineTemplate());
+			final String extRouterName = (String) template.getOptions().get(OPT_EXTERNAL_ROUTER_NAME);
+			this.externalRouterName = StringUtils.isEmpty(extRouterName) ? null : extRouterName;
+
+			final String extNetName = (String) template.getOptions().get(OPT_EXTERNAL_NETWORK_NAME);
+			this.externalNetworkName = StringUtils.isEmpty(extNetName) ? null : extNetName;
+
+			final String skipExtNetStr = (String) template.getOptions().get(OPT_SKIP_EXTERNAL_NETWORKING);
+			this.skipExternalNetworking = BooleanUtils.toBoolean(skipExtNetStr);
+
+			this.networkConfiguration = managementNetworkConfig;
+		} else {
 			final CloudNetwork cloudNetwork = this.cloud.getCloudNetwork();
 			final Map<String, NetworkConfiguration> templates = cloudNetwork.getTemplates();
 			if (templates == null || templates.isEmpty()) {
@@ -180,17 +200,6 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			}
 
 			this.applicationNetworkName = this.securityGroupNames.getPrefix() + networkConfiguration.getName();
-		} else {
-			final ComputeTemplate template = this.cloud.getCloudCompute().getTemplates()
-					.get(this.cloud.getConfiguration().getManagementMachineTemplate());
-			final String extRouterName = (String) template.getOptions().get(OPT_EXTERNAL_ROUTER_NAME);
-			this.externalRouterName = StringUtils.isEmpty(extRouterName) ? null : extRouterName;
-
-			final String extNetName = (String) template.getOptions().get(OPT_EXTERNAL_NETWORK_NAME);
-			this.externalNetworkName = StringUtils.isEmpty(extNetName) ? null : extNetName;
-
-			this.networkConfiguration = managementNetworkConfig;
-
 		}
 
 		final String associateFloatingIp = this.networkConfiguration.getCustom().get("associateFloatingIpOnBootstrap");
@@ -460,40 +469,43 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			final Subnet subnetRequest = this.createSubnetRequest(subnetConfig, network.getId());
 			final Subnet subnet = networkApi.createSubnet(subnetRequest);
 
-			// Router
-			final Router router;
-			if (this.externalRouterName == null) {
-				final String publicNetworkId;
-				if (this.externalNetworkName == null) {
-					publicNetworkId = networkApi.getPublicNetworkId();
+			if (!this.skipExternalNetworking) {
+				// Router
+				final Router router;
+
+				if (this.externalRouterName == null) {
+					final String publicNetworkId;
+					if (this.externalNetworkName == null) {
+						publicNetworkId = networkApi.getPublicNetworkId();
+					} else {
+						Network extNetwork = networkApi.getNetworkByName(this.externalNetworkName);
+						if (extNetwork == null) {
+							throw new CloudProvisioningException("Couldn't find external network '"
+									+ this.externalNetworkName + "'");
+						}
+						if (!BooleanUtils.toBoolean(extNetwork.getRouterExternal())) {
+							throw new CloudProvisioningException("The network '"
+									+ this.externalNetworkName + "' is not an external network");
+						}
+
+						publicNetworkId = extNetwork.getId();
+					}
+					final Router request = new Router();
+					request.setName(this.securityGroupNames.getPrefix() + MANAGEMENT_PUBLIC_ROUTER_NAME);
+					request.setAdminStateUp(true);
+					request.setExternalGatewayInfo(new RouterExternalGatewayInfo(publicNetworkId));
+					router = networkApi.createRouter(request);
 				} else {
-					Network extNetwork = networkApi.getNetworkByName(this.externalNetworkName);
-					if (extNetwork == null) {
-						throw new CloudProvisioningException("Couldn't find external network '"
-								+ this.externalNetworkName + "'");
+					router = networkApi.getRouterByName(this.externalRouterName);
+					if (router == null) {
+						throw new CloudProvisioningException("Couldn't find external router '"
+								+ this.externalRouterName
+								+ "'");
 					}
-					if (!BooleanUtils.toBoolean(extNetwork.getRouterExternal())) {
-						throw new CloudProvisioningException("The network '"
-								+ this.externalNetworkName + "' is not an external network");
-					}
-
-					publicNetworkId = extNetwork.getId();
 				}
-				final Router request = new Router();
-				request.setName(this.securityGroupNames.getPrefix() + MANAGEMENT_PUBLIC_ROUTER_NAME);
-				request.setAdminStateUp(true);
-				request.setExternalGatewayInfo(new RouterExternalGatewayInfo(publicNetworkId));
-				router = networkApi.createRouter(request);
-			} else {
-				router = networkApi.getRouterByName(this.externalRouterName);
-				if (router == null) {
-					throw new CloudProvisioningException("Couldn't find external router '" + this.externalRouterName
-							+ "'");
-				}
+				// Add interface
+				networkApi.addRouterInterface(router.getId(), subnet.getId());
 			}
-
-			// Add interface
-			networkApi.addRouterInterface(router.getId(), subnet.getId());
 		} catch (final Exception e) {
 			try {
 				this.cleanAllNetworks();
@@ -526,24 +538,30 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	}
 
 	private void cleanAllNetworks() throws OpenstackException {
-		// Delete management networks
-
-		final Router router;
-		if (this.externalRouterName == null) {
-			router = networkApi.getRouterByName(this.securityGroupNames.getPrefix() + MANAGEMENT_PUBLIC_ROUTER_NAME);
-		} else {
-			router = networkApi.getRouterByName(this.externalRouterName);
-		}
 
 		final Network network = networkApi.getNetworkByName(this.managementNetworkName);
-		if (router != null) {
-			if (network != null) {
-				networkApi.deleteRouterInterface(router.getId(), network.getSubnets()[0]);
-			}
+
+		// Delete external router
+		if (!this.skipExternalNetworking) {
+			final Router router;
 			if (this.externalRouterName == null) {
-				networkApi.deleteRouter(router.getId());
+				router =
+						networkApi.getRouterByName(this.securityGroupNames.getPrefix() + MANAGEMENT_PUBLIC_ROUTER_NAME);
+			} else {
+				router = networkApi.getRouterByName(this.externalRouterName);
+			}
+
+			if (router != null) {
+				if (network != null) {
+					networkApi.deleteRouterInterface(router.getId(), network.getSubnets()[0]);
+				}
+				if (this.externalRouterName == null) {
+					networkApi.deleteRouter(router.getId());
+				}
 			}
 		}
+
+		// Delete management networks
 		if (network != null) {
 			networkApi.deleteNetwork(network.getId());
 		}
@@ -849,7 +867,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			final RouteFixedIp fixedIp = managementPort.getFixedIps().get(0);
 			md.setPrivateAddress(fixedIp.getIpAddress());
 
-			FloatingIp floatingIp = networkApi.getFloatingIpByPortId(managementPort.getId());
+			final FloatingIp floatingIp = networkApi.getFloatingIpByPortId(managementPort.getId());
 			if (floatingIp != null) {
 				md.setPublicAddress(floatingIp.getFloatingIpAddress());
 			}
