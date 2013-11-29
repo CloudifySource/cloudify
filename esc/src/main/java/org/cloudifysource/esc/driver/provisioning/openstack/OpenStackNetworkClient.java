@@ -350,7 +350,7 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 			final Network existingNetwork = this.getNetworkByName(request.getName());
 			if (existingNetwork != null) {
 				logger.info("Network '" + request.getName() + "' already exists.");
-				return null;
+				return existingNetwork;
 			}
 
 			if (logger.isLoggable(Level.FINE)) {
@@ -806,5 +806,4 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 		}
 		return null;
 	}
-
 }
