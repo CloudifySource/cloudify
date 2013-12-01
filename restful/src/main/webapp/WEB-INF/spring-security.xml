@@ -5,20 +5,70 @@
 	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
 	http://www.springframework.org/schema/security
 	http://www.springframework.org/schema/security/spring-security-3.1.xsd">
+
 	
 	<sec:authentication-manager alias="authenticationManager">
-		<sec:authentication-provider>
-			<sec:user-service>
-				<sec:user name="Superuser" password="Superuser" authorities="ROLE_CLOUDADMINS, ROLE_APPMANAGERS, ROLE_VIEWERS" />
-				<sec:user name="Amanda" password="Amanda" authorities="ROLE_CLOUDADMINS" />
-				<sec:user name="Dana" password="Dana" authorities="ROLE_CLOUDADMINS, ROLE_APPMANAGERS" />
-				<sec:user name="Dan" password="Dan" authorities="ROLE_APPMANAGERS" />
-				<sec:user name="Don" password="Don" authorities="ROLE_APPMANAGERS, ROLE_VIEWERS" />
-				<sec:user name="John" password="John" authorities="ROLE_VIEWERS" />
-				<sec:user name="Jane" password="Jane" authorities="" />
-			</sec:user-service>
-		</sec:authentication-provider>
+		<sec:authentication-provider user-service-ref="cloudifyUserDetailsService"/>
 	</sec:authentication-manager>
+	
+	<bean id="cloudifyUserDetailsService" class="org.cloudifysource.security.CloudifyUserDetailsService">
+  		<constructor-arg name="users" >
+ 			<list>
+				<ref bean="CloudifyUserSuperuser" />
+				<ref bean="CloudifyUserAmanda" />
+				<ref bean="CloudifyUserDana" />
+				<ref bean="CloudifyUserDan" />
+				<ref bean="CloudifyUserDon" />
+				<ref bean="CloudifyUserJohn" />
+				<ref bean="CloudifyUserJane" />
+			</list>
+		</constructor-arg>
+	</bean>
+	
+	
+	<bean id="CloudifyUserSuperuser" class="org.cloudifysource.security.CloudifyUser">
+ 		<constructor-arg name="username" value="Superuser" />
+ 		<constructor-arg name="password" value="Superuser" />
+ 		<constructor-arg name="roles" value="ROLE_CLOUDADMINS, ROLE_APPMANAGERS, ROLE_VIEWERS" />
+ 		<constructor-arg name="authGroups" value="Bezeq, GE, Cellcom" />
+	</bean>
+	<bean id="CloudifyUserAmanda" class="org.cloudifysource.security.CloudifyUser">
+ 		<constructor-arg name="username" value="Amanda" />
+ 		<constructor-arg name="password" value="Amanda" />
+ 		<constructor-arg name="roles" value="ROLE_CLOUDADMINS" />
+ 		<constructor-arg name="authGroups" value="Bezeq, GE, Cellcom" />
+	</bean>
+	<bean id="CloudifyUserDana" class="org.cloudifysource.security.CloudifyUser">
+ 		<constructor-arg name="username" value="Dana" />
+ 		<constructor-arg name="password" value="Dana" />
+ 		<constructor-arg name="roles" value="ROLE_CLOUDADMINS, ROLE_APPMANAGERS" />
+ 		<constructor-arg name="authGroups" value="Bezeq" />
+	</bean>
+	<bean id="CloudifyUserDan" class="org.cloudifysource.security.CloudifyUser">
+ 		<constructor-arg name="username" value="Dan" />
+ 		<constructor-arg name="password" value="Dan" />
+ 		<constructor-arg name="roles" value="ROLE_APPMANAGERS" />
+ 		<constructor-arg name="authGroups" value="GE" />
+	</bean>
+	<bean id="CloudifyUserDon" class="org.cloudifysource.security.CloudifyUser">
+ 		<constructor-arg name="username" value="Don" />
+ 		<constructor-arg name="password" value="Don" />
+ 		<constructor-arg name="roles" value="ROLE_APPMANAGERS, ROLE_VIEWERS" />
+ 		<constructor-arg name="authGroups" value="Cellcom" />
+	</bean>
+	<bean id="CloudifyUserJohn" class="org.cloudifysource.security.CloudifyUser">
+ 		<constructor-arg name="username" value="John" />
+ 		<constructor-arg name="password" value="John" />
+ 		<constructor-arg name="roles" value="ROLE_VIEWERS" />
+ 		<constructor-arg name="authGroups" value="GE, Cellcom" />
+	</bean>
+	<bean id="CloudifyUserJane" class="org.cloudifysource.security.CloudifyUser">
+ 		<constructor-arg name="username" value="Jane" />
+ 		<constructor-arg name="password" value="Jane" />
+ 		<constructor-arg name="roles" value="" />
+ 		<constructor-arg name="authGroups" value="Bezeq" />
+	</bean>
+	
 	
 	<!-- LDAP connectivity configuration -->
 	<!-- sec:authentication-manager alias="authenticationManager">
