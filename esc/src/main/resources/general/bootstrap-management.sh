@@ -19,7 +19,6 @@
 #	$AUTO_RESTART_AGENT - If set to 'true', will allow to perform reboot of agent machine.
 #	$PASSWORD - the machine password.
 #############################################################################
-
 # some distro do not have which installed so we're checking if the file exists 
 if [ -f /usr/bin/wget ]; then
 	DOWNLOADER="wget"
@@ -66,6 +65,25 @@ function run_script {
     fi
 }
 
+# args:
+# $1 download description.
+# $2 download link.
+# $3 output file.
+# $4 the error code.
+function download {
+	echo Downloading $1 from $2
+	if [ "$DOWNLOADER" = "wget" ];then
+		Q_FLAG="-q"
+		O_FLAG="-O" 
+		LINK_FLAG=""
+	elif [ "$DOWNLOADER" = "curl" ];then
+		Q_FLAG="--silent"
+		O_FLAG="-o"
+		LINK_FLAG="-O"
+	fi
+	$DOWNLOADER $Q_FLAG $O_FLAG $3 $LINK_FLAG $2 || error_exit $? $4 "Failed downloading $1"
+}
+
 echo Loading Cloudify Environment
 SCRIPT=`readlink -f $0`
 SCRIPTPATH=`dirname $SCRIPT`
@@ -81,7 +99,7 @@ else
 	fi
 
 fi
-
+	
 source ${ENV_FILE_PATH}
 
 # Priviliged Script execution
@@ -184,13 +202,7 @@ if [ "$GIGASPACES_AGENT_ENV_JAVA_URL" = "NO_INSTALL" ]; then
 else
 	echo Previous JAVA_HOME value -- $JAVA_HOME
 	export GIGASPACES_ORIGINAL_JAVA_HOME=$JAVA_HOME
-
-	echo Downloading JDK from $GIGASPACES_AGENT_ENV_JAVA_URL
-	if [ "$DOWNLOADER" = "wget" ];then
-		$DOWNLOADER -q -O $WORKING_HOME_DIRECTORY/java.bin $GIGASPACES_AGENT_ENV_JAVA_URL || error_exit $? 101 "Failed downloading Java installation from $GIGASPACES_AGENT_ENV_JAVA_URL"
-	elif [ "$DOWNLOADER" = "curl" ];then
-		$DOWNLOADER --silent -o $WORKING_HOME_DIRECTORY/java.bin -O $GIGASPACES_AGENT_ENV_JAVA_URL || error_exit $? 101 "Failed downloading Java installation from $GIGASPACES_AGENT_ENV_JAVA_URL"
-	fi
+	download "JDK" $GIGASPACES_AGENT_ENV_JAVA_URL $WORKING_HOME_DIRECTORY/java.bin 101
 	chmod +x $WORKING_HOME_DIRECTORY/java.bin
 	echo -e "\n" > $WORKING_HOME_DIRECTORY/input.txt
 	rm -rf ~/java || error_exit $? 102 "Failed removing old java installation directory"
@@ -208,21 +220,11 @@ fi
 export EXT_JAVA_OPTIONS="-Dcom.gs.multicast.enabled=false"
 
 if [ ! -z "$GIGASPACES_LINK" ]; then
-	echo Downloading cloudify installation from $GIGASPACES_LINK.tar.gz
-	if [ "$DOWNLOADER" = "wget" ];then
-		$DOWNLOADER -q $GIGASPACES_LINK.tar.gz -O $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz || error_exit $? 104 "Failed downloading cloudify installation"
-	elif [ "$DOWNLOADER" = "curl" ];then
-		$DOWNLOADER --silent -o $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz -O $GIGASPACES_LINK.tar.gz  || error_exit $? 104 "Failed downloading cloudify installation"
-	fi
+	download "cloudify installation" $GIGASPACES_LINK.tar.gz $WORKING_HOME_DIRECTORY/gigaspaces.tar.gz 104
 fi
 
 if [ ! -z "$GIGASPACES_OVERRIDES_LINK" ]; then
-	echo Downloading cloudify overrides from $GIGASPACES_OVERRIDES_LINK.tar.gz
-	if [ "$DOWNLOADER" = "wget" ];then
-		$DOWNLOADER -q $GIGASPACES_OVERRIDES_LINK.tar.gz -O $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz || error_exit $? 105 "Failed downloading cloudify overrides"
-	elif [ "$DOWNLOADER" = "curl" ];then
-		$DOWNLOADER --silent -o $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz -O $GIGASPACES_OVERRIDES_LINK.tar.gz  || error_exit $? 105 "Failed downloading cloudify overrides"
-	fi
+		download "cloudify overrides" $GIGASPACES_OVERRIDES_LINK.tar.gz $WORKING_HOME_DIRECTORY/gigaspaces_overrides.tar.gz 105
 fi
 
 # Todo: Check this condition
