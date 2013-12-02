@@ -574,7 +574,8 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			// Search for a subnet with the specified name
 			final List<Subnet> subnets = networkApi.getSubnetsByNetworkId(network.getId());
 			for (Subnet sn : subnets) {
-				if (subnetConfig.getName().equals(sn.getName())) {
+				
+				if (sn.getName().equals(subnetConfig.getName())) {
 					subnet = sn;
 					break;
 				}
