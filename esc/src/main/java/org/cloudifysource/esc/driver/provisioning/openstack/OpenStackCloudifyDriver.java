@@ -37,6 +37,7 @@ import org.cloudifysource.domain.cloud.RestComponent;
 import org.cloudifysource.domain.cloud.UsmComponent;
 import org.cloudifysource.domain.cloud.WebuiComponent;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplateNetwork;
 import org.cloudifysource.domain.cloud.network.CloudNetwork;
 import org.cloudifysource.domain.cloud.network.ManagementNetwork;
 import org.cloudifysource.domain.cloud.network.NetworkConfiguration;
@@ -142,6 +143,8 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	private String externalNetworkName;
 	private boolean associateFloatingIp;
 
+	private List<String> computeNetworks;
+
 	public static String getDefaultMangementPrefix() {
 		return MANAGMENT_MACHINE_PREFIX;
 	}
@@ -165,48 +168,83 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 		this.securityGroupNames = new SecurityGroupNames(managementGroup, applicationName, serviceName);
 
-		// Init networks names
-		final ManagementNetwork managementNetwork = this.cloud.getCloudNetwork().getManagement();
-		final NetworkConfiguration managementNetworkConfig = managementNetwork.getNetworkConfiguration();
-		this.managementNetworkName = managementNetworkConfig.getName();
 		if (management) {
-			if (this.managementNetworkName == null) {
-				throw new CloudProvisioningException("The management network network must be provided");
-			}
-			final ComputeTemplate template = this.cloud.getCloudCompute().getTemplates()
-					.get(this.cloud.getConfiguration().getManagementMachineTemplate());
-			final String extRouterName = (String) template.getOptions().get(OPT_EXTERNAL_ROUTER_NAME);
-			this.externalRouterName = StringUtils.isEmpty(extRouterName) ? null : extRouterName;
+			final String machineTemplateName = this.cloud.getConfiguration().getManagementMachineTemplate();
+			final ComputeTemplate mngTemplate = this.cloud.getCloudCompute().getTemplates()
+					.get(machineTemplateName);
 
-			final String extNetName = (String) template.getOptions().get(OPT_EXTERNAL_NETWORK_NAME);
-			this.externalNetworkName = StringUtils.isEmpty(extNetName) ? null : extNetName;
+			final ComputeTemplateNetwork computeNetwork = mngTemplate.getComputeNetwork();
 
-			final String skipExtNetStr = (String) template.getOptions().get(OPT_SKIP_EXTERNAL_NETWORKING);
-			this.skipExternalNetworking = BooleanUtils.toBoolean(skipExtNetStr);
+			if (computeNetwork == null) {
+				// computeNetwork is not defined, use template
+				final String extRouterName = (String) mngTemplate.getOptions().get(OPT_EXTERNAL_ROUTER_NAME);
+				this.externalRouterName = StringUtils.isEmpty(extRouterName) ? null : extRouterName;
 
-			this.networkConfiguration = managementNetworkConfig;
-		} else {
-			final CloudNetwork cloudNetwork = this.cloud.getCloudNetwork();
-			final Map<String, NetworkConfiguration> templates = cloudNetwork.getTemplates();
-			if (templates == null || templates.isEmpty()) {
-				throw new IllegalStateException("No network template found.");
-			}
+				final String extNetName = (String) mngTemplate.getOptions().get(OPT_EXTERNAL_NETWORK_NAME);
+				this.externalNetworkName = StringUtils.isEmpty(extNetName) ? null : extNetName;
 
-			// If no template defined in service network, use one by default.
-			final ServiceNetwork serviceNetwork = this.configuration.getNetwork();
-			if (serviceNetwork == null || StringUtils.isEmpty(serviceNetwork.getTemplate())) {
-				// Get the first network found if none specified.
-				final String networkTemplateName = templates.keySet().iterator().next();
-				this.networkConfiguration = templates.get(networkTemplateName);
+				final String skipExtNetStr = (String) mngTemplate.getOptions().get(OPT_SKIP_EXTERNAL_NETWORKING);
+				this.skipExternalNetworking = BooleanUtils.toBoolean(skipExtNetStr);
+
+				// Init networks names
+				final ManagementNetwork managementNetwork = this.cloud.getCloudNetwork().getManagement();
+				final NetworkConfiguration managementNetworkConfig = managementNetwork.getNetworkConfiguration();
+				this.managementNetworkName = managementNetworkConfig.getName();
+				if (this.managementNetworkName == null) {
+					throw new CloudProvisioningException("The management network network must be provided");
+				}
+				this.networkConfiguration = managementNetworkConfig;
 			} else {
-				this.networkConfiguration = templates.get(serviceNetwork.getTemplate());
+				computeNetworks = computeNetwork.getNetworks();
+				if (this.computeNetworks == null || computeNetworks.isEmpty()) {
+					throw new CloudProvisioningException(
+							"No network configuration found in template '"
+									+ machineTemplateName
+									+ "'. You must either use a networkTemplate"
+									+ " or declare a computeNetwork in your computeTemplate.");
+				}
 			}
 
-			this.applicationNetworkName = networkConfiguration.getName();
+		} else {
+			final ComputeTemplate template = this.cloud.getCloudCompute().getTemplates().get(this.cloudTemplateName);
+			final ComputeTemplateNetwork computeNetwork = template.getComputeNetwork();
+
+			if (computeNetwork == null) {
+				final CloudNetwork cloudNetwork = this.cloud.getCloudNetwork();
+				final Map<String, NetworkConfiguration> templates = cloudNetwork.getTemplates();
+				if (templates == null || templates.isEmpty()) {
+					throw new IllegalStateException("No network template found.");
+				}
+
+				// If no template defined in service network, use one by default.
+				final ServiceNetwork serviceNetwork = this.configuration.getNetwork();
+				if (serviceNetwork == null || StringUtils.isEmpty(serviceNetwork.getTemplate())) {
+					// Get the first network found if none specified.
+					final String networkTemplateName = templates.keySet().iterator().next();
+					this.networkConfiguration = templates.get(networkTemplateName);
+				} else {
+					this.networkConfiguration = templates.get(serviceNetwork.getTemplate());
+				}
+				this.applicationNetworkName = networkConfiguration.getName();
+			} else {
+				this.computeNetworks = computeNetwork.getNetworks();
+				if (this.computeNetworks == null || computeNetworks.isEmpty()) {
+					throw new CloudProvisioningException(
+							"No network configuration found in template '"
+									+ this.cloudTemplateName
+									+ "'. You must either use a networkTemplate"
+									+ " or declare a computeNetwork in your computeTemplate.");
+				}
+			}
 		}
 
-		final String associateFloatingIp = this.networkConfiguration.getCustom().get("associateFloatingIpOnBootstrap");
-		this.associateFloatingIp = BooleanUtils.toBoolean(associateFloatingIp);
+		if (this.computeNetworks == null) {
+			final String associateFloatingIp =
+					this.networkConfiguration.getCustom().get("associateFloatingIpOnBootstrap");
+			this.associateFloatingIp = BooleanUtils.toBoolean(associateFloatingIp);
+		} else {
+			this.associateFloatingIp = false;
+		}
 	}
 
 	private void initManagementSecurityGroups() throws CloudProvisioningException {
@@ -376,8 +414,10 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			this.createSecurityGroup(this.securityGroupNames.getServiceName());
 			this.createSecurityGroupsRules();
 
-			// Create application/service network
-			this.createNetwork();
+			if (computeNetworks == null) {
+				// Create application/service network
+				this.createNetwork();
+			}
 
 			final String groupName =
 					serverNamePrefix + this.configuration.getServiceName() + "-" + counter.incrementAndGet();
@@ -431,7 +471,9 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		this.initManagementSecurityGroups();
 
 		// Create management networks
-		this.createManagementNetwork();
+		if (computeNetworks == null) {
+			this.createManagementNetwork();
+		}
 
 		// launch the management machines
 		publishEvent(EVENT_ATTEMPT_START_MGMT_VMS);
@@ -700,10 +742,14 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		Port createdMngPort = null;
 		Port createdPort = null;
 		try {
-			Network managementNetwork = networkApi.getNetworkByName(this.managementNetworkName);
-			if (managementNetwork == null) {
-				managementNetwork = networkApi.getNetworkByName(this.securityGroupNames.getPrefix()
-						+ this.managementNetworkName);
+			Network managementNetwork = null;
+
+			if (this.computeNetworks == null) {
+				managementNetwork = networkApi.getNetworkByName(this.managementNetworkName);
+				if (managementNetwork == null) {
+					managementNetwork = networkApi.getNetworkByName(this.securityGroupNames.getPrefix()
+							+ this.managementNetworkName);
+				}
 			}
 
 			final NovaServerResquest request = new NovaServerResquest();
@@ -712,20 +758,42 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			request.setImageRef(imageId);
 			request.setFlavorRef(hardwareId);
 
-			// Determine which subnet of the management network to attach.
-			// If no subnet defined in the DSL, let openstack choose a subnet..
-			createdMngPort = this.addPortToRequest(managementNetwork,
-					this.cloud.getCloudNetwork().getManagement().getNetworkConfiguration(), request);
+			if (this.computeNetworks == null) {
+				// Determine which subnet of the management network to attach.
+				// If no subnet defined in the DSL, let openstack choose a subnet..
+				createdMngPort = this.addPortToRequest(managementNetwork,
+						this.cloud.getCloudNetwork().getManagement().getNetworkConfiguration(), request);
 
-			if (!management) {
-				if (!this.managementNetworkName.equals(this.applicationNetworkName)) {
-					// Attach application network to the server
-					Network appliNetwork = networkApi.getNetworkByName(this.applicationNetworkName);
-					if (appliNetwork == null) {
-						appliNetwork = networkApi.getNetworkByName(this.securityGroupNames.getPrefix()
-								+ this.applicationNetworkName);
+				if (!management) {
+					if (!this.managementNetworkName.equals(this.applicationNetworkName)) {
+						// Attach application network to the server
+						Network appliNetwork = networkApi.getNetworkByName(this.applicationNetworkName);
+						if (appliNetwork == null) {
+							appliNetwork = networkApi.getNetworkByName(this.securityGroupNames.getPrefix()
+									+ this.applicationNetworkName);
+						}
+						createdPort = this.addPortToRequest(appliNetwork, this.networkConfiguration, request);
 					}
-					createdPort = this.addPortToRequest(appliNetwork, this.networkConfiguration, request);
+				}
+			} else {
+				// add networks
+				for (final String networkName : computeNetworks) {
+					final Network network = this.networkApi.getNetworkByName(networkName);
+					if (network == null) {
+						throw new CloudProvisioningException("The network '" + networkName + "' does not exist");
+					}
+					request.addNetworks(network.getId());
+				}
+
+				// add security groups
+				if (management) {
+					request.addSecurityGroup(this.securityGroupNames.getManagementName());
+					request.addSecurityGroup(this.securityGroupNames.getClusterName());
+				} else {
+					request.addSecurityGroup(this.securityGroupNames.getAgentName());
+					request.addSecurityGroup(this.securityGroupNames.getClusterName());
+					request.addSecurityGroup(this.securityGroupNames.getApplicationName());
+					request.addSecurityGroup(this.securityGroupNames.getServiceName());
 				}
 			}
 
@@ -733,42 +801,45 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			serverId = newServer.getId();
 			newServer = this.waitForServerToBecomeReady(serverId, endTime);
 
-			// ** Floating ips
-			if (this.associateFloatingIp) {
-				networkApi.createAndAssociateFloatingIp(serverId, managementNetwork.getId());
-			}
+			if (this.computeNetworks == null) {
 
-			// ** Assign security groups
-			if (this.management) {
-				// Add management secgroup to cloudify management network
-				this.addSecurityGroupsToNetwork(serverId, managementNetwork, new String[] {
-						this.securityGroupNames.getManagementName(),
-						this.securityGroupNames.getClusterName() });
-			} else {
-				// Add agent secgroup to cloudify management network
-				this.addSecurityGroupsToNetwork(serverId, managementNetwork, new String[] {
-						this.securityGroupNames.getAgentName(),
-						this.securityGroupNames.getClusterName(),
-						this.securityGroupNames.getServiceName() });
-
-				// Add cluster, application and service secgroups to the application private network
-				Network appliNetwork = networkApi.getNetworkByName(this.applicationNetworkName);
-				if (appliNetwork == null) {
-					appliNetwork = networkApi.getNetworkByName(this.securityGroupNames.getPrefix()
-							+ this.applicationNetworkName);
+				// ** Floating ips
+				if (this.associateFloatingIp) {
+					networkApi.createAndAssociateFloatingIp(serverId, managementNetwork.getId());
 				}
 
-				if (appliNetwork.getName().equals(managementNetwork.getName())) {
-					this.addSecurityGroupsToNetwork(serverId, appliNetwork, new String[] {
+				// ** Assign security groups
+				if (this.management) {
+					// Add management secgroup to cloudify management network
+					this.addSecurityGroupsToNetwork(serverId, managementNetwork, new String[] {
 							this.securityGroupNames.getManagementName(),
-							this.securityGroupNames.getClusterName(),
-							this.securityGroupNames.getApplicationName(),
-							this.securityGroupNames.getServiceName() });
+							this.securityGroupNames.getClusterName() });
 				} else {
-					this.addSecurityGroupsToNetwork(serverId, appliNetwork, new String[] {
+					// Add agent secgroup to cloudify management network
+					this.addSecurityGroupsToNetwork(serverId, managementNetwork, new String[] {
+							this.securityGroupNames.getAgentName(),
 							this.securityGroupNames.getClusterName(),
-							this.securityGroupNames.getApplicationName(),
 							this.securityGroupNames.getServiceName() });
+
+					// Add cluster, application and service secgroups to the application private network
+					Network appliNetwork = networkApi.getNetworkByName(this.applicationNetworkName);
+					if (appliNetwork == null) {
+						appliNetwork = networkApi.getNetworkByName(this.securityGroupNames.getPrefix()
+								+ this.applicationNetworkName);
+					}
+
+					if (appliNetwork.getName().equals(managementNetwork.getName())) {
+						this.addSecurityGroupsToNetwork(serverId, appliNetwork, new String[] {
+								this.securityGroupNames.getAgentName(),
+								this.securityGroupNames.getClusterName(),
+								this.securityGroupNames.getApplicationName(),
+								this.securityGroupNames.getServiceName() });
+					} else {
+						this.addSecurityGroupsToNetwork(serverId, appliNetwork, new String[] {
+								this.securityGroupNames.getClusterName(),
+								this.securityGroupNames.getApplicationName(),
+								this.securityGroupNames.getServiceName() });
+					}
 				}
 			}
 
@@ -980,20 +1051,29 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			// md.setLocationId(locationId);
 
 			final String prefix = this.securityGroupNames.getPrefix();
-			Network managementNetwork = networkApi.getNetworkByName(this.managementNetworkName);
-			if (managementNetwork == null) {
-				managementNetwork = networkApi.getNetworkByName(prefix + this.managementNetworkName);
-			}
-			final Port managementPort = networkApi.getPort(server.getId(), managementNetwork.getId());
-			final RouteFixedIp fixedIp = managementPort.getFixedIps().get(0);
-			md.setPrivateAddress(fixedIp.getIpAddress());
 
-			final FloatingIp floatingIp = networkApi.getFloatingIpByPortId(managementPort.getId());
-			if (floatingIp != null) {
-				md.setPublicAddress(floatingIp.getFloatingIpAddress());
+			if (this.computeNetworks == null) {
+				Network managementNetwork = networkApi.getNetworkByName(this.managementNetworkName);
+				if (managementNetwork == null) {
+					managementNetwork = networkApi.getNetworkByName(prefix + this.managementNetworkName);
+				}
+				final Port managementPort = networkApi.getPort(server.getId(), managementNetwork.getId());
+				final RouteFixedIp fixedIp = managementPort.getFixedIps().get(0);
+				md.setPrivateAddress(fixedIp.getIpAddress());
+
+				final FloatingIp floatingIp = networkApi.getFloatingIpByPortId(managementPort.getId());
+				if (floatingIp != null) {
+					md.setPublicAddress(floatingIp.getFloatingIpAddress());
+				}
+			} else {
+				final String networkName = this.computeNetworks.get(0);
+				final Network network = networkApi.getNetworkByName(networkName);
+				final Port port = networkApi.getPort(server.getId(), network.getId());
+				final RouteFixedIp fixedIp = port.getFixedIps().get(0);
+				md.setPrivateAddress(fixedIp.getIpAddress());
 			}
 
-			if (!management) {
+			if (!management && this.computeNetworks == null) {
 				// Since it is possible that the service itself will prefer to be available only on the application
 				// network and not on all networks, the cloud driver should add an environment variable specifying the
 				// IP of the NIC that is connected to the application network.

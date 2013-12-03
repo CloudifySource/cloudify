@@ -42,6 +42,7 @@ public class NovaServerResquest {
 
 	private String userData;
 
+	@JsonProperty("security_groups")
 	private List<NovaServerSecurityGroup> securityGroups = new ArrayList<NovaServerSecurityGroup>();
 	private List<NovaServerNetwork> networks = new ArrayList<NovaServerNetwork>();
 
