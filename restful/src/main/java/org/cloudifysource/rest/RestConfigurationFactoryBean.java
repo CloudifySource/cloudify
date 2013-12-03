@@ -82,6 +82,7 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
         config.setGigaSpace(gigaSpace);
         config.setAdmin(admin);
         config.setPermissionEvaluator(permissionEvaluator);
+        config.setRestTempFolder(createRestTempFolder());
         Cloud cloud = readCloud();
         if (cloud != null) {
         	config.setCloud(cloud);
@@ -98,7 +99,6 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
             String managementTemplateName = cloud.getConfiguration().getManagementMachineTemplate();
             config.setManagementTemplateName(managementTemplateName);
             config.setManagementTemplate(cloudCompute.getTemplates().get(managementTemplateName));
-			config.setRestTempFolder(createRestTempFolder());
         } else {
             logger.info("running in local cloud mode");
         }

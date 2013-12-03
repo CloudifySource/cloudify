@@ -218,23 +218,20 @@ public class DeploymentsController extends BaseRestController {
 
 	/**
 	 * Initialization.
+	 * @throws RestErrorException
+	 *             If failed to create upload directory.
 	 */
 	@PostConstruct
-	public void init() throws IOException, RestErrorException {
+	public void init() throws RestErrorException {
 		gigaSpace = restConfig.getGigaSpace();
 		permissionEvaluator = restConfig.getPermissionEvaluator();
+		File restTempFolder = restConfig.getRestTempFolder();
+		repo.setBaseDir(restTempFolder);
 		repo.init();
-		if (restConfig.getCloud() != null) {
-			// working on an actual cloud (not localcloud)
-			repo.setBaseDir(restConfig.getRestTempFolder());
-			logger.fine("starting DeolpymentsController, injecting rest temp folder to uploadrepo: " 
-					+ restConfig.getRestTempFolder().getAbsolutePath());
-		}
-		repo.createUploadDir();
 		this.admin = restConfig.getAdmin();
 		this.eventsCache = new EventsCache(admin);
 		this.controllerHelper = new ControllerHelper(gigaSpace, admin);
-		this.extractedFodler = new File(restConfig.getRestTempFolder(), CloudifyConstants.EXTRACTED_FILES_FOLDER_NAME);
+		this.extractedFodler = new File(restTempFolder, CloudifyConstants.EXTRACTED_FILES_FOLDER_NAME);
 		extractedFodler.mkdirs();
 		extractedFodler.deleteOnExit();
 	}
@@ -1087,6 +1084,7 @@ public class DeploymentsController extends BaseRestController {
 		Service service = readServiceResult.getService();
 
 		// perform validations
+		logger.finest("[installService] - performing validations for service " + serviceName);
 		File overridesFile = readServiceResult.getServiceOverridesFile();
 		validateInstallService(
 				request, 
@@ -1111,6 +1109,7 @@ public class DeploymentsController extends BaseRestController {
 		if (merger.isMerged()) {
 			// re-pack the service folder after merge
 			try {
+				logger.finest("[installService] - re-pack directory with the updated properties file after merge.");
 				updatedPackedFile = Packager.createZipFile(absolutePuName, serviceDir);
 			} catch (IOException e) {
 				logger.log(Level.WARNING, "Failed to re-pack service folder [" + serviceDir.getAbsolutePath() 

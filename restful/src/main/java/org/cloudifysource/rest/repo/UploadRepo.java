@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.apache.commons.io.FileUtils;
@@ -50,22 +49,30 @@ public class UploadRepo {
 
 	/**
 	 * Initializing scheduled thread.
+	 * @throws RestErrorException
+	 *             If failed to create upload directory.  
 	 */
-	@PostConstruct
-	public void init() {
+	public void init() throws RestErrorException {
+		log(Level.INFO, "Initializing upload repo.");
+		createUploadDir();
 		createScheduledExecutor();
 	}
 
 	private void createScheduledExecutor() {
+		String absolutePath = null;
+		if (restUploadDir != null) {	
+			absolutePath = restUploadDir.getAbsolutePath();
+		}
+		log(Level.FINE, "[createScheduledExecutor] - " 
+				+ "creating cleanup thread that will clean all files from rest upload directory [" 
+						+ absolutePath + "] every " + cleanupTimeoutMillis + " millis.");
 		final CleanUploadDirRunnable cleanupThread =
 				new CleanUploadDirRunnable(restUploadDir, cleanupTimeoutMillis);
 		executor = Executors.newSingleThreadScheduledExecutor();
 		try {
 			executor.scheduleAtFixedRate(cleanupThread, 0, cleanupTimeoutMillis, TimeUnit.MILLISECONDS);
 		} catch (final RejectedExecutionException e) {
-			if (logger.isLoggable(Level.WARNING)) {
-				logger.log(Level.WARNING, "failed to scheduled for execution - " + e.getMessage());
-			}
+			log(Level.WARNING, "failed to scheduled for execution - " + e.getMessage());
 			throw e;
 		}
 	}
@@ -90,29 +97,28 @@ public class UploadRepo {
 	 * 
 	 * @throws RestErrorException
 	 *             If failed to create upload directory.
-	 * @throws IOException
-	 *             If failed to delete the old upload directory.
 	 */
 	public void createUploadDir()
-			throws IOException, RestErrorException {
+			throws RestErrorException {
+		log(Level.FINER, "[createUploadDir] - creating rest uploads directory in - " + baseDir);
 		restUploadDir = new File(baseDir, CloudifyConstants.UPLOADS_FOLDER_NAME);
-		logger.fine("starting uploadReop, setting restUploadDir to: " + restUploadDir.getAbsolutePath());
+		final String absolutePath = restUploadDir.getAbsolutePath();
+		log(Level.FINER, "[createUploadDir] - setting restUploadDir to: " + absolutePath);
 		restUploadDir.deleteOnExit();
 		if (restUploadDir.exists()) {
-			FileUtils.deleteDirectory(restUploadDir);
+			try {
+				FileUtils.deleteDirectory(restUploadDir);
+			} catch (IOException e) {
+				log(Level.WARNING, "[createUploadDir] - failed to delete uploads directory [" + absolutePath + "].");
+				throw new RestErrorException(
+						CloudifyMessageKeys.UPLOAD_DIRECTORY_CREATION_FAILED.getName(), absolutePath);
+			}
 		}
 		final boolean mkdirs = restUploadDir.mkdirs();
-		final String absolutePath = restUploadDir.getAbsolutePath();
-
-		
 		if (mkdirs) {
-			if (logger.isLoggable(Level.INFO)) {
-				logger.log(Level.INFO, "created rest uploads directory - " + absolutePath);
-			}
+			log(Level.FINE, "[createUploadDir] - created rest uploads directory - " + absolutePath);
 		} else {
-			if (logger.isLoggable(Level.WARNING)) {
-				logger.warning("failed to create rest uploads directory at " + absolutePath);
-			}
+			log(Level.WARNING, "[createUploadDir] - failed to create rest uploads directory at " + absolutePath);
 			throw new RestErrorException(
 					CloudifyMessageKeys.UPLOAD_DIRECTORY_CREATION_FAILED.getName(), absolutePath);
 		}
@@ -146,15 +152,11 @@ public class UploadRepo {
 			throws IOException, RestErrorException {
 		final String name = fileName == null ? multipartFile.getOriginalFilename() : fileName;
 		// enforce size limit
-		if (logger.isLoggable(Level.FINER)) {
-			logger.log(Level.FINER, "uploading file " + name);
-		}
+		log(Level.FINER, "uploading file " + name);
 		final long fileSize = multipartFile.getSize();
 		if (fileSize > getUploadSizeLimitBytes()) {
-			if (logger.isLoggable(Level.WARNING)) {
-				logger.warning("Upload file [" + name + "] size ("
+			log(Level.FINER, "Upload file [" + name + "] size ("
 						+ fileSize + ") exceeded the permitted size limit (" + getUploadSizeLimitBytes() + ").");
-			}
 			throw new RestErrorException(
 					CloudifyMessageKeys.UPLOAD_FILE_SIZE_LIMIT_EXCEEDED.getName(),
 					name, fileSize, getUploadSizeLimitBytes());
@@ -163,13 +165,9 @@ public class UploadRepo {
 		final File srcDir = new File(restUploadDir, dirName);
 		srcDir.mkdirs();
 		final File storedFile = new File(srcDir, name);
-		if (logger.isLoggable(Level.FINER)) {
-			logger.log(Level.FINER, "Uploading file to " + storedFile.getAbsolutePath());
-		}
+		log(Level.FINER, "Uploading file to " + storedFile.getAbsolutePath());
 		copyMultipartFileToLocalFile(multipartFile, storedFile);
-		if (logger.isLoggable(Level.FINER)) {
-			logger.log(Level.FINER, "File [" + storedFile.getAbsolutePath() + "] uploaded successfully.");
-		}
+		log(Level.FINER, "File [" + storedFile.getAbsolutePath() + "] uploaded successfully.");
 		return dirName;
 	}
 
@@ -182,54 +180,36 @@ public class UploadRepo {
 	 */
 	public File get(final String key) {
 		if (key == null) {
-			if (logger.isLoggable(Level.WARNING)) {
-				logger.warning("failed to get uploaded file, key is null.");
-			}
+			log(Level.WARNING, "failed to get uploaded file, key is null.");
 			return null;
 		}
-		if (logger.isLoggable(Level.FINE)) {
-			logger.fine("Getting uploaded file with key " + key);
-		}
+		log(Level.FINE, "Getting uploaded file with key " + key);
 		if (restUploadDir == null) {
-			if (logger.isLoggable(Level.WARNING)) {
-				logger.warning("failed to get uploaded file, key is " + key + ", upload directory is null.");
-			}
+			log(Level.WARNING, "failed to get uploaded file, key is " + key + ", upload directory is null.");
 			return null;
 		}
 		if (!restUploadDir.exists()) {
-			if (logger.isLoggable(Level.WARNING)) {
-				logger.warning("failed to get uploaded file. key is " + key
+			log(Level.WARNING, "failed to get uploaded file. key is " + key
 						+ ", upload directory [" + restUploadDir.getAbsolutePath() + "] does not exist.");
-			}
 			return null;
 		}
-		if (logger.isLoggable(Level.FINER)) {
-			logger.finer("Trying to get the uploaded file stored in a directory named - " + key
+		log(Level.FINER, "Trying to get the uploaded file stored in a directory named - " + key
 					+ " (under " + restUploadDir.getAbsolutePath() + ").");
-		}
 		final File dir = new File(restUploadDir, key);
 		if (dir.exists()) {
 			if (!dir.isDirectory()) {
-				if (logger.isLoggable(Level.WARNING)) {
-					logger.warning("The file found is not a directory [" + dir.getAbsolutePath() + "].");
-				}
+				log(Level.WARNING, "The file found is not a directory [" + dir.getAbsolutePath() + "].");
 				return null;
 			}
 			final File[] listFiles = dir.listFiles();
 			if (listFiles.length > 0) {
 				final File uploadedFile = listFiles[0];
-				if (logger.isLoggable(Level.FINE)) {
-					logger.fine("Returning the found uploaded file [" + uploadedFile.getAbsolutePath() + "].");
-				}
+				log(Level.FINE, "Returning the found uploaded file [" + uploadedFile.getAbsolutePath() + "].");
 				return uploadedFile;
 			}
-			if (logger.isLoggable(Level.WARNING)) {
-				logger.warning("The directory [" + dir.getAbsolutePath() + "] is empty.");
-			}
+			log(Level.WARNING, "The directory [" + dir.getAbsolutePath() + "] is empty.");
 		} else {
-			if (logger.isLoggable(Level.WARNING)) {
-				logger.warning("No directory with name " + key + " was found at " + restUploadDir.getAbsolutePath());
-			}
+			log(Level.WARNING, "No directory with name " + key + " was found at " + restUploadDir.getAbsolutePath());
 		}
 		return null;
 	}
@@ -245,9 +225,7 @@ public class UploadRepo {
 	 *            .
 	 */
 	public void resetTimeout(final int cleanupTimeoutMillis) {
-		if (logger.isLoggable(Level.INFO)) {
-			logger.info("reset timeout to " + cleanupTimeoutMillis + " milliseconds.");
-		}
+		log(Level.INFO, "reset timeout to " + cleanupTimeoutMillis + " milliseconds.");
 		this.setCleanupTimeoutMillis(cleanupTimeoutMillis);
 		reset();
 	}
@@ -274,5 +252,11 @@ public class UploadRepo {
 
 	public void setUploadSizeLimitBytes(final int uploadSizeLimitBytes) {
 		this.uploadSizeLimitBytes = uploadSizeLimitBytes;
+	}
+	
+	private void log(final Level level, final String message) {
+		if (logger.isLoggable(level)) {
+			logger.log(level, message);
+		}
 	}
 }
