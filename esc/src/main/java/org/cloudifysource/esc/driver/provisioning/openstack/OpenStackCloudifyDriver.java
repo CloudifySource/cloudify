@@ -65,6 +65,7 @@ import org.cloudifysource.esc.driver.provisioning.openstack.rest.RouterExternalG
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.SecurityGroup;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.SecurityGroupRule;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Subnet;
+import org.cloudifysource.esc.driver.provisioning.openstack.util.ValidationUtil;
 import org.openspaces.admin.application.Application;
 import org.openspaces.admin.application.Applications;
 
@@ -151,6 +152,9 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 	@Override
 	public void setConfig(final ComputeDriverConfiguration configuration) throws CloudProvisioningException {
+
+		ValidationUtil.validateAllNetworkNames(configuration);
+
 		super.setConfig(configuration);
 
 		final String serviceName;
@@ -215,7 +219,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 				final CloudNetwork cloudNetwork = this.cloud.getCloudNetwork();
 				final Map<String, NetworkConfiguration> templates = cloudNetwork.getTemplates();
 				if (templates == null || templates.isEmpty()) {
-					throw new IllegalStateException("No network template found.");
+					throw new CloudProvisioningException("No network template found.");
 				}
 
 				// If no template defined in service network, use one by default.
@@ -225,7 +229,13 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 					final String networkTemplateName = templates.keySet().iterator().next();
 					this.networkConfiguration = templates.get(networkTemplateName);
 				} else {
-					this.networkConfiguration = templates.get(serviceNetwork.getTemplate());
+					NetworkConfiguration nc = templates.get(serviceNetwork.getTemplate());
+					if (nc == null) {
+						throw new CloudProvisioningException("The network template name '"
+								+ serviceNetwork.getTemplate()
+								+ "' was not found");
+					}
+					this.networkConfiguration = nc;
 				}
 				this.applicationNetworkName = networkConfiguration.getName();
 			} else {
@@ -574,7 +584,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			// Search for a subnet with the specified name
 			final List<Subnet> subnets = networkApi.getSubnetsByNetworkId(network.getId());
 			for (Subnet sn : subnets) {
-				
+
 				if (sn.getName().equals(subnetConfig.getName())) {
 					subnet = sn;
 					break;
