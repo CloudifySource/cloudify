@@ -167,8 +167,10 @@ public final class GridCommandLineBuilder {
 		String esmCommandLineArgs = "";
 		esmCommandLineArgs += getComponentMemoryArgs(esm.getMaxMemory(), esm.getMinMemory());
 		esmCommandLineArgs += getComponentRmiArgs(esm.getPort().toString());
-        esmCommandLineArgs += "-Dorg.openspaces.grid.start-agent-timeout-seconds=" + esm.getStartMachineTimeoutInSeconds();
-        esmCommandLineArgs += "-Dorg.openspaces.grid.stop-agent-timeout-seconds=" + esm.getStopMachineTimeoutInSeconds();
+        esmCommandLineArgs += " -Dorg.openspaces.grid.start-agent-timeout-seconds="
+                + esm.getStartMachineTimeoutInSeconds();
+        esmCommandLineArgs += " -Dorg.openspaces.grid.stop-agent-timeout-seconds="
+                + esm.getStopMachineTimeoutInSeconds();
 
 		if (reboostrapping) {
 			esmCommandLineArgs +=
