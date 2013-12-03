@@ -126,7 +126,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private static final int DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE = 5;
 
 	// 5 minutes after 2 consecutive failed requests.
-	private static final double START_MACHINE_FAILURE_THROTTLING_TIMEOUT_SEC = 300;
+	private static final long START_MACHINE_FAILURE_THROTTLING_TIMEOUT_SEC = 300;
 
 	/**********
 	 * .
@@ -497,7 +497,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	// management machine with start-machine requests in-case of failure.
 	private void blockStartMachineOnException() {
 		final long invocationTimeoutMin = TimeUnit.SECONDS
-				.toMinutes((long) (START_MACHINE_FAILURE_THROTTLING_TIMEOUT_SEC));
+				.toMinutes(START_MACHINE_FAILURE_THROTTLING_TIMEOUT_SEC);
 		final boolean acquired = exceptionThrottler.tryAcquire();
 		// means this request should be blocked.
 		if (!acquired) {
