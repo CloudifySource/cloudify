@@ -140,13 +140,6 @@ cloud {
 						
 						// when set to 'true', agent will automatically start after reboot.
 						autoRestartAgent true
-	
-						// Optional. Overrides to default cloud driver behavior.
-						// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
-						overrides ([
-							"jclouds.timeouts.AccountClient.getActivePackages":"6000000",
-						     "jclouds.timeouts.ProductPackageClient.getProductPackage":"6000000"
-						])
 
                         // enable sudo.
 						privileged true
@@ -172,21 +165,16 @@ cloud {
                         locationId locationId
                         username "root"
 
+                        // when set to 'true', agent will automatically start after reboot.
+                        autoRestartAgent true
+
                         options ([
                                 "domainName":"cloudify.org"
-                        ])
-
-                        // Optional. Overrides to default cloud driver behavior.
-                        // When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
-                        overrides ([
-                                "jclouds.timeouts.AccountClient.getActivePackages":"6000000",
-                                "jclouds.timeouts.ProductPackageClient.getProductPackage":"6000000"
                         ])
 
                         custom ([
                                 "org.cloudifysource.softlayer.bmi":true
                         ])
-
 
                         // enable sudo.
                         privileged true
@@ -196,8 +184,6 @@ cloud {
 
                     }
 
-	
-	
 				])
 	
 	}
