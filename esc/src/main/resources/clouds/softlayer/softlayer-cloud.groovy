@@ -37,8 +37,19 @@ cloud {
 		managementMachineTemplate "SMALL_LINUX"
 		// Optional. Indicates whether internal cluster communications should use the machine private IP. Defaults to true.
 		connectToPrivateIp true
-		
-		// Optional. Path to folder where management state will be written. Null indicates state will not be written.
+
+        components {
+
+            orchestrator {
+
+                startMachineTimeoutInSeconds 36000
+                stopMachineTimeoutInSeconds 36000
+            }
+
+        }
+
+
+        // Optional. Path to folder where management state will be written. Null indicates state will not be written.
 		persistentStoragePath persistencePath
 		
 		

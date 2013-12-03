@@ -51,6 +51,8 @@ cloud {
 
 			orchestrator {
 				//RMI port
+                startMachineTimeoutInSeconds 36000
+                stopMachineTimeoutInSeconds 36000
 				port 7779
 				minMemory "64m"
 				maxMemory "4096m"

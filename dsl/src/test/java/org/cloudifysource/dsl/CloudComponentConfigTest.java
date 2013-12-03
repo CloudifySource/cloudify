@@ -1,9 +1,6 @@
 package org.cloudifysource.dsl;
 
-import java.io.File;
-
 import junit.framework.Assert;
-
 import org.cloudifysource.domain.cloud.AgentComponent;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.DeployerComponent;
@@ -15,6 +12,8 @@ import org.cloudifysource.domain.cloud.UsmComponent;
 import org.cloudifysource.domain.cloud.WebuiComponent;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.junit.Test;
+
+import java.io.File;
 /**
  * Test new component POJO def
  * @author adaml
@@ -76,7 +75,12 @@ public class CloudComponentConfigTest {
 				orchestrator.getMinMemory().equals("64m"));
 		Assert.assertTrue("unexpected orchestrator max memory property " + orchestrator.getMaxMemory(),
 				orchestrator.getMaxMemory().equals("4096m"));
-	}
+        Assert.assertTrue(
+                "unexpected orchestrator max memory property " + orchestrator.getStartMachineTimeoutInSeconds(),
+                orchestrator.getStartMachineTimeoutInSeconds() == 36000);
+        Assert.assertTrue("unexpected orchestrator max memory property " + orchestrator.getStopMachineTimeoutInSeconds(),
+                orchestrator.getStopMachineTimeoutInSeconds() == 36000);
+    }
 	private void validateDiscoveryValues(final DiscoveryComponent discovery) {
 		Assert.assertTrue("unexpected orchestrator discovery port property " + discovery.getDiscoveryPort(), 
 				discovery.getDiscoveryPort() == 4174);

@@ -28,14 +28,34 @@ allowRootNode = false, parent = "components")
 public class OrchestratorComponent extends GridComponent {
 
 	private Integer port;
+    private Integer startMachineTimeoutInSeconds;
+    private Integer stopMachineTimeoutInSeconds;
 	
 	public OrchestratorComponent() {
 		this.setMaxMemory("128m");
 		this.setMinMemory("128m");
+        this.setStartMachineTimeoutInSeconds(1800);
+        this.setStopMachineTimeoutInSeconds(1800);
 		this.setPort(7003);
 	}
 
-	public Integer getPort() {
+    public Integer getStartMachineTimeoutInSeconds() {
+        return startMachineTimeoutInSeconds;
+    }
+
+    public void setStartMachineTimeoutInSeconds(final Integer startMachineTimeoutInSeconds) {
+        this.startMachineTimeoutInSeconds = startMachineTimeoutInSeconds;
+    }
+
+    public Integer getStopMachineTimeoutInSeconds() {
+        return stopMachineTimeoutInSeconds;
+    }
+
+    public void setStopMachineTimeoutInSeconds(final Integer stopMachineTimeoutInSeconds) {
+        this.stopMachineTimeoutInSeconds = stopMachineTimeoutInSeconds;
+    }
+
+    public Integer getPort() {
 		return port;
 	}
 
