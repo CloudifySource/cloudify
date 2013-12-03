@@ -757,10 +757,19 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 					appliNetwork = networkApi.getNetworkByName(this.securityGroupNames.getPrefix()
 							+ this.applicationNetworkName);
 				}
-				this.addSecurityGroupsToNetwork(serverId, appliNetwork, new String[] {
-						this.securityGroupNames.getClusterName(),
-						this.securityGroupNames.getApplicationName(),
-						this.securityGroupNames.getServiceName() });
+
+				if (appliNetwork.getName().equals(managementNetwork.getName())) {
+					this.addSecurityGroupsToNetwork(serverId, appliNetwork, new String[] {
+							this.securityGroupNames.getManagementName(),
+							this.securityGroupNames.getClusterName(),
+							this.securityGroupNames.getApplicationName(),
+							this.securityGroupNames.getServiceName() });
+				} else {
+					this.addSecurityGroupsToNetwork(serverId, appliNetwork, new String[] {
+							this.securityGroupNames.getClusterName(),
+							this.securityGroupNames.getApplicationName(),
+							this.securityGroupNames.getServiceName() });
+				}
 			}
 
 			final MachineDetails md = this.createMachineDetails(template, newServer);
