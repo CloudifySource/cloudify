@@ -21,21 +21,6 @@ public class CloudifyUserDetailsService implements UserDetailsService {
     }
     
 
-    /*public CloudifyUserDetailsService(final Properties users) {
-        Enumeration<?> names = users.propertyNames();
-        UserAttributeEditor editor = new UserAttributeEditor();
-
-        while (names.hasMoreElements()) {
-            String name = (String) names.nextElement();
-            editor.setAsText(users.getProperty(name));
-            CloudifyUserAttribute attr = (CloudifyUserAttribute) editor.getValue();
-            CloudifyUserDetails user = new CloudifyUser(name, attr.getPassword(), attr.getAuthorities(), 
-            		attr.getAuthGroups());
-            createUser(user);
-        }
-    }*/
-    
-
     private void createUser(final CloudifyUserDetails cloudifyUserDetails) {
         Assert.isTrue(!userExists(cloudifyUserDetails.getUsername()));
         users.put(cloudifyUserDetails.getUsername().toLowerCase(), new CloudifyUser(cloudifyUserDetails));
