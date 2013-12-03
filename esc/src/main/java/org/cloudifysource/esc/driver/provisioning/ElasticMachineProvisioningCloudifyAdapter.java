@@ -125,7 +125,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	private static final int DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE = 5;
 
-	private static final double START_MACHINE_INVOKATION_LIMIT_PER_SECOND = 0.1;
+	// 5 minutes after 2 consecutive failed requests.
+	private static final double START_MACHINE_FAILURE_THROTTLING_TIMEOUT_SEC = 300;
 
 	/**********
 	 * .
@@ -162,9 +163,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private ElasticGridServiceAgentProvisioningProgressChangedEventListener agentEventListener;
 	private File cloudDslFile;
 	
-	//defines the allowed number of operations in one second.
-	// used to prevent loop of constantly trying to create new machines and failing. 
-	private RateLimiter throttler = RateLimiter.create(START_MACHINE_INVOKATION_LIMIT_PER_SECOND);
+	// used to limit the rate of start-machine requests in the event of failure.
+	// this is done to prevent management machine from overloading. CLOUDIFY-2201
+	private RateLimiter exceptionThrottler;
 
 	private Admin getGlobalAdminInstance(final Admin esmAdminInstance) throws InterruptedException,
 			ElasticMachineProvisioningException {
@@ -348,12 +349,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		logger.info("Cloudify Adapter is starting a new machine with zones " + zones.getZones()
 				+ " and reservation id " + reservationId);
 		
-		
-//		// should be done only in case something bad happens and for a long period(adaml).
-//		logger.fine("throttling start-machine request. limit is one request every ten seconds.");
-//		throttler.acquire();
-//		logger.fine("start-machine request throttling ended. starting new instance.");
-		
 		// calculate timeout
 		final long end = System.currentTimeMillis() + unit.toMillis(duration);
 
@@ -364,8 +359,11 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		final ZonesConfig defaultZones = config.getGridServiceAgentZones();
 		logger.fine("default zones = " + defaultZones.getZones());
 		if (!defaultZones.isSatisfiedBy(zones)) {
-			throw new IllegalArgumentException("The specified zones " + zones
-					+ " does not satisfy the configuration zones " + defaultZones);
+			final String errorMessage = "The specified zones " + zones
+					+ " do not satisfy the configuration zones " + defaultZones;
+			logger.warning(errorMessage);
+			blockStartMachineOnException();
+			throw new IllegalArgumentException(errorMessage);
 		}
 
 		final ComputeTemplate template = cloud.getCloudCompute().getTemplates().get(this.cloudTemplateName);
@@ -386,11 +384,13 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 			// Auto populate installer configuration with values set in template
 			// if they were not previously set.
-			if (machineDetails != null && machineDetails.getInstallerConfiguration() == null) {
+			if (machineDetails.getInstallerConfiguration() == null) {
 				machineDetails.setInstallerConfigutation(template.getInstaller());
 			}
 
 		} catch (final Exception e) {
+			logger.log(Level.WARNING, "Failed to provision machine: " + e.getMessage(), e);
+			blockStartMachineOnException();
 			throw new ElasticMachineProvisioningException("Failed to provision machine: " + e.getMessage(), e);
 		}
 
@@ -404,8 +404,11 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			machineIp = machineDetails.getPublicAddress();
 		}
 		if (machineIp == null) {
-			throw new IllegalStateException("The IP of the new machine is null! Machine Details are: " + machineDetails
-					+ " .");
+			final String errorMessage = "The IP of the new machine is null! Machine Details are: " 
+						+ machineDetails + ".";
+			logger.warning(errorMessage);
+			blockStartMachineOnException();
+			throw new IllegalStateException(errorMessage);
 		}
 
 		fireMachineStartedEvent(machineDetails, machineIp);
@@ -453,6 +456,9 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			}
 
 			final Object context = new MachineDetailsDocumentConverter().toDocument(machineDetails);
+			// successful start-machine request initilizes exceptionThrottler.
+			initExceptionThrottler();
+			
 			return new StartedGridServiceAgent(gsa, context);
 		} catch (final ElasticMachineProvisioningException e) {
 			logger.info("ElasticMachineProvisioningException occurred, " + e.getMessage());
@@ -479,6 +485,39 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			logger.info(ExceptionUtils.getFullStackTrace(e));
 			handleExceptionAfterMachineCreated(machineIp, volumeId, machineDetails, end, reservationId);
 			throw new IllegalStateException("Unexpected exception during machine provisioning", e);
+		}
+	}
+
+	private void initExceptionThrottler() {
+		logger.fine("initilizing start-machine exception throttler.");
+		exceptionThrottler = RateLimiter.create(1 / START_MACHINE_FAILURE_THROTTLING_TIMEOUT_SEC);
+	}
+
+	// throttling done to prevent esm from overloading 
+	// management machine with start-machine requests in-case of failure.
+	private void blockStartMachineOnException() {
+		final long invocationTimeoutMin = TimeUnit.SECONDS
+				.toMinutes((long) (START_MACHINE_FAILURE_THROTTLING_TIMEOUT_SEC));
+		final boolean acquired = exceptionThrottler.tryAcquire();
+		// means this request should be blocked.
+		if (!acquired) {
+			// this will only happen if start machine fails 
+			// more then once in the defined time frame window.
+			logger.warning("Maximum number of failed requests to start a machine "
+											+ "has been reached for service '" + serviceName
+						+ "'. Next attempt will be blocked for a cool-down period of " 
+											+ invocationTimeoutMin + " minutes.");
+		}
+		// on second failure in the time frame window, 
+		// will halt for the remining cool-down period.
+		exceptionThrottler.acquire();
+		if (!acquired) {
+			logger.info("Cool-down period has expired. Start-machine requests are permitted.");
+			initExceptionThrottler();
+		} else {
+			logger.fine("Start-machine failure has been registered. One more failure is allowed for service '" 
+									+ serviceName + "' for the period of "
+										+ invocationTimeoutMin + " minutes.");
 		}
 	}
 
@@ -622,6 +661,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					"Machine Provisioning failed. "
 							+ "An error was encountered while trying to shutdown the new machine ( "
 							+ machineDetails.toString() + "). Error was: " + e.getMessage(), e);
+		} finally {
+			blockStartMachineOnException();
 		}
 	}
 
@@ -981,6 +1022,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 							.build(cloudConfigDirectoryPath, networkDriverClassName);
 					logger.info("network provisioning driver was created succesfully.");
 				}
+				initExceptionThrottler();
 			} catch (final ClassNotFoundException e) {
 				throw new BeanConfigurationException("Failed to load provisioning class for cloud: "
 						+ this.cloud.getName() + ". Class not found: " + this.cloud.getConfiguration().getClassName(),
