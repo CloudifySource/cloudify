@@ -699,7 +699,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
                     deployer = new JCloudsDeployer(providerForTemplate,
                             cloud.getUser().getUser(),
                             cloud.getUser().getApiKey(), templateProps, setupModules(templateName, template));
-                    logger.log(Level.WARNING, "Making an API call to verify credentials");
+                    logger.log(Level.FINE, "Making an API call to verify credentials");
                     deployer.getAllLocations();
                     validationContext.validationEventEnd(ValidationResultType.OK);
                 } catch (Exception e) {
