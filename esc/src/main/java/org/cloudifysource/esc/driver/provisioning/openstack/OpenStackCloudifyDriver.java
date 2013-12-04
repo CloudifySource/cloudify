@@ -175,7 +175,8 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 			final ComputeTemplateNetwork computeNetwork = mngTemplate.getComputeNetwork();
 
-			if (computeNetwork == null) {
+			if (computeNetwork == null || computeNetwork.getNetworks() == null
+					|| computeNetwork.getNetworks().isEmpty()) {
 				// computeNetwork is not defined, use template
 				final String extRouterName = (String) mngTemplate.getOptions().get(OPT_EXTERNAL_ROUTER_NAME);
 				this.externalRouterName = StringUtils.isEmpty(extRouterName) ? null : extRouterName;
@@ -196,20 +197,21 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 				this.networkConfiguration = managementNetworkConfig;
 			} else {
 				computeNetworks = computeNetwork.getNetworks();
-				if (this.computeNetworks == null || computeNetworks.isEmpty()) {
-					throw new CloudProvisioningException(
-							"No network configuration found in template '"
-									+ machineTemplateName
-									+ "'. You must either use a networkTemplate"
-									+ " or declare a computeNetwork in your computeTemplate.");
-				}
 			}
 
 		} else {
 			final ComputeTemplate template = this.cloud.getCloudCompute().getTemplates().get(this.cloudTemplateName);
 			final ComputeTemplateNetwork computeNetwork = template.getComputeNetwork();
 
-			if (computeNetwork == null) {
+			if (computeNetwork == null
+					|| computeNetwork.getNetworks() == null
+					|| computeNetwork.getNetworks().isEmpty()) {
+
+				// Init management network name
+				final ManagementNetwork managementNetwork = this.cloud.getCloudNetwork().getManagement();
+				final NetworkConfiguration managementNetworkConfig = managementNetwork.getNetworkConfiguration();
+				this.managementNetworkName = managementNetworkConfig.getName();
+
 				final CloudNetwork cloudNetwork = this.cloud.getCloudNetwork();
 				final Map<String, NetworkConfiguration> templates = cloudNetwork.getTemplates();
 				if (templates == null || templates.isEmpty()) {
@@ -1249,7 +1251,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 	private void releaseFloatingIpsForServerId(final String serverId) {
 		try {
-			final List<Port> ports = networkApi.getPortsByServerId(serverId);
+			final List<Port> ports = networkApi.getPortsByDeviceId(serverId);
 			for (final Port port : ports) {
 				final FloatingIp floatingIp = networkApi.getFloatingIpByPortId(port.getId());
 				if (floatingIp != null) {

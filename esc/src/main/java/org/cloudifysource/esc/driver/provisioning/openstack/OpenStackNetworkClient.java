@@ -314,6 +314,19 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 	}
 
 	/**
+	 * Retrieve a list of routers.
+	 * 
+	 * @return The list of routers.
+	 * @throws OpenstackException
+	 *             Thrown if something went wrong with the request.
+	 */
+	public List<Router> getRouters() throws OpenstackException {
+		final String response = this.doGet("routers");
+		final List<Router> routers = JsonUtils.unwrapRootToList(Router.class, response);
+		return routers;
+	}
+
+	/**
 	 * Retrieve a router by name.
 	 * 
 	 * @param name
@@ -491,16 +504,16 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 	}
 
 	/**
-	 * Retrieve all ports attached to a server.
+	 * Retrieve all ports attached to a device.
 	 * 
-	 * @param serverId
+	 * @param deviceId
 	 *            The server to request.
 	 * @return The list ports attached to the server.
 	 * @throws OpenstackException
 	 *             Thrown if something went wrong with the request.
 	 */
-	public List<Port> getPortsByServerId(final String serverId) throws OpenstackException {
-		final String[] params = new String[] { "device_id", serverId };
+	public List<Port> getPortsByDeviceId(final String deviceId) throws OpenstackException {
+		final String[] params = new String[] { "device_id", deviceId };
 		final String response = this.doGet("ports", params);
 		final List<Port> ports = JsonUtils.unwrapRootToList(Port.class, response);
 		return ports;
