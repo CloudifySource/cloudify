@@ -388,8 +388,13 @@ public class DSLReader {
 		// The call below is required to clear cached class entries. Without it, a PermGen error will eventually occur.
 		// A synchronized block may be required as this call MAY not be thread safe. 
 		// More info available here: http://jira.codehaus.org/browse/GROOVY-5121
-		synchronized(dslSingleton ) {
-			org.codehaus.groovy.reflection.ClassInfo.clearModifiedExpandos();
+		synchronized (dslSingleton) {
+			// Tell Groovy we don't need any meta
+			// information about these classes
+			GroovySystem.getMetaClassRegistry().removeMetaClass(result.getClass());
+			// Tell the loader to clear out it's cache,
+			// this ensures the classes will be GC'd
+			gs.resetLoadedClasses();
 		}
 		return result;
 
@@ -453,10 +458,9 @@ public class DSLReader {
 				throw new IllegalArgumentException("Could not resolve DSL entry with name: " + e.getProperty(), e);
 			} catch (final DSLValidationRuntimeException e) {
 				throw e.getDSLValidationException();
-			} catch(final CompilationFailedException e) {
+			} catch (final CompilationFailedException e) {
 				throw new IllegalArgumentException("Could not parse " + dslFile + ": " + e.getMessage(), e);
-			}
-			finally {
+			} finally {
 				if (sis != null) {
 					try {
 						sis.close();
@@ -473,6 +477,7 @@ public class DSLReader {
 			}
 
 		}
+
 		return result;
 	}
 
