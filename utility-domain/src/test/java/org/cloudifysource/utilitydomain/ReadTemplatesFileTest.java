@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.ComputeTemplateHolder;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.utilitydomain.data.reader.ComputeTemplatesReader;
@@ -52,7 +53,9 @@ public class ReadTemplatesFileTest {
 			reader.readCloudTemplatesFromDirectory(templatesFile);
 			Assert.fail("Templates folder missing an upload folder yield no exception.");
 		} catch (DSLException e) {
-			Assert.assertTrue(e.getMessage().startsWith("There is no template files"));
+			String message = e.getMessage();
+			Assert.assertTrue("message [" + message + "] does not start with \"There is no template files\"", 
+					message.startsWith("There is no template files"));
 		} catch (Exception e) {
 			Assert.fail("Got " + e.getClass().getName() + " instead of DSLValidationException " 
 					+ "(The case is templates folder is empty)");
@@ -77,7 +80,7 @@ public class ReadTemplatesFileTest {
 			reader.readCloudTemplatesFromDirectory(templatesFile);
 			Assert.fail("Duplicate templates yielded no exception.");
 		} catch (DSLException e) {
-			assertRightError(e.getMessage(), "template with the name [TOMCAT] already exist in folder", "tomcat-template.groovy");
+			assertRightError(e.getMessage(), "template with the name [TOMCAT] already exist in folder", null);
 		}
 	}
 	
@@ -112,7 +115,10 @@ public class ReadTemplatesFileTest {
 	}
 	
 	private void assertRightError(final String message, final String errMsgContains, final String templateFileName) {
-		String prefix = "Failed to read template file [" + templateFileName + "] from folder";
+		String prefix = "Failed to read template file";
+		if (!StringUtils.isEmpty(templateFileName)) {
+			prefix += " [" + templateFileName + "] from folder";
+		}
 		Assert.assertTrue("error message [" + message + "] does not start with: " + prefix, message.startsWith(prefix));
 		Assert.assertTrue("error message [" + message + "] does not conatin: " + errMsgContains, message.contains(errMsgContains));
 	}
