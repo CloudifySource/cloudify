@@ -12,24 +12,9 @@
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+import com.gigaspaces.document.SpaceDocument;
+import com.google.common.util.concurrent.RateLimiter;
 import net.jini.core.discovery.LookupLocator;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -98,8 +83,21 @@ import org.openspaces.grid.gsm.machines.plugins.events.MachineStoppedEvent;
 import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticGridServiceAgentProvisioningException;
 import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticMachineProvisioningException;
 
-import com.gigaspaces.document.SpaceDocument;
-import com.google.common.util.concurrent.RateLimiter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /****************************
  * An ESM machine provisioning implementation used by the Cloudify cloud driver. All calls to start/stop a machine are
@@ -490,11 +488,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	private void initExceptionThrottler() {
 		logger.fine("initilizing start-machine exception throttler.");
-<<<<<<< HEAD
 		exceptionThrottler = RateLimiter.create(1.0 / START_MACHINE_FAILURE_THROTTLING_TIMEOUT_SEC);
-=======
-		exceptionThrottler = RateLimiter.create(1 / START_MACHINE_FAILURE_THROTTLING_TIMEOUT_SEC);
->>>>>>> 8a76f7f1ce3283878e8020931162da92574dccae
 	}
 
 	// throttling done to prevent esm from overloading 

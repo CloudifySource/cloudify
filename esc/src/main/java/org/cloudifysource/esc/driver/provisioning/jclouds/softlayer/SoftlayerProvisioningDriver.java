@@ -39,26 +39,7 @@ import java.util.Set;
 
 public class SoftlayerProvisioningDriver extends DefaultProvisioningDriver {
 
-    private boolean bareMetal;
-
     @Override
-    public void setConfig(final ComputeDriverConfiguration configuration) throws CloudProvisioningException {
-
-        ComputeTemplate computeTemplate =
-                configuration.getCloud().getCloudCompute().getTemplates().get(configuration.getCloudTemplate());
-        bareMetal = Utils.getBoolean(computeTemplate.getCustom()
-                .get("org.cloudifysource.softlayer.bmi"), false);
-        if (bareMetal) {
-            configuration.getCloud().getProvider().setProvider("softlayer-bmi");
-        }
-        super.setConfig(configuration);
-    }
-
-    @Override
-<<<<<<< HEAD
-    public Set<Module> setupModules() {
-        Set<Module> modules = super.setupModules();
-=======
     public void setConfig(final ComputeDriverConfiguration configuration) throws CloudProvisioningException {
 
         ComputeTemplate computeTemplate =
@@ -78,7 +59,6 @@ public class SoftlayerProvisioningDriver extends DefaultProvisioningDriver {
         Set<Module> modules = super.setupModules(templateName, template);
         boolean bareMetal = Utils.getBoolean(template.getCustom()
                 .get("org.cloudifysource.softlayer.bmi"), false);
->>>>>>> 8a76f7f1ce3283878e8020931162da92574dccae
         if (!bareMetal) {
             modules.add(new AbstractModule() {
                 @Override
