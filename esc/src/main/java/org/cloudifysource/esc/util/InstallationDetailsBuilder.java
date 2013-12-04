@@ -194,7 +194,7 @@ public class InstallationDetailsBuilder {
 		final InstallationDetails details =
 				Utils.createInstallationDetails(md, cloud, template, zonesConfig, lookupLocatorsString, admin, isManagement,
 						cloudFile, reservationId, templateName, securityProfile, keystorePassword, authGroups,
-						this.isRebootstrapping);
+						this.isRebootstrapping, false);
 
 		return details;
 	}

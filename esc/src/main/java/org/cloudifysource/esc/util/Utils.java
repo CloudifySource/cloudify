@@ -225,7 +225,7 @@ public final class Utils {
 			final String templateName,
 			final String securityProfile,
 			final String keystorePassword,
-			final String authGroups, final boolean rebootstrapping)
+			final String authGroups, final boolean rebootstrapping, final boolean isNoManagementSpace)
 			throws FileNotFoundException {
 
 		final InstallationDetails details = new InstallationDetails();
@@ -277,7 +277,7 @@ public final class Utils {
 
 			// setting management grid components command-line arguments
 			final String esmCommandlineArgs =
-					gridCommandBuilder.getEsmCommandlineArgs(componentsConfig.getOrchestrator(), rebootstrapping);
+					gridCommandBuilder.getEsmCommandlineArgs(componentsConfig.getOrchestrator(), rebootstrapping, isNoManagementSpace);
 			final String lusCommandlineArgs =
 					gridCommandBuilder.getLusCommandlineArgs(componentsConfig.getDiscovery(), lookupLocatorsString);
 			final String gsmCommandlineArgs = gridCommandBuilder.getGsmCommandlineArgs(cloud, lookupLocatorsString,

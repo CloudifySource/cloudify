@@ -163,7 +163,7 @@ public final class GridCommandLineBuilder {
 	 * @param reboostrapping true if this management machine is being re-bootstrapped after a previous bootstrap.
 	 * @return Commandline arguments for the ESM
 	 */
-	public String getEsmCommandlineArgs(final OrchestratorComponent esm, final boolean reboostrapping) {
+	public String getEsmCommandlineArgs(final OrchestratorComponent esm, final boolean reboostrapping, final boolean isNoManagementSpace) {
 		String esmCommandLineArgs = "";
 		esmCommandLineArgs += getComponentMemoryArgs(esm.getMaxMemory(), esm.getMinMemory());
 		esmCommandLineArgs += getComponentRmiArgs(esm.getPort().toString());
@@ -180,8 +180,10 @@ public final class GridCommandLineBuilder {
 					" -D" + CloudifyConstants.SYSTEM_PROPERTY_ESM_DISCOVERY_POLLING_INTERVAL_SECONDS + "=20 ";
 		}
 		
-		//CLOUDIFY-2180
-		esmCommandLineArgs += " -D" + CloudifyConstants.SYSTEM_PROPERTY_ESM_BACKUP_MACHINES_STATE_TO_SPACE_FLAG +"=true";
+		if (!isNoManagementSpace) {
+			//CLOUDIFY-2180
+			esmCommandLineArgs += " -D" + CloudifyConstants.SYSTEM_PROPERTY_ESM_BACKUP_MACHINES_STATE_TO_SPACE_FLAG +"=true";
+		}
 
 		return esmCommandLineArgs;
 	}
