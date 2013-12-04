@@ -39,24 +39,26 @@ import java.util.Set;
 
 public class SoftlayerProvisioningDriver extends DefaultProvisioningDriver {
 
-    private boolean bareMetal;
-
     @Override
     public void setConfig(final ComputeDriverConfiguration configuration) throws CloudProvisioningException {
 
         ComputeTemplate computeTemplate =
                 configuration.getCloud().getCloudCompute().getTemplates().get(configuration.getCloudTemplate());
-        bareMetal = Utils.getBoolean(computeTemplate.getCustom()
+        boolean bareMetal = Utils.getBoolean(computeTemplate.getCustom()
                 .get("org.cloudifysource.softlayer.bmi"), false);
         if (bareMetal) {
             configuration.getCloud().getProvider().setProvider("softlayer-bmi");
+        } else {
+            configuration.getCloud().getProvider().setProvider("softlayer");
         }
         super.setConfig(configuration);
     }
 
     @Override
-    public Set<Module> setupModules() {
-        Set<Module> modules = super.setupModules();
+    public Set<Module> setupModules(final String templateName, final ComputeTemplate template) {
+        Set<Module> modules = super.setupModules(templateName, template);
+        boolean bareMetal = Utils.getBoolean(template.getCustom()
+                .get("org.cloudifysource.softlayer.bmi"), false);
         if (!bareMetal) {
             modules.add(new AbstractModule() {
                 @Override
@@ -66,5 +68,15 @@ public class SoftlayerProvisioningDriver extends DefaultProvisioningDriver {
             });
         }
         return modules;
+    }
+
+    @Override
+    protected String getProviderForTemplate(final String templateName, final ComputeTemplate template) {
+        boolean bareMetal = Utils.getBoolean(template.getCustom()
+                .get("org.cloudifysource.softlayer.bmi"), false);
+        if (bareMetal) {
+            return "softlayer-bmi";
+        }
+        return "softlayer";
     }
 }

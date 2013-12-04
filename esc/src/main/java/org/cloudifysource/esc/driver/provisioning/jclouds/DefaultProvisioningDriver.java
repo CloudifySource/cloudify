@@ -136,6 +136,11 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
         return computeContext;
     }
 
+    protected String getProviderForTemplate(final String templateName, final ComputeTemplate template) {
+        // provider is not dependent on the template
+        return cloud.getProvider().getProvider();
+    }
+
     /**
      * 1. Provider/API name
      * 2. Authentication to the cloud
@@ -231,7 +236,8 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
         return createServer(endTime, serverName, null);
     }
 
-    public Set<Module> setupModules() {
+    public Set<Module> setupModules(final String templateName, final ComputeTemplate template) {
+        // does not depend on templates by default.
         return new HashSet<Module>();
     }
 
@@ -649,7 +655,7 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
         props.putAll(cloudTemplate.getOverrides());
 
         JCloudsDeployer deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(),
-                cloud.getUser().getApiKey(), props, setupModules());
+                cloud.getUser().getApiKey(), props, setupModules(cloudTemplateName, cloudTemplate));
 
         deployer.setImageId(cloudTemplate.getImageId());
         deployer.setMinRamMegabytes(cloudTemplate.getMachineMemoryMB());
@@ -689,17 +695,18 @@ public class DefaultProvisioningDriver extends BaseProvisioningDriver {
                     final Map<String, Object> templateOverrides = template.getOverrides();
                     templateProps.putAll(templateOverrides);
                     logger.fine("Creating a new cloud deployer");
-                    deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(),
-                            cloud.getUser().getApiKey(), templateProps, setupModules());
-                    logger.log(Level.FINE, "making API call");
+                    String providerForTemplate = getProviderForTemplate(templateName, template);
+                    deployer = new JCloudsDeployer(providerForTemplate,
+                            cloud.getUser().getUser(),
+                            cloud.getUser().getApiKey(), templateProps, setupModules(templateName, template));
+                    logger.log(Level.WARNING, "Making an API call to verify credentials");
                     deployer.getAllLocations();
                     validationContext.validationEventEnd(ValidationResultType.OK);
                 } catch (Exception e) {
-
                     closeDeployer(deployer);
                     validationContext.validationEventEnd(ValidationResultType.ERROR);
                     throw new CloudProvisioningException(getFormattedMessage("error_cloud_credentials_validation",
-                            groovyFile, propertiesFile));
+                            groovyFile, propertiesFile), e);
                 }
 
                 imageId = template.getImageId();
