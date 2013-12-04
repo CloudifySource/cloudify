@@ -490,7 +490,11 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	private void initExceptionThrottler() {
 		logger.fine("initilizing start-machine exception throttler.");
+<<<<<<< HEAD
 		exceptionThrottler = RateLimiter.create(1.0 / START_MACHINE_FAILURE_THROTTLING_TIMEOUT_SEC);
+=======
+		exceptionThrottler = RateLimiter.create(1 / START_MACHINE_FAILURE_THROTTLING_TIMEOUT_SEC);
+>>>>>>> 8a76f7f1ce3283878e8020931162da92574dccae
 	}
 
 	// throttling done to prevent esm from overloading 
