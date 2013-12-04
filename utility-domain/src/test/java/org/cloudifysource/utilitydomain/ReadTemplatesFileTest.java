@@ -112,7 +112,8 @@ public class ReadTemplatesFileTest {
 	}
 	
 	private void assertRightError(final String message, final String errMsgContains, final String templateFileName) {
-		Assert.assertTrue(message.startsWith("Failed to read template file [" + templateFileName + "] from folder"));
-		Assert.assertTrue(message.contains(errMsgContains));
+		String prefix = "Failed to read template file [" + templateFileName + "] from folder";
+		Assert.assertTrue("error message [" + message + "] does not start with: " + prefix, message.startsWith(prefix));
+		Assert.assertTrue("error message [" + message + "] does not conatin: " + errMsgContains, message.contains(errMsgContains));
 	}
 }
