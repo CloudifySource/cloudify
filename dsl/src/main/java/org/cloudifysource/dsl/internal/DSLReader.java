@@ -15,6 +15,7 @@ package org.cloudifysource.dsl.internal;
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyShell;
+import groovy.lang.GroovySystem;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import groovy.util.ConfigObject;
@@ -410,8 +411,13 @@ public class DSLReader {
         // The call below is required to clear cached class entries. Without it, a PermGen error will eventually occur.
         // A synchronized block may be required as this call MAY not be thread safe.
         // More info available here: http://jira.codehaus.org/browse/GROOVY-5121
-        synchronized(dslSingleton ) {
-            org.codehaus.groovy.reflection.ClassInfo.clearModifiedExpandos();
+        synchronized (dslSingleton) {
+            // Tell Groovy we don't need any meta
+            // information about these classes
+            GroovySystem.getMetaClassRegistry().removeMetaClass(result.getClass());
+            // Tell the loader to clear out it's cache,
+            // this ensures the classes will be GC'd
+            gs.resetLoadedClasses();
         }
 		return result;
 
