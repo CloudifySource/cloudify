@@ -1759,7 +1759,7 @@ public class DeploymentsController extends BaseRestController {
 	 */
 	@RequestMapping(value = "/{appName}", method = RequestMethod.GET)
 	public void getApplicationStatus(@PathVariable final String appName) {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException("getApplicationStatus");
 	}
 
 	/**
@@ -1773,7 +1773,7 @@ public class DeploymentsController extends BaseRestController {
 	public void getServiceStatus(
 			@PathVariable final String appName,
 			@PathVariable final String serviceName) {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException("getServiceStatus");
 	}
 
 	/**
@@ -1783,7 +1783,7 @@ public class DeploymentsController extends BaseRestController {
 	 */
 	@RequestMapping(value = "/{appName}", method = RequestMethod.PUT)
 	public void updateApplication(@PathVariable final String appName) {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException("updateApplication");
 	}
 
 	/**
@@ -1797,7 +1797,7 @@ public class DeploymentsController extends BaseRestController {
 	public void updateService(
 			@PathVariable final String appName,
 			@PathVariable final String serviceName) {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException("updateService");
 	}
 
 	/**
@@ -1814,7 +1814,7 @@ public class DeploymentsController extends BaseRestController {
 			@PathVariable final String appName,
 			@PathVariable final String attributeName,
 			@RequestBody final UpdateApplicationAttributeRequest updateApplicationAttributeRequest) {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException("updateApplicationAttribute");
 	}
 
 	/**
@@ -1982,7 +1982,7 @@ public class DeploymentsController extends BaseRestController {
 	public void updateServiceAttribute(
 			@PathVariable final String appName,
 			@PathVariable final String serviceName) {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException("updateServiceAttribute");
 	}
 
 	/**
@@ -2138,7 +2138,7 @@ public class DeploymentsController extends BaseRestController {
 			@PathVariable final String appName,
 			@PathVariable final String serviceName,
 			@PathVariable final String instanceId) {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException("updateServiceInstanceAttribute");
 	}
 
 	/**
@@ -2236,7 +2236,7 @@ public class DeploymentsController extends BaseRestController {
 	public void setServiceDetails(
 			@PathVariable final String appName,
 			@PathVariable final String serviceName) {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException("setServiceDetails");
 	}
 
 	/**
@@ -2250,7 +2250,7 @@ public class DeploymentsController extends BaseRestController {
 	public void updateServiceDetails(
 			@PathVariable final String appName,
 			@PathVariable final String serviceName) {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException("updateServiceDetails");
 	}
 
 	/**
@@ -2268,7 +2268,7 @@ public class DeploymentsController extends BaseRestController {
 			@PathVariable final String appName,
 			@PathVariable final String serviceName,
 			@PathVariable final String instanceId) {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException("setServiceInstanceDetails");
 	}
 
 	/**
@@ -2282,7 +2282,7 @@ public class DeploymentsController extends BaseRestController {
 	public void getServiceAlerts(
 			@PathVariable final String appName,
 			@PathVariable final String serviceName) {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException("getServiceAlerts");
 	}
 	
 	public File getExtractedFodler() {

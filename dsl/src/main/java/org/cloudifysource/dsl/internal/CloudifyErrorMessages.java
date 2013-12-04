@@ -413,7 +413,12 @@ public enum CloudifyErrorMessages {
 	/**
 	 * 
 	 */
-	UNKNOWN_PROCESSOR_TYPE("unknown_processor_type", 1)
+	UNKNOWN_PROCESSOR_TYPE("unknown_processor_type", 1),
+	
+	/**
+	 * 
+	 */
+	UNSUPPORTED_OPERATION("unsupported_operation", 1)
     
     // CHECKSTYLE:OFF
 	;
