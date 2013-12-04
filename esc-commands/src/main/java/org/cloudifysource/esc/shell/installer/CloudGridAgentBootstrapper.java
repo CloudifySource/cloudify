@@ -114,6 +114,7 @@ public class CloudGridAgentBootstrapper {
 	private boolean noWebServices;
 	private boolean useExistingManagers;
 	private File existingManagersFile;
+	private boolean noManagementSpace;
 
 	public void setProviderDirectory(final File providerDirectory) {
 		this.providerDirectory = providerDirectory;
@@ -743,8 +744,13 @@ public class CloudGridAgentBootstrapper {
 		// noWebServices is true
 		
 		//Used for ESM testing purposes.
-		if (isNoWebServices() && installations.length > 0) {
-			installations[0].setNoWebServices(true);
+		if (installations.length > 0){
+			if (isNoWebServices()) {
+				installations[0].setNoWebServices(true);
+			}
+			if (isNoManagementSpace()) {
+				installations[0].setNoManagementSpace(true);
+			}
 		}
 
 		//They were installed by the first management machine
@@ -967,6 +973,14 @@ public class CloudGridAgentBootstrapper {
 
 	public void setNoWebServices(final boolean noWebServices) {
 		this.noWebServices = noWebServices;
+	}
+	
+	public void setNoManagementSpace(final boolean noManagementSpace) {
+		this.noManagementSpace = noManagementSpace;
+	}
+	
+	public boolean isNoManagementSpace() {
+		return noManagementSpace;
 	}
 
 	public void setUseExisting(final boolean useExistingManagers) {

@@ -96,8 +96,12 @@ public class BootstrapCloud extends AbstractGSCommand {
 	private int timeoutInMinutes = DEFAULT_TIMEOUT_MINUTES;
 
 	@Option(required = false, name = "-no-web-services",
-			description = "if set, no attempt to deploy the rest admin and web-ui will be made")
+			description = "if set, no attempt to deploy the rest admin and web-ui will be made. Used for testing purposes.")
 	private boolean noWebServices;
+	
+	@Option(required = false, name = "-no-management-space",
+			description = "if set, no attempt to deploy the cloudifyManagementSpace will be made. Used for testing purposes.")
+	private boolean noManagementSpace;
 
 	@Option(required = false, name = "-use-existing",
 			description = "if set, will attempt to find existing management servers. "
@@ -203,6 +207,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 		installer.setCloud(cloud);
 		installer.setCloudFile(cloudFile);
 		installer.setNoWebServices(noWebServices);
+		installer.setNoManagementSpace(noManagementSpace);
 		installer.setUseExisting(this.useExistingManagers);
 		installer.setExistingManagersFile(this.existingManagersFile);
 		// Bootstrap!
