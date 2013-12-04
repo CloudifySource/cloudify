@@ -50,7 +50,7 @@ public class UtilsTest {
 
 		final InstallationDetails result = Utils.createInstallationDetails(md, cloud, template, zones,
 				"localhost:4177", null, false, cloudFile, reservationId, templateName,
-				null, null, null, false);
+				null, null, null, false, false);
 
 		Assert.assertNotNull(result.getExtraRemoteEnvironmentVariables());
 		Assert.assertTrue("Expected to find environment variable", result.getExtraRemoteEnvironmentVariables()
