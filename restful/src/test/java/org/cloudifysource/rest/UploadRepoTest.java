@@ -51,7 +51,7 @@ public class UploadRepoTest {
 	private static final String TXT_FILE_PATH = UPLOAD_DIR_PATH + File.separator + TEST_FILE_NAME;
     @Before
     public void init() 
-    		throws IOException, RestErrorException {
+    		throws RestErrorException {
         repo = new UploadRepo();
         repo.init();
 		repo.setBaseDir(new File(CloudifyConstants.REST_FOLDER));

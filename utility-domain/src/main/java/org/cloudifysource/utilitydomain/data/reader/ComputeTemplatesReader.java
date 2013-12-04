@@ -75,12 +75,19 @@ public class ComputeTemplatesReader {
 		Map<String, ComputeTemplateHolder> cloudTemplatesMap = new HashMap<String, ComputeTemplateHolder>();
 		// for each file - reads the templates from it and creates a suitable CloudTemplateHolder object.
 		for (File templateFile : templateFiles) {
-			List<ComputeTemplateHolder> cloudTemplatesFromFile = readCloudTemplatesFromFile(templateFile);
+			List<ComputeTemplateHolder> cloudTemplatesFromFile;
+			try {
+				cloudTemplatesFromFile = readCloudTemplatesFromFile(templateFile);
+			} catch (Exception e) {
+				throw new DSLException("Failed to read template file [" + templateFile.getName()
+						+ "] from folder [" + templatesDir.getAbsolutePath() + "]. Reason: " + e.getMessage(), e);
+			}
 			for (ComputeTemplateHolder cloudTemplateHolder : cloudTemplatesFromFile) {
 				String name = cloudTemplateHolder.getName();
 				if (cloudTemplatesMap.containsKey(name)) {
-					throw new DSLException("Template with name [" + name
-							+ "] already exist in folder [" + templatesDir + "]");
+					throw new DSLException("Failed to read template file [" + templateFile.getName()
+						+ "] from folder [" + templatesDir.getAbsolutePath() 
+						+ "]. Reason: template with the name [" + name + "] already exist in folder.");
 				}
 				cloudTemplatesMap.put(name, cloudTemplateHolder);
 
@@ -111,8 +118,8 @@ public class ComputeTemplatesReader {
 		}
 		int size = cloudTemplateMap.size();
 		if (size > DSLUtils.MAX_TEMPLATES_PER_FILE) {
-			throw new DSLException("Too many templates in one groovy file: " + templateFile + " declares " + size
-					+ " templates, only " + DSLUtils.MAX_TEMPLATES_PER_FILE + " allowed.");
+			throw new DSLException("Too many templates in one groovy file [" + templateFile.getName() + " declares " + size
+					+ " templates, only " + DSLUtils.MAX_TEMPLATES_PER_FILE + " allowed].");
 		}
 		List<ComputeTemplateHolder> cloudTemplateHolders = 
 				new ArrayList<ComputeTemplateHolder>(cloudTemplateMap.size());

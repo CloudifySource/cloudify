@@ -79,7 +79,7 @@ public class UploadControllerTest extends ControllerTest {
 
 
     @Before
-    public void init() throws NoSuchMethodException, RestErrorException, IOException {
+    public void init() throws NoSuchMethodException, RestErrorException {
         String version = PlatformVersion.getVersion();
         versionedUploadUri = "/" + version + UPLOAD_URI;
         controller = applicationContext.getBean(UploadController.class);

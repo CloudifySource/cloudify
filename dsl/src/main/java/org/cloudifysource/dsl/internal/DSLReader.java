@@ -110,7 +110,7 @@ public class DSLReader {
 	private Map<Object, Object> variables;
 
 	private GroovyClassLoader dslClassLoader;
-	private static final Object dslSingleton = new Object();
+	private final Object dslSingleton = new Object();
 
 	private static final String[] STAR_IMPORTS = new String[] {
 			org.cloudifysource.domain.Service.class.getPackage().getName(),
@@ -440,9 +440,10 @@ public class DSLReader {
 
 			// FileReader reader = null;
 			SequenceInputStream sis = null;
+			FileInputStream fis = null;
 			try {
 
-				final FileInputStream fis = new FileInputStream(dslFile);
+				fis = new FileInputStream(dslFile);
 				final ByteArrayInputStream bis =
 						new ByteArrayInputStream(GROOVY_SERVICE_PREFIX.getBytes());
 				sis = new SequenceInputStream(bis, fis);
@@ -464,6 +465,13 @@ public class DSLReader {
 				if (sis != null) {
 					try {
 						sis.close();
+					} catch (final IOException e) {
+						// ignore
+					}
+				}
+				if (fis != null) {
+					try {
+						fis.close();
 					} catch (final IOException e) {
 						// ignore
 					}

@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.cloudifysource.domain.ComputeTemplateHolder;
 import org.cloudifysource.dsl.internal.DSLException;
-import org.cloudifysource.dsl.internal.DSLValidationException;
 import org.cloudifysource.utilitydomain.data.reader.ComputeTemplatesReader;
 import org.junit.Assert;
 import org.junit.Test;
@@ -25,6 +24,9 @@ public class ReadTemplatesFileTest {
 	private static final String ILLEGAL_DUPLICATE_TEMPLATES_FILE_PATH = 
 			"src/test/resources/ExternalDSLFiles/illegalDuplicateTemplates";
 	
+	private static final String TEMPLATES_FOLDER_PATH = "src/test/resources/templates";
+
+	
 	@Test
 	public void readTemplateFilesFromFolderTest() {	
 		readTemplatesTest(TEMPLATES_FILE_PATH);
@@ -36,15 +38,11 @@ public class ReadTemplatesFileTest {
 			File templatesFile = new File(NO_UPLOAD_TEMPLATES_FILE_PATH);
 			reader.readCloudTemplatesFromDirectory(templatesFile);
 			Assert.fail("Templates folder missing an upload folder yield no exception.");
-		} catch (DSLValidationException e) {
-			Assert.assertTrue(e.getMessage().startsWith("Could not find upload directory"));
 		} catch (DSLException e) {
-			// TODO Auto-generated catch block
-			Assert.fail("Got DSLException instead of DSLValidationException " 
-					+ "(The case is templates folder missing an upload folder)");
+			assertRightError(e.getMessage(), "Could not find upload directory", "linux-template.groovy");
 		}
 	}
-	
+
 	@Test
 	public void readTemplateFilesFromEmptyFolder() {		
 		try {
@@ -56,7 +54,6 @@ public class ReadTemplatesFileTest {
 		} catch (DSLException e) {
 			Assert.assertTrue(e.getMessage().startsWith("There is no template files"));
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			Assert.fail("Got " + e.getClass().getName() + " instead of DSLValidationException " 
 					+ "(The case is templates folder is empty)");
 		}
@@ -69,8 +66,7 @@ public class ReadTemplatesFileTest {
 			reader.readCloudTemplatesFromDirectory(templatesFile);
 			Assert.fail("Multiple templates in one file yielded no exception.");
 		} catch (DSLException e) {
-			Assert.assertTrue(e.getMessage().
-					startsWith("Too many templates in one groovy file"));
+			assertRightError(e.getMessage(), "Too many templates in one groovy file", "multiple-template.groovy");
 		}
 	}
 	
@@ -81,9 +77,21 @@ public class ReadTemplatesFileTest {
 			reader.readCloudTemplatesFromDirectory(templatesFile);
 			Assert.fail("Duplicate templates yielded no exception.");
 		} catch (DSLException e) {
-			Assert.assertTrue(e.getMessage().startsWith("Template with name [TOMCAT] already exist in folder"));
+			assertRightError(e.getMessage(), "template with the name [TOMCAT] already exist in folder", "tomcat-template.groovy");
 		}
-	}	
+	}
+	
+	@Test
+	public void illegalFileTransferDeclarationTest() {
+		try {
+			File templatesFolder = new File(TEMPLATES_FOLDER_PATH);
+			ComputeTemplatesReader reader = new  ComputeTemplatesReader();
+			reader.readCloudTemplatesFromDirectory(templatesFolder);
+			Assert.fail("Folder with illegal template yielded no exception.");
+		} catch (Exception e) {
+			assertRightError(e.getMessage(), "Could not resolve DSL entry with name: org", "wrongFileTransferPackage-template.groovy");
+		}
+	}
 	
 	private void readTemplatesTest(final String folderName) {
 		try {
@@ -101,5 +109,10 @@ public class ReadTemplatesFileTest {
 			Assert.fail("failed to read templates from file " + TEMPLATES_FILE_PATH 
 					+ " error message is " + e.getMessage());
 		}
+	}
+	
+	private void assertRightError(final String message, final String errMsgContains, final String templateFileName) {
+		Assert.assertTrue(message.startsWith("Failed to read template file [" + templateFileName + "] from folder"));
+		Assert.assertTrue(message.contains(errMsgContains));
 	}
 }
