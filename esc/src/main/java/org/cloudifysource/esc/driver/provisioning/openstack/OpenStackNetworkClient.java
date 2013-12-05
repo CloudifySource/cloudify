@@ -388,6 +388,10 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 		if (logger.isLoggable(Level.FINE)) {
 			logger.fine("Delete networkId=" + networkId);
 		}
+		final List<Port> ports = getPortsByNetworkId(networkId);
+		for (final Port port : ports) {
+			this.deletePort(port.getId());
+		}
 		this.doDelete("networks/" + networkId, CODE_OK_204);
 	}
 
@@ -501,6 +505,22 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 			return null;
 		}
 		return ports.get(0);
+	}
+
+	/**
+	 * Retrieve all ports attached to a network.
+	 * 
+	 * @param networkId
+	 *            The network id.
+	 * @return All ports attached to a network.
+	 * @throws OpenstackException
+	 *             Thrown if something went wrong with the request.
+	 */
+	private List<Port> getPortsByNetworkId(final String networkId) throws OpenstackException {
+		final String[] params = new String[] { "network_id", networkId };
+		final String response = this.doGet("ports", params);
+		final List<Port> ports = JsonUtils.unwrapRootToList(Port.class, response);
+		return ports;
 	}
 
 	/**
