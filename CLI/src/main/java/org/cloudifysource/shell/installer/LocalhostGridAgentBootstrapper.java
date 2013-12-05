@@ -1004,7 +1004,7 @@ public class LocalhostGridAgentBootstrapper {
 				startLocalCloudManagementServicesContainerAndWait(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
 						TimeUnit.MILLISECONDS);
 			}
-			else {
+			else if (!noManagementSpace) {
 				// container for cloudifyManagementSpace
 				// cloudifyManagementSpace cannot be elastic PU since the ESM now depends on managementSpace for state backup.
 				startManagementSpaceContainerAndWait(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
