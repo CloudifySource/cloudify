@@ -512,12 +512,14 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
                 for (HostedService hostedService : hostedServices) {
                     logger.fine("Searching for deployments in cloud service " + hostedService.getServiceName());
                     HostedService serviceWithDeployments = azureClient.getHostedService(hostedService.getServiceName(), true);
-                    Deployment deployment = serviceWithDeployments.getDeployments().getDeployments().get(0);
-                    if (deployment != null) {
-                        logger.info("Found : " + deployment.getRoleList().getRoles().get(0).getRoleName());
+                    if (serviceWithDeployments.getDeployments().getDeployments().size() > 0) {
+                        Deployment deployment = serviceWithDeployments.getDeployments().getDeployments().get(0);
+                        if (deployment != null) {
+                            logger.info("Found : " + deployment.getRoleList().getRoles().get(0).getRoleName());
+                        }
+                        throw new CloudProvisioningException("There are still running instances, please shut them down and try again.");
                     }
                 }
-                throw new CloudProvisioningException("There are still running instances, please shut them down and try again.");
             }
         } catch (final Exception e) {
             logger.warning("Failed Retrieving running virtual machines : " + e.getMessage());
