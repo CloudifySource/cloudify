@@ -6,10 +6,13 @@
 	http://www.springframework.org/schema/security
 	http://www.springframework.org/schema/security/spring-security-3.1.xsd">
 
-	
 	<sec:authentication-manager alias="authenticationManager">
-		<sec:authentication-provider user-service-ref="cloudifyUserDetailsService"/>
+		<sec:authentication-provider ref="cloudifyDaoAuthProvider"/>
 	</sec:authentication-manager>
+	
+	<bean id="cloudifyDaoAuthProvider" class="org.cloudifysource.security.CloudifyDaoAuthenticationProvider">
+		<property name="cloudifyUserDetailsService" ref="cloudifyUserDetailsService"/>
+	</bean>
 	
 	<bean id="cloudifyUserDetailsService" class="org.cloudifysource.security.CloudifyUserDetailsService">
   		<constructor-arg name="users" >

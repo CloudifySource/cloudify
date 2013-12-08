@@ -15,11 +15,12 @@
  *******************************************************************************/
 package org.cloudifysource.security;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
@@ -36,6 +37,7 @@ import org.springframework.util.Assert;
  */
 public class CloudifyUserDetailsService implements UserDetailsService {
 
+	private Logger logger = java.util.logging.Logger.getLogger(CloudifyUserDetailsService.class.getName());
     private final Map<String, CloudifyUserDetails> users = new HashMap<String, CloudifyUserDetails>();
     
 	
@@ -58,13 +60,16 @@ public class CloudifyUserDetailsService implements UserDetailsService {
     
  
     @Override
-    public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
+    public CloudifyUserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
         CloudifyUserDetails cloudifyUserDetails = users.get(username.toLowerCase());
 
         if (cloudifyUserDetails == null) {
             throw new UsernameNotFoundException(username);
         }
 
+        logger.finest("CloudifyUserDetailsService: loading user: " + username + ", roles: " 
+        		+ Arrays.toString(cloudifyUserDetails.getAuthorities().toArray()) 
+        		+ ", authgroups: " + Arrays.toString(cloudifyUserDetails.getAuthGroups().toArray()));
         return new CloudifyUser(cloudifyUserDetails);
     }
 
