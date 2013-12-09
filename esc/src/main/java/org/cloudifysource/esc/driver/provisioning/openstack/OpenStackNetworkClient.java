@@ -442,6 +442,21 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 	}
 
 	/**
+	 * Retrieve a network by id.
+	 * 
+	 * @param networkId
+	 *            The id of the network.
+	 * @return The network.
+	 * @throws OpenstackException
+	 *             Thrown if something went wrong with the request.
+	 */
+	public Network getNetwork(final String networkId) throws OpenstackException {
+		final String response = this.doGet("networks/" + networkId);
+		final Network network = JsonUtils.unwrapRootToObject(Network.class, response);
+		return network;
+	}
+
+	/**
 	 * Retrieve a network matching the given name.
 	 * 
 	 * @param networkName

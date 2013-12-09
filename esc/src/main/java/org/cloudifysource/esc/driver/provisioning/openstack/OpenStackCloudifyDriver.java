@@ -658,6 +658,9 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			// Add compute networks
 			for (final String networkName : this.networkHelper.getComputeNetworks()) {
 				final Network network = this.networkApi.getNetworkByName(networkName);
+				if (network == null) {
+					throw new CloudProvisioningException("Couldn't find network '" + networkName + "'");
+				}
 				for (final String subnetId : network.getSubnets()) {
 					final Port port = this.addPortToRequest(request, network.getId(), subnetId);
 					reservedPortIds.add(port.getId());
@@ -911,7 +914,9 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 			if (this.networkHelper.associateFloatingIp()) {
 				final FloatingIp floatingIp = networkApi.getFloatingIpByPortId(privateIpPort.getId());
-				md.setPublicAddress(floatingIp.getFloatingIpAddress());
+				if (floatingIp != null) {
+					md.setPublicAddress(floatingIp.getFloatingIpAddress());
+				}
 			}
 
 			final String applicationNetworkName = this.networkHelper.getApplicationNetworkName();
@@ -1089,18 +1094,19 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	private void releaseFloatingIpsForServerId(final String serverId) {
 		try {
 			final List<Port> ports = networkApi.getPortsByDeviceId(serverId);
-			for (final Port port : ports) {
-				final FloatingIp floatingIp = networkApi.getFloatingIpByPortId(port.getId());
-				if (floatingIp != null) {
-					try {
-						logger.info("Deleting Floating ip: " + floatingIp);
-						networkApi.deleteFloatingIP(floatingIp.getId());
-					} catch (final Exception e) {
-						logger.warning("Couldn't delete floating ip: " + floatingIp + " cause: " + e.getMessage());
+			if (ports != null) {
+				for (final Port port : ports) {
+					final FloatingIp floatingIp = networkApi.getFloatingIpByPortId(port.getId());
+					if (floatingIp != null) {
+						try {
+							logger.info("Deleting Floating ip: " + floatingIp);
+							networkApi.deleteFloatingIP(floatingIp.getId());
+						} catch (final Exception e) {
+							logger.warning("Couldn't delete floating ip: " + floatingIp + " cause: " + e.getMessage());
+						}
 					}
 				}
 			}
-
 		} catch (final OpenstackException e) {
 			logger.log(Level.WARNING, "Could not release floating ip associated to server id='" + serverId + "'", e);
 		}
