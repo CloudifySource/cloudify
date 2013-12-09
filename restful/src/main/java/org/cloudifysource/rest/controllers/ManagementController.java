@@ -277,7 +277,7 @@ public class ManagementController extends BaseRestController {
 	@RequestMapping(value = "/controllers", method = RequestMethod.GET)
 	@PreAuthorize("isFullyAuthenticated() and hasAnyRole('ROLE_CLOUDADMINS')")
 	public void getManagers() {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException("getManagers");
 	}
 
 	/**
