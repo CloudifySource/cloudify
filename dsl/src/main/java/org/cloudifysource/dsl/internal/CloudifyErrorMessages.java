@@ -418,7 +418,12 @@ public enum CloudifyErrorMessages {
 	/**
 	 * 
 	 */
-	UNSUPPORTED_OPERATION("unsupported_operation", 1)
+	UNSUPPORTED_OPERATION("unsupported_operation", 1), 
+	
+	/**
+	 * 
+	 */
+	INVALID_INSTANCES_COUNT("invalid_instances_count", 1)
     
     // CHECKSTYLE:OFF
 	;
