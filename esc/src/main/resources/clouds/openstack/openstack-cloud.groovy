@@ -164,7 +164,7 @@ cloud {
 				// Optional. Overrides to default cloud driver behavior.
 				// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
 				overrides ([
-					"jclouds.endpoint": openstackUrl
+					"openstack.endpoint": openstackUrl
 				])
 
 				// enable sudo.

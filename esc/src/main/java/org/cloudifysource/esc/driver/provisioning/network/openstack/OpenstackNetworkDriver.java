@@ -65,7 +65,7 @@ public class OpenstackNetworkDriver extends BaseNetworkDriver {
 		String endpoint = null;
 		final Map<String, Object> overrides = cloudTemplate.getOverrides();
 		if (overrides != null && !overrides.isEmpty()) {
-			endpoint = (String) overrides.get(OpenStackCloudifyDriver.JCLOUDS_ENDPOINT);
+			endpoint = (String) overrides.get(OpenStackCloudifyDriver.OPENSTACK_ENDPOINT);
 		}
 
 		final String networkVersion =

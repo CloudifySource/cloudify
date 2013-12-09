@@ -88,9 +88,9 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	public static final String OPT_KEY_PAIR = "keyPairName";
 	/**
 	 * Key to set endpoint. <br />
-	 * For instance: <code>jclouds.endpoint="https://<IP>:5000/v2.0/"</code>
+	 * For instance: <code>openstack.endpoint="https://<IP>:5000/v2.0/"</code>
 	 * */
-	public static final String JCLOUDS_ENDPOINT = "jclouds.endpoint";
+	public static final String OPENSTACK_ENDPOINT = "openstack.endpoint";
 	/**
 	 * Set the name to search to find openstack compute endpoint (default="nova"). <br />
 	 * For instance: <code>computeServiceName="nova"</code>
@@ -281,7 +281,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		String endpoint = null;
 		final Map<String, Object> overrides = cloudTemplate.getOverrides();
 		if (overrides != null && !overrides.isEmpty()) {
-			endpoint = (String) overrides.get(JCLOUDS_ENDPOINT);
+			endpoint = (String) overrides.get(OPENSTACK_ENDPOINT);
 		}
 
 		final String networkApiVersion = (String) cloudTemplate.getOptions().get(OPT_NETWORK_API_VERSION);
