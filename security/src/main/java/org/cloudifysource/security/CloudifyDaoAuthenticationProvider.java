@@ -22,6 +22,7 @@ import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.authentication.AccountExpiredException;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
@@ -93,6 +94,13 @@ public class CloudifyDaoAuthenticationProvider implements AuthenticationProvider
 		// Get the Cloudify user details from the user details service
 		try {
 			user = retrieveUser(username);
+			String retrievedUserPassword = user.getPassword();
+			
+			if (!password.equals(retrievedUserPassword)) {
+				logger.warning("Authentication failed: password does not match stored value");
+				throw new BadCredentialsException(messages.getMessage(
+	                    "AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
+			}
 		} catch (final UsernameNotFoundException e) {
 			logger.warning("User '" + username + "' not found");
 			throw e;

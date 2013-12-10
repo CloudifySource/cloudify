@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -29,7 +30,7 @@ import org.springframework.util.Assert;
 
 /**
  * Retrieves user details from an in-memory list defined in the security configuration file specified on bootstrap.
- * This class is the Cloudify parallel of Spring's {@link InMemoryUserDetailsManager}, adapted to support users'
+ * This class is the Cloudify parallel to Spring's {@link InMemoryUserDetailsManager}, adapted to support users'
  * authorization groups.
  * It is also intended for testing and demonstration purposes, where a full blown persistent system isn't required.
  * @author noak
@@ -67,9 +68,12 @@ public class CloudifyUserDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException(username);
         }
 
-        logger.finest("CloudifyUserDetailsService: loading user: " + username + ", roles: " 
-        		+ Arrays.toString(cloudifyUserDetails.getAuthorities().toArray()) 
-        		+ ", authgroups: " + Arrays.toString(cloudifyUserDetails.getAuthGroups().toArray()));
+        if (logger.isLoggable(Level.FINEST)) {
+            logger.finest("CloudifyUserDetailsService: loading user: " + username + ", roles: " 
+            		+ Arrays.toString(cloudifyUserDetails.getAuthorities().toArray()) 
+            		+ ", authgroups: " + Arrays.toString(cloudifyUserDetails.getAuthGroups().toArray()));        	
+        }
+
         return new CloudifyUser(cloudifyUserDetails);
     }
 

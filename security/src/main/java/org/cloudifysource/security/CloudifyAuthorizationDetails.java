@@ -21,7 +21,6 @@ import java.util.logging.Logger;
 
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -55,7 +54,7 @@ public class CloudifyAuthorizationDetails implements AuthorizationDetails {
 			throw new AccessDeniedException("Anonymous user is not supported");
     	}
 		
-    	if (!(authentication instanceof UsernamePasswordAuthenticationToken)) {
+    	if (!(authentication instanceof CustomAuthenticationToken)) {
     		logger.warning("Authentication object type not supported. "
     				+ "Verify your Spring configuration is valid.");
     		throw new AccessDeniedException("Authentication object type not supported. "
@@ -70,11 +69,7 @@ public class CloudifyAuthorizationDetails implements AuthorizationDetails {
 		}
 		
 		//set auth groups
-		if (authentication instanceof CustomAuthenticationToken) {
-			authGroups = ((CustomAuthenticationToken) authentication).getAuthGroups();
-		} else {
-			authGroups.addAll(roles);
-		}
+		authGroups = ((CustomAuthenticationToken) authentication).getAuthGroups();
 		
 	}
 	
