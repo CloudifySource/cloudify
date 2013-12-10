@@ -2289,67 +2289,62 @@ public class DeploymentsController extends BaseRestController {
 		return this.extractedFodler;
 	}
 
-	public final RestConfiguration getRestConfig() {
+	public RestConfiguration getRestConfig() {
 		return restConfig;
 	}
 
-	public final void setRestConfig(final RestConfiguration restConfig) {
+	public void setRestConfig(final RestConfiguration restConfig) {
 		this.restConfig = restConfig;
 	}
 
-	public final UploadRepo getRepo() {
+	public UploadRepo getRepo() {
 		return repo;
 	}
 
-	public final void setRepo(final UploadRepo repo) {
+	public void setRepo(final UploadRepo repo) {
 		this.repo = repo;
 	}
 
-	public final InstallServiceValidator[] getInstallServiceValidators() {
+	public InstallServiceValidator[] getInstallServiceValidators() {
 		return installServiceValidators;
 	}
 
-	public final void setInstallServiceValidators(
-			final InstallServiceValidator[] installServiceValidators) {
+	public void setInstallServiceValidators(final InstallServiceValidator[] installServiceValidators) {
 		this.installServiceValidators = installServiceValidators;
 	}
 
-	public final UninstallServiceValidator[] getUninstallServiceValidators() {
+	public UninstallServiceValidator[] getUninstallServiceValidators() {
 		return uninstallServiceValidators;
 	}
 
-	public final void setUninstallServiceValidators(
-			final UninstallServiceValidator[] uninstallServiceValidators) {
+	public void setUninstallServiceValidators(final UninstallServiceValidator[] uninstallServiceValidators) {
 		this.uninstallServiceValidators = uninstallServiceValidators;
 	}
 
-	public final InstallApplicationValidator[] getInstallApplicationValidators() {
+	public InstallApplicationValidator[] getInstallApplicationValidators() {
 		return installApplicationValidators;
 	}
 
-	public final void setInstallApplicationValidators(
-			final InstallApplicationValidator[] installApplicationValidators) {
+	public void setInstallApplicationValidators(final InstallApplicationValidator[] installApplicationValidators) {
 		this.installApplicationValidators = installApplicationValidators;
 	}
 
-	public final UninstallApplicationValidator[] getUninstallApplicationValidators() {
+	public UninstallApplicationValidator[] getUninstallApplicationValidators() {
 		return uninstallApplicationValidators;
 	}
 
-	public final void setUninstallApplicationValidators(
+	public void setUninstallApplicationValidators(
 			final UninstallApplicationValidator[] uninstallApplicationValidators) {
 		this.uninstallApplicationValidators = uninstallApplicationValidators;
 	}
 
-	public final SetServiceInstancesValidator[] getSetServiceInstancesValidators() {
+	public SetServiceInstancesValidator[] getSetServiceInstancesValidators() {
 		return setServiceInstancesValidators;
 	}
 
-	public final void setSetServiceInstancesValidators(
-			final SetServiceInstancesValidator[] setServiceInstancesValidators) {
+	public void setSetServiceInstancesValidators(final SetServiceInstancesValidator[] setServiceInstancesValidators) {
 		this.setServiceInstancesValidators = setServiceInstancesValidators;
 	}
-	
 	
 	/**
 	 * Invokes a custom command on all of the specified service instances. Custom parameters are passed as a map using
