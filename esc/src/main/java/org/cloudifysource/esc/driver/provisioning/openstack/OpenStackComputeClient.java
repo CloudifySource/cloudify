@@ -51,7 +51,7 @@ public class OpenStackComputeClient extends OpenStackBaseClient {
 			throws OpenstackJsonSerializationException {
 		super(endpoint, username, password, tenant, region);
 		this.serviceName = StringUtils.isEmpty(serviceName) ? "nova" : serviceName;
-		this.initToken();
+		// this.initToken();
 	}
 
 	@Override

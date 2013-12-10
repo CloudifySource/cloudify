@@ -66,7 +66,7 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 		this.serviceName = StringUtils.isEmpty(serviceName) ? "neutron" : serviceName;
 		this.networkApiVersion = StringUtils.isEmpty(networkApiVersion) ? "v2.0" : networkApiVersion;
 		logger.info("Openstack " + this.serviceName + " api version: " + this.networkApiVersion);
-		this.initToken();
+		// this.initToken();
 	}
 
 	@Override

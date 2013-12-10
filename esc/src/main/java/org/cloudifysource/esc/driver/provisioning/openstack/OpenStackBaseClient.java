@@ -46,6 +46,8 @@ public abstract class OpenStackBaseClient {
 	private static final Logger WIRE_LOGGER = Logger.getLogger("openstack.wire");
 	private static final Logger logger = Logger.getLogger(OpenStackBaseClient.class.getName());
 
+	private final byte[] webResourceMutex = new byte[0];
+
 	private String endpoint;
 	private String username;
 	private String password;
@@ -73,8 +75,10 @@ public abstract class OpenStackBaseClient {
 	 * Destroy the client. <br />
 	 */
 	public void close() {
-		if (serviceClient != null) {
-			serviceClient.destroy();
+		synchronized (this.webResourceMutex) {
+			if (this.serviceClient != null) {
+				this.serviceClient.destroy();
+			}
 		}
 	}
 
@@ -91,7 +95,7 @@ public abstract class OpenStackBaseClient {
 		return null;
 	}
 
-	private void renewTokenIfNeeded() throws OpenstackJsonSerializationException {
+	private synchronized void renewTokenIfNeeded() throws OpenstackJsonSerializationException {
 		if (this.isTokenExpiredSoon()) {
 			if (logger.isLoggable(Level.FINEST)) {
 				logger.finest("Token expired. Request a new token");
@@ -115,8 +119,11 @@ public abstract class OpenStackBaseClient {
 	 * @throws OpenstackJsonSerializationException
 	 *             A problem occurs when requesting Openstack server.
 	 */
-	protected void initToken() throws OpenstackJsonSerializationException {
+	private void initToken() throws OpenstackJsonSerializationException {
 		final Client client = Client.create();
+		if (WIRE_LOGGER.isLoggable(Level.FINE)) {
+			this.serviceClient.addFilter(new LoggingFilter(WIRE_LOGGER));
+		}
 		try {
 			logger.info("Request openstack " + this.getServiceName() + " new token.");
 			final WebResource webResource = client.resource(this.endpoint);
@@ -141,21 +148,23 @@ public abstract class OpenStackBaseClient {
 	 *             A problem occurs when requesting Openstack server.
 	 */
 	protected WebResource getWebResource() throws OpenstackException {
-		if (serviceWebResource == null) {
-			this.renewTokenIfNeeded();
-			final String endpoint = this.getEndpoint(this.getServiceName());
-			if (endpoint == null) {
-				throw new OpenstackException("Cannot find endpoint for service '"
-						+ this.getServiceName() + "' in the service catalog.");
+		synchronized (this.webResourceMutex) {
+			if (this.serviceWebResource == null) {
+				this.renewTokenIfNeeded();
+				final String endpoint = this.getEndpoint(this.getServiceName());
+				if (endpoint == null) {
+					throw new OpenstackException("Cannot find endpoint for service '"
+							+ this.getServiceName() + "' in the service catalog.");
+				}
+				this.serviceClient = Client.create();
+				if (WIRE_LOGGER.isLoggable(Level.FINE)) {
+					this.serviceClient.addFilter(new LoggingFilter(WIRE_LOGGER));
+				}
+				this.serviceWebResource = this.serviceClient.resource(endpoint);
+				logger.info("Openstack " + this.getServiceName() + " endpoint: " + endpoint);
 			}
-			this.serviceClient = Client.create();
-			if (WIRE_LOGGER.isLoggable(Level.FINE)) {
-				this.serviceClient.addFilter(new LoggingFilter(WIRE_LOGGER));
-			}
-			this.serviceWebResource = serviceClient.resource(endpoint);
-			logger.info("Openstack " + this.getServiceName() + " endpoint: " + endpoint);
+			return serviceWebResource;
 		}
-		return serviceWebResource;
 	}
 
 	/**
