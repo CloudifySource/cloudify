@@ -29,7 +29,7 @@ import org.cloudifysource.esc.driver.provisioning.openstack.OpenStackCloudifyDri
 import org.cloudifysource.esc.driver.provisioning.openstack.OpenStackNetworkClient;
 import org.cloudifysource.esc.driver.provisioning.openstack.OpenstackException;
 import org.cloudifysource.esc.driver.provisioning.openstack.OpenstackJsonSerializationException;
-import org.cloudifysource.esc.driver.provisioning.openstack.SecurityGroupNames;
+import org.cloudifysource.esc.driver.provisioning.openstack.GroupNamesPrefixing;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.FloatingIp;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Network;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Port;
@@ -46,7 +46,7 @@ public class OpenstackNetworkDriver extends BaseNetworkDriver {
 	private static Logger logger = Logger.getLogger(OpenstackNetworkDriver.class.getName());
 
 	private OpenStackNetworkClient networkApi;
-	private SecurityGroupNames securityGroupNames;
+	private GroupNamesPrefixing securityGroupNames;
 
 	@Override
 	public void setConfig(final NetworkDriverConfiguration config) {
@@ -55,7 +55,7 @@ public class OpenstackNetworkDriver extends BaseNetworkDriver {
 		this.initDeployer(cloud);
 		String mngGroup = cloud.getProvider().getManagementGroup();
 		mngGroup = mngGroup == null ? OpenStackCloudifyDriver.getDefaultMangementPrefix() : mngGroup;
-		this.securityGroupNames = new SecurityGroupNames(mngGroup, null, null);
+		this.securityGroupNames = new GroupNamesPrefixing(mngGroup, null, null);
 	}
 
 	private void initDeployer(final Cloud cloud) {
@@ -65,7 +65,7 @@ public class OpenstackNetworkDriver extends BaseNetworkDriver {
 		String endpoint = null;
 		final Map<String, Object> overrides = cloudTemplate.getOverrides();
 		if (overrides != null && !overrides.isEmpty()) {
-			endpoint = (String) overrides.get(OpenStackCloudifyDriver.JCLOUDS_ENDPOINT);
+			endpoint = (String) overrides.get(OpenStackCloudifyDriver.OPENSTACK_ENDPOINT);
 		}
 
 		final String networkVersion =

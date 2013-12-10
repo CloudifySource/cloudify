@@ -88,9 +88,9 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	public static final String OPT_KEY_PAIR = "keyPairName";
 	/**
 	 * Key to set endpoint. <br />
-	 * For instance: <code>jclouds.endpoint="https://<IP>:5000/v2.0/"</code>
+	 * For instance: <code>openstack.endpoint="https://<IP>:5000/v2.0/"</code>
 	 * */
-	public static final String JCLOUDS_ENDPOINT = "jclouds.endpoint";
+	public static final String OPENSTACK_ENDPOINT = "openstack.endpoint";
 	/**
 	 * Set the name to search to find openstack compute endpoint (default="nova"). <br />
 	 * For instance: <code>computeServiceName="nova"</code>
@@ -128,7 +128,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	private OpenStackComputeClient computeApi;
 	private OpenStackNetworkClient networkApi;
 
-	private SecurityGroupNames securityGroupNames;
+	private GroupNamesPrefixing securityGroupNames;
 
 	private String applicationName;
 
@@ -153,7 +153,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		}
 		String managementGroup = cloud.getProvider().getManagementGroup();
 		managementGroup = managementGroup == null ? MANAGMENT_MACHINE_PREFIX : managementGroup;
-		this.securityGroupNames = new SecurityGroupNames(managementGroup, applicationName, serviceName);
+		this.securityGroupNames = new GroupNamesPrefixing(managementGroup, applicationName, serviceName);
 
 	}
 
@@ -281,7 +281,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		String endpoint = null;
 		final Map<String, Object> overrides = cloudTemplate.getOverrides();
 		if (overrides != null && !overrides.isEmpty()) {
-			endpoint = (String) overrides.get(JCLOUDS_ENDPOINT);
+			endpoint = (String) overrides.get(OPENSTACK_ENDPOINT);
 		}
 
 		final String networkApiVersion = (String) cloudTemplate.getOptions().get(OPT_NETWORK_API_VERSION);
@@ -343,6 +343,11 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	private void createNetworkAndSubnets() throws CloudProvisioningException, OpenstackException {
 		// Network
 		final NetworkConfiguration networkConfiguration = this.networkHelper.getNetworkConfiguration();
+
+		if (!management) {
+			networkConfiguration
+					.setName(securityGroupNames.getApplicationName() + "-" + networkConfiguration.getName());
+		}
 		final Network network = this.getOrCreateNetwork(networkConfiguration);
 
 		if (network != null) {
@@ -499,8 +504,16 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 		Network network = networkApi.getNetworkByName(networkConfiguration.getName());
 		if (network == null) {
+
+			String networkNameRequest = null;
+			if (!management) {
+				networkNameRequest = networkConfiguration.getName();
+			} else {
+				networkNameRequest = this.securityGroupNames.getPrefix() + networkConfiguration.getName();
+			}
+
 			final Network networkRequest = new Network();
-			networkRequest.setName(this.securityGroupNames.getPrefix() + networkConfiguration.getName());
+			networkRequest.setName(networkNameRequest);
 			networkRequest.setAdminStateUp(true);
 			network = networkApi.createNetworkIfNotExists(networkRequest);
 		}
