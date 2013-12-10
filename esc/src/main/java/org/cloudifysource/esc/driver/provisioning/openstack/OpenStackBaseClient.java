@@ -26,6 +26,7 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.filter.LoggingFilter;
 
 /**
  * A base class for openstack clients.<br />
@@ -42,6 +43,7 @@ public abstract class OpenStackBaseClient {
 	protected static final int CODE_OK_200 = 200;
 	protected static final int CODE_OK_204 = 204;
 
+	private static final Logger WIRE_LOGGER = Logger.getLogger("openstack.wire");
 	private static final Logger logger = Logger.getLogger(OpenStackBaseClient.class.getName());
 
 	private String endpoint;
@@ -147,6 +149,9 @@ public abstract class OpenStackBaseClient {
 						+ this.getServiceName() + "' in the service catalog.");
 			}
 			this.serviceClient = Client.create();
+			if (WIRE_LOGGER.isLoggable(Level.FINE)) {
+				this.serviceClient.addFilter(new LoggingFilter(WIRE_LOGGER));
+			}
 			this.serviceWebResource = serviceClient.resource(endpoint);
 			logger.info("Openstack " + this.getServiceName() + " endpoint: " + endpoint);
 		}
