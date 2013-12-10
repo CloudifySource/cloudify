@@ -28,6 +28,8 @@ import org.cloudifysource.domain.cloud.network.CloudNetwork;
 import org.cloudifysource.domain.cloud.network.ManagementNetwork;
 import org.cloudifysource.domain.cloud.network.NetworkConfiguration;
 import org.cloudifysource.domain.network.AccessRules;
+import org.cloudifysource.dsl.utils.ServiceUtils;
+import org.cloudifysource.dsl.utils.ServiceUtils.FullServiceName;
 import org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.ComputeDriverConfiguration;
@@ -60,8 +62,14 @@ public class OpenStackNetworkConfigurationHelper {
 	private AccessRules serviceAccessRules;
 	private boolean serviceUseNetworkTemplate;
 
+	private String managementNetworkPrefixName;
+	private String applicationNetworkPrefixName;
+
 	/**
 	 * Constructor for testing purpose.
+	 * 
+	 * @param openstackPrefixNames
+	 * @param configuration
 	 */
 	OpenStackNetworkConfigurationHelper() {
 	}
@@ -75,8 +83,15 @@ public class OpenStackNetworkConfigurationHelper {
 		this.validateNetworkNames(configuration.getCloud().getCloudNetwork());
 		this.initManagementNetworkConfig(configuration);
 		this.management = configuration.isManagement();
+
+		this.managementNetworkPrefixName = configuration.getCloud().getProvider().getManagementGroup();
+
 		if (!this.management) {
+			final FullServiceName fsn = ServiceUtils.getFullServiceName(configuration.getServiceName());
+			this.applicationNetworkPrefixName = this.managementNetworkPrefixName + fsn.getApplicationName() + "-";
+
 			this.initServiceNetworkConfig(configuration);
+
 		}
 
 	}
@@ -237,7 +252,7 @@ public class OpenStackNetworkConfigurationHelper {
 	 */
 	public String getManagementNetworkName() {
 		if (this.managementNetworkConfiguration != null) {
-			return managementNetworkConfiguration.getName();
+			return managementNetworkPrefixName + managementNetworkConfiguration.getName();
 		}
 		return null;
 	}
@@ -271,7 +286,7 @@ public class OpenStackNetworkConfigurationHelper {
 
 		if (this.useManagementNetwork()) {
 			// If there is a management network then there it is
-			name = managementNetworkConfiguration.getName();
+			name = this.getManagementNetworkName();
 		} else {
 			if (this.management) {
 				// If none of the below cases, then it would be the first network of computeNetworks.
@@ -280,15 +295,12 @@ public class OpenStackNetworkConfigurationHelper {
 				if (this.serviceUseNetworkTemplate) {
 					// If no management network but the service specified the network template network.
 					// Then it would be the network in the template
-					name = serviceNetworkConfiguration.getName();
+					name = applicationNetworkPrefixName + serviceNetworkConfiguration.getName();
 				} else if (!serviceComputeNetworks.isEmpty()) {
 					// If none then it would be the first network of computeNetworks.
 					name = serviceComputeNetworks.get(0);
-				} else if (this.isServiceAndManagementNotSameNetwork()) {
-					// If none then it would be the first network of cloudNetwork template.
-					name = this.serviceNetworkConfiguration.getName();
 				} else {
-					// If still none then use the same as the management;
+					// If still none then use the same as the management computeNetwork
 					name = managementComputeNetworks.get(0);
 				}
 			}
@@ -296,11 +308,8 @@ public class OpenStackNetworkConfigurationHelper {
 		return name;
 	}
 
-	/**
-	 * Watch out !!! it tests the objects references !
-	 */
 	private boolean isServiceAndManagementNotSameNetwork() {
-		return this.serviceNetworkConfiguration.getName() != this.managementNetworkConfiguration.getName();
+		return !this.serviceNetworkConfiguration.getName().equals(this.managementNetworkConfiguration.getName());
 	}
 
 	/**
@@ -327,14 +336,14 @@ public class OpenStackNetworkConfigurationHelper {
 			return null;
 		} else {
 			if (this.serviceUseNetworkTemplate) {
-				return this.getNetworkConfiguration().getName();
+				return this.applicationNetworkPrefixName + this.getNetworkConfiguration().getName();
 			} else {
 				if (!this.getComputeNetworks().isEmpty()) {
 					return this.getComputeNetworks().get(0);
 				} else if (this.isServiceAndManagementNotSameNetwork()) {
-					return this.serviceNetworkConfiguration.getName();
+					return this.applicationNetworkPrefixName + this.serviceNetworkConfiguration.getName();
 				} else if (this.useManagementNetwork()) {
-					return this.managementNetworkConfiguration.getName();
+					return this.getManagementNetworkName();
 				} else {
 					return managementComputeNetworks.get(0);
 				}
@@ -477,5 +486,4 @@ public class OpenStackNetworkConfigurationHelper {
 		}
 		return false;
 	}
-
 }

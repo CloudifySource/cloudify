@@ -3,6 +3,12 @@ cloud {
 
 	configuration { managementMachineTemplate "MANAGER" }
 
+	provider {
+		provider "openstack-nova"
+		managementGroup "cloudify-manager-"
+		numberOfManagementMachines 1
+	}
+
 	cloudNetwork {
 		management {
 			networkConfiguration {
@@ -15,8 +21,7 @@ cloud {
 		templates ([
 			"APPLICATION_NET" : networkConfiguration {
 				name "Cloudify-Application-Network"
-				subnets { subnet { name "Cloudify-Application-Subnet"
-					} }
+				subnets { subnet { name "Cloudify-Application-Subnet" } }
 			}
 		])
 	}

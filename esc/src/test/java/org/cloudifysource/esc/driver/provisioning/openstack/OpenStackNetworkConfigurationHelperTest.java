@@ -42,12 +42,18 @@ public class OpenStackNetworkConfigurationHelperTest {
 
 	private static final String APPLICATION_NET = "APPLICATION_NET";
 
+	private static final String APPLI_NAME = "APPLICATION_NAME";
+	private static final String SERVICE_NAME = "SERVICE_NAME";
+
 	private Cloud cloud;
 	private CloudNetwork cloudNetwork;
 	private List<String> mngComputeNetwork;
 	private List<String> appliComputeNetwork;
 	private NetworkConfiguration mngNetConfig;
 	private NetworkConfiguration appliNetConfig;
+
+	private String prefixedMngNetTemplateName;
+	private String prefixedAppliNetTemplateName;
 
 	@Before
 	public void before() throws DSLException {
@@ -58,6 +64,10 @@ public class OpenStackNetworkConfigurationHelperTest {
 		appliComputeNetwork = templates.get(APPLI_COMPUTE_TEMPLATE).getComputeNetwork().getNetworks();
 		mngNetConfig = cloud.getCloudNetwork().getManagement().getNetworkConfiguration();
 		appliNetConfig = cloud.getCloudNetwork().getTemplates().get(APPLICATION_NET);
+
+		String managementGroup = cloud.getProvider().getManagementGroup();
+		prefixedMngNetTemplateName = managementGroup + TEMPLATE_MNG_NAME;
+		prefixedAppliNetTemplateName = managementGroup + APPLI_NAME + "-" + TEMPLATE_APPLI_NAME;
 	}
 
 	// ****************************************************************************************
@@ -118,6 +128,7 @@ public class OpenStackNetworkConfigurationHelperTest {
 		configuration.setManagement(isManagement);
 
 		if (!isManagement) {
+			configuration.setServiceName(APPLI_NAME + "." + SERVICE_NAME);
 			configuration.setCloudTemplate(APPLI_COMPUTE_TEMPLATE);
 		}
 
@@ -146,8 +157,8 @@ public class OpenStackNetworkConfigurationHelperTest {
 		Assert.assertEquals(mngComputeNetwork, helper.getComputeNetworks());
 
 		Assert.assertEquals(null, helper.getApplicationNetworkName());
-		Assert.assertEquals(TEMPLATE_MNG_NAME, helper.getManagementNetworkName());
-		Assert.assertEquals(TEMPLATE_MNG_NAME, helper.getPrivateIpNetworkName());
+		Assert.assertEquals(prefixedMngNetTemplateName, helper.getManagementNetworkName());
+		Assert.assertEquals(prefixedMngNetTemplateName, helper.getPrivateIpNetworkName());
 
 		Assert.assertEquals(true, helper.useServiceNetworkTemplate());
 		Assert.assertEquals(true, helper.useManagementNetwork());
@@ -211,9 +222,9 @@ public class OpenStackNetworkConfigurationHelperTest {
 		Assert.assertEquals(appliNetConfig, helper.getNetworkConfiguration());
 		Assert.assertEquals(appliComputeNetwork, helper.getComputeNetworks());
 
-		Assert.assertEquals(TEMPLATE_APPLI_NAME, helper.getApplicationNetworkName());
-		Assert.assertEquals(TEMPLATE_MNG_NAME, helper.getManagementNetworkName());
-		Assert.assertEquals(TEMPLATE_MNG_NAME, helper.getPrivateIpNetworkName());
+		Assert.assertEquals(prefixedAppliNetTemplateName, helper.getApplicationNetworkName());
+		Assert.assertEquals(prefixedMngNetTemplateName, helper.getManagementNetworkName());
+		Assert.assertEquals(prefixedMngNetTemplateName, helper.getPrivateIpNetworkName());
 
 		Assert.assertEquals(true, helper.useServiceNetworkTemplate());
 		Assert.assertEquals(true, helper.useManagementNetwork());
@@ -236,8 +247,8 @@ public class OpenStackNetworkConfigurationHelperTest {
 		Assert.assertEquals(appliComputeNetwork, helper.getComputeNetworks());
 
 		Assert.assertEquals(COMPUTE_NET2, helper.getApplicationNetworkName());
-		Assert.assertEquals(TEMPLATE_MNG_NAME, helper.getManagementNetworkName());
-		Assert.assertEquals(TEMPLATE_MNG_NAME, helper.getPrivateIpNetworkName());
+		Assert.assertEquals(prefixedMngNetTemplateName, helper.getManagementNetworkName());
+		Assert.assertEquals(prefixedMngNetTemplateName, helper.getPrivateIpNetworkName());
 
 		Assert.assertEquals(false, helper.useServiceNetworkTemplate());
 		Assert.assertEquals(true, helper.useManagementNetwork());
@@ -262,9 +273,9 @@ public class OpenStackNetworkConfigurationHelperTest {
 		Assert.assertEquals(appliNetConfig, helper.getNetworkConfiguration());
 		Assert.assertTrue(helper.getComputeNetworks().isEmpty());
 
-		Assert.assertEquals(TEMPLATE_APPLI_NAME, helper.getApplicationNetworkName());
-		Assert.assertEquals(TEMPLATE_MNG_NAME, helper.getManagementNetworkName());
-		Assert.assertEquals(TEMPLATE_MNG_NAME, helper.getPrivateIpNetworkName());
+		Assert.assertEquals(prefixedAppliNetTemplateName, helper.getApplicationNetworkName());
+		Assert.assertEquals(prefixedMngNetTemplateName, helper.getManagementNetworkName());
+		Assert.assertEquals(prefixedMngNetTemplateName, helper.getPrivateIpNetworkName());
 
 		Assert.assertEquals(true, helper.useServiceNetworkTemplate());
 		Assert.assertEquals(true, helper.useManagementNetwork());
@@ -292,9 +303,9 @@ public class OpenStackNetworkConfigurationHelperTest {
 		Assert.assertEquals(mngNetConfig, helper.getNetworkConfiguration());
 		Assert.assertTrue(helper.getComputeNetworks().isEmpty());
 
-		Assert.assertEquals(TEMPLATE_MNG_NAME, helper.getApplicationNetworkName());
-		Assert.assertEquals(TEMPLATE_MNG_NAME, helper.getManagementNetworkName());
-		Assert.assertEquals(TEMPLATE_MNG_NAME, helper.getPrivateIpNetworkName());
+		Assert.assertEquals(prefixedMngNetTemplateName, helper.getApplicationNetworkName());
+		Assert.assertEquals(prefixedMngNetTemplateName, helper.getManagementNetworkName());
+		Assert.assertEquals(prefixedMngNetTemplateName, helper.getPrivateIpNetworkName());
 
 		Assert.assertEquals(false, helper.useServiceNetworkTemplate());
 		Assert.assertEquals(true, helper.useManagementNetwork());
@@ -321,9 +332,9 @@ public class OpenStackNetworkConfigurationHelperTest {
 		Assert.assertEquals(appliNetConfig, helper.getNetworkConfiguration());
 		Assert.assertEquals(appliComputeNetwork, helper.getComputeNetworks());
 
-		Assert.assertEquals(TEMPLATE_APPLI_NAME, helper.getApplicationNetworkName());
+		Assert.assertEquals(prefixedAppliNetTemplateName, helper.getApplicationNetworkName());
 		Assert.assertEquals(null, helper.getManagementNetworkName());
-		Assert.assertEquals(TEMPLATE_APPLI_NAME, helper.getPrivateIpNetworkName());
+		Assert.assertEquals(prefixedAppliNetTemplateName, helper.getPrivateIpNetworkName());
 
 		Assert.assertEquals(true, helper.useServiceNetworkTemplate());
 		Assert.assertEquals(false, helper.useManagementNetwork());
@@ -378,9 +389,9 @@ public class OpenStackNetworkConfigurationHelperTest {
 		Assert.assertEquals(appliNetConfig, helper.getNetworkConfiguration());
 		Assert.assertTrue(helper.getComputeNetworks().isEmpty());
 
-		Assert.assertEquals(TEMPLATE_APPLI_NAME, helper.getApplicationNetworkName());
+		Assert.assertEquals(prefixedAppliNetTemplateName, helper.getApplicationNetworkName());
 		Assert.assertEquals(null, helper.getManagementNetworkName());
-		Assert.assertEquals(TEMPLATE_APPLI_NAME, helper.getPrivateIpNetworkName());
+		Assert.assertEquals(prefixedAppliNetTemplateName, helper.getPrivateIpNetworkName());
 
 		Assert.assertEquals(true, helper.useServiceNetworkTemplate());
 		Assert.assertEquals(false, helper.useManagementNetwork());

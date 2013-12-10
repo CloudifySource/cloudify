@@ -128,7 +128,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	private OpenStackComputeClient computeApi;
 	private OpenStackNetworkClient networkApi;
 
-	private GroupNamesPrefixing securityGroupNames;
+	private GroupNamesPrefixing openstackPrefixNames;
 
 	private String applicationName;
 
@@ -153,8 +153,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		}
 		String managementGroup = cloud.getProvider().getManagementGroup();
 		managementGroup = managementGroup == null ? MANAGMENT_MACHINE_PREFIX : managementGroup;
-		this.securityGroupNames = new GroupNamesPrefixing(managementGroup, applicationName, serviceName);
-
+		this.openstackPrefixNames = new GroupNamesPrefixing(managementGroup, applicationName, serviceName);
 	}
 
 	private void initManagementSecurityGroups() throws CloudProvisioningException {
@@ -175,14 +174,14 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			this.cleanAllSecurityGroups();
 
 			// ** Create Cluster security group
-			final SecurityGroup clusterSecgroup = this.createSecurityGroup(this.securityGroupNames.getClusterName());
+			final SecurityGroup clusterSecgroup = this.createSecurityGroup(this.openstackPrefixNames.getClusterName());
 
 			// ** Create Management security group
-			final String managementSecgroupName = this.securityGroupNames.getManagementName();
+			final String managementSecgroupName = this.openstackPrefixNames.getManagementName();
 			final SecurityGroup managementSecurityGroup = this.createSecurityGroup(managementSecgroupName);
 
 			// ** Create Agent security groups
-			final String agentSecgroupName = this.securityGroupNames.getAgentName();
+			final String agentSecgroupName = this.openstackPrefixNames.getAgentName();
 			final SecurityGroup agentSecurityGroup = this.createSecurityGroup(agentSecgroupName);
 
 			// ** Create Management rules
@@ -233,7 +232,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	}
 
 	private void cleanAllSecurityGroups() throws OpenstackException {
-		final String prefix = this.securityGroupNames.getPrefix();
+		final String prefix = this.openstackPrefixNames.getPrefix();
 		final List<SecurityGroup> securityGroupsByName = this.networkApi.getSecurityGroupsByPrefix(prefix);
 		for (final SecurityGroup securityGroup : securityGroupsByName) {
 			this.networkApi.deleteSecurityGroup(securityGroup.getId());
@@ -320,12 +319,22 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 		try {
 			// Create application secgroups
-			this.createSecurityGroup(this.securityGroupNames.getApplicationName());
-			this.createSecurityGroup(this.securityGroupNames.getServiceName());
+			this.createSecurityGroup(this.openstackPrefixNames.getApplicationName());
+			this.createSecurityGroup(this.openstackPrefixNames.getServiceName());
 			this.createSecurityGroupsRules();
 
 			if (networkHelper.useServiceNetworkTemplate()) {
-				this.createNetworkAndSubnets();
+				// Network
+				final Network network = this.getOrCreateNetwork(this.networkHelper.getApplicationNetworkName());
+				if (network != null) {
+					// Subnets
+					final NetworkConfiguration networkConfiguration = this.networkHelper.getNetworkConfiguration();
+					final List<org.cloudifysource.domain.cloud.network.Subnet> subnets =
+							networkConfiguration.getSubnets();
+					for (final org.cloudifysource.domain.cloud.network.Subnet subnetConfig : subnets) {
+						this.getOrCreateSubnet(subnetConfig, network);
+					}
+				}
 			}
 
 			final String groupName =
@@ -337,25 +346,6 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			return md;
 		} catch (final OpenstackException e) {
 			throw new CloudProvisioningException("Failed to start cloud machine", e);
-		}
-	}
-
-	private void createNetworkAndSubnets() throws CloudProvisioningException, OpenstackException {
-		// Network
-		final NetworkConfiguration networkConfiguration = this.networkHelper.getNetworkConfiguration();
-
-		if (!management) {
-			networkConfiguration
-					.setName(securityGroupNames.getApplicationName() + "-" + networkConfiguration.getName());
-		}
-		final Network network = this.getOrCreateNetwork(networkConfiguration);
-
-		if (network != null) {
-			// Subnet
-			final List<org.cloudifysource.domain.cloud.network.Subnet> subnets = networkConfiguration.getSubnets();
-			for (final org.cloudifysource.domain.cloud.network.Subnet subnetConfig : subnets) {
-				this.getOrCreateSubnet(subnetConfig, network);
-			}
 		}
 	}
 
@@ -401,11 +391,11 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			// Clear existing network
 			this.cleanAllNetworks();
 
-			final NetworkConfiguration networkConfiguration = this.networkHelper.getNetworkConfiguration();
-
 			// Network
-			final Network network = this.getOrCreateNetwork(networkConfiguration);
+			final Network network = this.getOrCreateNetwork(this.networkHelper.getManagementNetworkName());
 
+			// Subnets
+			final NetworkConfiguration networkConfiguration = this.networkHelper.getNetworkConfiguration();
 			final List<Subnet> subnets = new ArrayList<Subnet>();
 			if (networkConfiguration.getSubnets() != null) {
 				for (org.cloudifysource.domain.cloud.network.Subnet subnetConfig : networkConfiguration.getSubnets()) {
@@ -449,7 +439,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 				publicNetworkId = extNetwork.getId();
 			}
 			final Router request = new Router();
-			request.setName(this.securityGroupNames.getPrefix() + MANAGEMENT_PUBLIC_ROUTER_NAME);
+			request.setName(this.openstackPrefixNames.getPrefix() + MANAGEMENT_PUBLIC_ROUTER_NAME);
 			request.setAdminStateUp(true);
 			request.setExternalGatewayInfo(new RouterExternalGatewayInfo(publicNetworkId));
 			router = networkApi.createRouter(request);
@@ -499,21 +489,11 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		return subnet;
 	}
 
-	private Network getOrCreateNetwork(final NetworkConfiguration networkConfiguration)
-			throws OpenstackException, CloudProvisioningException {
-
-		Network network = networkApi.getNetworkByName(networkConfiguration.getName());
+	private Network getOrCreateNetwork(final String networkName) throws OpenstackException, CloudProvisioningException {
+		Network network = networkApi.getNetworkByName(networkName);
 		if (network == null) {
-
-			String networkNameRequest = null;
-			if (!management) {
-				networkNameRequest = networkConfiguration.getName();
-			} else {
-				networkNameRequest = this.securityGroupNames.getPrefix() + networkConfiguration.getName();
-			}
-
 			final Network networkRequest = new Network();
-			networkRequest.setName(networkNameRequest);
+			networkRequest.setName(networkName);
 			networkRequest.setAdminStateUp(true);
 			network = networkApi.createNetworkIfNotExists(networkRequest);
 		}
@@ -556,7 +536,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			final Router router;
 			if (this.networkHelper.isCreateExternalRouter()) {
 				// The driver has created an external router
-				router = networkApi.getRouterByName(this.securityGroupNames.getPrefix()
+				router = networkApi.getRouterByName(this.openstackPrefixNames.getPrefix()
 						+ MANAGEMENT_PUBLIC_ROUTER_NAME);
 			} else {
 				// User has specified an external router to use
@@ -566,7 +546,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			if (router != null) {
 				try {
 					final String privateIpNetworkName = this.networkHelper.getPrivateIpNetworkName();
-					Network privateNetwork = this.getNetworkByNameThenPrefix(privateIpNetworkName);
+					Network privateNetwork = this.networkApi.getNetworkByName(privateIpNetworkName);
 					String[] privateNetSubnetIds = privateNetwork.getSubnets();
 
 					final List<Port> ports = networkApi.getPortsByDeviceId(router.getId());
@@ -592,7 +572,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		}
 
 		// Delete all remaining application networks
-		final List<Network> appliNetworks = networkApi.getNetworkByPrefix(this.securityGroupNames.getPrefix());
+		final List<Network> appliNetworks = networkApi.getNetworkByPrefix(this.openstackPrefixNames.getPrefix());
 		for (final Network n : appliNetworks) {
 			networkApi.deleteNetwork(n.getId());
 
@@ -672,7 +652,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			// Add management network if exists
 			if (this.networkHelper.useManagementNetwork()) {
 				final String managementNetworkName = this.networkHelper.getManagementNetworkName();
-				final Network managementNetwork = this.getNetworkByNameThenPrefix(managementNetworkName);
+				final Network managementNetwork = this.networkApi.getNetworkByName(managementNetworkName);
 
 				final Port port = this.addPortToRequest(request,
 						managementNetwork.getId(), managementNetwork.getSubnets());
@@ -693,8 +673,8 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 			// Add template networks
 			if (!management && this.networkHelper.useServiceNetworkTemplate()) {
-				final NetworkConfiguration netConfig = this.networkHelper.getNetworkConfiguration();
-				final Network templateNetwork = this.getNetworkByNameThenPrefix(netConfig.getName());
+				final String applicationNetworkName = this.networkHelper.getApplicationNetworkName();
+				final Network templateNetwork = this.networkApi.getNetworkByName(applicationNetworkName);
 
 				final Port port = this.addPortToRequest(request,
 						templateNetwork.getId(), templateNetwork.getSubnets());
@@ -708,20 +688,20 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			// Add security groups to all ports
 			if (management) {
 				this.addSecurityGroupsToServer(serverId,
-						this.securityGroupNames.getManagementName(),
-						this.securityGroupNames.getClusterName());
+						this.openstackPrefixNames.getManagementName(),
+						this.openstackPrefixNames.getClusterName());
 			} else {
 				this.addSecurityGroupsToServer(serverId,
-						this.securityGroupNames.getAgentName(),
-						this.securityGroupNames.getClusterName(),
-						this.securityGroupNames.getApplicationName(),
-						this.securityGroupNames.getServiceName());
+						this.openstackPrefixNames.getAgentName(),
+						this.openstackPrefixNames.getClusterName(),
+						this.openstackPrefixNames.getApplicationName(),
+						this.openstackPrefixNames.getServiceName());
 			}
 
 			// Associate floating ips if configured
 			if (this.networkHelper.associateFloatingIp()) {
 				final String privateIPNetworkName = this.networkHelper.getPrivateIpNetworkName();
-				final Network privateIpNetwork = this.getNetworkByNameThenPrefix(privateIPNetworkName);
+				final Network privateIpNetwork = this.networkApi.getNetworkByName(privateIPNetworkName);
 				networkApi.createAndAssociateFloatingIp(serverId, privateIpNetwork.getId());
 			}
 
@@ -753,20 +733,6 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			}
 			throw new CloudProvisioningException(e);
 		}
-	}
-
-	private Network getNetworkByNameThenPrefix(final String networkName) throws OpenstackException,
-			CloudProvisioningException {
-		Network network;
-		network = networkApi.getNetworkByName(networkName);
-		if (network == null) {
-			network = networkApi.getNetworkByName(this.securityGroupNames.getPrefix() + networkName);
-		}
-		if (network == null) {
-			throw new CloudProvisioningException("Network '" + networkName + "' or '"
-					+ this.securityGroupNames.getPrefix() + networkName + "' not found");
-		}
-		return network;
 	}
 
 	/**
@@ -807,10 +773,10 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 	private void createSecurityGroupsRules() throws OpenstackException {
 
-		final String serviceSecgroupName = this.securityGroupNames.getServiceName();
+		final String serviceSecgroupName = this.openstackPrefixNames.getServiceName();
 		final SecurityGroup serviceSecGroup = networkApi.getSecurityGroupsByName(serviceSecgroupName);
 
-		final String managementSecgroupName = this.securityGroupNames.getManagementName();
+		final String managementSecgroupName = this.openstackPrefixNames.getManagementName();
 		final SecurityGroup managementSecGroup = networkApi.getSecurityGroupsByName(managementSecgroupName);
 
 		// Open the transfert mode port to the managers
@@ -833,7 +799,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			}
 			for (final AccessRule accessRule : accessRules.getOutgoing()) {
 				// If there is egress rules defined. we should delete the openstack default egress rules.
-				this.deleteEgressRulesFromSecurityGroup(this.securityGroupNames.getServiceName());
+				this.deleteEgressRulesFromSecurityGroup(this.openstackPrefixNames.getServiceName());
 				this.createAccessRule(serviceSecGroup.getId(), "egress", accessRule);
 			}
 		}
@@ -865,15 +831,15 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			break;
 		case SERVICE:
 			// Rules with group filtering
-			group = this.securityGroupNames.getServiceName();
+			group = this.openstackPrefixNames.getServiceName();
 			break;
 		case APPLICATION:
 			// Rules with group filtering
-			group = this.securityGroupNames.getApplicationName();
+			group = this.openstackPrefixNames.getApplicationName();
 			break;
 		case CLUSTER:
 			// Rules with group filtering
-			group = this.securityGroupNames.getClusterName();
+			group = this.openstackPrefixNames.getClusterName();
 			break;
 		case GROUP:
 			// Rules with group filtering
@@ -932,7 +898,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			// md.setLocationId(locationId);
 
 			final String privateIpNetworkName = this.networkHelper.getPrivateIpNetworkName();
-			final Network privateIpNetwork = this.getNetworkByNameThenPrefix(privateIpNetworkName);
+			final Network privateIpNetwork = this.networkApi.getNetworkByName(privateIpNetworkName);
 			final Port privateIpPort = networkApi.getPort(server.getId(), privateIpNetwork.getId());
 			final RouteFixedIp fixedIp = privateIpPort.getFixedIps().get(0);
 			md.setPrivateAddress(fixedIp.getIpAddress());
@@ -949,7 +915,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 				// Since it is possible that the service itself will prefer to be available only on the application
 				// network and not on all networks, the cloud driver should add an environment variable specifying the
 				// IP of the NIC that is connected to the application network.
-				final Network appliNetwork = this.getNetworkByNameThenPrefix(applicationNetworkName);
+				final Network appliNetwork = this.networkApi.getNetworkByName(applicationNetworkName);
 				final Port appliPort = networkApi.getPort(server.getId(), appliNetwork.getId());
 				final RouteFixedIp appliFixedIp = appliPort.getFixedIps().get(0);
 				Map<String, String> env = new HashMap<String, String>();
@@ -1057,7 +1023,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 				this.cleanAllSecurityGroups();
 				this.cleanAllNetworks();
 			} catch (final Exception e) {
-				logger.warning("Couldn't clean security groups " + this.securityGroupNames.getPrefix() + "*");
+				logger.warning("Couldn't clean security groups " + this.openstackPrefixNames.getPrefix() + "*");
 			}
 		} finally {
 			if (this.computeApi != null) {
@@ -1083,7 +1049,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			// We must provide the security group name.
 			// Indeed with network support, 2 VMs of different services can now have the same ip address.
 			// We must be sure to delete the right server.
-			server = computeApi.getServerByIpAndSecurityGroup(serverIp, this.securityGroupNames.getServiceName());
+			server = computeApi.getServerByIpAndSecurityGroup(serverIp, this.openstackPrefixNames.getServiceName());
 		} catch (final OpenstackException e) {
 			throw new CloudProvisioningException(e);
 		}
@@ -1184,7 +1150,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	public void onServiceUninstalled(final long duration, final TimeUnit unit) throws InterruptedException,
 			TimeoutException, CloudProvisioningException {
 
-		final String ssgName = this.securityGroupNames.getServiceName();
+		final String ssgName = this.openstackPrefixNames.getServiceName();
 		logger.info("Service '" + ssgName + "'is being uninstall.");
 		try {
 			final Applications applications = this.admin.getApplications();
@@ -1193,7 +1159,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 				logger.info("No remaining services in the application.");
 
 				logger.info("Delete the application security group.");
-				final String applicationName = this.securityGroupNames.getApplicationName();
+				final String applicationName = this.openstackPrefixNames.getApplicationName();
 				final SecurityGroup secgroup = this.networkApi.getSecurityGroupsByName(applicationName);
 				if (secgroup != null) {
 					networkApi.deleteSecurityGroup(secgroup.getId());
@@ -1201,7 +1167,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 				if (this.networkHelper.useServiceNetworkTemplate()) {
 					logger.info("Delete the network.");
-					final String prefixedNetworkName = this.securityGroupNames.getPrefix()
+					final String prefixedNetworkName = this.openstackPrefixNames.getPrefix()
 							+ this.networkHelper.getNetworkConfiguration().getName();
 					try {
 						final Network appliNetwork = networkApi.getNetworkByName(prefixedNetworkName);

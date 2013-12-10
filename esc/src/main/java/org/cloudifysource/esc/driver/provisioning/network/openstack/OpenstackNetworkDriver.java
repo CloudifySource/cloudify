@@ -12,6 +12,7 @@
  ******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning.network.openstack;
 
+import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.concurrent.TimeUnit;
@@ -20,19 +21,19 @@ import java.util.logging.Logger;
 
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
-import org.cloudifysource.domain.cloud.network.ManagementNetwork;
-import org.cloudifysource.domain.cloud.network.NetworkConfiguration;
 import org.cloudifysource.esc.driver.provisioning.network.BaseNetworkDriver;
 import org.cloudifysource.esc.driver.provisioning.network.NetworkDriverConfiguration;
 import org.cloudifysource.esc.driver.provisioning.network.NetworkProvisioningException;
+import org.cloudifysource.esc.driver.provisioning.openstack.GroupNamesPrefixing;
 import org.cloudifysource.esc.driver.provisioning.openstack.OpenStackCloudifyDriver;
+import org.cloudifysource.esc.driver.provisioning.openstack.OpenStackComputeClient;
 import org.cloudifysource.esc.driver.provisioning.openstack.OpenStackNetworkClient;
 import org.cloudifysource.esc.driver.provisioning.openstack.OpenstackException;
 import org.cloudifysource.esc.driver.provisioning.openstack.OpenstackJsonSerializationException;
-import org.cloudifysource.esc.driver.provisioning.openstack.GroupNamesPrefixing;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.FloatingIp;
-import org.cloudifysource.esc.driver.provisioning.openstack.rest.Network;
+import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServer;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Port;
+import org.cloudifysource.esc.driver.provisioning.openstack.rest.RouteFixedIp;
 
 /**
  * Network driver for Openstack.
@@ -45,6 +46,7 @@ public class OpenstackNetworkDriver extends BaseNetworkDriver {
 
 	private static Logger logger = Logger.getLogger(OpenstackNetworkDriver.class.getName());
 
+	private OpenStackComputeClient computeApi;
 	private OpenStackNetworkClient networkApi;
 	private GroupNamesPrefixing securityGroupNames;
 
@@ -72,6 +74,8 @@ public class OpenstackNetworkDriver extends BaseNetworkDriver {
 				(String) cloudTemplate.getOptions().get(OpenStackCloudifyDriver.OPT_NETWORK_API_VERSION);
 		final String networkServiceName =
 				(String) cloudTemplate.getOptions().get(OpenStackCloudifyDriver.OPT_NETWORK_SERVICE_NAME);
+		final String computeServiceName =
+				(String) cloudTemplate.getOptions().get(OpenStackCloudifyDriver.OPT_COMPUTE_SERVICE_NAME);
 
 		final String cloudImageId = cloudTemplate.getImageId();
 		final String region = cloudImageId.split("/")[0];
@@ -84,6 +88,8 @@ public class OpenstackNetworkDriver extends BaseNetworkDriver {
 		final String username = st.hasMoreElements() ? (String) st.nextToken() : null;
 
 		try {
+			this.computeApi = new OpenStackComputeClient(endpoint, username, password, tenant, region,
+					computeServiceName);
 			this.networkApi = new OpenStackNetworkClient(endpoint, username, password, tenant, region,
 					networkServiceName, networkVersion);
 		} catch (OpenstackJsonSerializationException e) {
@@ -114,28 +120,30 @@ public class OpenstackNetworkDriver extends BaseNetworkDriver {
 			throws NetworkProvisioningException, TimeoutException {
 		try {
 			final FloatingIp floatingIpByIp = networkApi.getFloatingIpByIp(floatingIp);
-			final Network networkByName = this.getManagementNetwork();
-			final Port port = networkApi.getPort(instanceIPAddress, networkByName.getId());
-			if (floatingIpByIp == null || port == null) {
+			final NovaServer server = this.computeApi.getServerByIp(instanceIPAddress);
+
+			final List<Port> ports = networkApi.getPortsByDeviceId(server.getId());
+			if (floatingIpByIp == null || ports == null || ports.isEmpty()) {
 				throw new NetworkProvisioningException(
 						"Couldn't assign floating ip. Missing floating ip in the pool or port does not exists.");
 			}
-			networkApi.assignFloatingIp(floatingIpByIp.getId(), port.getId());
+
+			for (final Port port : ports) {
+				final List<RouteFixedIp> fixedIps = port.getFixedIps();
+				for (final RouteFixedIp routeFixedIp : fixedIps) {
+					if (instanceIPAddress.equals(routeFixedIp.getIpAddress())) {
+						networkApi.assignFloatingIp(floatingIpByIp.getId(), ports.get(0).getId());
+						return;
+					}
+				}
+			}
+
+			throw new NetworkProvisioningException(
+					"Couldn't assign floating ip. Port associated to ip " + instanceIPAddress + " not found.");
 		} catch (final OpenstackException e) {
 			throw new NetworkProvisioningException(e);
 		}
 
-	}
-
-	private Network getManagementNetwork() throws OpenstackException, NetworkProvisioningException {
-		final ManagementNetwork managementNetwork = this.networkConfig.getCloud().getCloudNetwork().getManagement();
-		final NetworkConfiguration managementNetworkConfig = managementNetwork.getNetworkConfiguration();
-		final String managementNetworkName = securityGroupNames.getPrefix() + managementNetworkConfig.getName();
-		final Network networkByName = networkApi.getNetworkByName(managementNetworkName);
-		if (networkByName == null) {
-			throw new NetworkProvisioningException("Couldn't find the cloudify management network.");
-		}
-		return networkByName;
 	}
 
 	@Override
@@ -161,12 +169,6 @@ public class OpenstackNetworkDriver extends BaseNetworkDriver {
 			final FloatingIp floatingIp = networkApi.getFloatingIpByIp(floatingIP);
 			if (floatingIp == null) {
 				throw new NetworkProvisioningException("Floating ip not found ip='" + floatingIP + "'");
-			}
-			final Network networkByName = this.getManagementNetwork();
-			final Port port = networkApi.getPort(instanceIPAddress, networkByName.getId());
-			if (port == null) {
-				logger.warning("Could not unassigned floating ip. No floating ip '" + floatingIP
-						+ "' assiciated to instance '" + instanceIPAddress + "'");
 			}
 			networkApi.unassignFloatingIp(floatingIp.getId());
 		} catch (final OpenstackException e) {
