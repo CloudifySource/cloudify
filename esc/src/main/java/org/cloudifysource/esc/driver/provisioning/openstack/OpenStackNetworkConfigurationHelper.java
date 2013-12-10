@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
@@ -27,6 +28,7 @@ import org.cloudifysource.domain.cloud.network.CloudNetwork;
 import org.cloudifysource.domain.cloud.network.ManagementNetwork;
 import org.cloudifysource.domain.cloud.network.NetworkConfiguration;
 import org.cloudifysource.domain.network.AccessRules;
+import org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.ComputeDriverConfiguration;
 
@@ -42,6 +44,8 @@ import org.cloudifysource.esc.driver.provisioning.ComputeDriverConfiguration;
  * 
  */
 public class OpenStackNetworkConfigurationHelper {
+
+	private final Logger logger = Logger.getLogger(BaseProvisioningDriver.class.getName());
 
 	private static final String ASSOCIATE_FLOATING_IP_ON_BOOTSTRAP = "associateFloatingIpOnBootstrap";
 
@@ -64,6 +68,9 @@ public class OpenStackNetworkConfigurationHelper {
 
 	public OpenStackNetworkConfigurationHelper(final ComputeDriverConfiguration configuration)
 			throws CloudProvisioningException {
+
+		String name = configuration.isManagement() ? "managers" : configuration.getServiceName();
+		logger.info("Setup network configuration for " + name);
 
 		this.validateNetworkNames(configuration.getCloud().getCloudNetwork());
 		this.initManagementNetworkConfig(configuration);
@@ -88,10 +95,10 @@ public class OpenStackNetworkConfigurationHelper {
 	private void initManagementNetworkConfig(final ComputeDriverConfiguration configuration)
 			throws CloudProvisioningException {
 		final Cloud cloud = configuration.getCloud();
-		final String template = cloud.getConfiguration().getManagementMachineTemplate();
+		final String templateName = cloud.getConfiguration().getManagementMachineTemplate();
 
 		// Init management computeNetworks. Check if there is any.
-		final ComputeTemplate computeTemplate = cloud.getCloudCompute().getTemplates().get(template);
+		final ComputeTemplate computeTemplate = cloud.getCloudCompute().getTemplates().get(templateName);
 		if (computeTemplate != null) {
 			final ComputeTemplateNetwork computeNetwork = computeTemplate.getComputeNetwork();
 			if (computeNetwork != null) {
@@ -115,6 +122,12 @@ public class OpenStackNetworkConfigurationHelper {
 			throw new CloudProvisioningException(
 					"A network must be provided to the management machines "
 							+ "(use either cloudNetwork templates or computeNetwork configuration).");
+		}
+
+		if (this.useManagementNetwork()) {
+			logger.info("Using management network : " + this.managementNetworkConfiguration.getName());
+		} else {
+			logger.info("Using computeNetwork of template '" + templateName + "' : " + this.managementComputeNetworks);
 		}
 	}
 
@@ -178,6 +191,10 @@ public class OpenStackNetworkConfigurationHelper {
 				}
 			}
 		}
+
+		// Log private ip network
+		logger.info("Service '" + configuration.getServiceName() + "' using network '" + this.getPrivateIpNetworkName()
+				+ "' for private ip");
 	}
 
 	/**

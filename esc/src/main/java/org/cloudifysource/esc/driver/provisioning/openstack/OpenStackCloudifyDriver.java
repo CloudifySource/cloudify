@@ -401,16 +401,16 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			// Network
 			final Network network = this.getOrCreateNetwork(networkConfiguration);
 
-			// FIXME should be able to create multiple subnets
-			final Subnet subnet;
-			if (networkConfiguration.getSubnets() == null || networkConfiguration.getSubnets().isEmpty()) {
-				subnet = this.getOrCreateSubnet(null, network);
-			} else {
-				subnet = this.getOrCreateSubnet(networkConfiguration.getSubnets().get(0), network);
+			final List<Subnet> subnets = new ArrayList<Subnet>();
+			if (networkConfiguration.getSubnets() != null) {
+				for (org.cloudifysource.domain.cloud.network.Subnet subnetConfig : networkConfiguration.getSubnets()) {
+					Subnet subnet = this.getOrCreateSubnet(subnetConfig, network);
+					subnets.add(subnet);
+				}
 			}
 
 			if (!this.networkHelper.skipExternalNetworking()) {
-				this.createExternalNetworking(network, subnet);
+				this.createExternalNetworking(network, subnets.get(0));
 			}
 		} catch (final Exception e) {
 			try {
@@ -551,14 +551,25 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			}
 
 			if (router != null) {
-				// Get a network without the prefix name.
 				try {
 					final String privateIpNetworkName = this.networkHelper.getPrivateIpNetworkName();
-					final Network privateIpNetwork = this.getNetworkByNameThenPrefix(privateIpNetworkName);
-					networkApi.deleteRouterInterface(router.getId(), privateIpNetwork.getSubnets()[0]);
-				} catch (CloudProvisioningException e) {
+					Network privateNetwork = this.getNetworkByNameThenPrefix(privateIpNetworkName);
+					String[] privateNetSubnetIds = privateNetwork.getSubnets();
+
+					final List<Port> ports = networkApi.getPortsByDeviceId(router.getId());
+					for (final Port port : ports) {
+						for (final RouteFixedIp fixedIp : port.getFixedIps()) {
+							for (final String id : privateNetSubnetIds) {
+								if (id.equals(fixedIp.getSubnetId())) {
+									networkApi.deleteRouterInterface(router.getId(), fixedIp.getSubnetId());
+								}
+							}
+						}
+					}
+				} catch (final Exception e) {
 					// If the private network doesn't exist there is no consequences:
 					// we can't detached a network which doesn't exist anymore.
+					logger.log(Level.WARNING, "Could not remove an interface from external router", e);
 				}
 
 				if (this.networkHelper.isCreateExternalRouter()) {
@@ -649,10 +660,11 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			if (this.networkHelper.useManagementNetwork()) {
 				final String managementNetworkName = this.networkHelper.getManagementNetworkName();
 				final Network managementNetwork = this.getNetworkByNameThenPrefix(managementNetworkName);
-				for (final String subnetId : managementNetwork.getSubnets()) {
-					final Port port = this.addPortToRequest(request, managementNetwork.getId(), subnetId);
-					reservedPortIds.add(port.getId());
-				}
+
+				final Port port = this.addPortToRequest(request,
+						managementNetwork.getId(), managementNetwork.getSubnets());
+
+				reservedPortIds.add(port.getId());
 			}
 
 			// Add compute networks
@@ -661,20 +673,19 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 				if (network == null) {
 					throw new CloudProvisioningException("Couldn't find network '" + networkName + "'");
 				}
-				for (final String subnetId : network.getSubnets()) {
-					final Port port = this.addPortToRequest(request, network.getId(), subnetId);
-					reservedPortIds.add(port.getId());
-				}
+
+				final Port port = this.addPortToRequest(request, network.getId(), network.getSubnets());
+				reservedPortIds.add(port.getId());
 			}
 
 			// Add template networks
 			if (!management && this.networkHelper.useServiceNetworkTemplate()) {
 				final NetworkConfiguration netConfig = this.networkHelper.getNetworkConfiguration();
 				final Network templateNetwork = this.getNetworkByNameThenPrefix(netConfig.getName());
-				for (final String subnetId : templateNetwork.getSubnets()) {
-					final Port port = this.addPortToRequest(request, templateNetwork.getId(), subnetId);
-					reservedPortIds.add(port.getId());
-				}
+
+				final Port port = this.addPortToRequest(request,
+						templateNetwork.getId(), templateNetwork.getSubnets());
+				reservedPortIds.add(port.getId());
 			}
 
 			NovaServer newServer = computeApi.createServer(request);
@@ -746,15 +757,16 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	}
 
 	/**
-	 * Create a port to attached to the VM. <br />
-	 * If several subnets exist in the network, use the first subnet of the network.
+	 * Create a port to attached to the VM and add it to the request. <br />
 	 */
-	private Port addPortToRequest(final NovaServerResquest request, final String networkId, final String subnetId)
+	private Port addPortToRequest(final NovaServerResquest request, final String networkId, final String[] subnetIds)
 			throws OpenstackException {
-		final RouteFixedIp fixedIp = new RouteFixedIp();
-		fixedIp.setSubnetId(subnetId);
 		final Port port = new Port();
-		port.addFixedIp(fixedIp);
+		for (String subnetId : subnetIds) {
+			final RouteFixedIp fixedIp = new RouteFixedIp();
+			fixedIp.setSubnetId(subnetId);
+			port.addFixedIp(fixedIp);
+		}
 		port.setNetworkId(networkId);
 		final Port createdPort = this.networkApi.createPort(port);
 

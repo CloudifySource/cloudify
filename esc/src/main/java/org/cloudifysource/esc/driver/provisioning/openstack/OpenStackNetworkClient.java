@@ -226,8 +226,11 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 		}
 
 		try {
-			final String input = String.format("{\"floatingip\":{\"floating_network_id\":\"%s\",\"port_id\":\"%s\"}}",
-					floatingNetworkId, port.getId());
+			final String input =
+					String.format(
+							"{\"floatingip\":{\"floating_network_id\":\"%s\","
+									+ "\"port_id\":\"%s\", \"fixed_ip_address\":\"%s\"}}",
+							floatingNetworkId, port.getId(), port.getFixedIps().get(0).getIpAddress());
 			final String response = this.doPost("floatingips", input);
 			final FloatingIp floatingIp = JsonUtils.unwrapRootToObject(FloatingIp.class, response);
 			return floatingIp.getFloatingIpAddress();
