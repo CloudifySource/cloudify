@@ -128,7 +128,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	private OpenStackComputeClient computeApi;
 	private OpenStackNetworkClient networkApi;
 
-	private SecurityGroupNames securityGroupNames;
+	private GroupNamesPrefixing securityGroupNames;
 
 	private String applicationName;
 
@@ -153,7 +153,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		}
 		String managementGroup = cloud.getProvider().getManagementGroup();
 		managementGroup = managementGroup == null ? MANAGMENT_MACHINE_PREFIX : managementGroup;
-		this.securityGroupNames = new SecurityGroupNames(managementGroup, applicationName, serviceName);
+		this.securityGroupNames = new GroupNamesPrefixing(managementGroup, applicationName, serviceName);
 
 	}
 
@@ -343,6 +343,11 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	private void createNetworkAndSubnets() throws CloudProvisioningException, OpenstackException {
 		// Network
 		final NetworkConfiguration networkConfiguration = this.networkHelper.getNetworkConfiguration();
+
+		if (!management) {
+			networkConfiguration
+					.setName(securityGroupNames.getApplicationName() + "-" + networkConfiguration.getName());
+		}
 		final Network network = this.getOrCreateNetwork(networkConfiguration);
 
 		if (network != null) {
@@ -499,8 +504,16 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 		Network network = networkApi.getNetworkByName(networkConfiguration.getName());
 		if (network == null) {
+
+			String networkNameRequest = null;
+			if (!management) {
+				networkNameRequest = networkConfiguration.getName();
+			} else {
+				networkNameRequest = this.securityGroupNames.getPrefix() + networkConfiguration.getName();
+			}
+
 			final Network networkRequest = new Network();
-			networkRequest.setName(this.securityGroupNames.getPrefix() + networkConfiguration.getName());
+			networkRequest.setName(networkNameRequest);
 			networkRequest.setAdminStateUp(true);
 			network = networkApi.createNetworkIfNotExists(networkRequest);
 		}

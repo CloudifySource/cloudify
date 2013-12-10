@@ -18,13 +18,13 @@ package org.cloudifysource.esc.driver.provisioning.openstack;
  * @author victor
  * @since 2.7.0
  */
-public class SecurityGroupNames {
+public class GroupNamesPrefixing {
 
 	private String prefix;
 	private String applicationName;
 	private String serviceName;
 
-	public SecurityGroupNames(final String securityGroupPrefix, final String applicationName,
+	public GroupNamesPrefixing(final String securityGroupPrefix, final String applicationName,
 			final String serviceName) {
 		this.prefix = securityGroupPrefix;
 		this.applicationName = applicationName;
@@ -54,4 +54,5 @@ public class SecurityGroupNames {
 	public String getServiceName() {
 		return this.prefix + this.applicationName + "-" + this.serviceName;
 	}
+
 }
