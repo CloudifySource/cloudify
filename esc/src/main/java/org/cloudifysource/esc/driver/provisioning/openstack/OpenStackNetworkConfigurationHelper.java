@@ -35,17 +35,15 @@ import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.ComputeDriverConfiguration;
 
 /**
- * This class handle network configuration priority and make life easier to the driver.<br />
+ * This is a utility class to handle network configurations making life easier in the OpenStack driver.<br />
  * The implementation is dedicated to the driver and should be instantiate only by the setConfig of the driver.<br />
  * <br />
- * <b>BEAR IN MIND that this class know if the driver is a manager instance or an service instance and return the
- * expected configuration.</b>
  * 
  * @author victor
  * @since 2.7.0
  * 
  */
-public class OpenStackNetworkConfigurationHelper {
+class OpenStackNetworkConfigurationHelper {
 
 	private final Logger logger = Logger.getLogger(BaseProvisioningDriver.class.getName());
 
@@ -73,7 +71,7 @@ public class OpenStackNetworkConfigurationHelper {
 	OpenStackNetworkConfigurationHelper() {
 	}
 
-	public OpenStackNetworkConfigurationHelper(final ComputeDriverConfiguration configuration)
+	OpenStackNetworkConfigurationHelper(final ComputeDriverConfiguration configuration)
 			throws CloudProvisioningException {
 
 		this.management = configuration.isManagement();
@@ -97,7 +95,7 @@ public class OpenStackNetworkConfigurationHelper {
 
 	/**
 	 * Initialize properties for management network configuration.<br />
-	 * A network must be provided for management either it is configured in <code>cloudNetwork</code> template or in the
+	 * A network must be provided for management either it is configured in <code>cloudNetwork</code> section or in
 	 * <code>computeNetwork</code> of the cloudCompute.
 	 * 
 	 * @param configuration
@@ -157,7 +155,8 @@ public class OpenStackNetworkConfigurationHelper {
 	 * @param configuration
 	 *            The configuration.
 	 * @throws CloudProvisioningException
-	 *             Thrown if the service declared a network template which do not exist in the list of templates.
+	 *             Thrown if the service declared a network template which do not exist in the list of templates or if
+	 *             no networks has been defined for cloudify communications.
 	 */
 	private void initServiceNetworkConfig(final ComputeDriverConfiguration configuration)
 			throws CloudProvisioningException {
@@ -306,7 +305,7 @@ public class OpenStackNetworkConfigurationHelper {
 	}
 
 	/**
-	 * Verify the all networks and subnets has a name (including management one).
+	 * Verify that all networks and subnets has a name (including management one).
 	 * 
 	 * @param cloudNetwork
 	 *            Configuration to process.

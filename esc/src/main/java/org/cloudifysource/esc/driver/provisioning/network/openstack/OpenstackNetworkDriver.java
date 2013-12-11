@@ -24,7 +24,6 @@ import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.esc.driver.provisioning.network.BaseNetworkDriver;
 import org.cloudifysource.esc.driver.provisioning.network.NetworkDriverConfiguration;
 import org.cloudifysource.esc.driver.provisioning.network.NetworkProvisioningException;
-import org.cloudifysource.esc.driver.provisioning.openstack.GroupNamesPrefixing;
 import org.cloudifysource.esc.driver.provisioning.openstack.OpenStackCloudifyDriver;
 import org.cloudifysource.esc.driver.provisioning.openstack.OpenStackComputeClient;
 import org.cloudifysource.esc.driver.provisioning.openstack.OpenStackNetworkClient;
@@ -48,7 +47,6 @@ public class OpenstackNetworkDriver extends BaseNetworkDriver {
 
 	private OpenStackComputeClient computeApi;
 	private OpenStackNetworkClient networkApi;
-	private GroupNamesPrefixing securityGroupNames;
 
 	@Override
 	public void setConfig(final NetworkDriverConfiguration config) {
@@ -57,7 +55,6 @@ public class OpenstackNetworkDriver extends BaseNetworkDriver {
 		this.initDeployer(cloud);
 		String mngGroup = cloud.getProvider().getManagementGroup();
 		mngGroup = mngGroup == null ? OpenStackCloudifyDriver.getDefaultMangementPrefix() : mngGroup;
-		this.securityGroupNames = new GroupNamesPrefixing(mngGroup, null, null);
 	}
 
 	private void initDeployer(final Cloud cloud) {

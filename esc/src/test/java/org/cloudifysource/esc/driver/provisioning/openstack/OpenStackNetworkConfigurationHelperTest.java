@@ -184,6 +184,7 @@ public class OpenStackNetworkConfigurationHelperTest {
 	 * 
 	 * <ul>
 	 * <li>No management network.</li>
+	 * <li>Use management computeNetwork.</li>
 	 * </ul>
 	 */
 	@Test
@@ -206,6 +207,15 @@ public class OpenStackNetworkConfigurationHelperTest {
 		Assert.assertEquals(false, helper.useManagementNetwork());
 	}
 
+	/**
+	 * MANAGEMENT
+	 * 
+	 * <ul>
+	 * <li>No management network.</li>
+	 * <li>No computeNetwork.</li>
+	 * <li>Should throw an exception.</li>
+	 * </ul>
+	 */
 	@Test
 	public void testManagementNoNetworkAtAll() throws CloudProvisioningException {
 
@@ -275,7 +285,7 @@ public class OpenStackNetworkConfigurationHelperTest {
 	 * APPLI
 	 * 
 	 * <ul>
-	 * <li>Use wrong network template name in recipe.</li>
+	 * <li>Using a wrong network template name in recipe.</li>
 	 * </ul>
 	 */
 	@Test

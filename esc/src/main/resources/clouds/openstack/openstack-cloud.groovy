@@ -118,7 +118,7 @@ cloud {
 				// Mandatory. Image ID.
 				imageId imageId
 				// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
-				remoteDirectory remoteDirectory
+				remoteDirectory "/home/ubuntu/gs-files"
 				// Mandatory. Amount of RAM available to machine.
 				machineMemoryMB 1600
 				// Mandatory. Hardware ID.
@@ -128,10 +128,9 @@ cloud {
 				// Optional. Name of key file to use for authenticating to the remot machine. Remove this line if key files
 				// are not used.
 				keyFile keyFile
-				// file transfer protocol
-				fileTransfer org.cloudifysource.domain.cloud.FileTransferModes.SCP
 
-				username "root"
+				username "ubuntu"
+				
 				// Additional template options.
 				// When used with the default driver, the option names are considered
 				// method names invoked on the TemplateOptions object with the value as the parameter.
@@ -145,19 +144,29 @@ cloud {
 					// Optional. Set the network api version .
 					// "networkApiVersion"  : "v2.0",
 
-					// Optional. Specify an existing external router name to use.
+					// Optional. This option is relevant only if you use manamgent network. 
+					// Specify an existing external router name to use.
 					// "externalRouterName" : "router-ext",
 
-					// Optional. Specify an external network name to use.
+					// Optional. This option is relevant only if you use manamgent network. 
+					// Specify an external network name to use.
 					// "externalNetworkName": "net-ext",
 
-					// Optional. By default, the driver will create a router and link it to an external network, set to 'false' to ignore this step.
+					// Optional. This option is relevant only if you use manamgent network. 
+					// By default (if you use a management network), the driver will create a router and link it to an external network, set to 'false' to ignore this step.
 					// By setting this property to 'false', the properties 'externalRouterName' and 'externalNetworkName' will be ignore.
 					// "skipExternalNetworking": "false",
 					
+					// Optional. Use existing security groups.
+					// "securityGroups" : ["default"] as String[],
 					"keyPairName" : keyPair
 				])
-
+				
+				// Optional. Use existing networks.
+				// computeNetwork {
+				//	networks (["SOME_INTERNAL_NETWORK"])
+				// }
+				
 				// when set to 'true', agent will automatically start after reboot.
 				autoRestartAgent true
 
