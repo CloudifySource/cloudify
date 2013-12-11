@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -26,10 +26,10 @@ import org.cloudifysource.usm.launcher.ProcessLauncher;
 
 /*************
  * A process locator implementation that delegates execution to a DSL entry, either a closure or an external script.
- *
+ * 
  * @author barakme
  * @since 2.1.1
- *
+ * 
  */
 public class ProcessLocatorExecutor implements ProcessLocator {
 
@@ -39,7 +39,7 @@ public class ProcessLocatorExecutor implements ProcessLocator {
 
 	/**************
 	 * Constructor.
-	 *
+	 * 
 	 * @param locator
 	 *            .
 	 * @param launcher
@@ -52,7 +52,7 @@ public class ProcessLocatorExecutor implements ProcessLocator {
 		this.locator = locator;
 		this.launcher = launcher;
 		this.puExtDir = puExtDir;
-			}
+	}
 
 	@Override
 	public List<Long> getProcessIDs()
@@ -61,7 +61,11 @@ public class ProcessLocatorExecutor implements ProcessLocator {
 				new DSLEntryExecutor(locator, launcher, puExtDir, LifecycleEvents.PROCESS_LOCATOR).run();
 		if (result.isSuccess()) {
 			final Object retval = result.getResult();
-			if (retval instanceof List<?>) {
+			if (retval == null) {
+				throw new IllegalArgumentException(
+						"A process locator returned an unexpected result that is not a list of longs, "
+								+ " or a comma aeparated list of longs. Result was: null");
+			} else if (retval instanceof List<?>) {
 				final List<?> closureResultList = (List<?>) retval;
 				final List<Long> targetList = new ArrayList<Long>(closureResultList.size());
 				for (final Object listItem : closureResultList) {
