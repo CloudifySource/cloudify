@@ -50,13 +50,18 @@ public class OpenStackComputeClient extends OpenStackBaseClient {
 			final String tenant, final String region, final String serviceName)
 			throws OpenstackJsonSerializationException {
 		super(endpoint, username, password, tenant, region);
-		this.serviceName = StringUtils.isEmpty(serviceName) ? "nova" : serviceName;
+		this.serviceName = serviceName;
 		this.initToken();
 	}
 
 	@Override
 	protected String getServiceName() {
 		return this.serviceName;
+	}
+
+	@Override
+	String getDefaultServiceType() {
+		return "compute";
 	}
 
 	/**
@@ -223,4 +228,5 @@ public class OpenStackComputeClient extends OpenStackBaseClient {
 		}
 		this.doDelete("servers/" + serverId, CODE_OK_204);
 	}
+
 }

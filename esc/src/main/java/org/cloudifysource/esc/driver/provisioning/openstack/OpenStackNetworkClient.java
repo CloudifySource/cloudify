@@ -44,7 +44,7 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 	private static final byte[] MUTEX_CREATE_SECURITY_GROUPS = new byte[0];
 	private static final byte[] MUTEX_CREATE_NETWORK = new byte[0];
 
-	private final String serviceName;
+	private String serviceName;
 	private final String networkApiVersion;
 
 	public OpenStackNetworkClient(final String endpoint, final String username, final String password,
@@ -63,10 +63,15 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 			final String tenant, final String region, final String serviceName, final String networkApiVersion)
 			throws OpenstackJsonSerializationException {
 		super(endpoint, username, password, tenant, region);
-		this.serviceName = StringUtils.isEmpty(serviceName) ? "neutron" : serviceName;
+		this.serviceName = serviceName;
+
 		this.networkApiVersion = StringUtils.isEmpty(networkApiVersion) ? "v2.0" : networkApiVersion;
-		logger.info("Openstack " + this.serviceName + " api version: " + this.networkApiVersion);
 		this.initToken();
+	}
+
+	@Override
+	String getDefaultServiceType() {
+		return "network";
 	}
 
 	@Override
@@ -839,4 +844,5 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 		}
 		return null;
 	}
+
 }

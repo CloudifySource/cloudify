@@ -21,6 +21,7 @@ import javax.ws.rs.core.MediaType;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.TokenAccess;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.TokenServiceCatalog;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.TokenServiceCatalogEndpoint;
+import org.springframework.util.StringUtils;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
@@ -76,18 +77,27 @@ public abstract class OpenStackBaseClient {
 		}
 	}
 
-	private String getEndpoint(final String endpointType) {
-		for (TokenServiceCatalog tsc : this.token.getServiceCatalog()) {
-			if (endpointType.equals(tsc.getName())) {
-				for (TokenServiceCatalogEndpoint endpoint : tsc.getEndpoints()) {
-					if (this.region.equals(endpoint.getRegion())) {
-						return endpoint.getPublicURL();
+	private String getEndpointByName(final String endpointName) {
+		if (endpointName != null & !StringUtils.isEmpty(endpointName)) {
+			for (TokenServiceCatalog tsc : this.token.getServiceCatalog()) {
+				if (endpointName.equals(tsc.getName())) {
+					for (TokenServiceCatalogEndpoint endpoint : tsc.getEndpoints()) {
+						if (this.region.equals(endpoint.getRegion())) {
+							return endpoint.getPublicURL();
+						}
 					}
 				}
 			}
 		}
 		return null;
 	}
+
+	/**
+	 * The default type of Openstack service client.
+	 * 
+	 * @return
+	 */
+	abstract String getDefaultServiceType();
 
 	private void renewTokenIfNeeded() throws OpenstackJsonSerializationException {
 		if (this.isTokenExpiredSoon()) {
@@ -141,14 +151,22 @@ public abstract class OpenStackBaseClient {
 	protected WebResource getWebResource() throws OpenstackException {
 		if (serviceWebResource == null) {
 			this.renewTokenIfNeeded();
-			final String endpoint = this.getEndpoint(this.getServiceName());
+
+			String endpoint = this.getEndpointByName(this.getServiceName());
+			if (endpoint == null) {
+				logger.finer("EndPoint by name returned null, trying to get service endpoint by its type '"
+						+ this.getDefaultServiceType() + "'");
+				endpoint = this.getServiceNameByType(this.getDefaultServiceType());
+			}
+
 			if (endpoint == null) {
 				throw new OpenstackException("Cannot find endpoint for service '"
 						+ this.getServiceName() + "' in the service catalog.");
 			}
+
 			this.serviceClient = Client.create();
 			this.serviceWebResource = serviceClient.resource(endpoint);
-			logger.info("Openstack " + this.getServiceName() + " endpoint: " + endpoint);
+			logger.info("Openstack endpoint: " + endpoint);
 		}
 		return serviceWebResource;
 	}
@@ -166,11 +184,33 @@ public abstract class OpenStackBaseClient {
 	}
 
 	/**
-	 * The name of Openstack service the client.
+	 * The name of Openstack service client.
 	 * 
 	 * @return
 	 */
 	abstract String getServiceName();
+
+	/**
+	 * Retrieves the service endpoint by referencing its type.
+	 * 
+	 * @param endpointType
+	 *            service endpoint type
+	 * 
+	 * @return service endpoint
+	 */
+	protected String getServiceNameByType(final String endpointType) {
+
+		for (TokenServiceCatalog tsc : this.token.getServiceCatalog()) {
+			if (endpointType.equals(tsc.getType())) {
+				for (TokenServiceCatalogEndpoint endpoint : tsc.getEndpoints()) {
+					if (this.region.equals(endpoint.getRegion())) {
+						return endpoint.getPublicURL();
+					}
+				}
+			}
+		}
+		return null;
+	};
 
 	/**
 	 * Translate {@link UniformInterfaceException} to {@link OpenstackServerException} to get an accurate error message.
