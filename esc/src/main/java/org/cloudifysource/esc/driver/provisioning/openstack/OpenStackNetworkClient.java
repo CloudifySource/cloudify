@@ -63,10 +63,8 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 			final String tenant, final String region, final String serviceName, final String networkApiVersion)
 			throws OpenstackJsonSerializationException {
 		super(endpoint, username, password, tenant, region);
-		this.serviceName = StringUtils.isEmpty(serviceName) ? "neutron" : serviceName;
+		this.serviceName = serviceName;
 		this.networkApiVersion = StringUtils.isEmpty(networkApiVersion) ? "v2.0" : networkApiVersion;
-		logger.info("Openstack " + this.serviceName + " api version: " + this.networkApiVersion);
-		// this.initToken();
 	}
 
 	@Override
@@ -76,6 +74,11 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 			webResource = webResource.path(this.networkApiVersion);
 		}
 		return webResource;
+	}
+
+	@Override
+	protected String getServiceType() {
+		return "network";
 	}
 
 	@Override
