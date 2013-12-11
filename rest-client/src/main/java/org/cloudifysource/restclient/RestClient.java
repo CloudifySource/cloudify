@@ -750,24 +750,18 @@ public class RestClient {
 		} catch (final RestClientException e) {
 			final String verbose = e.getVerbose();
 			// may be partial failure - in this case the verbose contains the AddTemplatesResponse object.
-			if (logger.isLoggable(Level.WARNING)) {
-				logger.log(Level.WARNING,
-						"[addTemplates] - caught RestClientException, "
-								+ "trying to read the response from the verbose", e);
-			}
+			log(Level.FINE, "[addTemplates] - caught RestClientException, "
+					+ "trying to read the response from the verbose[ " + verbose + "]");
 			try {
 				response = new ObjectMapper().readValue(verbose, AddTemplatesResponse.class);
 				throw new AddTemplatesException(response);
 			} catch (final JsonProcessingException e1) {
 				// failed to read the response from the verbose => not a partial failure
 				// => throwing the original exception
-				if (logger.isLoggable(Level.FINE)) {
-					logger.log(Level.FINE,
-							"[addTemplates] - caught JsonProcessingException "
-									+ "when tried to read the response from the verbose, "
-									+ " throwing the RestClientException that constructed "
-									+ "from the original exception", e1);
-				}
+				log(Level.FINE, "[addTemplates] - caught JsonProcessingException "
+						+ "when tried to read the response from the verbose, "
+						+ " throwing the RestClientException that constructed "
+						+ "from the original exception");
 				throw e;
 			} catch (final IOException e1) {
 				// failed to read the response from the verbose => not a partial failure
