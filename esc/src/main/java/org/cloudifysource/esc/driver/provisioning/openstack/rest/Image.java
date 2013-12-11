@@ -14,31 +14,17 @@ package org.cloudifysource.esc.driver.provisioning.openstack.rest;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
-import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonRootName;
 
 /**
- * @author victor
  * @since 2.7.0
+ * @author bouanane
+ * 
  */
-@JsonRootName("network")
-public class Network {
-	private String id;
-	private String status;
+@JsonRootName("image")
+public class Image {
 	private String name;
-	private String tenantId;
-	private Boolean adminStateUp;
-	private String[] subnets;
-	@JsonProperty("router:external")
-	private Boolean routerExternal;
-
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(final String status) {
-		this.status = status;
-	}
+	private String id;
 
 	public String getName() {
 		return name;
@@ -46,14 +32,6 @@ public class Network {
 
 	public void setName(final String name) {
 		this.name = name;
-	}
-
-	public String getTenantId() {
-		return tenantId;
-	}
-
-	public void setTenantId(final String tenantId) {
-		this.tenantId = tenantId;
 	}
 
 	public String getId() {
@@ -64,37 +42,8 @@ public class Network {
 		this.id = id;
 	}
 
-	public Boolean isAdminStateUp() {
-		return adminStateUp;
-	}
-
-	public void setAdminStateUp(final Boolean adminStateUp) {
-		this.adminStateUp = adminStateUp;
-	}
-
-	public Boolean getAdminStateUp() {
-		return adminStateUp;
-	}
-
-	public String[] getSubnets() {
-		return subnets;
-	}
-
-	public void setSubnets(final String[] subnets) {
-		this.subnets = subnets;
-	}
-
-	public Boolean getRouterExternal() {
-		return routerExternal;
-	}
-
-	public void setRouterExternal(final Boolean routerExternal) {
-		this.routerExternal = routerExternal;
-	}
-
 	@Override
 	public String toString() {
 		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
 	}
-
 }

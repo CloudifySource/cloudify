@@ -486,6 +486,20 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 	}
 
 	/**
+	 * Returns networks.
+	 * 
+	 * @return networks
+	 * @throws OpenstackException
+	 *             Thrown if something went wrong with the request.
+	 */
+	public List<Network> getNetworks() throws OpenstackException {
+		final String response = this.doGet("networks");
+		final List<Network> list = JsonUtils.unwrapRootToList(Network.class, response);
+
+		return list;
+	}
+
+	/**
 	 * Retrieve networks with a prefix name.
 	 * 
 	 * @param prefix
@@ -702,6 +716,19 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Returns existing security groups.
+	 * 
+	 * @return Existing security groups.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
+	 */
+	public List<SecurityGroup> getSecurityGroups() throws OpenstackException {
+		final String response = this.doGet("security-groups");
+		final List<SecurityGroup> securityGroups = JsonUtils.unwrapRootToList(SecurityGroup.class, response);
+		return securityGroups;
 	}
 
 	/**

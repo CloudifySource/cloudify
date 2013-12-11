@@ -18,6 +18,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.esc.driver.provisioning.openstack.rest.Flavor;
+import org.cloudifysource.esc.driver.provisioning.openstack.rest.Image;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServer;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServerAddress;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServerResquest;
@@ -61,6 +63,62 @@ public class OpenStackComputeClient extends OpenStackBaseClient {
 	@Override
 	protected String getServiceType() {
 		return "compute";
+	}
+
+	/**
+	 * Returns the Openstack image.
+	 * 
+	 * @param imageId
+	 *            image id to check
+	 * @return The image.
+	 * @throws OpenstackException
+	 *             {@link OpenstackException}
+	 */
+	public Image getImage(final String imageId) throws OpenstackException {
+		final String response = this.doGet("images/" + imageId);
+		final Image image = JsonUtils.unwrapRootToObject(Image.class, response);
+		return image;
+	}
+
+	/**
+	 * Return the list of images available in Openstack.
+	 * 
+	 * @return The list of images available in Openstack.
+	 * @throws OpenstackException
+	 *             {@link OpenstackException}
+	 */
+	public List<Image> getImages() throws OpenstackException {
+		final String response = this.doGet("images");
+		final List<Image> image = JsonUtils.unwrapRootToList(Image.class, response);
+		return image;
+	}
+
+	/**
+	 * Returns the Openstack flavor.
+	 * 
+	 * @param flavorId
+	 *            hardware/flavor to check
+	 * @return the Openstack flavor.
+	 * @throws OpenstackException
+	 *             {@link OpenstackException}
+	 */
+	public Flavor getFlavor(final String flavorId) throws OpenstackException {
+		final String response = this.doGet("flavors/" + flavorId);
+		final Flavor flavor = JsonUtils.unwrapRootToObject(Flavor.class, response);
+		return flavor;
+	}
+
+	/**
+	 * Return the list of flavors available in Openstack.
+	 * 
+	 * @return The list of flavors available in Openstack.
+	 * @throws OpenstackException
+	 *             {@link OpenstackException}
+	 */
+	public List<Flavor> getFlavors() throws OpenstackException {
+		final String response = this.doGet("flavors");
+		final List<Flavor> flavors = JsonUtils.unwrapRootToList(Flavor.class, response);
+		return flavors;
 	}
 
 	/**
