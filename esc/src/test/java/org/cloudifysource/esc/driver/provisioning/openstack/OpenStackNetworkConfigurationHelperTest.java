@@ -120,6 +120,20 @@ public class OpenStackNetworkConfigurationHelperTest {
 		cloud.getCloudNetwork().getManagement().getNetworkConfiguration().setSubnets(new ArrayList<Subnet>());
 	}
 
+	private void removaApplicationNetworkTemplate() {
+		cloud.getCloudNetwork().setTemplates(new HashMap<String, NetworkConfiguration>());
+	}
+
+	private void removeManagementComputeNetworkBlock() {
+		cloud.getCloudCompute().getTemplates().get(MNG_COMPUTE_TEMPLATE).getComputeNetwork()
+				.setNetworks(new ArrayList<String>());
+	}
+
+	private void removeApplicationComputeNetworkBlock() {
+		cloud.getCloudCompute().getTemplates().get(APPLI_COMPUTE_TEMPLATE).getComputeNetwork()
+				.setNetworks(new ArrayList<String>());
+	}
+
 	private ComputeDriverConfiguration createConfiguration(final Cloud cloud, final String serviceNetworkTemplate,
 			final boolean isManagement) {
 
@@ -141,7 +155,7 @@ public class OpenStackNetworkConfigurationHelperTest {
 		return configuration;
 	}
 
-	/**
+	/*******************************************************************************
 	 * MANAGEMENT
 	 * 
 	 * <ul>
@@ -153,14 +167,15 @@ public class OpenStackNetworkConfigurationHelperTest {
 		ComputeDriverConfiguration configuration = createConfiguration(cloud, null, true);
 		OpenStackNetworkConfigurationHelper helper = new OpenStackNetworkConfigurationHelper(configuration);
 
-		Assert.assertEquals(mngNetConfig, helper.getNetworkConfiguration());
+		Assert.assertEquals(mngNetConfig, helper.getManagementNetworkTemplate());
+		Assert.assertEquals(null, helper.getApplicationNetworkTemplate());
 		Assert.assertEquals(mngComputeNetwork, helper.getComputeNetworks());
 
-		Assert.assertEquals(null, helper.getApplicationNetworkName());
-		Assert.assertEquals(prefixedMngNetTemplateName, helper.getManagementNetworkName());
+		Assert.assertEquals(null, helper.getApplicationNetworkPrefixedName());
+		Assert.assertEquals(prefixedMngNetTemplateName, helper.getManagementNetworkPrefixedName());
 		Assert.assertEquals(prefixedMngNetTemplateName, helper.getPrivateIpNetworkName());
 
-		Assert.assertEquals(true, helper.useServiceNetworkTemplate());
+		Assert.assertEquals(false, helper.useApplicationNetworkTemplate());
 		Assert.assertEquals(true, helper.useManagementNetwork());
 	}
 
@@ -179,14 +194,15 @@ public class OpenStackNetworkConfigurationHelperTest {
 		ComputeDriverConfiguration configuration = createConfiguration(cloud, null, true);
 		OpenStackNetworkConfigurationHelper helper = new OpenStackNetworkConfigurationHelper(configuration);
 
-		Assert.assertEquals(null, helper.getNetworkConfiguration());
+		Assert.assertEquals(null, helper.getManagementNetworkTemplate());
+		Assert.assertEquals(null, helper.getApplicationNetworkTemplate());
 		Assert.assertEquals(mngComputeNetwork, helper.getComputeNetworks());
 
-		Assert.assertEquals(null, helper.getApplicationNetworkName());
-		Assert.assertEquals(null, helper.getManagementNetworkName());
+		Assert.assertEquals(null, helper.getApplicationNetworkPrefixedName());
+		Assert.assertEquals(null, helper.getManagementNetworkPrefixedName());
 		Assert.assertEquals(COMPUTE_NET1, helper.getPrivateIpNetworkName());
 
-		Assert.assertEquals(false, helper.useServiceNetworkTemplate());
+		Assert.assertEquals(false, helper.useApplicationNetworkTemplate());
 		Assert.assertEquals(false, helper.useManagementNetwork());
 	}
 
@@ -194,9 +210,8 @@ public class OpenStackNetworkConfigurationHelperTest {
 	public void testManagementNoNetworkAtAll() throws CloudProvisioningException {
 
 		this.removeManagementNetworkConfiguration();
+		this.removeManagementComputeNetworkBlock();
 
-		cloud.getCloudCompute().getTemplates().get(MNG_COMPUTE_TEMPLATE).getComputeNetwork()
-				.setNetworks(new ArrayList<String>());
 		ComputeDriverConfiguration configuration = createConfiguration(cloud, null, true);
 
 		try {
@@ -207,7 +222,7 @@ public class OpenStackNetworkConfigurationHelperTest {
 		}
 	}
 
-	/**
+	/*******************************************************************************
 	 * APPLI
 	 * 
 	 * <ul>
@@ -219,14 +234,15 @@ public class OpenStackNetworkConfigurationHelperTest {
 		ComputeDriverConfiguration configuration = createConfiguration(cloud, APPLICATION_NET, false);
 		OpenStackNetworkConfigurationHelper helper = new OpenStackNetworkConfigurationHelper(configuration);
 
-		Assert.assertEquals(appliNetConfig, helper.getNetworkConfiguration());
+		Assert.assertEquals(mngNetConfig, helper.getManagementNetworkTemplate());
+		Assert.assertEquals(appliNetConfig, helper.getApplicationNetworkTemplate());
 		Assert.assertEquals(appliComputeNetwork, helper.getComputeNetworks());
 
-		Assert.assertEquals(prefixedAppliNetTemplateName, helper.getApplicationNetworkName());
-		Assert.assertEquals(prefixedMngNetTemplateName, helper.getManagementNetworkName());
+		Assert.assertEquals(prefixedAppliNetTemplateName, helper.getApplicationNetworkPrefixedName());
+		Assert.assertEquals(prefixedMngNetTemplateName, helper.getManagementNetworkPrefixedName());
 		Assert.assertEquals(prefixedMngNetTemplateName, helper.getPrivateIpNetworkName());
 
-		Assert.assertEquals(true, helper.useServiceNetworkTemplate());
+		Assert.assertEquals(true, helper.useApplicationNetworkTemplate());
 		Assert.assertEquals(true, helper.useManagementNetwork());
 	}
 
@@ -243,14 +259,15 @@ public class OpenStackNetworkConfigurationHelperTest {
 		ComputeDriverConfiguration configuration = createConfiguration(cloud, null, false);
 		OpenStackNetworkConfigurationHelper helper = new OpenStackNetworkConfigurationHelper(configuration);
 
-		Assert.assertEquals(null, helper.getNetworkConfiguration());
+		Assert.assertEquals(mngNetConfig, helper.getManagementNetworkTemplate());
+		Assert.assertEquals(null, helper.getApplicationNetworkTemplate());
 		Assert.assertEquals(appliComputeNetwork, helper.getComputeNetworks());
 
-		Assert.assertEquals(COMPUTE_NET2, helper.getApplicationNetworkName());
-		Assert.assertEquals(prefixedMngNetTemplateName, helper.getManagementNetworkName());
+		Assert.assertEquals(null, helper.getApplicationNetworkPrefixedName());
+		Assert.assertEquals(prefixedMngNetTemplateName, helper.getManagementNetworkPrefixedName());
 		Assert.assertEquals(prefixedMngNetTemplateName, helper.getPrivateIpNetworkName());
 
-		Assert.assertEquals(false, helper.useServiceNetworkTemplate());
+		Assert.assertEquals(false, helper.useApplicationNetworkTemplate());
 		Assert.assertEquals(true, helper.useManagementNetwork());
 	}
 
@@ -258,27 +275,18 @@ public class OpenStackNetworkConfigurationHelperTest {
 	 * APPLI
 	 * 
 	 * <ul>
-	 * <li>No network template specified in recipe.</li>
-	 * <li>No computeNetwork.</li>
+	 * <li>Use wrong network template name in recipe.</li>
 	 * </ul>
 	 */
 	@Test
-	public void testAppliFirstTemplateNetwork() throws CloudProvisioningException {
-		cloud.getCloudCompute().getTemplates().get(APPLI_COMPUTE_TEMPLATE).getComputeNetwork()
-				.setNetworks(new ArrayList<String>());
+	public void testAppliFirstTemplateNetwork() {
+		try {
+			ComputeDriverConfiguration configuration = createConfiguration(cloud, "WRONG_TEMPLATE_NAME", false);
+			new OpenStackNetworkConfigurationHelper(configuration);
+		} catch (Exception e) {
+			Assert.assertTrue(e.getMessage().contains("Service network template not found"));
+		}
 
-		ComputeDriverConfiguration configuration = createConfiguration(cloud, null, false);
-		OpenStackNetworkConfigurationHelper helper = new OpenStackNetworkConfigurationHelper(configuration);
-
-		Assert.assertEquals(appliNetConfig, helper.getNetworkConfiguration());
-		Assert.assertTrue(helper.getComputeNetworks().isEmpty());
-
-		Assert.assertEquals(prefixedAppliNetTemplateName, helper.getApplicationNetworkName());
-		Assert.assertEquals(prefixedMngNetTemplateName, helper.getManagementNetworkName());
-		Assert.assertEquals(prefixedMngNetTemplateName, helper.getPrivateIpNetworkName());
-
-		Assert.assertEquals(true, helper.useServiceNetworkTemplate());
-		Assert.assertEquals(true, helper.useManagementNetwork());
 	}
 
 	/**
@@ -291,24 +299,16 @@ public class OpenStackNetworkConfigurationHelperTest {
 	 * </ul>
 	 */
 	@Test
-	public void testAppliNoNetworksAtAll() throws CloudProvisioningException {
+	public void testAppliNoNetworksAtAll() {
+		removaApplicationNetworkTemplate();
+		removeApplicationComputeNetworkBlock();
+		try {
+			ComputeDriverConfiguration configuration = createConfiguration(cloud, null, false);
+			new OpenStackNetworkConfigurationHelper(configuration);
+		} catch (Exception e) {
+			Assert.assertTrue(e.getMessage().contains("no networks for cloudify communications"));
+		}
 
-		cloud.getCloudNetwork().setTemplates(new HashMap<String, NetworkConfiguration>());
-		cloud.getCloudCompute().getTemplates().get(APPLI_COMPUTE_TEMPLATE).getComputeNetwork()
-				.setNetworks(new ArrayList<String>());
-
-		ComputeDriverConfiguration configuration = createConfiguration(cloud, null, false);
-		OpenStackNetworkConfigurationHelper helper = new OpenStackNetworkConfigurationHelper(configuration);
-
-		Assert.assertEquals(mngNetConfig, helper.getNetworkConfiguration());
-		Assert.assertTrue(helper.getComputeNetworks().isEmpty());
-
-		Assert.assertEquals(prefixedMngNetTemplateName, helper.getApplicationNetworkName());
-		Assert.assertEquals(prefixedMngNetTemplateName, helper.getManagementNetworkName());
-		Assert.assertEquals(prefixedMngNetTemplateName, helper.getPrivateIpNetworkName());
-
-		Assert.assertEquals(false, helper.useServiceNetworkTemplate());
-		Assert.assertEquals(true, helper.useManagementNetwork());
 	}
 
 	// *****************************
@@ -329,14 +329,15 @@ public class OpenStackNetworkConfigurationHelperTest {
 		ComputeDriverConfiguration configuration = createConfiguration(cloud, APPLICATION_NET, false);
 		OpenStackNetworkConfigurationHelper helper = new OpenStackNetworkConfigurationHelper(configuration);
 
-		Assert.assertEquals(appliNetConfig, helper.getNetworkConfiguration());
+		Assert.assertEquals(null, helper.getManagementNetworkTemplate());
+		Assert.assertEquals(appliNetConfig, helper.getApplicationNetworkTemplate());
 		Assert.assertEquals(appliComputeNetwork, helper.getComputeNetworks());
 
-		Assert.assertEquals(prefixedAppliNetTemplateName, helper.getApplicationNetworkName());
-		Assert.assertEquals(null, helper.getManagementNetworkName());
-		Assert.assertEquals(prefixedAppliNetTemplateName, helper.getPrivateIpNetworkName());
+		Assert.assertEquals(prefixedAppliNetTemplateName, helper.getApplicationNetworkPrefixedName());
+		Assert.assertEquals(null, helper.getManagementNetworkPrefixedName());
+		Assert.assertEquals(COMPUTE_NET2, helper.getPrivateIpNetworkName());
 
-		Assert.assertEquals(true, helper.useServiceNetworkTemplate());
+		Assert.assertEquals(true, helper.useApplicationNetworkTemplate());
 		Assert.assertEquals(false, helper.useManagementNetwork());
 	}
 
@@ -356,14 +357,15 @@ public class OpenStackNetworkConfigurationHelperTest {
 		ComputeDriverConfiguration configuration = createConfiguration(cloud, null, false);
 		OpenStackNetworkConfigurationHelper helper = new OpenStackNetworkConfigurationHelper(configuration);
 
-		Assert.assertEquals(null, helper.getNetworkConfiguration());
+		Assert.assertEquals(null, helper.getManagementNetworkTemplate());
+		Assert.assertEquals(null, helper.getApplicationNetworkTemplate());
 		Assert.assertEquals(appliComputeNetwork, helper.getComputeNetworks());
 
-		Assert.assertEquals(COMPUTE_NET2, helper.getApplicationNetworkName());
-		Assert.assertEquals(null, helper.getManagementNetworkName());
+		Assert.assertEquals(null, helper.getApplicationNetworkPrefixedName());
+		Assert.assertEquals(null, helper.getManagementNetworkPrefixedName());
 		Assert.assertEquals(COMPUTE_NET2, helper.getPrivateIpNetworkName());
 
-		Assert.assertEquals(false, helper.useServiceNetworkTemplate());
+		Assert.assertEquals(false, helper.useApplicationNetworkTemplate());
 		Assert.assertEquals(false, helper.useManagementNetwork());
 	}
 
@@ -376,57 +378,17 @@ public class OpenStackNetworkConfigurationHelperTest {
 	 * </ul>
 	 */
 	@Test
-	public void testAppliFirstTemplateNetworkNoManagementNetwork() throws CloudProvisioningException {
+	public void testAppliNoTemplateNetworkNoManagementNetwork() throws CloudProvisioningException {
 
 		this.removeManagementNetworkConfiguration();
-
-		cloud.getCloudCompute().getTemplates().get(APPLI_COMPUTE_TEMPLATE).getComputeNetwork()
-				.setNetworks(new ArrayList<String>());
+		this.removeApplicationComputeNetworkBlock();
 
 		ComputeDriverConfiguration configuration = createConfiguration(cloud, null, false);
-		OpenStackNetworkConfigurationHelper helper = new OpenStackNetworkConfigurationHelper(configuration);
-
-		Assert.assertEquals(appliNetConfig, helper.getNetworkConfiguration());
-		Assert.assertTrue(helper.getComputeNetworks().isEmpty());
-
-		Assert.assertEquals(prefixedAppliNetTemplateName, helper.getApplicationNetworkName());
-		Assert.assertEquals(null, helper.getManagementNetworkName());
-		Assert.assertEquals(prefixedAppliNetTemplateName, helper.getPrivateIpNetworkName());
-
-		Assert.assertEquals(true, helper.useServiceNetworkTemplate());
-		Assert.assertEquals(false, helper.useManagementNetwork());
-	}
-
-	/**
-	 * APPLI without management network
-	 * 
-	 * <ul>
-	 * <li>No network template specified in recipe.</li>
-	 * <li>No computeNetwork.</li>
-	 * <li>No network templates.</li>
-	 * </ul>
-	 */
-	@Test
-	public void testAppliNoNetworksAtAllNoManagementNetwork() throws CloudProvisioningException {
-
-		this.removeManagementNetworkConfiguration();
-
-		cloud.getCloudNetwork().setTemplates(new HashMap<String, NetworkConfiguration>());
-		cloud.getCloudCompute().getTemplates().get(APPLI_COMPUTE_TEMPLATE).getComputeNetwork()
-				.setNetworks(new ArrayList<String>());
-
-		ComputeDriverConfiguration configuration = createConfiguration(cloud, null, false);
-		OpenStackNetworkConfigurationHelper helper = new OpenStackNetworkConfigurationHelper(configuration);
-
-		Assert.assertEquals(null, helper.getNetworkConfiguration());
-		Assert.assertEquals(mngComputeNetwork, helper.getComputeNetworks());
-
-		Assert.assertEquals(COMPUTE_NET1, helper.getApplicationNetworkName());
-		Assert.assertEquals(null, helper.getManagementNetworkName());
-		Assert.assertEquals(COMPUTE_NET1, helper.getPrivateIpNetworkName());
-
-		Assert.assertEquals(false, helper.useServiceNetworkTemplate());
-		Assert.assertEquals(false, helper.useManagementNetwork());
+		try {
+			new OpenStackNetworkConfigurationHelper(configuration);
+		} catch (Exception e) {
+			Assert.assertTrue(e.getMessage().contains("no networks for cloudify communications"));
+		}
 	}
 
 }

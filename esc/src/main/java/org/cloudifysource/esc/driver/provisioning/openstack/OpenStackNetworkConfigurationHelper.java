@@ -54,13 +54,12 @@ public class OpenStackNetworkConfigurationHelper {
 	private boolean management;
 
 	private NetworkConfiguration managementNetworkConfiguration;
-	private List<String> managementComputeNetworks;
-	private Map<String, Object> managementNetworkOptions;
+	private NetworkConfiguration applicationNetworkConfiguration;
 
-	private NetworkConfiguration serviceNetworkConfiguration;
-	private List<String> serviceComputeNetworks;
+	private List<String> computeNetworks;
 	private AccessRules serviceAccessRules;
-	private boolean serviceUseNetworkTemplate;
+
+	private Map<String, Object> managementNetworkOptions;
 
 	private String managementNetworkPrefixName;
 	private String applicationNetworkPrefixName;
@@ -77,21 +76,21 @@ public class OpenStackNetworkConfigurationHelper {
 	public OpenStackNetworkConfigurationHelper(final ComputeDriverConfiguration configuration)
 			throws CloudProvisioningException {
 
-		String name = configuration.isManagement() ? "managers" : configuration.getServiceName();
+		this.management = configuration.isManagement();
+
+		final String name = configuration.isManagement() ? "managers" : configuration.getServiceName();
 		logger.info("Setup network configuration for " + name);
 
 		this.validateNetworkNames(configuration.getCloud().getCloudNetwork());
+
 		this.initManagementNetworkConfig(configuration);
-		this.management = configuration.isManagement();
 
 		this.managementNetworkPrefixName = configuration.getCloud().getProvider().getManagementGroup();
 
 		if (!this.management) {
 			final FullServiceName fsn = ServiceUtils.getFullServiceName(configuration.getServiceName());
 			this.applicationNetworkPrefixName = this.managementNetworkPrefixName + fsn.getApplicationName() + "-";
-
 			this.initServiceNetworkConfig(configuration);
-
 		}
 
 	}
@@ -112,18 +111,20 @@ public class OpenStackNetworkConfigurationHelper {
 		final Cloud cloud = configuration.getCloud();
 		final String templateName = cloud.getConfiguration().getManagementMachineTemplate();
 
-		// Init management computeNetworks. Check if there is any.
-		final ComputeTemplate computeTemplate = cloud.getCloudCompute().getTemplates().get(templateName);
-		if (computeTemplate != null) {
-			final ComputeTemplateNetwork computeNetwork = computeTemplate.getComputeNetwork();
-			if (computeNetwork != null) {
-				this.managementComputeNetworks = computeNetwork.getNetworks();
+		if (configuration.isManagement()) {
+			// Init management computeNetworks. Check if there is any.
+			final ComputeTemplate computeTemplate = cloud.getCloudCompute().getTemplates().get(templateName);
+			if (computeTemplate != null) {
+				final ComputeTemplateNetwork computeNetwork = computeTemplate.getComputeNetwork();
+				if (computeNetwork != null) {
+					this.computeNetworks = computeNetwork.getNetworks();
+				}
+				this.managementNetworkOptions = computeTemplate.getOptions();
 			}
-			this.managementNetworkOptions = computeTemplate.getOptions();
-		}
 
-		if (managementComputeNetworks == null) {
-			this.managementComputeNetworks = new ArrayList<String>();
+			if (computeNetworks == null) {
+				this.computeNetworks = new ArrayList<String>();
+			}
 		}
 
 		// Figure out if there is a management network.
@@ -133,16 +134,20 @@ public class OpenStackNetworkConfigurationHelper {
 			this.managementNetworkConfiguration = mngConfig;
 		}
 
-		if (this.managementNetworkConfiguration == null && managementComputeNetworks.isEmpty()) {
+		// If this is a management configuration, throw an exception if no networks has been defined.
+		if (configuration.isManagement() && this.managementNetworkConfiguration == null && computeNetworks.isEmpty()) {
 			throw new CloudProvisioningException(
 					"A network must be provided to the management machines "
 							+ "(use either cloudNetwork templates or computeNetwork configuration).");
 		}
 
-		if (this.useManagementNetwork()) {
-			logger.info("Using management network : " + this.managementNetworkConfiguration.getName());
-		} else {
-			logger.info("Using computeNetwork of template '" + templateName + "' : " + this.managementComputeNetworks);
+		// Logs..
+		if (this.management) {
+			if (this.useManagementNetwork()) {
+				logger.info("Using management network : " + this.managementNetworkConfiguration.getName());
+			} else {
+				logger.info("Using computeNetwork of template '" + templateName + "' : " + this.computeNetworks);
+			}
 		}
 	}
 
@@ -157,17 +162,26 @@ public class OpenStackNetworkConfigurationHelper {
 	private void initServiceNetworkConfig(final ComputeDriverConfiguration configuration)
 			throws CloudProvisioningException {
 
-		// Init management computeNetworks. Check if there is any.
+		// Init the service computeNetworks. Check if there is any.
 		final Map<String, ComputeTemplate> computeTemplates = configuration.getCloud().getCloudCompute().getTemplates();
 		final ComputeTemplate computeTemplate = computeTemplates.get(configuration.getCloudTemplate());
 		if (computeTemplate != null) {
 			final ComputeTemplateNetwork computeNetwork = computeTemplate.getComputeNetwork();
 			if (computeNetwork != null) {
-				this.serviceComputeNetworks = computeNetwork.getNetworks();
+				this.computeNetworks = computeNetwork.getNetworks();
 			}
 		}
-		if (this.serviceComputeNetworks == null) {
-			this.serviceComputeNetworks = new ArrayList<String>();
+		if (this.computeNetworks == null) {
+			this.computeNetworks = new ArrayList<String>();
+		}
+
+		// At this point, if there is no management network and no service computeNetwork that we can bind to.
+		// It's an error
+		if (!this.useManagementNetwork() && computeNetworks.isEmpty()) {
+			throw new CloudProvisioningException(
+					configuration.getServiceName()
+							+ " has no networks for cloudify communications."
+							+ " You need to define a management network or a computeNetwork.");
 		}
 
 		// Figure out the application network to use
@@ -180,30 +194,10 @@ public class OpenStackNetworkConfigurationHelper {
 		if (cloudNetwork != null && serviceNetwork != null && serviceNetwork.getTemplate() != null) {
 			// The service specified a network template to use.
 			final Map<String, NetworkConfiguration> templates = cloudNetwork.getTemplates();
-			this.serviceNetworkConfiguration = templates.get(serviceNetwork.getTemplate());
-			this.serviceUseNetworkTemplate = true;
-			if (this.serviceNetworkConfiguration == null) {
+			this.applicationNetworkConfiguration = templates.get(serviceNetwork.getTemplate());
+			if (this.applicationNetworkConfiguration == null) {
 				throw new CloudProvisioningException("Service network template not found '"
 						+ serviceNetwork.getTemplate() + "'");
-			}
-		} else if (this.serviceComputeNetworks.isEmpty()) {
-			// The service did not specified a computeNetworks to use.
-			// So try to get the first application network.
-			if (cloudNetwork != null
-					&& cloudNetwork.getTemplates() != null
-					&& !cloudNetwork.getTemplates().isEmpty()) {
-				// There is an application network template
-				this.serviceUseNetworkTemplate = true;
-				this.serviceNetworkConfiguration = cloudNetwork.getTemplates().values().iterator().next();
-			} else {
-				// if no application network template, use the management network.
-				if (this.useManagementNetwork()) {
-					// use the management network template if exists.
-					this.serviceNetworkConfiguration = this.managementNetworkConfiguration;
-				} else {
-					// Or use the management computeNetwork
-					this.serviceComputeNetworks = this.managementComputeNetworks;
-				}
 			}
 		}
 
@@ -213,26 +207,21 @@ public class OpenStackNetworkConfigurationHelper {
 	}
 
 	/**
-	 * Get the network template.<br />
-	 * This class know if the driver is a manager instance or an service instance and return the expected configuration.
+	 * Returns the management network template configuration.
 	 * 
-	 * @return The network template to use.
+	 * @return The management network template configuration.
 	 */
-	public NetworkConfiguration getNetworkConfiguration() {
-		return management ? this.managementNetworkConfiguration : this.serviceNetworkConfiguration;
+	public NetworkConfiguration getManagementNetworkTemplate() {
+		return this.managementNetworkConfiguration;
 	}
 
 	/**
-	 * Returns <true> if the service recipe uses network template otherwise returns <code>false</code>.
+	 * Returns the application network template configuration.
 	 * 
-	 * @return Returns <true> if the service recipe uses network template, returns <code>false</code> otherwise.
+	 * @return The application network template configuration.
 	 */
-	public boolean useServiceNetworkTemplate() {
-		if (management) {
-			return this.useManagementNetwork();
-		} else {
-			return this.serviceUseNetworkTemplate;
-		}
+	public NetworkConfiguration getApplicationNetworkTemplate() {
+		return this.applicationNetworkConfiguration;
 	}
 
 	/**
@@ -242,15 +231,24 @@ public class OpenStackNetworkConfigurationHelper {
 	 *         otherwise.
 	 */
 	public boolean useManagementNetwork() {
-		return this.getManagementNetworkName() != null;
+		return this.getManagementNetworkPrefixedName() != null;
 	}
 
 	/**
-	 * Returns the management network name (defined in the configuration).
+	 * Returns <true> if the service recipe uses network template otherwise returns <code>false</code>.
 	 * 
-	 * @return Returns the management network name.
+	 * @return Returns <true> if the service recipe uses network template, returns <code>false</code> otherwise.
 	 */
-	public String getManagementNetworkName() {
+	public boolean useApplicationNetworkTemplate() {
+		return this.applicationNetworkConfiguration != null;
+	}
+
+	/**
+	 * Returns the management network name prefixed with the management group name.<br />
+	 * 
+	 * @return Returns the management network prefixed name.
+	 */
+	public String getManagementNetworkPrefixedName() {
 		if (this.managementNetworkConfiguration != null) {
 			return managementNetworkPrefixName + managementNetworkConfiguration.getName();
 		}
@@ -258,24 +256,26 @@ public class OpenStackNetworkConfigurationHelper {
 	}
 
 	/**
+	 * Returns the application network name prefixed with the management group name and application name.<br />
+	 * 
+	 * @return Returns the application network prefixed name.
+	 */
+	public String getApplicationNetworkPrefixedName() {
+		if (this.applicationNetworkConfiguration != null) {
+			return applicationNetworkPrefixName + applicationNetworkConfiguration.getName();
+		}
+		return null;
+
+	}
+
+	/**
 	 * <p>
 	 * Returns the name of the private IP network to use.
 	 * </p>
 	 * <p>
-	 * For the Cloudify managers, that would be :
 	 * <ol>
 	 * <li>The management network if exists.</li>
-	 * <li>If the management network does not exist, it would be the first network in the computeNetwork list.</li>
-	 * </ol>
-	 * </p>
-	 * <p>
-	 * For the Cloudify agents, that would be :
-	 * <ol>
-	 * <li>The management network if exists.</li>
-	 * <li>If none, the network defined in the service recipe.</li>
-	 * <li>If none, the first network defined in the computeNetwork (from the cloudCompute of the service).</li>
-	 * <li>If none, the first network in the network template.</li>
-	 * <li>If none, the same private IP network as the management machines.</li>
+	 * <li>Otherwise, it's the first network defined in the computeNetwork (from the cloudCompute in groovy DSL).</li>
 	 * </ol>
 	 * </p>
 	 * 
@@ -283,72 +283,13 @@ public class OpenStackNetworkConfigurationHelper {
 	 */
 	public String getPrivateIpNetworkName() {
 		String name = null;
-
 		if (this.useManagementNetwork()) {
 			// If there is a management network then there it is
-			name = this.getManagementNetworkName();
+			name = this.getManagementNetworkPrefixedName();
 		} else {
-			if (this.management) {
-				// If none of the below cases, then it would be the first network of computeNetworks.
-				name = managementComputeNetworks.get(0);
-			} else {
-				if (this.serviceUseNetworkTemplate) {
-					// If no management network but the service specified the network template network.
-					// Then it would be the network in the template
-					name = applicationNetworkPrefixName + serviceNetworkConfiguration.getName();
-				} else if (!serviceComputeNetworks.isEmpty()) {
-					// If none then it would be the first network of computeNetworks.
-					name = serviceComputeNetworks.get(0);
-				} else {
-					// If still none then use the same as the management computeNetwork
-					name = managementComputeNetworks.get(0);
-				}
-			}
+			name = computeNetworks.get(0);
 		}
 		return name;
-	}
-
-	private boolean isServiceAndManagementNotSameNetwork() {
-		return !this.serviceNetworkConfiguration.getName().equals(this.managementNetworkConfiguration.getName());
-	}
-
-	/**
-	 * Returns the application network name (only one).
-	 * 
-	 * <p>
-	 * For the Cloudify managers, returns <code>null</code>.
-	 * </p>
-	 * 
-	 * <p>
-	 * For the Cloudify agents:
-	 * <ol>
-	 * <li>The network defined in the service recipe.</li>
-	 * <li>If none, the first network defined in the computeNetwork (from the cloudCompute of the service).</li>
-	 * <li>If none, the first network in the network template.</li>
-	 * <li>If none, the same private IP network as the management machines.</li>
-	 * </ol>
-	 * </p>
-	 * 
-	 * @return Returns the application network name (only one).
-	 */
-	public String getApplicationNetworkName() {
-		if (this.management) {
-			return null;
-		} else {
-			if (this.serviceUseNetworkTemplate) {
-				return this.applicationNetworkPrefixName + this.getNetworkConfiguration().getName();
-			} else {
-				if (!this.getComputeNetworks().isEmpty()) {
-					return this.getComputeNetworks().get(0);
-				} else if (this.isServiceAndManagementNotSameNetwork()) {
-					return this.applicationNetworkPrefixName + this.serviceNetworkConfiguration.getName();
-				} else if (this.useManagementNetwork()) {
-					return this.getManagementNetworkName();
-				} else {
-					return managementComputeNetworks.get(0);
-				}
-			}
-		}
 	}
 
 	/**
@@ -357,7 +298,7 @@ public class OpenStackNetworkConfigurationHelper {
 	 * @return Returns the network names defined in the computeNetworks.
 	 */
 	public List<String> getComputeNetworks() {
-		return management ? this.managementComputeNetworks : this.serviceComputeNetworks;
+		return this.computeNetworks;
 	}
 
 	public AccessRules getServiceAccessRules() {
@@ -479,9 +420,9 @@ public class OpenStackNetworkConfigurationHelper {
 			final String associate =
 					this.managementNetworkConfiguration.getCustom().get(ASSOCIATE_FLOATING_IP_ON_BOOTSTRAP);
 			return BooleanUtils.toBoolean(associate);
-		} else if (this.serviceNetworkConfiguration != null) {
+		} else if (this.applicationNetworkConfiguration != null) {
 			final String associate =
-					this.serviceNetworkConfiguration.getCustom().get(ASSOCIATE_FLOATING_IP_ON_BOOTSTRAP);
+					this.applicationNetworkConfiguration.getCustom().get(ASSOCIATE_FLOATING_IP_ON_BOOTSTRAP);
 			return BooleanUtils.toBoolean(associate);
 		}
 		return false;
