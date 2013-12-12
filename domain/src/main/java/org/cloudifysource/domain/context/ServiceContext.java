@@ -160,16 +160,21 @@ public interface ServiceContext {
 	String getBindAddress();
 	
 	/**
-	 * Enables the GSA failure detection of the PU instance.
+	 * Enables the host machine failure detection for a specific service instance. Machine
+	 * failure or restart will result in the provisioning of a new machine instance.
+	 * 
 	 */
 	void stopMaintenanceMode();
 	
 	/**
-	 * Disables the GSA failure detection of the calling PU instance.
+	 * Disables the host machine failure detection for a specific service instance.
+	 * During the time period provided, machine state will be ignored and hence a new machine
+	 * instance will NOT be auto-started upon machine failure or restart.
+	 * 
 	 * @param timeout
-	 * 			timeout before GSA failure detection is enabled.
+	 * 			Timeout before host machine failure detection is enabled.
 	 * @param unit
-	 * 			timeout unit.
+	 * 			Timeout unit.
 	 */
 	void startMaintenanceMode(final long timeout, final TimeUnit unit);
 	
