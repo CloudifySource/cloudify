@@ -12,6 +12,8 @@
  *******************************************************************************/
 package org.cloudifysource.dsl.internal.validators;
 
+import groovy.lang.Closure;
+
 import java.util.Map;
 
 import org.cloudifysource.domain.DSLValidation;
@@ -51,7 +53,7 @@ public class ServiceLifecycleValidator implements DSLValidator {
 		if(monitors == null) {
 			return;
 		}
-		if (monitors instanceof ClosureExecutableEntry) {
+		if (monitors instanceof Closure<?>) {
 				return;
 		}
 		
