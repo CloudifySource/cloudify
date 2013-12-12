@@ -811,6 +811,8 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 				logger.warning("Rule already exists: " + request);
 				return null;
 
+			} else {
+				logger.warning(e.getMessage());
 			}
 		}
 		final SecurityGroupRule created = JsonUtils.unwrapRootToObject(SecurityGroupRule.class, response);

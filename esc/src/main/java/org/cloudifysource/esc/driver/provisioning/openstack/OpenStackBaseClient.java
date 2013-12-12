@@ -109,7 +109,7 @@ public abstract class OpenStackBaseClient {
 	private void initToken() throws OpenstackJsonSerializationException {
 		final Client client = Client.create();
 		if (WIRE_LOGGER.isLoggable(Level.FINE)) {
-			this.serviceClient.addFilter(new LoggingFilter(WIRE_LOGGER));
+			client.addFilter(new LoggingFilter(WIRE_LOGGER));
 		}
 		try {
 			if (logger.isLoggable(Level.FINE)) {
