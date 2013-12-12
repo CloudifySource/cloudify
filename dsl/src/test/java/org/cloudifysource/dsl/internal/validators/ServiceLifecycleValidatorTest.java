@@ -115,7 +115,7 @@ public class ServiceLifecycleValidatorTest {
 			private static final long serialVersionUID = 1L;
 		};
 		
-		dslEntity.setMonitors(ExecutableDSLEntryFactory.createEntry(closure, "monitors", new File(".")));
+		dslEntity.setMonitors(closure);
 		fixture.setDSLEntity(dslEntity);
 		DSLValidationContext validationContext = new DSLValidationContext();
 
