@@ -12,11 +12,15 @@
  ******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning.openstack;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.TimeUnit;
@@ -25,7 +29,6 @@ import java.util.logging.Level;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
-import org.cloudifysource.domain.ServiceNetwork;
 import org.cloudifysource.domain.cloud.AgentComponent;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.DeployerComponent;
@@ -37,10 +40,9 @@ import org.cloudifysource.domain.cloud.RestComponent;
 import org.cloudifysource.domain.cloud.UsmComponent;
 import org.cloudifysource.domain.cloud.WebuiComponent;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
-import org.cloudifysource.domain.cloud.network.CloudNetwork;
-import org.cloudifysource.domain.cloud.network.ManagementNetwork;
 import org.cloudifysource.domain.cloud.network.NetworkConfiguration;
 import org.cloudifysource.domain.network.AccessRule;
+import org.cloudifysource.domain.network.AccessRules;
 import org.cloudifysource.domain.network.PortRange;
 import org.cloudifysource.domain.network.PortRangeEntry;
 import org.cloudifysource.domain.network.PortRangeFactory;
@@ -52,6 +54,7 @@ import org.cloudifysource.esc.driver.provisioning.ComputeDriverConfiguration;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ManagementProvisioningContext;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningContext;
+import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.FloatingIp;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Network;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServer;
@@ -64,8 +67,12 @@ import org.cloudifysource.esc.driver.provisioning.openstack.rest.RouterExternalG
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.SecurityGroup;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.SecurityGroupRule;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Subnet;
+import org.cloudifysource.esc.driver.provisioning.validation.ValidationMessageType;
+import org.cloudifysource.esc.driver.provisioning.validation.ValidationResultType;
 import org.openspaces.admin.application.Application;
 import org.openspaces.admin.application.Applications;
+
+import com.j_spaces.kernel.Environment;
 
 /**
  * Openstack Driver which creates security groups and networks.
@@ -75,6 +82,9 @@ import org.openspaces.admin.application.Applications;
  * 
  */
 public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
+
+	private static final String CLOUDS_FOLDER_PATH = Environment.getHomeDirectory() + "clouds";
+	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
 
 	private static final String MANAGEMENT_PUBLIC_ROUTER_NAME = "management-public-router";
 	private static final String DEFAULT_PROTOCOL = "tcp";
@@ -89,9 +99,9 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	public static final String OPT_KEY_PAIR = "keyPairName";
 	/**
 	 * Key to set endpoint. <br />
-	 * For instance: <code>jclouds.endpoint="https://<IP>:5000/v2.0/"</code>
+	 * For instance: <code>openstack.endpoint="https://<IP>:5000/v2.0/"</code>
 	 * */
-	public static final String JCLOUDS_ENDPOINT = "jclouds.endpoint";
+	public static final String OPENSTACK_ENDPOINT = "openstack.endpoint";
 	/**
 	 * Set the name to search to find openstack compute endpoint (default="nova"). <br />
 	 * For instance: <code>computeServiceName="nova"</code>
@@ -128,85 +138,34 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 	private OpenStackComputeClient computeApi;
 	private OpenStackNetworkClient networkApi;
+	private OpenStackNetworkConfigurationHelper networkHelper;
 
-	private SecurityGroupNames securityGroupNames;
-
-	private String managementNetworkName;
-	private String applicationNetworkName;
-	private NetworkConfiguration networkConfiguration;
+	private OpenStackResourcePrefixes openstackPrefixes;
 
 	private String applicationName;
-
-	private boolean skipExternalNetworking;
-	private String externalRouterName;
-	private String externalNetworkName;
-	private boolean associateFloatingIp;
 
 	public static String getDefaultMangementPrefix() {
 		return MANAGMENT_MACHINE_PREFIX;
 	}
 
+	private static ResourceBundle defaultProvisioningDriverMessageBundle = ResourceBundle.getBundle(
+			"DefaultProvisioningDriverMessages", Locale.getDefault());
+
 	@Override
 	public void setConfig(final ComputeDriverConfiguration configuration) throws CloudProvisioningException {
+		this.networkHelper = new OpenStackNetworkConfigurationHelper(configuration);
+
 		super.setConfig(configuration);
 
-		final String serviceName;
+		String serviceName = null;
 		if (!this.management) {
 			final FullServiceName fsn = ServiceUtils.getFullServiceName(configuration.getServiceName());
 			applicationName = fsn.getApplicationName();
 			serviceName = fsn.getServiceName();
-		} else {
-			applicationName = null;
-			serviceName = null;
 		}
-
 		String managementGroup = cloud.getProvider().getManagementGroup();
 		managementGroup = managementGroup == null ? MANAGMENT_MACHINE_PREFIX : managementGroup;
-
-		this.securityGroupNames = new SecurityGroupNames(managementGroup, applicationName, serviceName);
-
-		// Init networks names
-		final ManagementNetwork managementNetwork = this.cloud.getCloudNetwork().getManagement();
-		final NetworkConfiguration managementNetworkConfig = managementNetwork.getNetworkConfiguration();
-		this.managementNetworkName = managementNetworkConfig.getName();
-		if (management) {
-			if (this.managementNetworkName == null) {
-				throw new CloudProvisioningException("The management network network must be provided");
-			}
-			final ComputeTemplate template = this.cloud.getCloudCompute().getTemplates()
-					.get(this.cloud.getConfiguration().getManagementMachineTemplate());
-			final String extRouterName = (String) template.getOptions().get(OPT_EXTERNAL_ROUTER_NAME);
-			this.externalRouterName = StringUtils.isEmpty(extRouterName) ? null : extRouterName;
-
-			final String extNetName = (String) template.getOptions().get(OPT_EXTERNAL_NETWORK_NAME);
-			this.externalNetworkName = StringUtils.isEmpty(extNetName) ? null : extNetName;
-
-			final String skipExtNetStr = (String) template.getOptions().get(OPT_SKIP_EXTERNAL_NETWORKING);
-			this.skipExternalNetworking = BooleanUtils.toBoolean(skipExtNetStr);
-
-			this.networkConfiguration = managementNetworkConfig;
-		} else {
-			final CloudNetwork cloudNetwork = this.cloud.getCloudNetwork();
-			final Map<String, NetworkConfiguration> templates = cloudNetwork.getTemplates();
-			if (templates == null || templates.isEmpty()) {
-				throw new IllegalStateException("No network template found.");
-			}
-
-			// If no template defined in service network, use one by default.
-			final ServiceNetwork serviceNetwork = this.configuration.getNetwork();
-			if (serviceNetwork == null || StringUtils.isEmpty(serviceNetwork.getTemplate())) {
-				// Get the first network found if none specified.
-				final String networkTemplateName = templates.keySet().iterator().next();
-				this.networkConfiguration = templates.get(networkTemplateName);
-			} else {
-				this.networkConfiguration = templates.get(serviceNetwork.getTemplate());
-			}
-
-			this.applicationNetworkName = networkConfiguration.getName();
-		}
-
-		final String associateFloatingIp = this.networkConfiguration.getCustom().get("associateFloatingIpOnBootstrap");
-		this.associateFloatingIp = BooleanUtils.toBoolean(associateFloatingIp);
+		this.openstackPrefixes = new OpenStackResourcePrefixes(managementGroup, applicationName, serviceName);
 	}
 
 	private void initManagementSecurityGroups() throws CloudProvisioningException {
@@ -227,14 +186,14 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			this.cleanAllSecurityGroups();
 
 			// ** Create Cluster security group
-			final SecurityGroup clusterSecgroup = this.createSecurityGroup(this.securityGroupNames.getClusterName());
+			final SecurityGroup clusterSecgroup = this.createSecurityGroup(this.openstackPrefixes.getClusterName());
 
 			// ** Create Management security group
-			final String managementSecgroupName = this.securityGroupNames.getManagementName();
+			final String managementSecgroupName = this.openstackPrefixes.getManagementName();
 			final SecurityGroup managementSecurityGroup = this.createSecurityGroup(managementSecgroupName);
 
 			// ** Create Agent security groups
-			final String agentSecgroupName = this.securityGroupNames.getAgentName();
+			final String agentSecgroupName = this.openstackPrefixes.getAgentName();
 			final SecurityGroup agentSecurityGroup = this.createSecurityGroup(agentSecgroupName);
 
 			// ** Create Management rules
@@ -285,7 +244,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	}
 
 	private void cleanAllSecurityGroups() throws OpenstackException {
-		final String prefix = this.securityGroupNames.getPrefix();
+		final String prefix = this.openstackPrefixes.getPrefix();
 		final List<SecurityGroup> securityGroupsByName = this.networkApi.getSecurityGroupsByPrefix(prefix);
 		for (final SecurityGroup securityGroup : securityGroupsByName) {
 			this.networkApi.deleteSecurityGroup(securityGroup.getId());
@@ -333,7 +292,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		String endpoint = null;
 		final Map<String, Object> overrides = cloudTemplate.getOverrides();
 		if (overrides != null && !overrides.isEmpty()) {
-			endpoint = (String) overrides.get(JCLOUDS_ENDPOINT);
+			endpoint = (String) overrides.get(OPENSTACK_ENDPOINT);
 		}
 
 		final String networkApiVersion = (String) cloudTemplate.getOptions().get(OPT_NETWORK_API_VERSION);
@@ -355,6 +314,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 					computeServiceName);
 			this.networkApi = new OpenStackNetworkClient(endpoint, username, password, tenant, region,
 					networkServiceName, networkApiVersion);
+
 		} catch (OpenstackJsonSerializationException e) {
 			throw new IllegalStateException(e);
 		}
@@ -372,12 +332,23 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 		try {
 			// Create application secgroups
-			this.createSecurityGroup(this.securityGroupNames.getApplicationName());
-			this.createSecurityGroup(this.securityGroupNames.getServiceName());
+			this.createSecurityGroup(this.openstackPrefixes.getApplicationName());
+			this.createSecurityGroup(this.openstackPrefixes.getServiceName());
 			this.createSecurityGroupsRules();
 
-			// Create application/service network
-			this.createNetwork();
+			if (networkHelper.useApplicationNetworkTemplate()) {
+				// Network
+				final Network network = this.getOrCreateNetwork(this.networkHelper.getApplicationNetworkPrefixedName());
+				if (network != null) {
+					// Subnets
+					final NetworkConfiguration networkTemplate = this.networkHelper.getApplicationNetworkTemplate();
+					final List<org.cloudifysource.domain.cloud.network.Subnet> subnets =
+							networkTemplate.getSubnets();
+					for (final org.cloudifysource.domain.cloud.network.Subnet subnetConfig : subnets) {
+						this.getOrCreateSubnet(subnetConfig, network);
+					}
+				}
+			}
 
 			final String groupName =
 					serverNamePrefix + this.configuration.getServiceName() + "-" + counter.incrementAndGet();
@@ -389,21 +360,6 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		} catch (final OpenstackException e) {
 			throw new CloudProvisioningException("Failed to start cloud machine", e);
 		}
-	}
-
-	private void createNetwork() throws CloudProvisioningException, OpenstackException {
-
-		// Network
-		final Network network = this.getOrCreateNetwork(networkConfiguration);
-
-		if (network != null) {
-			// Subnet
-			final List<org.cloudifysource.domain.cloud.network.Subnet> subnets = this.networkConfiguration.getSubnets();
-			for (final org.cloudifysource.domain.cloud.network.Subnet subnetConfig : subnets) {
-				this.getOrCreateSubnet(subnetConfig, network);
-			}
-		}
-
 	}
 
 	@Override
@@ -431,7 +387,9 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		this.initManagementSecurityGroups();
 
 		// Create management networks
-		this.createManagementNetwork();
+		if (networkHelper.useManagementNetwork()) {
+			this.createManagementNetworkAndSubnets();
+		}
 
 		// launch the management machines
 		publishEvent(EVENT_ATTEMPT_START_MGMT_VMS);
@@ -441,27 +399,26 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		return createdMachines;
 	}
 
-	private void createManagementNetwork() throws CloudProvisioningException {
+	private void createManagementNetworkAndSubnets() throws CloudProvisioningException {
 		try {
 			// Clear existing network
 			this.cleanAllNetworks();
 
-			final ManagementNetwork managementNetwork = this.cloud.getCloudNetwork().getManagement();
-			final NetworkConfiguration networkConfiguration = managementNetwork.getNetworkConfiguration();
-
 			// Network
-			final Network network = this.getOrCreateNetwork(networkConfiguration);
+			final Network network = this.getOrCreateNetwork(this.networkHelper.getManagementNetworkPrefixedName());
 
-			// Subnet
-			final Subnet subnet;
-			if (networkConfiguration.getSubnets() == null || networkConfiguration.getSubnets().isEmpty()) {
-				subnet = this.getOrCreateSubnet(null, network);
-			} else {
-				subnet = this.getOrCreateSubnet(networkConfiguration.getSubnets().get(0), network);
+			// Subnets
+			final NetworkConfiguration networkTemplate = this.networkHelper.getManagementNetworkTemplate();
+			final List<Subnet> subnets = new ArrayList<Subnet>();
+			if (networkTemplate.getSubnets() != null) {
+				for (org.cloudifysource.domain.cloud.network.Subnet subnetConfig : networkTemplate.getSubnets()) {
+					Subnet subnet = this.getOrCreateSubnet(subnetConfig, network);
+					subnets.add(subnet);
+				}
 			}
 
-			if (!this.skipExternalNetworking) {
-				this.createExternalNetworking(network, subnet);
+			if (!this.networkHelper.skipExternalNetworking()) {
+				this.createExternalNetworking(network, subnets.get(0));
 			}
 		} catch (final Exception e) {
 			try {
@@ -477,34 +434,33 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			throws OpenstackException, CloudProvisioningException {
 
 		final Router router;
-		if (this.externalRouterName == null) {
+		if (this.networkHelper.isCreateExternalRouter()) {
 			final String publicNetworkId;
-			if (this.externalNetworkName == null) {
+			if (this.networkHelper.isExternalNetworkNameSpecified()) {
 				publicNetworkId = networkApi.getPublicNetworkId();
 			} else {
-				Network extNetwork = networkApi.getNetworkByName(this.externalNetworkName);
+				Network extNetwork = networkApi.getNetworkByName(this.networkHelper.getExternalNetworkName());
 				if (extNetwork == null) {
 					throw new CloudProvisioningException("Couldn't find external network '"
-							+ this.externalNetworkName + "'");
+							+ this.networkHelper.getExternalNetworkName() + "'");
 				}
 				if (!BooleanUtils.toBoolean(extNetwork.getRouterExternal())) {
 					throw new CloudProvisioningException("The network '"
-							+ this.externalNetworkName + "' is not an external network");
+							+ this.networkHelper.getExternalNetworkName() + "' is not an external network");
 				}
 
 				publicNetworkId = extNetwork.getId();
 			}
 			final Router request = new Router();
-			request.setName(this.securityGroupNames.getPrefix() + MANAGEMENT_PUBLIC_ROUTER_NAME);
+			request.setName(this.openstackPrefixes.getPrefix() + MANAGEMENT_PUBLIC_ROUTER_NAME);
 			request.setAdminStateUp(true);
 			request.setExternalGatewayInfo(new RouterExternalGatewayInfo(publicNetworkId));
 			router = networkApi.createRouter(request);
 		} else {
-			router = networkApi.getRouterByName(this.externalRouterName);
+			router = networkApi.getRouterByName(this.networkHelper.getExternalRouterName());
 			if (router == null) {
 				throw new CloudProvisioningException("Couldn't find external router '"
-						+ this.externalRouterName
-						+ "'");
+						+ this.networkHelper.getExternalRouterName() + "'");
 			}
 		}
 
@@ -521,16 +477,18 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			final Network network) throws CloudProvisioningException, OpenstackException {
 		Subnet subnet = null;
 		if (subnetConfig == null) {
-			// Try to get an existing subnet
+			// There is no subnet in the configuration, try to get an existing one
 			final List<Subnet> subnets = networkApi.getSubnetsByNetworkId(network.getId());
 			if (subnets != null && subnets.size() != 0) {
 				subnet = subnets.get(0);
+			} else {
+				throw new CloudProvisioningException("The network '" + network.getName() + "' must have a subnet");
 			}
 		} else {
 			// Search for a subnet with the specified name
 			final List<Subnet> subnets = networkApi.getSubnetsByNetworkId(network.getId());
 			for (Subnet sn : subnets) {
-				if (subnetConfig.getName().equals(sn.getName())) {
+				if (sn.getName().equals(subnetConfig.getName())) {
 					subnet = sn;
 					break;
 				}
@@ -544,13 +502,11 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		return subnet;
 	}
 
-	private Network getOrCreateNetwork(final NetworkConfiguration networkConfiguration)
-			throws OpenstackException, CloudProvisioningException {
-
-		Network network = networkApi.getNetworkByName(networkConfiguration.getName());
+	private Network getOrCreateNetwork(final String networkName) throws OpenstackException, CloudProvisioningException {
+		Network network = networkApi.getNetworkByName(networkName);
 		if (network == null) {
 			final Network networkRequest = new Network();
-			networkRequest.setName(this.securityGroupNames.getPrefix() + networkConfiguration.getName());
+			networkRequest.setName(networkName);
 			networkRequest.setAdminStateUp(true);
 			network = networkApi.createNetworkIfNotExists(networkRequest);
 		}
@@ -564,9 +520,16 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		subnetRequest.setCidr(subnetConfig.getRange());
 		subnetRequest.setName(subnetConfig.getName());
 		subnetRequest.setEnableDhcp(true);
-		subnetRequest.addDnsNameservers("8.8.8.8");
-		if (subnetConfig.getOptions().containsKey("gateway")) {
-			final String gatewayStr = subnetConfig.getOptions().get("gateway");
+
+		final Map<String, String> options = subnetConfig.getOptions();
+
+		if (options.containsKey("dnsNameServers")) {
+			final String dnsNameServers = options.get("dnsNameServers");
+			subnetRequest.addDnsNameservers(dnsNameServers);
+		}
+
+		if (options.containsKey("gateway")) {
+			final String gatewayStr = options.get("gateway");
 			if (StringUtils.isNotEmpty(gatewayStr) && !"null".equals(gatewayStr)) {
 				subnetRequest.setGatewayIp(gatewayStr);
 				subnetRequest.addHostRoute(gatewayStr, "0.0.0.0/0"); // FIXME is it necessary ?
@@ -574,64 +537,56 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 				subnetRequest.setGatewayIp("null");
 			}
 		}
+
 		subnetRequest.setIpVersion("4");
 		return subnetRequest;
 	}
 
 	private void cleanAllNetworks() throws OpenstackException {
 
-		// boolean to know if we have to delete the management or create.
-		boolean deleteManagementNetwork = false;
-
-		// Get a network without the prefix name.
-		Network network = networkApi.getNetworkByName(this.networkConfiguration.getName());
-
-		// If no network has been found, it means that the network has been created by the driver.
-		// So we must delete it.
-		if (network == null) {
-			network = networkApi.getNetworkByName(this.securityGroupNames.getPrefix() + this.managementNetworkName);
-			deleteManagementNetwork = true;
-		}
-
-		// Delete external router
-		if (!this.skipExternalNetworking) {
+		// Clean external router
+		if (!this.networkHelper.skipExternalNetworking()) {
 			final Router router;
-			if (this.externalRouterName == null) {
-				router =
-						networkApi.getRouterByName(this.securityGroupNames.getPrefix()
-								+ MANAGEMENT_PUBLIC_ROUTER_NAME);
+			if (this.networkHelper.isCreateExternalRouter()) {
+				// The driver has created an external router
+				router = networkApi.getRouterByName(this.openstackPrefixes.getPrefix()
+						+ MANAGEMENT_PUBLIC_ROUTER_NAME);
 			} else {
-				router = networkApi.getRouterByName(this.externalRouterName);
+				// User has specified an external router to use
+				router = networkApi.getRouterByName(this.networkHelper.getExternalRouterName());
 			}
 
 			if (router != null) {
-				if (network != null) {
-					final List<org.cloudifysource.domain.cloud.network.Subnet> configSubnets =
-							networkConfiguration.getSubnets();
-					final List<Subnet> subnets = networkApi.getSubnetsByNetworkId(network.getId());
-					for (final org.cloudifysource.domain.cloud.network.Subnet subConf : configSubnets) {
-						for (final Subnet subnet : subnets) {
-							if (StringUtils.equals(subnet.getName(), subConf.getName()) && subnet.getName() != null) {
-								networkApi.deleteRouterInterface(router.getId(), subnet.getId());
-								break;
+				try {
+					final String privateIpNetworkName = this.networkHelper.getPrivateIpNetworkName();
+					Network privateNetwork = this.networkApi.getNetworkByName(privateIpNetworkName);
+					String[] privateNetSubnetIds = privateNetwork.getSubnets();
+
+					final List<Port> ports = networkApi.getPortsByDeviceId(router.getId());
+					for (final Port port : ports) {
+						for (final RouteFixedIp fixedIp : port.getFixedIps()) {
+							for (final String id : privateNetSubnetIds) {
+								if (id.equals(fixedIp.getSubnetId())) {
+									networkApi.deleteRouterInterface(router.getId(), fixedIp.getSubnetId());
+								}
 							}
 						}
 					}
+				} catch (final Exception e) {
+					// If the private network doesn't exist there is no consequences:
+					// we can't detached a network which doesn't exist anymore.
+					logger.log(Level.WARNING, "Could not remove an interface from external router", e);
 				}
-				if (this.externalRouterName == null) {
+
+				if (this.networkHelper.isCreateExternalRouter()) {
 					networkApi.deleteRouter(router.getId());
 				}
 			}
 		}
 
-		// Delete management networks
-		if (deleteManagementNetwork && network != null) {
-			networkApi.deleteNetwork(network.getId());
-		}
-
-		// Delete remaining application networks
-		List<Network> appliNetworks = networkApi.getNetworkByPrefix(this.securityGroupNames.getPrefix());
-		for (Network n : appliNetworks) {
+		// Delete all remaining application networks
+		final List<Network> appliNetworks = networkApi.getNetworkByPrefix(this.openstackPrefixes.getPrefix());
+		for (final Network n : appliNetworks) {
 			networkApi.deleteNetwork(n.getId());
 
 		}
@@ -697,14 +652,9 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		final String keyName = (String) template.getOptions().get(OPT_KEY_PAIR);
 
 		String serverId = null;
-		Port createdMngPort = null;
-		Port createdPort = null;
+		final List<String> reservedPortIds = new ArrayList<String>();
+
 		try {
-			Network managementNetwork = networkApi.getNetworkByName(this.managementNetworkName);
-			if (managementNetwork == null) {
-				managementNetwork = networkApi.getNetworkByName(this.securityGroupNames.getPrefix()
-						+ this.managementNetworkName);
-			}
 
 			final NovaServerResquest request = new NovaServerResquest();
 			request.setName(serverName);
@@ -712,89 +662,96 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			request.setImageRef(imageId);
 			request.setFlavorRef(hardwareId);
 
-			// Determine which subnet of the management network to attach.
-			// If no subnet defined in the DSL, let openstack choose a subnet..
-			createdMngPort = this.addPortToRequest(managementNetwork,
-					this.cloud.getCloudNetwork().getManagement().getNetworkConfiguration(), request);
+			// Add management network if exists
+			if (this.networkHelper.useManagementNetwork()) {
+				final String managementNetworkName = this.networkHelper.getManagementNetworkPrefixedName();
+				final Network managementNetwork = this.networkApi.getNetworkByName(managementNetworkName);
 
-			if (!management) {
-				if (!this.managementNetworkName.equals(this.applicationNetworkName)) {
-					// Attach application network to the server
-					Network appliNetwork = networkApi.getNetworkByName(this.applicationNetworkName);
-					if (appliNetwork == null) {
-						appliNetwork = networkApi.getNetworkByName(this.securityGroupNames.getPrefix()
-								+ this.applicationNetworkName);
-					}
-					createdPort = this.addPortToRequest(appliNetwork, this.networkConfiguration, request);
+				final Port port = this.addPortToRequest(request,
+						managementNetwork.getId(), managementNetwork.getSubnets());
+
+				reservedPortIds.add(port.getId());
+			}
+
+			// Add compute networks
+			for (final String networkName : this.networkHelper.getComputeNetworks()) {
+				final Network network = this.networkApi.getNetworkByName(networkName);
+				if (network == null) {
+					throw new CloudProvisioningException("Couldn't find network '" + networkName + "'");
 				}
+
+				final Port port = this.addPortToRequest(request, network.getId(), network.getSubnets());
+				reservedPortIds.add(port.getId());
+			}
+
+			// Add template networks
+			if (!management && this.networkHelper.useApplicationNetworkTemplate()) {
+				final String prefixedAppliNetworkName = this.networkHelper.getApplicationNetworkPrefixedName();
+				final Network templateNetwork = this.networkApi.getNetworkByName(prefixedAppliNetworkName);
+
+				final Port port = this.addPortToRequest(request,
+						templateNetwork.getId(), templateNetwork.getSubnets());
+				reservedPortIds.add(port.getId());
 			}
 
 			NovaServer newServer = computeApi.createServer(request);
 			serverId = newServer.getId();
 			newServer = this.waitForServerToBecomeReady(serverId, endTime);
 
-			// ** Floating ips
-			if (this.associateFloatingIp) {
-				networkApi.createAndAssociateFloatingIp(serverId, managementNetwork.getId());
+			// Add security groups to all ports
+			if (management) {
+				this.addSecurityGroupsToServer(serverId,
+						this.openstackPrefixes.getManagementName(),
+						this.openstackPrefixes.getClusterName());
+			} else {
+				this.addSecurityGroupsToServer(serverId,
+						this.openstackPrefixes.getAgentName(),
+						this.openstackPrefixes.getClusterName(),
+						this.openstackPrefixes.getApplicationName(),
+						this.openstackPrefixes.getServiceName());
 			}
 
-			// ** Assign security groups
-			if (this.management) {
-				// Add management secgroup to cloudify management network
-				this.addSecurityGroupsToNetwork(serverId, managementNetwork, new String[] {
-						this.securityGroupNames.getManagementName(),
-						this.securityGroupNames.getClusterName() });
-			} else {
-				// Add agent secgroup to cloudify management network
-				this.addSecurityGroupsToNetwork(serverId, managementNetwork, new String[] {
-						this.securityGroupNames.getAgentName(),
-						this.securityGroupNames.getClusterName(),
-						this.securityGroupNames.getServiceName() });
-
-				// Add cluster, application and service secgroups to the application private network
-				Network appliNetwork = networkApi.getNetworkByName(this.applicationNetworkName);
-				if (appliNetwork == null) {
-					appliNetwork = networkApi.getNetworkByName(this.securityGroupNames.getPrefix()
-							+ this.applicationNetworkName);
+			// Add static security groups
+			Object securityGroupsObj = template.getOptions().get("securityGroupNames");
+			if (securityGroupsObj == null) {
+				securityGroupsObj = template.getOptions().get("securityGroups");
+			}
+			if (securityGroupsObj != null) {
+				if (securityGroupsObj instanceof String[]) {
+					this.addSecurityGroupsToServer(serverId, (String[]) securityGroupsObj);
 				}
-				this.addSecurityGroupsToNetwork(serverId, appliNetwork, new String[] {
-						this.securityGroupNames.getClusterName(),
-						this.securityGroupNames.getApplicationName(),
-						this.securityGroupNames.getServiceName() });
+			}
+
+			// Associate floating ips if configured
+			if (this.networkHelper.associateFloatingIp()) {
+				final String privateIPNetworkName = this.networkHelper.getPrivateIpNetworkName();
+				final Network privateIpNetwork = this.networkApi.getNetworkByName(privateIPNetworkName);
+				networkApi.createAndAssociateFloatingIp(serverId, privateIpNetwork.getId());
 			}
 
 			final MachineDetails md = this.createMachineDetails(template, newServer);
 
 			return md;
 		} catch (final Exception e) {
-			// catch any exception - to prevent a cloud machine leaking.
-			logger.log(Level.SEVERE,
-					"Cloud machine was started but an error occured during initialization. Shutting down machine", e);
+			logger.log(Level.SEVERE, "An error occured during initialization."
+					+ " Shutting down machine and cleaning openstack resources", e);
 			if (serverId != null) {
 				try {
 					computeApi.deleteServer(serverId);
 				} catch (final OpenstackException e1) {
-					throw new CloudProvisioningException(e1);
+					logger.log(Level.WARNING, "Cleaning after error. Could not delete server.", e1);
 				}
 			} else {
-				if (createdPort != null) {
+				for (final String portId : reservedPortIds) {
 					try {
 						// Application port are created before the VM.
 						// So it can happen that port is created but an error occurs on VM instantiation.
 						// In this case, we have to clear the port.
-						// * Note: Port is delete with server deletion, so no need to handle port deletion once the
+						// * Note: Port is deleted with server deletion, so no need to handle port deletion once the
 						// server has been associated to the port.
-						networkApi.deletePort(createdPort.getId());
+						networkApi.deletePort(portId);
 					} catch (final OpenstackException e1) {
-						throw new CloudProvisioningException(e1);
-					}
-				}
-				if (createdMngPort != null) {
-					try {
-						// Same for management port.
-						networkApi.deletePort(createdMngPort.getId());
-					} catch (final OpenstackException e1) {
-						throw new CloudProvisioningException(e1);
+						logger.log(Level.WARNING, "Cleaning after error. Could not delete server.", e1);
 					}
 				}
 			}
@@ -802,53 +759,48 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		}
 	}
 
-	private Port addPortToRequest(final Network network, final NetworkConfiguration networkConfiguration,
-			final NovaServerResquest request) throws OpenstackException {
-		Port createdPort = null;
+	/**
+	 * Create a port to attached to the VM and add it to the request. <br />
+	 */
+	private Port addPortToRequest(final NovaServerResquest request, final String networkId, final String[] subnetIds)
+			throws OpenstackException {
 		final Port port = new Port();
-		final List<org.cloudifysource.domain.cloud.network.Subnet> configSubnets = networkConfiguration.getSubnets();
-		final List<Subnet> subnets = networkApi.getSubnetsByNetworkId(network.getId());
-		for (final org.cloudifysource.domain.cloud.network.Subnet subConf : configSubnets) {
-			for (Subnet subnet : subnets) {
-				if (StringUtils.equals(subnet.getName(), subConf.getName()) && subnet.getName() != null) {
-					final RouteFixedIp fixedIp = new RouteFixedIp();
-					fixedIp.setSubnetId(subnet.getId());
-					port.addFixedIp(fixedIp);
-				}
-			}
+		for (final String subnetId : subnetIds) {
+			final RouteFixedIp fixedIp = new RouteFixedIp();
+			fixedIp.setSubnetId(subnetId);
+			port.addFixedIp(fixedIp);
 		}
-		if (port.getFixedIps() != null && !port.getFixedIps().isEmpty()) {
-			port.setNetworkId(network.getId());
-			createdPort = networkApi.createPort(port);
-			final NovaServerNetwork nsn = new NovaServerNetwork();
-			nsn.setPort(createdPort.getId());
-			request.addNetworks(nsn);
-		} else {
-			request.addNetworks(network.getId());
-		}
+		port.setNetworkId(networkId);
+		final Port createdPort = this.networkApi.createPort(port);
+
+		final NovaServerNetwork nsn = new NovaServerNetwork();
+		nsn.setPort(createdPort.getId());
+		request.addNetworks(nsn);
+
 		return createdPort;
 	}
 
-	private void addSecurityGroupsToNetwork(final String serverId, final Network network,
-			final String[] securityGroupNames) throws OpenstackException {
-		final Port port = networkApi.getPort(serverId, network.getId());
+	private void addSecurityGroupsToServer(final String serverId, final String... securityGroupNames)
+			throws OpenstackException {
+		final List<Port> ports = networkApi.getPortsByDeviceId(serverId);
 
-		final Port updateRequest = new Port();
-		updateRequest.setId(port.getId());
-		for (final String sgn : securityGroupNames) {
-			final SecurityGroup sg = networkApi.getSecurityGroupsByName(sgn);
-			updateRequest.addSecurityGroup(sg.getId());
+		for (final Port port : ports) {
+			final Port updateRequest = new Port();
+			updateRequest.setId(port.getId());
+			for (final String sgn : securityGroupNames) {
+				final SecurityGroup sg = networkApi.getSecurityGroupsByName(sgn);
+				updateRequest.addSecurityGroup(sg.getId());
+			}
+			networkApi.updatePort(updateRequest);
 		}
-
-		networkApi.updatePort(updateRequest);
 	}
 
 	private void createSecurityGroupsRules() throws OpenstackException {
 
-		final String serviceSecgroupName = this.securityGroupNames.getServiceName();
+		final String serviceSecgroupName = this.openstackPrefixes.getServiceName();
 		final SecurityGroup serviceSecGroup = networkApi.getSecurityGroupsByName(serviceSecgroupName);
 
-		final String managementSecgroupName = this.securityGroupNames.getManagementName();
+		final String managementSecgroupName = this.openstackPrefixes.getManagementName();
 		final SecurityGroup managementSecGroup = networkApi.getSecurityGroupsByName(managementSecgroupName);
 
 		// Open the transfert mode port to the managers
@@ -864,14 +816,14 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		networkApi.createSecurityGroupRule(request);
 
 		// Create service rules
-		final ServiceNetwork network = this.configuration.getNetwork();
-		if (network != null) {
-			for (final AccessRule accessRule : network.getAccessRules().getIncoming()) {
+		final AccessRules accessRules = this.networkHelper.getServiceAccessRules();
+		if (accessRules != null) {
+			for (final AccessRule accessRule : accessRules.getIncoming()) {
 				this.createAccessRule(serviceSecGroup.getId(), "ingress", accessRule);
 			}
-			for (final AccessRule accessRule : network.getAccessRules().getOutgoing()) {
+			for (final AccessRule accessRule : accessRules.getOutgoing()) {
 				// If there is egress rules defined. we should delete the openstack default egress rules.
-				this.deleteEgressRulesFromSecurityGroup(this.securityGroupNames.getServiceName());
+				this.deleteEgressRulesFromSecurityGroup(this.openstackPrefixes.getServiceName());
 				this.createAccessRule(serviceSecGroup.getId(), "egress", accessRule);
 			}
 		}
@@ -903,15 +855,15 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			break;
 		case SERVICE:
 			// Rules with group filtering
-			group = this.securityGroupNames.getServiceName();
+			group = this.openstackPrefixes.getServiceName();
 			break;
 		case APPLICATION:
 			// Rules with group filtering
-			group = this.securityGroupNames.getApplicationName();
+			group = this.openstackPrefixes.getApplicationName();
 			break;
 		case CLUSTER:
 			// Rules with group filtering
-			group = this.securityGroupNames.getClusterName();
+			group = this.openstackPrefixes.getClusterName();
 			break;
 		case GROUP:
 			// Rules with group filtering
@@ -962,36 +914,32 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			md.setMachineId(server.getId());
 			md.setCloudifyInstalled(false);
 			md.setInstallationDirectory(null);
+			md.setOpenFilesLimit(template.getOpenFilesLimit());
 			// md.setInstallationDirectory(template.getRemoteDirectory());
 			// md.setRemoteDirectory(remoteDirectory);
-			md.setOpenFilesLimit(template.getOpenFilesLimit());
-			//
 			// md.setInstallerConfigutation(installerConfigutation);
 			// md.setKeyFile(keyFile);
 			// md.setLocationId(locationId);
 
-			final String prefix = this.securityGroupNames.getPrefix();
-			Network managementNetwork = networkApi.getNetworkByName(this.managementNetworkName);
-			if (managementNetwork == null) {
-				managementNetwork = networkApi.getNetworkByName(prefix + this.managementNetworkName);
-			}
-			final Port managementPort = networkApi.getPort(server.getId(), managementNetwork.getId());
-			final RouteFixedIp fixedIp = managementPort.getFixedIps().get(0);
+			final String privateIpNetworkName = this.networkHelper.getPrivateIpNetworkName();
+			final Network privateIpNetwork = this.networkApi.getNetworkByName(privateIpNetworkName);
+			final Port privateIpPort = networkApi.getPort(server.getId(), privateIpNetwork.getId());
+			final RouteFixedIp fixedIp = privateIpPort.getFixedIps().get(0);
 			md.setPrivateAddress(fixedIp.getIpAddress());
 
-			final FloatingIp floatingIp = networkApi.getFloatingIpByPortId(managementPort.getId());
-			if (floatingIp != null) {
-				md.setPublicAddress(floatingIp.getFloatingIpAddress());
+			if (this.networkHelper.associateFloatingIp()) {
+				final FloatingIp floatingIp = networkApi.getFloatingIpByPortId(privateIpPort.getId());
+				if (floatingIp != null) {
+					md.setPublicAddress(floatingIp.getFloatingIpAddress());
+				}
 			}
 
-			if (!management) {
+			final String applicationNetworkName = this.networkHelper.getApplicationNetworkPrefixedName();
+			if (applicationNetworkName != null) {
 				// Since it is possible that the service itself will prefer to be available only on the application
 				// network and not on all networks, the cloud driver should add an environment variable specifying the
 				// IP of the NIC that is connected to the application network.
-				Network appliNetwork = networkApi.getNetworkByName(this.applicationNetworkName);
-				if (appliNetwork == null) {
-					appliNetwork = networkApi.getNetworkByName(prefix + this.applicationNetworkName);
-				}
+				final Network appliNetwork = this.networkApi.getNetworkByName(applicationNetworkName);
 				final Port appliPort = networkApi.getPort(server.getId(), appliNetwork.getId());
 				final RouteFixedIp appliFixedIp = appliPort.getFixedIps().get(0);
 				Map<String, String> env = new HashMap<String, String>();
@@ -1099,7 +1047,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 				this.cleanAllSecurityGroups();
 				this.cleanAllNetworks();
 			} catch (final Exception e) {
-				logger.warning("Couldn't clean security groups " + this.securityGroupNames.getPrefix() + "*");
+				logger.warning("Couldn't clean security groups " + this.openstackPrefixes.getPrefix() + "*");
 			}
 		} finally {
 			if (this.computeApi != null) {
@@ -1125,7 +1073,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			// We must provide the security group name.
 			// Indeed with network support, 2 VMs of different services can now have the same ip address.
 			// We must be sure to delete the right server.
-			server = computeApi.getServerByIpAndSecurityGroup(serverIp, this.securityGroupNames.getServiceName());
+			server = computeApi.getServerByIpAndSecurityGroup(serverIp, this.openstackPrefixes.getServiceName());
 		} catch (final OpenstackException e) {
 			throw new CloudProvisioningException(e);
 		}
@@ -1160,19 +1108,20 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 	private void releaseFloatingIpsForServerId(final String serverId) {
 		try {
-			final List<Port> ports = networkApi.getPortsByServerId(serverId);
-			for (final Port port : ports) {
-				final FloatingIp floatingIp = networkApi.getFloatingIpByPortId(port.getId());
-				if (floatingIp != null) {
-					try {
-						logger.info("Deleting Floating ip: " + floatingIp);
-						networkApi.deleteFloatingIP(floatingIp.getId());
-					} catch (final Exception e) {
-						logger.warning("Couldn't delete floating ip: " + floatingIp + " cause: " + e.getMessage());
+			final List<Port> ports = networkApi.getPortsByDeviceId(serverId);
+			if (ports != null) {
+				for (final Port port : ports) {
+					final FloatingIp floatingIp = networkApi.getFloatingIpByPortId(port.getId());
+					if (floatingIp != null) {
+						try {
+							logger.info("Deleting Floating ip: " + floatingIp);
+							networkApi.deleteFloatingIP(floatingIp.getId());
+						} catch (final Exception e) {
+							logger.warning("Couldn't delete floating ip: " + floatingIp + " cause: " + e.getMessage());
+						}
 					}
 				}
 			}
-
 		} catch (final OpenstackException e) {
 			logger.log(Level.WARNING, "Could not release floating ip associated to server id='" + serverId + "'", e);
 		}
@@ -1225,32 +1174,29 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	public void onServiceUninstalled(final long duration, final TimeUnit unit) throws InterruptedException,
 			TimeoutException, CloudProvisioningException {
 
-		final String ssgName = this.securityGroupNames.getServiceName();
+		final String ssgName = this.openstackPrefixes.getServiceName();
 		logger.info("Service '" + ssgName + "'is being uninstall.");
 		try {
 			final Applications applications = this.admin.getApplications();
-			final Application application = applications.getApplication(applicationName);
+			final Application application = applications.getApplication(this.applicationName);
 			if (application == null) {
 				logger.info("No remaining services in the application.");
+
 				logger.info("Delete the application security group.");
-				final String applicationName = this.securityGroupNames.getApplicationName();
+				final String applicationName = this.openstackPrefixes.getApplicationName();
 				final SecurityGroup secgroup = this.networkApi.getSecurityGroupsByName(applicationName);
 				if (secgroup != null) {
 					networkApi.deleteSecurityGroup(secgroup.getId());
 				}
 
-				if (!this.managementNetworkName.equals(this.applicationNetworkName)) {
+				if (this.networkHelper.useApplicationNetworkTemplate()) {
 					logger.info("Delete the network.");
+					final String prefixedNetworkName = this.networkHelper.getApplicationNetworkPrefixedName();
 					try {
-						Network appliNetwork = networkApi.getNetworkByName(this.applicationNetworkName);
-						if (appliNetwork == null) {
-							appliNetwork = networkApi.getNetworkByName(this.securityGroupNames.getPrefix()
-									+ this.applicationNetworkName);
-						}
+						final Network appliNetwork = networkApi.getNetworkByName(prefixedNetworkName);
 						networkApi.deleteNetwork(appliNetwork.getId());
 					} catch (final Exception e) {
-						logger.warning("Network '" + this.applicationNetworkName + "' was not deleted: "
-								+ e.getMessage());
+						logger.warning("Network '" + prefixedNetworkName + "' was not deleted: " + e.getMessage());
 					}
 				}
 			}
@@ -1272,4 +1218,212 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		}
 
 	}
+
+	/**
+	 * returns the message as it appears in the DefaultProvisioningDriver message bundle.
+	 * 
+	 * @param msgName
+	 *            the message key as it is defined in the message bundle.
+	 * @param arguments
+	 *            the message arguments
+	 * @return the formatted message according to the message key.
+	 */
+	protected String getFormattedMessage(final String msgName, final Object... arguments) {
+		return getFormattedMessage(getDefaultProvisioningDriverMessageBundle(), msgName, arguments);
+	}
+
+	/**
+	 * Returns the message bundle of this cloud driver.
+	 * 
+	 * @return the message bundle of this cloud driver.
+	 */
+	protected static ResourceBundle getDefaultProvisioningDriverMessageBundle() {
+		if (defaultProvisioningDriverMessageBundle == null) {
+			defaultProvisioningDriverMessageBundle = ResourceBundle.getBundle("DefaultProvisioningDriverMessages",
+					Locale.getDefault());
+		}
+		return defaultProvisioningDriverMessageBundle;
+	}
+
+	@Override
+	public void validateCloudConfiguration(final ValidationContext validationContext)
+			throws CloudProvisioningException {
+
+		String templateName;
+		String cloudFolder = CLOUDS_FOLDER_PATH + FILE_SEPARATOR + cloud.getName();
+		String groovyFile = cloudFolder + FILE_SEPARATOR + cloud.getName() + "-cloud.groovy";
+		String propertiesFile = cloudFolder + FILE_SEPARATOR + cloud.getName() + "-cloud.properties";
+
+		validationContext.validationEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE,
+				getFormattedMessage("validating_all_templates"));
+
+		final Map<String, ComputeTemplate> templates = cloud.getCloudCompute().getTemplates();
+		for (Entry<String, ComputeTemplate> entry : templates.entrySet()) {
+
+			final ComputeTemplate computeTemplate = entry.getValue();
+			templateName = entry.getKey();
+
+			validationContext.validationEvent(ValidationMessageType.GROUP_VALIDATION_MESSAGE,
+					getFormattedMessage("validating_template", templateName));
+
+			final String imageLocation = computeTemplate.getImageId();
+			final String imageId = imageLocation.split("/")[1];
+			final String hardwareId = computeTemplate.getHardwareId().split("/")[1];
+			final String locationId = imageLocation.split("/")[0];
+
+			validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+					getFormattedMessage("validating_image_hardware_location_combination",
+							imageId == null ? "" : imageId, hardwareId == null ? "" : hardwareId,
+							locationId == null ? "" : locationId));
+
+			// validating imageIds
+			try {
+				if (imageId != null) {
+					try {
+						computeApi.getImage(imageId);
+					} catch (final OpenstackException e) {
+						validationContext.validationEventEnd(ValidationResultType.ERROR);
+						final String availableResources = this.formatResourceList(computeApi.getImages());
+						throw new CloudProvisioningException(
+								getFormattedMessage("error_image_id_validation",
+										imageId == null ? "" : imageId, availableResources));
+					}
+				}
+
+				// validating hardwareId
+				if (hardwareId != null) {
+					try {
+						computeApi.getFlavor(hardwareId);
+					} catch (final OpenstackException e) {
+						validationContext.validationEventEnd(ValidationResultType.ERROR);
+						final String availableResources = this.formatResourceList(computeApi.getFlavors());
+						throw new CloudProvisioningException(
+								getFormattedMessage("error_hardware_id_validation",
+										hardwareId == null ? "" : hardwareId, availableResources));
+					}
+				}
+			} catch (final OpenstackException ex) {
+				validationContext.validationEventEnd(ValidationResultType.ERROR);
+				throw new CloudProvisioningException(
+						getFormattedMessage("error_image_hardware_location_combination_validation",
+								imageId == null ? "" : imageId,
+								hardwareId == null ? "" : hardwareId, locationId == null ? "" : locationId,
+								groovyFile, propertiesFile), ex);
+			}
+
+			validationContext.validationEventEnd(ValidationResultType.OK);
+
+			// validating static securityGroupNames
+			final Map<String, Object> computeOptions = computeTemplate.getOptions();
+			if (computeOptions != null) {
+				Object securityGroups = computeOptions.get("securityGroupNames");
+				if (securityGroups == null) {
+					securityGroups = computeOptions.get("securityGroups");
+				}
+				if (securityGroups != null) {
+					if (securityGroups instanceof String[] && ((String[]) securityGroups).length > 0) {
+						final String[] scgArray = (String[]) securityGroups;
+						if (scgArray.length == 1) {
+							validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+									getFormattedMessage("validating_security_group", scgArray[0]));
+						} else {
+							validationContext.validationOngoingEvent(
+									ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+									getFormattedMessage("validating_security_groups",
+											org.cloudifysource.esc.util.StringUtils.arrayToString(scgArray, ", ")));
+						}
+
+						try {
+							final Set<String> missingList = new HashSet<String>();
+							final List<SecurityGroup> existingList = networkApi.getSecurityGroups();
+							for (int i = 0; i < scgArray.length; i++) {
+								boolean found = false;
+								if (existingList != null) {
+									for (final SecurityGroup existing : existingList) {
+										if (scgArray[i].equals(existing.getName())) {
+											found = true;
+											break;
+										}
+									}
+								}
+								if (!found || existingList == null || existingList.isEmpty()) {
+									missingList.add(scgArray[i]);
+								}
+							}
+							if (!missingList.isEmpty()) {
+								validationContext.validationEventEnd(ValidationResultType.ERROR);
+								if (missingList.size() == 1) {
+									throw new CloudProvisioningException(getFormattedMessage(
+											"error_security_group_validation",
+											missingList.iterator().next(), groovyFile, propertiesFile));
+								} else if (missingList.size() > 1) {
+									throw new CloudProvisioningException(getFormattedMessage(
+											"error_security_groups_validation",
+											Arrays.toString(missingList.toArray()), groovyFile, propertiesFile));
+								}
+							}
+
+						} catch (final OpenstackException e) {
+							validationContext.validationEventEnd(ValidationResultType.ERROR);
+							throw new CloudProvisioningException("Error requesting security groups.", e);
+						}
+					}
+					validationContext.validationEventEnd(ValidationResultType.OK);
+				}
+			}
+
+			// validating static network
+			final List<String> networks = computeTemplate.getComputeNetwork().getNetworks();
+			if (networks != null && !networks.isEmpty()) {
+				validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+						"Validating network(s): " + networks.toString());
+				try {
+					final Set<String> missingList = new HashSet<String>();
+					final List<Network> existingList = networkApi.getNetworks();
+					for (final String networkName : networks) {
+						boolean found = false;
+						if (existingList != null) {
+							for (final Network network : existingList) {
+								if (networkName.equals(network.getName())) {
+									found = true;
+									break;
+								}
+							}
+						}
+						if (!found || existingList == null || existingList.isEmpty()) {
+							missingList.add(networkName);
+						}
+					}
+
+					if (!missingList.isEmpty()) {
+						validationContext.validationEventEnd(ValidationResultType.ERROR);
+						if (missingList.size() == 1) {
+							throw new CloudProvisioningException(String.format(
+									"Network \"%s\" does not exist. Please create it or rename in %s or in %s",
+									missingList.iterator().next(), groovyFile, propertiesFile));
+						} else if (missingList.size() > 1) {
+							throw new CloudProvisioningException(String.format(
+									"Networks %s do not exist. Please create them or rename in %s or in %s",
+									Arrays.toString(missingList.toArray()), groovyFile, propertiesFile));
+						}
+					}
+
+				} catch (final OpenstackException ex) {
+					validationContext.validationEventEnd(ValidationResultType.ERROR);
+					throw new CloudProvisioningException("Error requesting networks.", ex);
+				}
+				validationContext.validationEventEnd(ValidationResultType.OK);
+			}
+		}
+	}
+
+	private String formatResourceList(final List<?> resources) {
+		final StringBuilder sb = new StringBuilder();
+		for (final Object resource : resources) {
+			sb.append(System.getProperty("line.separator"));
+			sb.append(resource);
+		}
+		return sb.toString();
+	}
+
 }

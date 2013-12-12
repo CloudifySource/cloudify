@@ -26,6 +26,7 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.filter.LoggingFilter;
 
 /**
  * A base class for openstack clients.<br />
@@ -42,7 +43,10 @@ public abstract class OpenStackBaseClient {
 	protected static final int CODE_OK_200 = 200;
 	protected static final int CODE_OK_204 = 204;
 
+	private static final Logger WIRE_LOGGER = Logger.getLogger("openstack.wire");
 	private static final Logger logger = Logger.getLogger(OpenStackBaseClient.class.getName());
+
+	private final byte[] webResourceMutex = new byte[0];
 
 	private String endpoint;
 	private String username;
@@ -71,28 +75,17 @@ public abstract class OpenStackBaseClient {
 	 * Destroy the client. <br />
 	 */
 	public void close() {
-		if (serviceClient != null) {
-			serviceClient.destroy();
-		}
-	}
-
-	private String getEndpoint(final String endpointType) {
-		for (TokenServiceCatalog tsc : this.token.getServiceCatalog()) {
-			if (endpointType.equals(tsc.getName())) {
-				for (TokenServiceCatalogEndpoint endpoint : tsc.getEndpoints()) {
-					if (this.region.equals(endpoint.getRegion())) {
-						return endpoint.getPublicURL();
-					}
-				}
+		synchronized (this.webResourceMutex) {
+			if (this.serviceClient != null) {
+				this.serviceClient.destroy();
 			}
 		}
-		return null;
 	}
 
-	private void renewTokenIfNeeded() throws OpenstackJsonSerializationException {
+	private synchronized void renewTokenIfNeeded() throws OpenstackJsonSerializationException {
 		if (this.isTokenExpiredSoon()) {
 			if (logger.isLoggable(Level.FINEST)) {
-				logger.finest("Token expired. Request a new token");
+				logger.finest("Token not found or expired. Request a new token");
 			}
 			this.initToken();
 		}
@@ -113,10 +106,15 @@ public abstract class OpenStackBaseClient {
 	 * @throws OpenstackJsonSerializationException
 	 *             A problem occurs when requesting Openstack server.
 	 */
-	protected void initToken() throws OpenstackJsonSerializationException {
+	private void initToken() throws OpenstackJsonSerializationException {
 		final Client client = Client.create();
+		if (WIRE_LOGGER.isLoggable(Level.FINE)) {
+			this.serviceClient.addFilter(new LoggingFilter(WIRE_LOGGER));
+		}
 		try {
-			logger.info("Request openstack " + this.getServiceName() + " new token.");
+			if (logger.isLoggable(Level.FINE)) {
+				logger.fine("Request openstack " + this.getServiceType() + " new token.");
+			}
 			final WebResource webResource = client.resource(this.endpoint);
 			final String tokenJsonRequest = "{\"auth\":{\"passwordCredentials\":"
 					+ "{\"username\": \"%s\", \"password\":\"%s\"}, \"tenantName\":\"%s\"}}";
@@ -132,28 +130,6 @@ public abstract class OpenStackBaseClient {
 	}
 
 	/**
-	 * Return the WebResource pre configured with the endpoint.
-	 * 
-	 * @return The pre configured WebResource.
-	 * @throws OpenstackException
-	 *             A problem occurs when requesting Openstack server.
-	 */
-	protected WebResource getWebResource() throws OpenstackException {
-		if (serviceWebResource == null) {
-			this.renewTokenIfNeeded();
-			final String endpoint = this.getEndpoint(this.getServiceName());
-			if (endpoint == null) {
-				throw new OpenstackException("Cannot find endpoint for service '"
-						+ this.getServiceName() + "' in the service catalog.");
-			}
-			this.serviceClient = Client.create();
-			this.serviceWebResource = serviceClient.resource(endpoint);
-			logger.info("Openstack " + this.getServiceName() + " endpoint: " + endpoint);
-		}
-		return serviceWebResource;
-	}
-
-	/**
 	 * Get the token id. It will renew it if needed.
 	 * 
 	 * @return The token id.
@@ -166,11 +142,105 @@ public abstract class OpenStackBaseClient {
 	}
 
 	/**
-	 * The name of Openstack service the client.
+	 * Return the WebResource pre configured with the endpoint.
 	 * 
-	 * @return
+	 * @return The pre configured WebResource.
+	 * @throws OpenstackException
+	 *             A problem occurs when requesting Openstack server.
 	 */
-	abstract String getServiceName();
+	protected WebResource getWebResource() throws OpenstackException {
+		synchronized (this.webResourceMutex) {
+			if (this.serviceWebResource == null) {
+				this.renewTokenIfNeeded();
+				this.endpoint = this.getEndpoint();
+				this.serviceClient = Client.create();
+				if (WIRE_LOGGER.isLoggable(Level.FINE)) {
+					this.serviceClient.addFilter(new LoggingFilter(WIRE_LOGGER));
+				}
+				this.serviceWebResource = this.serviceClient.resource(endpoint);
+				if (logger.isLoggable(Level.FINE)) {
+					logger.fine("Openstack endpoint: " + endpoint);
+				}
+			}
+			return serviceWebResource;
+		}
+	}
+
+	private String getEndpoint() throws OpenstackException {
+		String endpoint = null;
+
+		endpoint = this.getEndpointByName();
+
+		if (endpoint == null) {
+			endpoint = this.getEndpointByType();
+		}
+
+		if (endpoint == null) {
+			throw new OpenstackException("Cannot find endpoint for service '"
+					+ this.getServiceType() + "' in Openstack service catalog.");
+		}
+		return endpoint;
+	}
+
+	/**
+	 * The name of the service the Openstack's catalog.
+	 * 
+	 * @return The name of the service in Openstack's catalog.
+	 */
+	protected abstract String getServiceName();
+
+	/**
+	 * The type of the service the Openstack's catalog.
+	 * 
+	 * @return The type of the service in Openstack's catalog.
+	 */
+	protected abstract String getServiceType();
+
+	/**
+	 * Retrieves the service endpoint by type.
+	 * 
+	 * @return The endpoint
+	 */
+	protected String getEndpointByType() {
+		final String endpointType = this.getServiceType();
+		if (logger.isLoggable(Level.FINEST)) {
+			logger.finest("Trying to get service endpoint by type '" + endpointType + "'");
+		}
+		for (final TokenServiceCatalog tsc : this.token.getServiceCatalog()) {
+			if (endpointType.equals(tsc.getType())) {
+				for (final TokenServiceCatalogEndpoint endpoint : tsc.getEndpoints()) {
+					if (this.region.equals(endpoint.getRegion())) {
+						return endpoint.getPublicURL();
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Retrieves the service endpoint by name.
+	 * 
+	 * @return The endpoint
+	 */
+	private String getEndpointByName() {
+		final String endpointName = this.getServiceName();
+		if (logger.isLoggable(Level.FINEST)) {
+			logger.finest("Trying to get service endpoint by name '" + endpointName + "'");
+		}
+		if (endpointName != null) {
+			for (final TokenServiceCatalog tsc : this.token.getServiceCatalog()) {
+				if (endpointName.equals(tsc.getName())) {
+					for (final TokenServiceCatalogEndpoint endpoint : tsc.getEndpoints()) {
+						if (this.region.equals(endpoint.getRegion())) {
+							return endpoint.getPublicURL();
+						}
+					}
+				}
+			}
+		}
+		return null;
+	}
 
 	/**
 	 * Translate {@link UniformInterfaceException} to {@link OpenstackServerException} to get an accurate error message.

@@ -13,45 +13,84 @@
 package org.cloudifysource.esc.driver.provisioning.openstack;
 
 /**
- * A class which computes all security group names for a service.
+ * A class which computes prefixes for all openstack resources, especially for security groups and networks names.
  * 
  * @author victor
  * @since 2.7.0
  */
-public class SecurityGroupNames {
+public class OpenStackResourcePrefixes {
 
 	private String prefix;
 	private String applicationName;
 	private String serviceName;
 
-	public SecurityGroupNames(final String securityGroupPrefix, final String applicationName,
+	public OpenStackResourcePrefixes(final String securityGroupPrefix, final String applicationName,
 			final String serviceName) {
 		this.prefix = securityGroupPrefix;
 		this.applicationName = applicationName;
 		this.serviceName = serviceName;
 	}
 
+	/**
+	 * All created Openstack resources should be prefixed.<br />
+	 * The prefix is the management group name defined in the cloud DSL.
+	 * 
+	 * @return The prefix for all created openstack resources.
+	 */
 	public String getPrefix() {
 		return prefix;
 	}
 
+	/**
+	 * Get a prefix name for management group.<br />
+	 * The prefix convention is : managementGroupPrefix + "management".
+	 * 
+	 * @return A prefix name for management group.
+	 */
 	public String getManagementName() {
 		return this.prefix + "management";
 	}
 
+	/**
+	 * Get a prefix name for agent group.<br />
+	 * The prefix convention is : managementGroupPrefix + "agent".
+	 * 
+	 * @return A prefix name for agent group.
+	 */
 	public String getAgentName() {
 		return this.prefix + "agent";
 	}
 
+	/**
+	 * Get a prefix name for cluster group.<br />
+	 * The prefix convention is : managementGroupPrefix + "cluster".
+	 * 
+	 * @return A prefix name for cluster group.
+	 */
 	public String getClusterName() {
 		return this.prefix + "cluster";
 	}
 
+	/**
+	 * Get a prefix name for applications group.<br />
+	 * The prefix convention is : managementGroupPrefix + applicationName.<br />
+	 * i.e.: cloudify-management-myApplication
+	 * 
+	 * @return A prefix name for applications group.
+	 */
 	public String getApplicationName() {
 		return this.prefix + this.applicationName;
 	}
 
+	/**
+	 * Get a prefix name for services group.<br />
+	 * The prefix convention is : managementGroupPrefix + applicationName + "-" + serviceName.<br />
+	 * i.e.: cloudify-management-myApplication-myService
+	 * 
+	 * @return A prefix name for services group.
+	 */
 	public String getServiceName() {
 		return this.prefix + this.applicationName + "-" + this.serviceName;
 	}
+
 }

@@ -63,10 +63,8 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 			final String tenant, final String region, final String serviceName, final String networkApiVersion)
 			throws OpenstackJsonSerializationException {
 		super(endpoint, username, password, tenant, region);
-		this.serviceName = StringUtils.isEmpty(serviceName) ? "neutron" : serviceName;
+		this.serviceName = serviceName;
 		this.networkApiVersion = StringUtils.isEmpty(networkApiVersion) ? "v2.0" : networkApiVersion;
-		logger.info("Openstack " + this.serviceName + " api version: " + this.networkApiVersion);
-		this.initToken();
 	}
 
 	@Override
@@ -76,6 +74,11 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 			webResource = webResource.path(this.networkApiVersion);
 		}
 		return webResource;
+	}
+
+	@Override
+	protected String getServiceType() {
+		return "network";
 	}
 
 	@Override
@@ -226,8 +229,11 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 		}
 
 		try {
-			final String input = String.format("{\"floatingip\":{\"floating_network_id\":\"%s\",\"port_id\":\"%s\"}}",
-					floatingNetworkId, port.getId());
+			final String input =
+					String.format(
+							"{\"floatingip\":{\"floating_network_id\":\"%s\","
+									+ "\"port_id\":\"%s\", \"fixed_ip_address\":\"%s\"}}",
+							floatingNetworkId, port.getId(), port.getFixedIps().get(0).getIpAddress());
 			final String response = this.doPost("floatingips", input);
 			final FloatingIp floatingIp = JsonUtils.unwrapRootToObject(FloatingIp.class, response);
 			return floatingIp.getFloatingIpAddress();
@@ -314,6 +320,19 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 	}
 
 	/**
+	 * Retrieve a list of routers.
+	 * 
+	 * @return The list of routers.
+	 * @throws OpenstackException
+	 *             Thrown if something went wrong with the request.
+	 */
+	public List<Router> getRouters() throws OpenstackException {
+		final String response = this.doGet("routers");
+		final List<Router> routers = JsonUtils.unwrapRootToList(Router.class, response);
+		return routers;
+	}
+
+	/**
 	 * Retrieve a router by name.
 	 * 
 	 * @param name
@@ -375,6 +394,10 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 		if (logger.isLoggable(Level.FINE)) {
 			logger.fine("Delete networkId=" + networkId);
 		}
+		final List<Port> ports = getPortsByNetworkId(networkId);
+		for (final Port port : ports) {
+			this.deletePort(port.getId());
+		}
 		this.doDelete("networks/" + networkId, CODE_OK_204);
 	}
 
@@ -425,6 +448,21 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 	}
 
 	/**
+	 * Retrieve a network by id.
+	 * 
+	 * @param networkId
+	 *            The id of the network.
+	 * @return The network.
+	 * @throws OpenstackException
+	 *             Thrown if something went wrong with the request.
+	 */
+	public Network getNetwork(final String networkId) throws OpenstackException {
+		final String response = this.doGet("networks/" + networkId);
+		final Network network = JsonUtils.unwrapRootToObject(Network.class, response);
+		return network;
+	}
+
+	/**
 	 * Retrieve a network matching the given name.
 	 * 
 	 * @param networkName
@@ -445,6 +483,20 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Returns networks.
+	 * 
+	 * @return networks
+	 * @throws OpenstackException
+	 *             Thrown if something went wrong with the request.
+	 */
+	public List<Network> getNetworks() throws OpenstackException {
+		final String response = this.doGet("networks");
+		final List<Network> list = JsonUtils.unwrapRootToList(Network.class, response);
+
+		return list;
 	}
 
 	/**
@@ -491,16 +543,32 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 	}
 
 	/**
-	 * Retrieve all ports attached to a server.
+	 * Retrieve all ports attached to a network.
 	 * 
-	 * @param serverId
+	 * @param networkId
+	 *            The network id.
+	 * @return All ports attached to a network.
+	 * @throws OpenstackException
+	 *             Thrown if something went wrong with the request.
+	 */
+	private List<Port> getPortsByNetworkId(final String networkId) throws OpenstackException {
+		final String[] params = new String[] { "network_id", networkId };
+		final String response = this.doGet("ports", params);
+		final List<Port> ports = JsonUtils.unwrapRootToList(Port.class, response);
+		return ports;
+	}
+
+	/**
+	 * Retrieve all ports attached to a device.
+	 * 
+	 * @param deviceId
 	 *            The server to request.
 	 * @return The list ports attached to the server.
 	 * @throws OpenstackException
 	 *             Thrown if something went wrong with the request.
 	 */
-	public List<Port> getPortsByServerId(final String serverId) throws OpenstackException {
-		final String[] params = new String[] { "device_id", serverId };
+	public List<Port> getPortsByDeviceId(final String deviceId) throws OpenstackException {
+		final String[] params = new String[] { "device_id", deviceId };
 		final String response = this.doGet("ports", params);
 		final List<Port> ports = JsonUtils.unwrapRootToList(Port.class, response);
 		return ports;
@@ -648,6 +716,19 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Returns existing security groups.
+	 * 
+	 * @return Existing security groups.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
+	 */
+	public List<SecurityGroup> getSecurityGroups() throws OpenstackException {
+		final String response = this.doGet("security-groups");
+		final List<SecurityGroup> securityGroups = JsonUtils.unwrapRootToList(SecurityGroup.class, response);
+		return securityGroups;
 	}
 
 	/**
