@@ -699,27 +699,26 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			newServer = this.waitForServerToBecomeReady(serverId, endTime);
 
 			// Add security groups to all ports
-			if (management) {
-				this.addSecurityGroupsToServer(serverId,
-						this.openstackPrefixes.getManagementName(),
-						this.openstackPrefixes.getClusterName());
-			} else {
-				this.addSecurityGroupsToServer(serverId,
-						this.openstackPrefixes.getAgentName(),
-						this.openstackPrefixes.getClusterName(),
-						this.openstackPrefixes.getApplicationName(),
-						this.openstackPrefixes.getServiceName());
-			}
-
-			// Add static security groups
 			Object securityGroupsObj = template.getOptions().get("securityGroupNames");
 			if (securityGroupsObj == null) {
 				securityGroupsObj = template.getOptions().get("securityGroups");
 			}
+			final List<String> securityGroups = new ArrayList<String>();
 			if (securityGroupsObj != null) {
 				if (securityGroupsObj instanceof String[]) {
-					this.addSecurityGroupsToServer(serverId, (String[]) securityGroupsObj);
+					securityGroups.addAll(Arrays.asList(((String[]) securityGroupsObj)));
 				}
+			}
+			if (management) {
+				securityGroups.add(this.openstackPrefixes.getManagementName());
+				securityGroups.add(this.openstackPrefixes.getClusterName());
+				this.setSecurityGroupsToServer(serverId, securityGroups.toArray(new String[securityGroups.size()]));
+			} else {
+				securityGroups.add(this.openstackPrefixes.getAgentName());
+				securityGroups.add(this.openstackPrefixes.getClusterName());
+				securityGroups.add(this.openstackPrefixes.getApplicationName());
+				securityGroups.add(this.openstackPrefixes.getServiceName());
+				this.setSecurityGroupsToServer(serverId, securityGroups.toArray(new String[securityGroups.size()]));
 			}
 
 			// Associate floating ips if configured
@@ -780,7 +779,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		return createdPort;
 	}
 
-	private void addSecurityGroupsToServer(final String serverId, final String... securityGroupNames)
+	private void setSecurityGroupsToServer(final String serverId, final String... securityGroupNames)
 			throws OpenstackException {
 		final List<Port> ports = networkApi.getPortsByDeviceId(serverId);
 
