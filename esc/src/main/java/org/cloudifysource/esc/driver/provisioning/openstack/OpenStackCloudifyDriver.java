@@ -666,11 +666,13 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			if (this.networkHelper.useManagementNetwork()) {
 				final String managementNetworkName = this.networkHelper.getManagementNetworkPrefixedName();
 				final Network managementNetwork = this.networkApi.getNetworkByName(managementNetworkName);
-
-				final Port port = this.addPortToRequest(request,
-						managementNetwork.getId(), managementNetwork.getSubnets());
-
-				reservedPortIds.add(port.getId());
+				if (managementNetwork.getSubnets().length == 1) {
+					request.addNetworks(managementNetwork.getId());
+				} else {
+					final Port port = this.addPortToRequest(request,
+							managementNetwork.getId(), managementNetwork.getSubnets());
+					reservedPortIds.add(port.getId());
+				}
 			}
 
 			// Add compute networks
@@ -679,19 +681,25 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 				if (network == null) {
 					throw new CloudProvisioningException("Couldn't find network '" + networkName + "'");
 				}
-
-				final Port port = this.addPortToRequest(request, network.getId(), network.getSubnets());
-				reservedPortIds.add(port.getId());
+				if (network.getSubnets().length == 1) {
+					request.addNetworks(network.getId());
+				} else {
+					final Port port = this.addPortToRequest(request, network.getId(), network.getSubnets());
+					reservedPortIds.add(port.getId());
+				}
 			}
 
 			// Add template networks
 			if (!management && this.networkHelper.useApplicationNetworkTemplate()) {
 				final String prefixedAppliNetworkName = this.networkHelper.getApplicationNetworkPrefixedName();
 				final Network templateNetwork = this.networkApi.getNetworkByName(prefixedAppliNetworkName);
-
-				final Port port = this.addPortToRequest(request,
-						templateNetwork.getId(), templateNetwork.getSubnets());
-				reservedPortIds.add(port.getId());
+				if (templateNetwork.getSubnets().length == 1) {
+					request.addNetworks(templateNetwork.getId());
+				} else {
+					final Port port = this.addPortToRequest(request,
+							templateNetwork.getId(), templateNetwork.getSubnets());
+					reservedPortIds.add(port.getId());
+				}
 			}
 
 			NovaServer newServer = computeApi.createServer(request);
