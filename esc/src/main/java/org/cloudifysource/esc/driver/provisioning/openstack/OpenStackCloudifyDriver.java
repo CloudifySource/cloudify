@@ -1334,6 +1334,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 						}
 
 						try {
+							final Set<String> missingList = new HashSet<String>();
 							final List<SecurityGroup> existingList = networkApi.getSecurityGroups();
 							for (int i = 0; i < scgArray.length; i++) {
 								boolean found = false;
@@ -1346,13 +1347,22 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 									}
 								}
 								if (!found || existingList == null || existingList.isEmpty()) {
-									validationContext.validationEventEnd(ValidationResultType.ERROR);
-									throw new CloudProvisioningException("The security group '" + scgArray[i]
-											+ "' is not valid. Please check options in compute template '"
-											+ entry.getKey()
-											+ "'");
+									missingList.add(scgArray[i]);
 								}
 							}
+							if (!missingList.isEmpty()) {
+								validationContext.validationEventEnd(ValidationResultType.ERROR);
+								if (missingList.size() == 1) {
+									throw new CloudProvisioningException(getFormattedMessage(
+											"error_security_group_validation",
+											missingList.iterator().next(), groovyFile, propertiesFile));
+								} else if (missingList.size() > 1) {
+									throw new CloudProvisioningException(getFormattedMessage(
+											"error_security_groups_validation",
+											Arrays.toString(missingList.toArray()), groovyFile, propertiesFile));
+								}
+							}
+
 						} catch (final OpenstackException e) {
 							validationContext.validationEventEnd(ValidationResultType.ERROR);
 							throw new CloudProvisioningException("Error requesting security groups.", e);
@@ -1368,23 +1378,36 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 				validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
 						"Validating network(s): " + networks.toString());
 				try {
+					final Set<String> missingList = new HashSet<String>();
 					final List<Network> existingList = networkApi.getNetworks();
 					for (final String networkName : networks) {
 						boolean found = false;
-						for (final Network network : existingList) {
-							if (networkName.equals(network.getName())) {
-								found = true;
-								break;
+						if (existingList != null) {
+							for (final Network network : existingList) {
+								if (networkName.equals(network.getName())) {
+									found = true;
+									break;
+								}
 							}
 						}
 						if (!found || existingList == null || existingList.isEmpty()) {
-							validationContext.validationEventEnd(ValidationResultType.ERROR);
-							throw new CloudProvisioningException("The Network group '" + networkName
-									+ "' is not valid. Please check network name in compute template '"
-									+ entry.getKey()
-									+ "'");
+							missingList.add(networkName);
 						}
 					}
+
+					if (!missingList.isEmpty()) {
+						validationContext.validationEventEnd(ValidationResultType.ERROR);
+						if (missingList.size() == 1) {
+							throw new CloudProvisioningException(String.format(
+									"Network \"%s\" does not exist. Please create it or rename in %s or in %s",
+									missingList.iterator().next(), groovyFile, propertiesFile));
+						} else if (missingList.size() > 1) {
+							throw new CloudProvisioningException(String.format(
+									"Networks %s do not exist. Please create them or rename in %s or in %s",
+									Arrays.toString(missingList.toArray()), groovyFile, propertiesFile));
+						}
+					}
+
 				} catch (final OpenstackException ex) {
 					validationContext.validationEventEnd(ValidationResultType.ERROR);
 					throw new CloudProvisioningException("Error requesting networks.", ex);

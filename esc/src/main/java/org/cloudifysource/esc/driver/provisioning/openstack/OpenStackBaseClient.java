@@ -85,7 +85,7 @@ public abstract class OpenStackBaseClient {
 	private synchronized void renewTokenIfNeeded() throws OpenstackJsonSerializationException {
 		if (this.isTokenExpiredSoon()) {
 			if (logger.isLoggable(Level.FINEST)) {
-				logger.finest("Token expired. Request a new token");
+				logger.finest("Token not found or expired. Request a new token");
 			}
 			this.initToken();
 		}
@@ -112,7 +112,9 @@ public abstract class OpenStackBaseClient {
 			this.serviceClient.addFilter(new LoggingFilter(WIRE_LOGGER));
 		}
 		try {
-			logger.info("Request openstack " + this.getServiceName() + " new token.");
+			if (logger.isLoggable(Level.FINE)) {
+				logger.fine("Request openstack " + this.getServiceType() + " new token.");
+			}
 			final WebResource webResource = client.resource(this.endpoint);
 			final String tokenJsonRequest = "{\"auth\":{\"passwordCredentials\":"
 					+ "{\"username\": \"%s\", \"password\":\"%s\"}, \"tenantName\":\"%s\"}}";
@@ -156,7 +158,9 @@ public abstract class OpenStackBaseClient {
 					this.serviceClient.addFilter(new LoggingFilter(WIRE_LOGGER));
 				}
 				this.serviceWebResource = this.serviceClient.resource(endpoint);
-				logger.info("Openstack endpoint: " + endpoint);
+				if (logger.isLoggable(Level.FINE)) {
+					logger.fine("Openstack endpoint: " + endpoint);
+				}
 			}
 			return serviceWebResource;
 		}
