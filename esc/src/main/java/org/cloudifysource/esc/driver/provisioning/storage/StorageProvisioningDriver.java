@@ -43,105 +43,114 @@ public interface StorageProvisioningDriver {
 	void setConfig(Cloud cloud, String computeTemplateName);
 
 	/**
+	 * Creates a new storage volume with respect to location and storage template parameters.
+	 * {@link StorageTemplate}
+	 * 
 	 * @param templateName
 	 *            The name of the template to be used when starting a new volume.
 	 * @param location
 	 *            The location where the storage volume will be created.
 	 * @param duration
-	 *            duration until times out.
+	 *            Duration until times out.
 	 * @param timeUnit
-	 *            the duration timeout units.
+	 *            The duration timeout units.
 	 * @return volume details object
 	 * @throws TimeoutException
-	 *             if execution exceeds duration.
+	 *             If execution exceeds duration.
 	 * @throws StorageProvisioningException
-	 *             on storage creation error. any started volumes will be removed.
+	 *             On storage creation error. any started volumes will be removed.
 	 */
 	VolumeDetails createVolume(final String templateName,
 			final String location, final long duration, final TimeUnit timeUnit)
 			throws TimeoutException, StorageProvisioningException;
 
 	/**
+	 * Attaches a specific storage volume to a machine instance according to its IP address.
 	 * 
 	 * @param volumeId
-	 *            the ID of the volume that will attach instance.
+	 *            The ID of the volume that will attach instance.
 	 * @param device
-	 *            the device name of the storage volume.
+	 *            The device name of the storage volume.
 	 * @param ip
-	 *            the designated machine instance IP for attaching the volume.
+	 *            The designated machine instance IP for attaching the volume.
 	 * @param duration
-	 *            duration until times out.
+	 *            Duration until times out.
 	 * @param timeUnit
-	 *            the duration timeout units.
+	 *            The duration timeout units.
 	 * @throws TimeoutException
-	 *             if execution exceeds duration.
+	 *             If execution exceeds duration.
 	 * @throws StorageProvisioningException
-	 *             if volume is already attached, volume and machine not in same location etc.
+	 *             If volume is already attached, volume and machine not in same location etc.
 	 */
 	void attachVolume(final String volumeId, final String device,
 			final String ip, final long duration, final TimeUnit timeUnit)
 			throws TimeoutException, StorageProvisioningException;
 
 	/**
+	 * Detaches a specific storage volume from machine instance according to its IP address.
 	 * 
 	 * @param volumeId
-	 *            the ID of the volume that will be detached.
+	 *            The ID of the volume that will be detached.
 	 * @param ip
-	 *            the designated machine instance IP to detach from.
+	 *            The designated machine instance IP to detach from.
 	 * @param duration
-	 *            duration until times out.
+	 *            Duration until times out.
 	 * @param timeUnit
-	 *            the duration timeout units.
+	 *            The duration timeout units.
 	 * @throws TimeoutException
-	 *             if execution exceeds duration.
+	 *             If execution exceeds duration.
 	 * @throws StorageProvisioningException
-	 *             if detaching fails.
+	 *             If detaching fails.
 	 */
 	void detachVolume(final String volumeId, final String ip, final long duration, final TimeUnit timeUnit)
 			throws TimeoutException, StorageProvisioningException;
 
 	/**
+	 * Deletes a storage volume according to its volume ID and storage device location.
 	 * 
 	 * @param location
-	 *            the location of the volume that will be deleted.
+	 *            The location of the volume that will be deleted.
 	 * @param volumeId
-	 *            the ID of the volume that will be deleted.
+	 *            The ID of the volume that will be deleted.
 	 * @param duration
-	 *            duration until times out.
+	 *            Duration until times out.
 	 * @param timeUnit
-	 *            the duration timeout units.
+	 *            The duration timeout units.
 	 * @throws TimeoutException
-	 *             if execution exceeds duration.
+	 *             If execution exceeds duration.
 	 * @throws StorageProvisioningException
-	 *             if deletion of volume fails.
+	 *             If deletion of volume fails.
 	 */
 	void deleteVolume(final String location, final String volumeId, final long duration, final TimeUnit timeUnit)
 			throws TimeoutException, StorageProvisioningException;
 
 	/**
+	 * Lists all storage volumes attached to a machine instance according to its IP address.
 	 * 
 	 * @param ip
-	 *            the machine instance IP.
+	 *            The machine instance IP.
 	 * @param duration
-	 *            duration until times out.
+	 *            Duration until times out.
 	 * @param timeUnit
-	 *            the duration timeout units.
+	 *            The duration timeout units.
 	 * @return a set of VolumeDetails containing details about the machine volumes.
 	 * @throws TimeoutException
-	 *             if execution exceeds duration.
+	 *             If execution exceeds duration.
 	 * @throws StorageProvisioningException
-	 *             if list fails.
+	 *             If list fails.
 	 */
 	Set<VolumeDetails> listVolumes(final String ip, final long duration, final TimeUnit timeUnit)
 			throws TimeoutException, StorageProvisioningException;
 
 	/**
+	 * Returns the volume name according to its ID.
 	 * 
 	 * @param volumeId
-	 *            the ID of the volume that will be detached.
-	 * @return the volume name according to volumeId.
+	 *            The ID of the volume that will be detached.
+	 * @return 
+	 * 			The volume name according to volumeId.
 	 * @throws StorageProvisioningException
-	 *             if fails retrieving volume name.
+	 *             If fails retrieving volume name.
 	 * 
 	 */
 	String getVolumeName(final String volumeId)
