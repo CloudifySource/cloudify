@@ -27,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
-import com.google.inject.Module;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
@@ -57,6 +56,7 @@ import org.jclouds.rest.RestContext;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.inject.Module;
 
 /*****
  * 
@@ -112,7 +112,7 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 
     private void initRegion() {
 		String locationId = this.computeTemplate.getLocationId();
-		RestContext<EC2Client, EC2AsyncClient> unwrapped = this.context.unwrap();
+		RestContext<EC2Client, EC2AsyncClient> unwrapped = getContext().unwrap();
 		try {
 			EC2Client ec2ClientApi = unwrapped.getApi();
 			this.region = JCloudsUtils.getEC2region(ec2ClientApi, locationId);
@@ -321,12 +321,12 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 
 	private TagApi getTagsApi() {
 		if (this.tagApi == null) {
-			this.tagApi = EC2Client.class.cast(this.context.unwrap(EC2ApiMetadata.CONTEXT_TOKEN)
+			this.tagApi = EC2Client.class.cast(getContext().unwrap(EC2ApiMetadata.CONTEXT_TOKEN)
 					.getApi()).getTagApiForRegion(this.region).get();
 		} 
 		return this.tagApi;
 	}
-	
+
 	@Override
 	public void close() {
 		if (this.context != null) {
@@ -356,7 +356,7 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 
 	private void initEbsClient() {
 		try {
-			ElasticBlockStoreClient ebsClient = EC2Client.class.cast(this.context.unwrap(EC2ApiMetadata.CONTEXT_TOKEN)
+			ElasticBlockStoreClient ebsClient = EC2Client.class.cast(getContext().unwrap(EC2ApiMetadata.CONTEXT_TOKEN)
 					.getApi()).getElasticBlockStoreServices();
 			this.ebsClient = ebsClient;
 		} catch (Exception e) {
@@ -432,5 +432,12 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
             }
 		}
 		throw new TimeoutException("Timed out waiting for storage status to become " + status.toString());
+	}
+	
+	private ComputeServiceContext getContext() {
+		if (this.context == null) {
+			throw new IllegalStateException("jClouds context was not initialized");
+		}
+		return this.context;
 	}
 }
