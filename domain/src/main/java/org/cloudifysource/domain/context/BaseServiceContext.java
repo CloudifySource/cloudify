@@ -23,6 +23,7 @@ import org.cloudifysource.domain.context.kvstorage.AttributesFacade;
 import org.cloudifysource.domain.context.network.NetworkFacade;
 
 /**
+ * Base service context for services running in localcloud.
  * 
  * @author adaml
  *
@@ -55,8 +56,8 @@ public class BaseServiceContext implements ServiceContext {
 	public org.cloudifysource.domain.context.Service waitForService(final String name, 
 																final int timeout, 
 																final TimeUnit unit) {
-		throw new UnsupportedOperationException("waitForService context method is not supported for"
-				+ " services running outside a GSC.");
+		unsupported();
+		return null;
 	}
 
 	@Override
@@ -71,14 +72,14 @@ public class BaseServiceContext implements ServiceContext {
 
 	@Override
 	public String getApplicationName() {
-		throw new UnsupportedOperationException("getApplicationName context method is not supported for" 
-				+ " services running outside a GSC.");
+		unsupported();
+		return null;
 	}
 
 	@Override
 	public long getExternalProcessId() {
-		throw new UnsupportedOperationException("getExternalProcessId context method is not supported for"
-				+ " services running outside a GSC.");
+		unsupported();
+		return 0l;
 	}
 
 	@Override
@@ -88,85 +89,88 @@ public class BaseServiceContext implements ServiceContext {
 
 	@Override
 	public String getPublicAddress() {
-		throw new UnsupportedOperationException("getPublicAddress context method is not supported for"
-				+ " services running outside a GSC.");
+		unsupported();
+		return null;
 	}
 
 	@Override
 	public String getPrivateAddress() {
-		throw new UnsupportedOperationException("getPrivateAddress context method is not supported for"
-				+ " services running outside a GSC.");
+		unsupported();
+		return null;
 	}
 
 	@Override
 	public String getImageID() {
-		throw new UnsupportedOperationException("getImageID context method is not supported for"
-				+ " services running outside a GSC.");
+		unsupported();
+		return null;
 	}
 
 	@Override
 	public String getHardwareID() {
-		throw new UnsupportedOperationException("getHardwareID context method is not supported for"
-				+ " services running outside a GSC.");
+		unsupported();
+		return null;
 	}
 
 	@Override
 	public String getCloudTemplateName() {
-		throw new UnsupportedOperationException("getCloudTemplateName context method is not supported for"
-				+ " services running outside a GSC.");
+		unsupported();
+		return null;
 	}
 
 	@Override
 	public String getMachineID() {
-		throw new UnsupportedOperationException("getMachineID context method is not supported for"
-				+ " services running outside a GSC.");
+		unsupported();
+		return null;
 	}
 
 	@Override
 	public String getLocationId() {
-		throw new UnsupportedOperationException("getLocationId context method is not supported for"
-				+ " services running outside a GSC.");
+		unsupported();
+		return null;
 	}
 
 	@Override
 	public StorageFacade getStorage() {
-		throw new UnsupportedOperationException("getStorage context method is not supported for"
-				+ " services running outside a GSC.");
+		unsupported();
+		return null;
 	}
 
 	@Override
 	public boolean isPrivileged() {
-		throw new UnsupportedOperationException("isPrivileged context method is not supported for"
-				+ " services running outside a GSC.");
+		unsupported();
+		return false;
 	}
 
 	@Override
 	public String getBindAddress() {
-		throw new UnsupportedOperationException("getBindAddress context method is not supported for"
-				+ " services running outside a GSC.");
+		unsupported();
+		return null;
 	}
 
 	@Override
 	public AttributesFacade getAttributes() {
-		throw new UnsupportedOperationException("getAttributes context method is not supported for"
-				+ " services running outside a GSC.");
+		unsupported();
+		return null;
 	}
 
 	@Override
 	public void stopMaintenanceMode() {
-		throw new UnsupportedOperationException("stopMaintenanceMode context method is not supported for"
-				+ " services running outside a GSC.");
+		unsupported();
 	}
 
 	@Override
 	public void startMaintenanceMode(final long timeout, final TimeUnit unit) {
-		throw new UnsupportedOperationException("startMaintenanceMode context method is not supported for"
-				+ " services running outside a GSC.");
+		unsupported();
 	}
 
 	@Override
 	public NetworkFacade getNetwork() {
-		throw new UnsupportedOperationException("getNetwork context method is not supported for"
+		unsupported();
+		return null;
+	}
+	
+	private void unsupported() {
+		throw new UnsupportedOperationException("context method is not supported for" 
 				+ " services running outside a GSC.");
 	}
 

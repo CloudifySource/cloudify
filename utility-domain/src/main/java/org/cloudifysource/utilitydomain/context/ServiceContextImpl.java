@@ -339,7 +339,7 @@ public class ServiceContextImpl implements ServiceContext {
 
 	@Override
 	public boolean isLocalCloud() {
-		return IsLocalCloudUtils.isLocalCloud();
+		return false;
 	}
 
 	@Override
