@@ -2421,8 +2421,8 @@ public class DeploymentsController extends BaseRestController {
 				futures.put(serviceInstanceName, future);
 			} catch (final Exception e) {
 				// we log the error message and add it to the response but carry on to the following instances
-				String errorMessage = "Error occurred while invoking custom command on service "
-						+ serviceName + ":" + instance.getInstanceId() + " on host " 
+				String errorMessage = "Error occurred while invoking custom command '" + request.getCommandName() 
+						+ "' on service " + serviceName + ":" + instance.getInstanceId() + " on host " 
 						+ instance.getVirtualMachine().getMachine().getHostName() + ". Reported error: " 
 						+ e.getMessage();
 				logger.severe(errorMessage);
