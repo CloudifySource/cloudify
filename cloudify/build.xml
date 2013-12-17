@@ -88,7 +88,7 @@
 	<property name="streaming-bigdata.pom.file" value="${recipes.local.copy}/apps/streaming-bigdata/pom.xml"/>
 	<property name="s3.cloudify.publish.folder" value="${cloudify.version}-SNAPSHOT"/>
 	<property name="gs.version.tag" value="gsVersion" />
-
+	
 	
 	<taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${tools.lib.dir}/ant/ant-contrib-1.0b3.jar"/>
 	
@@ -222,6 +222,8 @@
 	
 	
     <macrodef name="add.cloudify.modules">
+    	
+    	
     	<attribute name="installation.dir" default="${tmp.dir}/${cloudify.installation.dir}" />
     	<sequential>
     		<property name="current.dir" value="@{installation.dir}" id="current.installation.dir"></property>
@@ -284,10 +286,18 @@
 	        <copy todir="@{installation.dir}/config/security/" overwrite="true">
 	            <fileset dir="${restful.local.copy}/src/main/webapp/WEB-INF" includes="spring-security.xml"/>
 	        </copy>
-			
-			<copy todir="@{installation.dir}/config" overwrite="true">
-				<fileset dir="${gs-webui.related.folder}/config" includes="*.xml"/>
-			</copy>
+    		
+    		<echo message="from_bigdata_package = ${from_bigdata_package}"/>
+    		<if>
+				<not>
+					<equals arg1="${from_bigdata_package}" arg2="yes"/>
+				</not>
+				<then>						
+					<copy todir="@{installation.dir}/config" overwrite="true">
+						<fileset dir="${gs-webui.related.folder}/config" includes="*.xml"/>
+					</copy>
+				</then>
+			</if>			
 	
 	        <echo message="Copy CLOUDIFY esc-command component"/>
 	        <copy todir="@{installation.dir}/tools/cli/plugins/esc" overwrite="true">
@@ -396,7 +406,7 @@
     	 
         <ant target="archive.cloudify.versions"/>
     	
-		<delete dir="${tmp.dir}"/>
+		<delete dir="${tmp.dir}"/>		
  	</target>	
 	
 
@@ -783,6 +793,7 @@
 
 	
 	<target name="prepare.bigdata.package">
+		<property name="from_bigdata_package" value="yes"/>		
 		<unzip.xap new.installation.dir.name="${xap.installation.dir}"/>
 		<add.cloudify.modules installation.dir="${tmp.dir}/${xap.installation.dir}"/>
 		<ant target="fetch.recipes.bigdata" />
@@ -799,6 +810,7 @@
 		<ant target="archive.bigdata.version" />
 		
 		<delete dir="${tmp.dir}"/>
+		<property name="from_bigdata_package" value="no"/>		
 	</target>
 	
 
