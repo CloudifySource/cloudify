@@ -81,6 +81,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	private static final int POST_SYNC_PROCESS_SLEEP_INTERVAL = 200;
 	private static final String LINUX_EXECUTE_PREFIX = "./";
 	private static final String[] WINDOWS_BATCH_FILE_PREFIX_PARAMS = { "cmd.exe", "/c " };
+	private static final String LOCALCLOUD = "localcloud";
 	private List<String> groovyCommandLinePrefixParams;
 	// last command line to be executed
 	private List<String> commandLine;
@@ -316,7 +317,21 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 		// envVarsList.add("GS_LOGGING_CONFIG_FILE_PROP");
 
 		groovyCommandParams.addAll(convertEnvVarsToSysPropsList(envVarsList));
-
+		
+    	boolean isLocalCloud = LOCALCLOUD.equalsIgnoreCase(System.getenv(CloudifyConstants.GIGASPACES_CLOUD_MACHINE_ID));
+    	if (isLocalCloud) {    		
+    		groovyCommandParams.add("-D" + CloudifyConstants.MULTICAST_ENABLED_PROPERTY + "=false");
+    	} else {
+    		String extJavaOptionsValue = System.getenv("EXT_JAVA_OPTIONS");
+    		if (!StringUtils.isBlank(extJavaOptionsValue)) {
+    			String[] options = extJavaOptionsValue.split(" ");
+    			for (String option : options) {		
+    				groovyCommandParams.add(option);
+    			}
+    		}
+    	}
+		groovyCommandParams.add("-D" + CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY + "=" + CloudifyConstants.LRMI_BIND_PORT_RANGE);
+		
 		if (ServiceUtils.isWindows()) {
 			modifyWindowsCommandLine(groovyCommandParams, workingDir);
 		}
@@ -1093,7 +1108,6 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 	private static List<String> convertEnvVarsToSysPropsList(final List<String> envVarsList) {
 		final List<String> sysPropsList = new ArrayList<String>();
 		String envVarValue;
-
 		for (final String envVarName : envVarsList) {
 			envVarValue = System.getenv(envVarName);
 			if (envVarValue != null) {
@@ -1105,7 +1119,6 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 				}
 			}
 		}
-
 		return sysPropsList;
 	}
 
