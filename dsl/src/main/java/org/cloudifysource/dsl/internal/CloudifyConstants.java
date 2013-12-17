@@ -348,7 +348,9 @@ public final class CloudifyConstants {
     public static final String LUS_PORT_CONTEXT_PROPERTY = "com.sun.jini.reggie.initialUnicastDiscoveryPort";
     public static final String GSM_HTTP_PORT_CONTEXT_PROPERTY = "com.gigaspaces.start.httpPort";
     public static final String LRMI_BIND_PORT_CONTEXT_PROPERTY = "com.gs.transport_protocol.lrmi.bind-port";
+    public static final String LRMI_BIND_PORT_RANGE = "7010-7110";
     public static final String AGENT_PORT_CONTEXT_PROPERTY = "com.gigaspaces.system.registryPort";
+    public static final String MULTICAST_ENABLED_PROPERTY = "com.gs.multicast.enabled";
 
     /********************
      * management service environment variable constants
@@ -362,7 +364,6 @@ public final class CloudifyConstants {
     public static final String LUS_JAVA_OPTIONS_ENVIRONMENT_VAR = "LUS_JAVA_OPTIONS";
     public static final String GSM_JAVA_OPTIONS_ENVIRONMENT_VAR = "GSM_JAVA_OPTIONS";
     public static final String ESM_JAVA_OPTIONS_ENVIRONMENT_VAR = "ESM_JAVA_OPTIONS";    
-    public static final String LRMI_PORT_OR_RANGE_SYS_PROP = "com.gs.transport_protocol.lrmi.bind-port";
     public static final String LUS_IP_ADDRESS_ENV = "LUS_IP_ADDRESS";    
 
     /*********************

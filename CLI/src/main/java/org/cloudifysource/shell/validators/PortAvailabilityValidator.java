@@ -253,13 +253,13 @@ public abstract class PortAvailabilityValidator {
 			throw new IllegalArgumentException("The environment variable \"" + envVar + "\" is not set.");
 		}
 		
-		int sysPropIndex = javaOptionsStr.indexOf(CloudifyConstants.LRMI_PORT_OR_RANGE_SYS_PROP + "=");
+		int sysPropIndex = javaOptionsStr.indexOf(CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY + "=");
 		if (sysPropIndex == -1) {
 			throw new IllegalArgumentException("javaOptionsStr is missing the system property \"" 
-					+ CloudifyConstants.LRMI_PORT_OR_RANGE_SYS_PROP + "\"");
+					+ CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY + "\"");
 		}
 		
-		int startIndex = sysPropIndex + CloudifyConstants.LRMI_PORT_OR_RANGE_SYS_PROP.length() + 1;
+		int startIndex = sysPropIndex + CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY.length() + 1;
 		int endIndex = javaOptionsStr.indexOf(" ", startIndex);
 		
 		if (endIndex > -1) {
