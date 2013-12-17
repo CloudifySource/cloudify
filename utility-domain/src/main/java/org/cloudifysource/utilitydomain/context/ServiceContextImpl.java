@@ -45,6 +45,7 @@ import org.openspaces.core.cluster.ClusterInfo;
  */
 public class ServiceContextImpl implements ServiceContext {
 
+	private static final String LOCALCLOUD = "localcloud";
 	private org.cloudifysource.domain.Service service;
 	private Admin admin;
 	private final String serviceDirectory;
@@ -339,7 +340,8 @@ public class ServiceContextImpl implements ServiceContext {
 
 	@Override
 	public boolean isLocalCloud() {
-		return false;
+		String isLocalCloudStr = System.getenv(CloudifyConstants.GIGASPACES_CLOUD_MACHINE_ID);
+    	return LOCALCLOUD.equalsIgnoreCase(isLocalCloudStr);
 	}
 
 	@Override
