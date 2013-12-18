@@ -33,6 +33,7 @@ import org.cloudifysource.dsl.utils.ServiceUtils.FullServiceName;
 import org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.ComputeDriverConfiguration;
+import org.cloudifysource.esc.driver.provisioning.validation.ValidationResultType;
 
 /**
  * This is a utility class to handle network configurations making life easier in the OpenStack driver.<br />
@@ -79,7 +80,7 @@ class OpenStackNetworkConfigurationHelper {
 		final String name = configuration.isManagement() ? "managers" : configuration.getServiceName();
 		logger.info("Setup network configuration for " + name);
 
-		this.validateNetworkNames(configuration.getCloud().getCloudNetwork());
+		// this.validateNetworkNames(configuration.getCloud().getCloudNetwork());
 
 		this.initManagementNetworkConfig(configuration);
 
@@ -133,11 +134,12 @@ class OpenStackNetworkConfigurationHelper {
 		}
 
 		// If this is a management configuration, throw an exception if no networks has been defined.
-		if (configuration.isManagement() && this.managementNetworkConfiguration == null && computeNetworks.isEmpty()) {
-			throw new CloudProvisioningException(
-					"A network must be provided to the management machines "
-							+ "(use either cloudNetwork templates or computeNetwork configuration).");
-		}
+		// if (configuration.isManagement() && this.managementNetworkConfiguration == null && computeNetworks.isEmpty())
+		// {
+		// throw new CloudProvisioningException(
+		// "A network must be provided to the management machines "
+		// + "(use either cloudNetwork templates or computeNetwork configuration).");
+		// }
 
 		// Logs..
 		if (this.management) {
@@ -304,6 +306,28 @@ class OpenStackNetworkConfigurationHelper {
 		return serviceAccessRules;
 	}
 
+	private boolean isValidDefiniton(final String definition) {
+
+		if (definition == null || StringUtils.trim(definition).isEmpty()) {
+			return false;
+		}
+		return true;
+
+	}
+
+	public boolean isValidSubnetName(final org.cloudifysource.domain.cloud.network.Subnet subnet) {
+		return isValidDefiniton(subnet.getName());
+	}
+
+	public boolean isValidSubnetRange(final org.cloudifysource.domain.cloud.network.Subnet subnet) {
+		return isValidDefiniton(subnet.getRange());
+	}
+
+	public boolean isValidNetworkName(final NetworkConfiguration networkConfiguration) {
+
+		return isValidDefiniton(networkConfiguration.getName());
+	}
+
 	/**
 	 * Verify that all networks and subnets has a name (including management one).
 	 * 
@@ -327,7 +351,7 @@ class OpenStackNetworkConfigurationHelper {
 		}
 	}
 
-	private void validateNetworkName(final NetworkConfiguration networkConfiguration)
+	public void validateNetworkName(final NetworkConfiguration networkConfiguration)
 			throws CloudProvisioningException {
 		if (networkConfiguration != null) {
 
