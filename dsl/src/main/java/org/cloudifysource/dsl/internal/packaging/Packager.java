@@ -327,14 +327,17 @@ public final class Packager {
 
 		final Manifest manifest = new Manifest();
 
-		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION,
-				"1.0");
+		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
 		manifest.getMainAttributes().putValue("Class-Path",
-				"lib/platform/cloudify/dsl.jar lib/platform/cloudify/domain.jar "
+				  "lib/platform/cloudify/dsl.jar "
+            + "lib/platform/cloudify/domain.jar "
+            + "lib/platform/cloudify/dsl-backwards.jar "
+            + "lib/platform/cloudify/domain.jar "
 				+ "lib/platform/cloudify/utility-domain.jar " 
 				+ "lib/platform/usm/usm.jar "
 				// added support for @grab annotation in groovy file - requires ivy and groovy in same classloader
-				+ "tools/groovy/embeddable/groovy-all-1.8.6.jar tools/groovy/lib/ivy-2.2.0.jar ");
+				+ "tools/groovy/embeddable/groovy-all-1.8.6.jar "
+            + "tools/groovy/lib/ivy-2.2.0.jar ");
 
 		OutputStream out = null;
 

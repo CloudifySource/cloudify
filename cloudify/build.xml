@@ -241,8 +241,14 @@
 	        <copy todir="@{installation.dir}/lib/platform/cloudify" overwrite="true">
 		        <fileset dir="${dsl.local.copy}/target/" includes="dsl.jar" excludes=".svn"/>
 	        </copy>
-    		
-	        <echo message="Copy domain component"/>
+
+            <echo message="Copy dsl-backwards component"/>
+            <mkdir dir="@{installation.dir}/lib/platform/cloudify"/>
+            <copy todir="@{installation.dir}/lib/platform/cloudify" overwrite="true">
+                <fileset dir="${dsl.local.copy}/target/" includes="dsl-backwards.jar" excludes=".svn"/>
+            </copy>
+
+            <echo message="Copy domain component"/>
 	        <copy todir="@{installation.dir}/lib/platform/cloudify" overwrite="true">
 		        <fileset dir="${domain.local.copy}/target/" includes="domain.jar" excludes=".svn"/>
 	        </copy>
@@ -772,8 +778,12 @@
 		<exec executable="${mvn.executable}" dir="${dsl.local.copy}">
 			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/dsl.jar -Dsources=target/dsl-sources.jar"/>
 		</exec>
-			
-		<exec executable="${mvn.executable}" dir="${cli.local.copy}">
+
+        <exec executable="${mvn.executable}" dir="${dsl.local.copy}">
+            <arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/dsl-backwards.jar -Dsources=target/dsl-sources.jar"/>
+        </exec>
+
+        <exec executable="${mvn.executable}" dir="${cli.local.copy}">
 			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/cli.jar"/>
 		</exec>
 		

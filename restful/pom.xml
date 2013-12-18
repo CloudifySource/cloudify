@@ -299,7 +299,7 @@
 					<archive>
 						<manifestEntries>
 							<!-- The class-path entries MUST be in the same line! -->
-							<Class-Path><![CDATA[lib/platform/cloudify/dsl.jar lib/platform/cloudify/domain.jar lib/platform/cloudify/utility-domain.jar lib/platform/cloudify/security.jar lib/platform/cloudify/security-ldap.jar tools/groovy/embeddable/groovy-all-1.8.6.jar tools/groovy/lib/ivy-2.2.0.jar]]></Class-Path>
+							<Class-Path><![CDATA[lib/platform/cloudify/dsl.jar lib/platform/cloudify/dsl-backwards.jar lib/platform/cloudify/domain.jar lib/platform/cloudify/utility-domain.jar lib/platform/cloudify/security.jar lib/platform/cloudify/security-ldap.jar tools/groovy/embeddable/groovy-all-1.8.6.jar tools/groovy/lib/ivy-2.2.0.jar]]></Class-Path>
 						</manifestEntries>
 					</archive>
 					<webResources>
