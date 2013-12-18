@@ -34,13 +34,8 @@
 	<dependencies>
         <dependency>
             <groupId>org.apache.jclouds.provider</groupId>
-            <artifactId>softlayer-fixed</artifactId>
-            <version>${jcloudsVersion}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.jclouds.provider</groupId>
-            <artifactId>softlayer-bmi</artifactId>
-            <version>${jcloudsVersion}</version>
+            <artifactId>softlayer</artifactId>
+            <version>1.6.4-SNAPSHOT</version>
         </dependency>
         <dependency>
 			<groupId>commons-lang</groupId>

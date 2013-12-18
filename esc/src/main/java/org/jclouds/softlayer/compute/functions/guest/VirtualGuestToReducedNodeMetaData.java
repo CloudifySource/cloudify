@@ -16,7 +16,7 @@
  *  ******************************************************************************
  */
 
-package org.jclouds.softlayer.compute.functions;
+package org.jclouds.softlayer.compute.functions.guest;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
@@ -25,7 +25,7 @@ import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.NodeMetadataBuilder;
 import org.jclouds.compute.functions.GroupNamingConvention;
 import org.jclouds.domain.Location;
-import org.jclouds.softlayer.domain.VirtualGuest;
+import org.jclouds.softlayer.domain.guest.VirtualGuest;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
