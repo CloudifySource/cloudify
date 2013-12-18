@@ -42,6 +42,7 @@ public class BasicPackagingTest {
 		final String cp = mf.getMainAttributes().getValue("Class-Path");
 		assertNotNull(cp);
 		assertTrue(cp.contains("dsl.jar"));
+      assertTrue(cp.contains("dsl-backwards.jar"));
 		assertTrue(cp.contains("usm.jar"));
 		inputStream.close();
 

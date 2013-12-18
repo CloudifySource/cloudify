@@ -42,14 +42,15 @@
 			<copy overwrite="yes" todir="@{target.dir}/lib/platform/usm" file="../USM/target/usm.jar" />
 			<copy overwrite="yes" todir="@{target.dir}/tools/cli" file="../CLI/target/cli.jar" />
 			<copy overwrite="yes" todir="@{target.dir}/tools/rest" file="../restful/target/rest.war" />
-			<copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" />
 			<copy overwrite="yes" todir="@{target.dir}/tools/cli/plugins/esc" file="../esc-commands/target/esc-commands.jar" />
-			<copy overwrite="yes" todir="@{target.dir}/tools/management-space" file="../management-space/target/management-space.jar" />
-			<copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../security/target/security.jar" />
-			<copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../security-ldap/target/security-ldap.jar" />
-			<copy overwrite="yes" todir="@{target.dir}/lib/platform/esm" file="../esc/target/esc.jar" />
-			<copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../domain/target/domain.jar" />
-			<copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../utility-domain/target/utility-domain.jar" />
+            <copy overwrite="yes" todir="@{target.dir}/tools/management-space" file="../management-space/target/management-space.jar" />
+            <copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../security/target/security.jar" />
+            <copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../security-ldap/target/security-ldap.jar" />
+            <copy overwrite="yes" todir="@{target.dir}/lib/platform/esm" file="../esc/target/esc.jar" />
+            <copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../domain/target/domain.jar" />
+            <copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../utility-domain/target/utility-domain.jar" />
+            <copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" />
+            <copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../dsl-backwards/target/dsl-backwards.jar" />
 		</sequential>
 	</macrodef>
 

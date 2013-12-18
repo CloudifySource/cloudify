@@ -131,7 +131,7 @@
 					<archive>
 						<manifestEntries>
 							<!-- The class-path entries MUST be in the same line! -->
-							<Class-Path> <![CDATA[lib/platform/cloudify/dsl.jar tools/groovy/embeddable/groovy-all-1.8.6.jar tools/groovy/lib/ivy-2.2.0.jar]]></Class-Path>
+							<Class-Path><![CDATA[lib/platform/cloudify/dsl.jar lib/platform/cloudify/dsl-backwards.jar tools/groovy/embeddable/groovy-all-1.8.6.jar tools/groovy/lib/ivy-2.2.0.jar]]></Class-Path>
 						</manifestEntries>
 					</archive>
 				</configuration>
