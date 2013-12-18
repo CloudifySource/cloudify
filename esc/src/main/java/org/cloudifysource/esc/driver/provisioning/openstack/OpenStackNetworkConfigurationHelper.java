@@ -33,7 +33,6 @@ import org.cloudifysource.dsl.utils.ServiceUtils.FullServiceName;
 import org.cloudifysource.esc.driver.provisioning.BaseProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.ComputeDriverConfiguration;
-import org.cloudifysource.esc.driver.provisioning.validation.ValidationResultType;
 
 /**
  * This is a utility class to handle network configurations making life easier in the OpenStack driver.<br />
@@ -79,8 +78,6 @@ class OpenStackNetworkConfigurationHelper {
 
 		final String name = configuration.isManagement() ? "managers" : configuration.getServiceName();
 		logger.info("Setup network configuration for " + name);
-
-		// this.validateNetworkNames(configuration.getCloud().getCloudNetwork());
 
 		this.initManagementNetworkConfig(configuration);
 
@@ -132,14 +129,6 @@ class OpenStackNetworkConfigurationHelper {
 				&& !mngConfig.getSubnets().isEmpty()) {
 			this.managementNetworkConfiguration = mngConfig;
 		}
-
-		// If this is a management configuration, throw an exception if no networks has been defined.
-		// if (configuration.isManagement() && this.managementNetworkConfiguration == null && computeNetworks.isEmpty())
-		// {
-		// throw new CloudProvisioningException(
-		// "A network must be provided to the management machines "
-		// + "(use either cloudNetwork templates or computeNetwork configuration).");
-		// }
 
 		// Logs..
 		if (this.management) {
