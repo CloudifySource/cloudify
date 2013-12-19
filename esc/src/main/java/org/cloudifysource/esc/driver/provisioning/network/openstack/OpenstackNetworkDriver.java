@@ -129,7 +129,7 @@ public class OpenstackNetworkDriver extends BaseNetworkDriver {
 				final List<RouteFixedIp> fixedIps = port.getFixedIps();
 				for (final RouteFixedIp routeFixedIp : fixedIps) {
 					if (instanceIPAddress.equals(routeFixedIp.getIpAddress())) {
-						networkApi.assignFloatingIp(floatingIpByIp.getId(), ports.get(0).getId());
+						networkApi.assignFloatingIp(floatingIpByIp.getId(), port.getId());
 						return;
 					}
 				}
