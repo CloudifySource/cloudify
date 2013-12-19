@@ -22,6 +22,7 @@
 		<module>../management-space</module>
 		<module>../version</module>
 		<module>../esc-config</module>
+        <module>../dsl-backwards</module>
 	</modules>
 	<properties>
 		<gsVersion>9.7.0-SNAPSHOT</gsVersion>
