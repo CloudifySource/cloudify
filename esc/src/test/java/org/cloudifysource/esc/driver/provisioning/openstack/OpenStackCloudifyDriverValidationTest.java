@@ -6,15 +6,19 @@ import java.util.List;
 
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.dsl.internal.ServiceReader;
+import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.ComputeDriverConfiguration;
 import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
+import org.cloudifysource.esc.driver.provisioning.openstack.rest.Image;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Network;
 import org.cloudifysource.esc.driver.provisioning.validation.ValidationMessageType;
 import org.cloudifysource.esc.driver.provisioning.validation.ValidationResultType;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.springframework.expression.spel.ast.OpNE;
 
 public class OpenStackCloudifyDriverValidationTest {
 
@@ -45,7 +49,7 @@ public class OpenStackCloudifyDriverValidationTest {
 		Mockito.when(networkApi.getNetworks()).thenReturn(createNetworks);
 	}
 
-	public OpenStackCloudifyDriver newDriverInstance(String prefixCloudName, boolean isManagement)
+	public OpenStackCloudifyDriver newDriverInstance(final String prefixCloudName, final boolean isManagement)
 			throws Exception {
 		File dslFile = new File("./src/test/resources/openstack/validations/" + prefixCloudName + "-cloud.groovy");
 		Cloud cloud = ServiceReader.readCloud(dslFile);
@@ -65,7 +69,7 @@ public class OpenStackCloudifyDriverValidationTest {
 		return driver;
 	}
 
-	private List<Network> createNetworks(String... names) {
+	private List<Network> createNetworks(final String... names) {
 		List<Network> networks = new ArrayList<Network>(names.length);
 		for (String name : names) {
 			Network net = new Network();
@@ -90,28 +94,76 @@ public class OpenStackCloudifyDriverValidationTest {
 
 	@Test
 	public void missingOpenstackEndpoint() throws Exception {
-		Assert.fail("To be implemented");
+		String openstackEndPoint = "openstack.endpoint";
+		try {
+			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("missingOpenstackEndpoint", false);
+			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
+		} catch (Exception e) {
+			if (!e.getMessage().contains(String.format("The openstack endpoint '%s' is missing", openstackEndPoint))) {
+				e.printStackTrace();
+				Assert.fail("Validation must fail: " + e.getMessage());
+			}
+		}
 	}
 
-	@Test
+	@Test(expected = CloudProvisioningException.class)
 	public void wrongCredentials() throws Exception {
-		Assert.fail("To be implemented");
+
+		try {
+			Mockito.when(this.computeApi.getServers()).thenThrow(new OpenstackServerException(200, 401, null));
+			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("wrongCredentials", true);
+			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
+
+		} catch (Exception e) {
+			if (!e.getMessage().contains("Authentification operation failed. Please check credentials informations")) {
+				e.printStackTrace();
+				Assert.fail("Validation must fail: " + e.getMessage());
+			}
+			throw e;
+		}
 	}
 
 	@Test
 	public void missingManagementNetworkName() throws Exception {
-		Assert.fail("To be implemented");
 
+		try {
+			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("missingManagementNetworkName", false);
+			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
+		} catch (Exception e) {
+			if (!e.getMessage().contains(
+					"The name of Management network is missing. Please check management network configuration")) {
+				e.printStackTrace();
+				Assert.fail("Validation must fail: " + e.getMessage());
+			}
+		}
 	}
 
 	@Test
 	public void missingManagementSubnetName() throws Exception {
-		Assert.fail("To be implemented");
+
+		try {
+			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("missingManagementSubnetName", false);
+			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
+		} catch (Exception e) {
+			if (!e.getMessage().contains("The Name of subnet is missing")) {
+				e.printStackTrace();
+				Assert.fail("Validation must fail: " + e.getMessage());
+			}
+		}
+
 	}
 
 	@Test
 	public void missingManagementSubnetRange() throws Exception {
-		Assert.fail("To be implemented");
+		try {
+			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("missingManagementSubnetRange", false);
+			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
+		} catch (Exception e) {
+			if (!e.getMessage().contains("The range is missing in subnet")) {
+				e.printStackTrace();
+				Assert.fail("Validation must fail: " + e.getMessage());
+			}
+		}
 	}
 
 	@Test
@@ -144,43 +196,134 @@ public class OpenStackCloudifyDriverValidationTest {
 
 	@Test
 	public void missingApplicationSubnetRange() throws Exception {
-		Assert.fail("To be implemented");
+
+		try {
+			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("missingApplicationSubnetRange", false);
+			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
+		} catch (Exception e) {
+			if (!e.getMessage().contains("The range is missing in subnet")) {
+				e.printStackTrace();
+				Assert.fail("Validation must fail: " + e.getMessage());
+			}
+		}
 	}
 
-	@Test
+	@Test(expected = CloudProvisioningException.class)
 	public void missingNetworksForManagements() throws Exception {
-		Assert.fail("To be implemented");
 
+		try {
+			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("missingNetworksForManagements", false);
+			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
+		} catch (Exception e) {
+			if (!e.getMessage().contains("has no networks for cloudify communications")) {
+				e.printStackTrace();
+				Assert.fail("Validation must fail: " + e.getMessage());
+			}
+			throw e;
+		}
 	}
 
-	@Test
+	@Test(expected = CloudProvisioningException.class)
 	public void missingNetworksForApplications() throws Exception {
-		Assert.fail("To be implemented");
+
+		try {
+			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("missingNetworksForApplications", true);
+			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
+		} catch (Exception e) {
+			if (!e.getMessage().contains("A network must be provided for all templates")) {
+				e.printStackTrace();
+				Assert.fail("Validation must fail: " + e.getMessage());
+			}
+			throw e;
+		}
 	}
 
-	@Test
+	@Test(expected = CloudProvisioningException.class)
 	public void wrongImageIdFormat() throws Exception {
-		Assert.fail("To be implemented");
+
+		try {
+			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("wrongFormatImageId", true);
+			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
+
+		} catch (CloudProvisioningException e) {
+			if (!e.getMessage().contains("'imageId' should be formatted as region/imageId")) {
+				e.printStackTrace();
+				Assert.fail("Validation must fail: " + e.getMessage());
+			}
+			throw e;
+		}
 	}
 
-	@Test
+	@Test(expected = CloudProvisioningException.class)
 	public void wrongHardwareIdFormat() throws Exception {
-		Assert.fail("To be implemented");
+
+		try {
+			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("wrongFormatHardwareId", true);
+			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
+
+		} catch (CloudProvisioningException e) {
+			if (!e.getMessage().contains("'hardwareId' should be formatted as region/flavorId")) {
+				e.printStackTrace();
+				Assert.fail("Validation must fail: " + e.getMessage());
+			}
+			throw e;
+		}
 	}
 
-	@Test
+	@Test(expected = CloudProvisioningException.class)
 	public void wrongImageIdResource() throws Exception {
-		Assert.fail("To be implemented");
+
+		try {
+			Mockito.reset(this.computeApi);
+			Mockito.when(this.computeApi.getImage(Mockito.anyString())).thenThrow(new OpenstackException());
+
+			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("ok", true);
+			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
+
+		} catch (CloudProvisioningException e) {
+			if (!e.getMessage().contains("Image ID \"imageId\" is invalid")) {
+				e.printStackTrace();
+				Assert.fail("Validation must fail: " + e.getMessage());
+			}
+			throw e;
+		}
 	}
 
-	@Test
+	@Test(expected = CloudProvisioningException.class)
 	public void wrongHardwareIdResource() throws Exception {
-		Assert.fail("To be implemented");
+
+		try {
+			Mockito.reset(this.computeApi);
+			Mockito.when(this.computeApi.getFlavor(Mockito.anyString())).thenThrow(new OpenstackException());
+
+			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("ok", true);
+			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
+
+		} catch (CloudProvisioningException e) {
+			if (!e.getMessage().contains("Hardware ID \"hardwareId\" is invalid")) {
+				e.printStackTrace();
+				Assert.fail("Validation must fail: " + e.getMessage());
+			}
+			throw e;
+		}
 	}
 
-	@Test
+	@Test(expected = CloudProvisioningException.class)
 	public void missingStaticSecurityGroup() throws Exception {
-		Assert.fail("To be implemented");
+
+		try {
+			Mockito.when(networkApi.getSecurityGroups()).thenThrow(new OpenstackException());
+
+			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("wrongSecurityGroops", true);
+			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
+
+		} catch (Exception e) {
+			if (!e.getMessage().contains("Error requesting security groups")) {
+				e.printStackTrace();
+				Assert.fail("Validation must fail: " + e.getMessage());
+			}
+			throw e;
+		}
 	}
 
 	@Test

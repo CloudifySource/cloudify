@@ -14,6 +14,7 @@ package org.cloudifysource.esc.driver.provisioning.openstack;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -86,6 +87,7 @@ import com.j_spaces.kernel.Environment;
  */
 public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
+	private static final int HTTP_AUTHENTIFICATION_ERROR = 401;
 	private static final String CLOUDS_FOLDER_PATH = Environment.getHomeDirectory() + "clouds";
 	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
 
@@ -1348,13 +1350,16 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		// validating openstack endpoint
 		this.validateOpenstackEndpoint(validationContext, managementComputeTemplate);
 
+		// validating credentials
+		validateCredentials(validationContext);
+
 		// validating management network/subnets configuration
 		final CloudNetwork cloudNetwork = configuration.getCloud().getCloudNetwork();
 		this.validateManagementNetwork(validationContext, managementComputeTemplate, cloudNetwork);
 
 		// validating templates networks configuration
 		if (cloudNetwork != null) {
-			this.validateTemplateNetworks(validationContext, cloudNetwork);
+			this.validateTemplateNetworks(validationContext, cloudNetwork, templates.values());
 		}
 
 		// validating templates
@@ -1362,10 +1367,36 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 	}
 
-	private void validateTemplateNetworks(final ValidationContext validationContext, final CloudNetwork cloudNetwork)
+	private void validateCredentials(final ValidationContext validationContext)
 			throws CloudProvisioningException {
+
+		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+				"validating credentials");
+
+		// test request information from openstack
+		try {
+			this.computeApi.getServers();
+		} catch (OpenstackServerException e) {
+			validationContext.validationEventEnd(ValidationResultType.ERROR);
+			if (e.getStatusCode() == HTTP_AUTHENTIFICATION_ERROR) {
+				throw new CloudProvisioningException(
+						"Authentification operation failed. Please check credentials informations.");
+			}
+			throw new CloudProvisioningException("Could not request Openstack", e);
+		} catch (final OpenstackException e) {
+			validationContext.validationEventEnd(ValidationResultType.ERROR);
+			throw new CloudProvisioningException("Could not request Openstack", e);
+		}
+		validationContext.validationEventEnd(ValidationResultType.OK);
+	}
+
+	private void validateTemplateNetworks(final ValidationContext validationContext, final CloudNetwork cloudNetwork,
+			final Collection<ComputeTemplate> templates)
+			throws CloudProvisioningException {
+
+		// boolean networkInCloud = false;
 		Map<String, NetworkConfiguration> templateNetworkConfigurations = cloudNetwork.getTemplates();
-		if (templateNetworkConfigurations != null) {
+		if (templateNetworkConfigurations != null && !templateNetworkConfigurations.isEmpty()) {
 
 			validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
 					"Validating templates network configuration");
@@ -1416,9 +1447,35 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 					}
 				}
 			}
-			// template networks subnets are OK
-			validationContext.validationEventEnd(ValidationResultType.OK);
 		}
+
+		ManagementNetwork managementNetwork = cloud.getCloudNetwork().getManagement();
+
+		if (managementNetwork.getNetworkConfiguration() != null
+				&& managementNetwork.getNetworkConfiguration().getName() == null
+				&& managementNetwork.getNetworkConfiguration().getSubnets() != null
+				&& managementNetwork.getNetworkConfiguration().getSubnets().isEmpty()) {
+
+			boolean isNetworkInTemplates = true;
+			for (ComputeTemplate template : templates) {
+				if (template.getComputeNetwork() != null) {
+					List<String> networks = template.getComputeNetwork().getNetworks();
+					if (networks == null || networks.isEmpty()) {
+						isNetworkInTemplates = false;
+					}
+				}
+			}
+
+			if (!isNetworkInTemplates) {
+				validationContext.validationEventEnd(ValidationResultType.ERROR);
+				throw new CloudProvisioningException(
+						"A network must be provided for all templates,"
+								+ " since management network is missing.");
+
+			}
+		}
+
+		validationContext.validationEventEnd(ValidationResultType.OK);
 	}
 
 	private void validateManagementNetwork(final ValidationContext validationContext,
@@ -1529,7 +1586,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			if (openstackProperty == null || openstackProperty.trim().isEmpty()) {
 				validationContext.validationEventEnd(ValidationResultType.ERROR);
 				throw new CloudProvisioningException((String.format(
-						"The openstack endpoint option '%s' is missing. "
+						"The openstack endpoint '%s' is missing. "
 								+ "Please check overrides block in management template '%s'. ",
 						OPENSTACK_ENDPOINT, cloud.getConfiguration().getManagementMachineTemplate())));
 			}
@@ -1555,6 +1612,17 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 			validationContext.validationEvent(ValidationMessageType.GROUP_VALIDATION_MESSAGE,
 					getFormattedMessage("validating_template", templateName));
+
+			final String imageLocation = computeTemplate.getImageId();
+			if (!imageLocation.contains("/")) {
+				throw new CloudProvisioningException("'imageId' should be formatted as region/imageId."
+						+ " Verify the cloud template : " + templateName);
+			}
+			final String hardwareLocation = computeTemplate.getHardwareId();
+			if (!hardwareLocation.contains("/")) {
+				throw new CloudProvisioningException("'hardwareId' should be formatted as region/flavorId."
+						+ " Verify the cloud template : " + templateName);
+			}
 
 			this.validateImageHardwareLocation(validationContext, groovyFile, propertiesFile, computeTemplate);
 
@@ -1675,18 +1743,9 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	private void validateImageHardwareLocation(final ValidationContext validationContext, final String groovyFile,
 			final String propertiesFile, final ComputeTemplate computeTemplate) throws CloudProvisioningException {
 
-		final String imageLocation = computeTemplate.getImageId();
-		if (!imageLocation.contains("/")) {
-			throw new CloudProvisioningException("'imageId' should be formatted as region/imageId");
-		}
-		final String hardwareLocation = computeTemplate.getHardwareId();
-		if (!hardwareLocation.contains("/")) {
-			throw new CloudProvisioningException("'hardwareId' should be formatted as region/flavorId");
-		}
-
-		final String imageId = imageLocation.split("/")[1];
-		final String hardwareId = hardwareLocation.split("/")[1];
-		final String locationId = imageLocation.split("/")[0];
+		final String imageId = computeTemplate.getImageId().split("/")[1];
+		final String hardwareId = computeTemplate.getHardwareId().split("/")[1];
+		final String locationId = computeTemplate.getImageId().split("/")[0];
 
 		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
 				getFormattedMessage("validating_image_hardware_location_combination",
