@@ -307,9 +307,6 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		if (overrides != null && !overrides.isEmpty()) {
 			endpoint = (String) overrides.get(OPENSTACK_ENDPOINT);
 		}
-		if (endpoint == null) {
-			throw new IllegalStateException("No endpoint defined");
-		}
 
 		final String networkApiVersion = (String) cloudTemplate.getOptions().get(OPT_NETWORK_API_VERSION);
 		final String networkServiceName = (String) cloudTemplate.getOptions().get(OPT_NETWORK_SERVICE_NAME);
@@ -1384,7 +1381,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			throws CloudProvisioningException {
 
 		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
-				"validating credentials");
+				"Validating credentials");
 
 		// test request information from openstack
 		try {
@@ -1461,33 +1458,6 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 				}
 			}
 		}
-
-		ManagementNetwork managementNetwork = cloud.getCloudNetwork().getManagement();
-
-		if (managementNetwork.getNetworkConfiguration() != null
-				&& managementNetwork.getNetworkConfiguration().getName() == null
-				&& managementNetwork.getNetworkConfiguration().getSubnets() != null
-				&& managementNetwork.getNetworkConfiguration().getSubnets().isEmpty()) {
-
-			boolean isNetworkInTemplates = true;
-			for (ComputeTemplate template : templates) {
-				if (template.getComputeNetwork() != null) {
-					List<String> networks = template.getComputeNetwork().getNetworks();
-					if (networks == null || networks.isEmpty()) {
-						isNetworkInTemplates = false;
-					}
-				}
-			}
-
-			if (!isNetworkInTemplates) {
-				validationContext.validationEventEnd(ValidationResultType.ERROR);
-				throw new CloudProvisioningException(
-						"A network must be provided for all templates,"
-								+ " since management network is missing.");
-
-			}
-		}
-
 		validationContext.validationEventEnd(ValidationResultType.OK);
 	}
 
@@ -1540,9 +1510,9 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 							for (org.cloudifysource.domain.cloud.network.Subnet mSub : managementNetwokSubnets) {
 								if (!networkHelper.isValidSubnetName(mSub)) {
 									validationContext.validationEventEnd(ValidationResultType.ERROR);
-									throw new CloudProvisioningException(String.format("The Name of subnet is missing."
+									throw new CloudProvisioningException(String.format("The name of subnet is missing."
 											+ " Please check subnet in management network "
-											+ "configuration '%s.", managementNetwork.getNetworkConfiguration()
+											+ "configuration '%s'.", managementNetwork.getNetworkConfiguration()
 											.getName()));
 
 								}
@@ -1618,10 +1588,22 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			final String propertiesFile,
 			final Map<String, ComputeTemplate> templates)
 			throws CloudProvisioningException {
-		String templateName;
+
+		ManagementNetwork managementNetwork = cloud.getCloudNetwork().getManagement();
+
+		boolean isManagementNetwork = true;
+		if (managementNetwork.getNetworkConfiguration() != null
+				&& managementNetwork.getNetworkConfiguration().getName() == null
+				&& managementNetwork.getNetworkConfiguration().getSubnets() != null
+				&& managementNetwork.getNetworkConfiguration().getSubnets().isEmpty()) {
+			isManagementNetwork = false;
+		}
+
+		List<String> missingNetworks = new ArrayList<String>();
+
 		for (Entry<String, ComputeTemplate> entry : templates.entrySet()) {
 			final ComputeTemplate computeTemplate = entry.getValue();
-			templateName = entry.getKey();
+			String templateName = entry.getKey();
 
 			validationContext.validationEvent(ValidationMessageType.GROUP_VALIDATION_MESSAGE,
 					getFormattedMessage("validating_template", templateName));
@@ -1644,7 +1626,30 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 			// validating static network
 			this.validateStaticNetworks(validationContext, groovyFile, propertiesFile, computeTemplate);
+
+			if (!isManagementNetwork && computeTemplate.getComputeNetwork() != null) {
+				final List<String> networks = computeTemplate.getComputeNetwork().getNetworks();
+				if (networks == null || networks.isEmpty()) {
+					missingNetworks.add(templateName);
+				}
+			}
 		}
+
+		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+				"Validating cloud compute network configuration");
+		if (!missingNetworks.isEmpty()) {
+			validationContext.validationEventEnd(ValidationResultType.ERROR);
+			if (missingNetworks.size() == 1) {
+				throw new CloudProvisioningException(
+						"Since management network is missing, a network must be provided for the template: "
+								+ missingNetworks.get(0));
+			} else {
+				throw new CloudProvisioningException(
+						"Since management network is missing, a network must be provided for all templates: "
+								+ missingNetworks);
+			}
+		}
+		validationContext.validationEventEnd(ValidationResultType.OK);
 	}
 
 	private void validateStaticNetworks(final ValidationContext validationContext, final String groovyFile,

@@ -44,6 +44,33 @@ cloud {
 				overrides ([
 					"openstack.endpoint": "openstackUrl"
 				])
+			},
+			APPLI2 : computeTemplate{
+				imageId "region/imageId"
+				remoteDirectory "remoteDirectory"
+				machineMemoryMB 1600
+				hardwareId "region/hardwareId"
+				localDirectory "upload"
+				
+				overrides ([
+					"openstack.endpoint": "openstackUrl"
+				])
+			},
+			APPLI3 : computeTemplate{
+				imageId "region/imageId"
+				remoteDirectory "remoteDirectory"
+				machineMemoryMB 1600
+				hardwareId "region/hardwareId"
+				localDirectory "upload"
+				computeNetwork {
+					networks ([
+						"SOME_INTERNAL_NETWORK_2"
+					])
+				}
+				
+				overrides ([
+					"openstack.endpoint": "openstackUrl"
+				])
 			}
 		])
 	}

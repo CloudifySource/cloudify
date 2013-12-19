@@ -9,16 +9,13 @@ import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.ComputeDriverConfiguration;
 import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
-import org.cloudifysource.esc.driver.provisioning.openstack.rest.Image;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Network;
 import org.cloudifysource.esc.driver.provisioning.validation.ValidationMessageType;
 import org.cloudifysource.esc.driver.provisioning.validation.ValidationResultType;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.springframework.expression.spel.ast.OpNE;
 
 public class OpenStackCloudifyDriverValidationTest {
 
@@ -92,17 +89,18 @@ public class OpenStackCloudifyDriverValidationTest {
 		}
 	}
 
-	@Test
+	@Test(expected = CloudProvisioningException.class)
 	public void missingOpenstackEndpoint() throws Exception {
 		String openstackEndPoint = "openstack.endpoint";
 		try {
 			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("missingOpenstackEndpoint", false);
 			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
-		} catch (Exception e) {
+		} catch (CloudProvisioningException e) {
 			if (!e.getMessage().contains(String.format("The openstack endpoint '%s' is missing", openstackEndPoint))) {
 				e.printStackTrace();
 				Assert.fail("Validation must fail: " + e.getMessage());
 			}
+			throw e;
 		}
 	}
 
@@ -123,88 +121,94 @@ public class OpenStackCloudifyDriverValidationTest {
 		}
 	}
 
-	@Test
+	@Test(expected = CloudProvisioningException.class)
 	public void missingManagementNetworkName() throws Exception {
 
 		try {
 			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("missingManagementNetworkName", false);
 			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
-		} catch (Exception e) {
+		} catch (CloudProvisioningException e) {
 			if (!e.getMessage().contains(
 					"The name of Management network is missing. Please check management network configuration")) {
 				e.printStackTrace();
 				Assert.fail("Validation must fail: " + e.getMessage());
 			}
+			throw e;
 		}
 	}
 
-	@Test
+	@Test(expected = CloudProvisioningException.class)
 	public void missingManagementSubnetName() throws Exception {
 
 		try {
-			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("missingManagementSubnetName", false);
+			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("missingManagementSubnetName", true);
 			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
-		} catch (Exception e) {
-			if (!e.getMessage().contains("The Name of subnet is missing")) {
+		} catch (CloudProvisioningException e) {
+			if (!e.getMessage().contains("The name of subnet is missing")) {
 				e.printStackTrace();
 				Assert.fail("Validation must fail: " + e.getMessage());
 			}
+			throw e;
 		}
 
 	}
 
-	@Test
+	@Test(expected = CloudProvisioningException.class)
 	public void missingManagementSubnetRange() throws Exception {
 		try {
 			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("missingManagementSubnetRange", false);
 			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
-		} catch (Exception e) {
+		} catch (CloudProvisioningException e) {
 			if (!e.getMessage().contains("The range is missing in subnet")) {
 				e.printStackTrace();
 				Assert.fail("Validation must fail: " + e.getMessage());
 			}
+			throw e;
 		}
 	}
 
-	@Test
+	@Test(expected = CloudProvisioningException.class)
 	public void missingApplicationNetworkName() throws Exception {
 		try {
 			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("missingApplicationNetworkName", false);
 			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
-		} catch (Exception e) {
+		} catch (CloudProvisioningException e) {
 			if (!e.getMessage().contains("The name of template network configuration is missing")) {
 				e.printStackTrace();
 				Assert.fail("Validation must fail: " + e.getMessage());
 			}
+			throw e;
 		}
 	}
 
-	@Test
+	@Test(expected = CloudProvisioningException.class)
 	public void missingApplicationSubnetName() throws Exception {
 		try {
 
 			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("missingApplicationSubnetName", true);
 			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
 
-		} catch (Exception e) {
+		} catch (CloudProvisioningException e) {
 			if (!e.getMessage().contains("The name of the subnet is missing")) {
 				e.printStackTrace();
 				Assert.fail("Validation must fail: " + e.getMessage());
 			}
+			throw e;
 		}
 	}
 
-	@Test
+	@Test(expected = CloudProvisioningException.class)
 	public void missingApplicationSubnetRange() throws Exception {
 
 		try {
 			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("missingApplicationSubnetRange", false);
 			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
-		} catch (Exception e) {
+		} catch (CloudProvisioningException e) {
 			if (!e.getMessage().contains("The range is missing in subnet")) {
 				e.printStackTrace();
 				Assert.fail("Validation must fail: " + e.getMessage());
 			}
+			throw e;
 		}
 	}
 
@@ -212,10 +216,10 @@ public class OpenStackCloudifyDriverValidationTest {
 	public void missingNetworksForManagements() throws Exception {
 
 		try {
-			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("missingNetworksForManagements", false);
+			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("missingNetworksForManagements", true);
 			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
-		} catch (Exception e) {
-			if (!e.getMessage().contains("has no networks for cloudify communications")) {
+		} catch (CloudProvisioningException e) {
+			if (!e.getMessage().contains("A network must be provided to the management machines")) {
 				e.printStackTrace();
 				Assert.fail("Validation must fail: " + e.getMessage());
 			}
@@ -229,8 +233,8 @@ public class OpenStackCloudifyDriverValidationTest {
 		try {
 			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("missingNetworksForApplications", true);
 			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
-		} catch (Exception e) {
-			if (!e.getMessage().contains("A network must be provided for all templates")) {
+		} catch (CloudProvisioningException e) {
+			if (!e.getMessage().contains("network must be provided for all templates: [APPLI, APPLI2]")) {
 				e.printStackTrace();
 				Assert.fail("Validation must fail: " + e.getMessage());
 			}
@@ -317,7 +321,7 @@ public class OpenStackCloudifyDriverValidationTest {
 			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("wrongSecurityGroops", true);
 			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
 
-		} catch (Exception e) {
+		} catch (CloudProvisioningException e) {
 			if (!e.getMessage().contains("Error requesting security groups")) {
 				e.printStackTrace();
 				Assert.fail("Validation must fail: " + e.getMessage());
@@ -326,7 +330,7 @@ public class OpenStackCloudifyDriverValidationTest {
 		}
 	}
 
-	@Test
+	@Test(expected = CloudProvisioningException.class)
 	public void missingStaticNetwork() throws Exception {
 		try {
 			Mockito.reset(this.networkApi);
@@ -336,11 +340,12 @@ public class OpenStackCloudifyDriverValidationTest {
 			OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("ok", true);
 			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
 
-		} catch (Exception e) {
+		} catch (CloudProvisioningException e) {
 			if (!e.getMessage().contains("Network \"SOME_INTERNAL_NETWORK_1\" does not exist")) {
 				e.printStackTrace();
 				Assert.fail("Validation must fail: " + e.getMessage());
 			}
+			throw e;
 		}
 	}
 }

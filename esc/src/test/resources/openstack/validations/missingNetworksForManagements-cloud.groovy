@@ -36,12 +36,6 @@ cloud {
 				machineMemoryMB 1600
 				hardwareId "region/hardwareId"
 				localDirectory "upload"
-				computeNetwork {
-					networks ([
-						"SOME_INTERNAL_NETWORK_1",
-						"SOME_INTERNAL_NETWORK_2"
-					])
-				}
 				overrides ([
 					"openstack.endpoint": "openstackUrl"
 				])

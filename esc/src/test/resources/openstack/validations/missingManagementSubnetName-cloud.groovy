@@ -19,7 +19,6 @@ cloud {
 				name "Cloudify-Management-Network"
 				subnets ([
 					subnet {
-						name "Cloudify-Management-Subnet"
 						range "24.0.0.0/24"
 					}
 				])
