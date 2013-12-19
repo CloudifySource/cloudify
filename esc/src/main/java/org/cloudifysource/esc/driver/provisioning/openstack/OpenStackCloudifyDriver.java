@@ -305,6 +305,9 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		if (overrides != null && !overrides.isEmpty()) {
 			endpoint = (String) overrides.get(OPENSTACK_ENDPOINT);
 		}
+		if (endpoint == null) {
+			throw new IllegalStateException("No endpoint defined");
+		}
 
 		final String networkApiVersion = (String) cloudTemplate.getOptions().get(OPT_NETWORK_API_VERSION);
 		final String networkServiceName = (String) cloudTemplate.getOptions().get(OPT_NETWORK_SERVICE_NAME);
@@ -317,7 +320,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		final String password = cloud.getUser().getApiKey();
 
 		if (cloudUser == null || password == null) {
-			throw new IllegalStateException("Cloud user or password not found.");
+			throw new IllegalStateException("Cloud user or password not found");
 		}
 
 		final StringTokenizer st = new StringTokenizer(cloudUser, ":");
@@ -1081,7 +1084,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 				+ " management machines, " + numberOfErrors
 				+ " failed to start.");
 		if (numberOfManagementMachines > numberOfErrors) {
-			logger.severe("Shutting down the other managememnt machines");
+			logger.severe("Shutting down the other management machines");
 
 			for (final MachineDetails machineDetails : createdManagementMachines) {
 				if (machineDetails != null) {
@@ -1093,6 +1096,16 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 					}
 				}
 			}
+		}
+		try {
+			this.cleanAllSecurityGroups();
+		} catch (final OpenstackException e) {
+			logger.warning(e.getMessage());
+		}
+		try {
+			this.cleanAllNetworks();
+		} catch (final OpenstackException e) {
+			logger.warning(e.getMessage());
 		}
 		throw new CloudProvisioningException(
 				"One or more management machines failed. The first encountered error was: "

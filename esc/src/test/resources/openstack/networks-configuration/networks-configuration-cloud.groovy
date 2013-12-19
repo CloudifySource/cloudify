@@ -16,12 +16,15 @@ cloud {
 				subnets ([
 					subnet { name "Cloudify-Management-Subnet" }
 				])
+				custom ([ "associateFloatingIpOnBootstrap" : "true" ])
 			}
 		}
 		templates ([
 			"APPLICATION_NET" : networkConfiguration {
 				name "Cloudify-Application-Network"
-				subnets { subnet { name "Cloudify-Application-Subnet" } }
+				subnets { subnet { name "Cloudify-Application-Subnet"
+					} }
+				custom ([ "associateFloatingIpOnBootstrap" : "true" ])
 			}
 		])
 	}
