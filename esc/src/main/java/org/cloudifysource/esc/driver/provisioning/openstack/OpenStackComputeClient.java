@@ -39,8 +39,8 @@ public class OpenStackComputeClient extends OpenStackBaseClient {
 
 	private String serviceName;
 
-	public OpenStackComputeClient() {
-		super();
+	/** Testing purpose. */
+	OpenStackComputeClient() {
 	}
 
 	public OpenStackComputeClient(final String endpoint, final String username, final String password,

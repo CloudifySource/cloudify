@@ -154,6 +154,14 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	private static ResourceBundle defaultProvisioningDriverMessageBundle = ResourceBundle.getBundle(
 			"DefaultProvisioningDriverMessages", Locale.getDefault());
 
+	void setComputeApi(final OpenStackComputeClient computeApi) {
+		this.computeApi = computeApi;
+	}
+
+	void setNetworkApi(final OpenStackNetworkClient networkApi) {
+		this.networkApi = networkApi;
+	}
+
 	@Override
 	public void setConfig(final ComputeDriverConfiguration configuration) throws CloudProvisioningException {
 		this.networkHelper = new OpenStackNetworkConfigurationHelper(configuration);
@@ -307,6 +315,10 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 		final String cloudUser = cloud.getUser().getUser();
 		final String password = cloud.getUser().getApiKey();
+
+		if (cloudUser == null || password == null) {
+			throw new IllegalStateException("Cloud user or password not found.");
+		}
 
 		final StringTokenizer st = new StringTokenizer(cloudUser, ":");
 		final String tenant = st.hasMoreElements() ? (String) st.nextToken() : null;
@@ -1664,8 +1676,16 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			final String propertiesFile, final ComputeTemplate computeTemplate) throws CloudProvisioningException {
 
 		final String imageLocation = computeTemplate.getImageId();
+		if (!imageLocation.contains("/")) {
+			throw new CloudProvisioningException("'imageId' should be formatted as region/imageId");
+		}
+		final String hardwareLocation = computeTemplate.getHardwareId();
+		if (!hardwareLocation.contains("/")) {
+			throw new CloudProvisioningException("'hardwareId' should be formatted as region/flavorId");
+		}
+
 		final String imageId = imageLocation.split("/")[1];
-		final String hardwareId = computeTemplate.getHardwareId().split("/")[1];
+		final String hardwareId = hardwareLocation.split("/")[1];
 		final String locationId = imageLocation.split("/")[0];
 
 		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
