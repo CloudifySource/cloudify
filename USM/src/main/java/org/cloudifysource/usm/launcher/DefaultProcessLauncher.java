@@ -318,8 +318,7 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 
 		groovyCommandParams.addAll(convertEnvVarsToSysPropsList(envVarsList));
 		
-    	boolean isLocalCloud = LOCALCLOUD.equalsIgnoreCase(System.getenv(CloudifyConstants.GIGASPACES_CLOUD_MACHINE_ID));
-    	if (isLocalCloud) {    		
+    	if (isLocalCloud()) {    		
     		groovyCommandParams.add("-D" + CloudifyConstants.MULTICAST_ENABLED_PROPERTY + "=false");
     	} else {
     		String extJavaOptionsValue = System.getenv("EXT_JAVA_OPTIONS");
@@ -330,7 +329,9 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
     			}
     		}
     	}
-		groovyCommandParams.add("-D" + CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY + "=" + CloudifyConstants.LRMI_BIND_PORT_RANGE);
+    	
+		groovyCommandParams.add("-D" + CloudifyConstants.LRMI_BIND_PORT_CONTEXT_PROPERTY + "=" 
+			+ CloudifyConstants.LRMI_BIND_PORT_RANGE);
 		
 		if (ServiceUtils.isWindows()) {
 			modifyWindowsCommandLine(groovyCommandParams, workingDir);
@@ -1174,5 +1175,13 @@ public class DefaultProcessLauncher implements ProcessLauncher, ClusterInfoAware
 				&& (this.debugAllEvents || this.debugEvents.contains(event))
 				&& !event.equals(LifecycleEvents.START);
 	}
+
+	
+	private boolean isLocalCloud() {
+	    // if this env var is set to "localcloud" - running in localcloud mode
+	    String machineIdEnvVar = System.getenv(CloudifyConstants.GIGASPACES_CLOUD_MACHINE_ID);
+    	return (machineIdEnvVar == null) || LOCALCLOUD.equalsIgnoreCase(machineIdEnvVar);
+	}
+
 
 }
