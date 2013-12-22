@@ -142,6 +142,7 @@ if(Test-Path $workDirectory\cloudify-overrides) {
 # Note: the agent is executed from the task scheduler, so it does not inherit the environment from the
 # current session
 Write-Host Updating environment script
+insert-line $cloudifyDir\bin\setenv.bat "set EXT_JAVA_OPTIONS=$Env:EXT_JAVA_OPTIONS"
 insert-line $cloudifyDir\bin\setenv.bat "set NIC_ADDR=$ENV:MACHINE_IP_ADDRESS"
 insert-line $cloudifyDir\bin\setenv.bat "set LOOKUPLOCATORS=$ENV:LUS_IP_ADDRESS"
 insert-line $cloudifyDir\bin\setenv.bat "set JAVA_HOME=$javaDir"
