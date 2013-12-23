@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.cloudifysource</groupId>
 	<artifactId>cloudify</artifactId>
-	<version>2.7.0-SNAPSHOT</version>
+	<version>2.7.0-5994-RC</version>
 	<packaging>pom</packaging>
 	<name>cloudify</name>
 
@@ -24,7 +24,7 @@
 		<module>../esc-config</module>
 	</modules>
 	<properties>
-		<gsVersion>9.7.0-SNAPSHOT</gsVersion>
+		<gsVersion>9.7.0-10494-RC</gsVersion>
 		<junitVersion>4.8.2</junitVersion>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<cloudifyVersion>${project.version}</cloudifyVersion>
