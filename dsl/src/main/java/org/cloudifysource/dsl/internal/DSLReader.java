@@ -390,8 +390,8 @@ public class DSLReader {
 		// More info available here: http://jira.codehaus.org/browse/GROOVY-5121
 		synchronized (dslSingleton) {
 			// Tell Groovy we don't need any meta
-			// information about these classes
-			GroovySystem.getMetaClassRegistry().removeMetaClass(result.getClass());
+			// information about the generated DSL classes
+			GroovySystem.getMetaClassRegistry().removeMetaClass(Object.class);
 			// Tell the loader to clear out it's cache,
 			// this ensures the classes will be GC'd
 			gs.resetLoadedClasses();
