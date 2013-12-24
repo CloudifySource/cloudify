@@ -12,12 +12,6 @@
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning;
 
-import com.gigaspaces.internal.io.IOUtils;
-import org.cloudifysource.domain.cloud.CloudTemplateInstallerConfiguration;
-import org.cloudifysource.domain.cloud.FileTransferModes;
-import org.cloudifysource.domain.cloud.RemoteExecutionModes;
-import org.cloudifysource.domain.cloud.ScriptLanguages;
-
 import java.io.Externalizable;
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +19,13 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import org.cloudifysource.domain.cloud.CloudTemplateInstallerConfiguration;
+import org.cloudifysource.domain.cloud.FileTransferModes;
+import org.cloudifysource.domain.cloud.RemoteExecutionModes;
+import org.cloudifysource.domain.cloud.ScriptLanguages;
+
+import com.gigaspaces.internal.io.IOUtils;
 
 /*******
  * Described a Machine started by a cloud driver. MachineDetails implements @{link Externalizable} since it is embedded
@@ -36,7 +37,7 @@ import java.util.Map;
  */
 public class MachineDetails implements Externalizable {
 
-	// TODO - insert serial version uid of 2.6.0-ga using serialver (consult barak)
+	static final long serialVersionUID = 5214124902481712415L;
 	// TODO add version check to read/write external
 
 	private String privateAddress;
@@ -47,9 +48,9 @@ public class MachineDetails implements Externalizable {
 	private boolean agentRunning = false;
 
 	// not serializable
-	private String remoteUsername;
+	private transient String remoteUsername;
 	// not serializable
-	private String remotePassword;
+	private transient String remotePassword;
 
 	private String machineId;
 
