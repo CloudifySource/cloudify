@@ -1,12 +1,11 @@
 package org.cloudifysource.esc.driver.provisioning.events;
 
+import com.gigaspaces.internal.io.IOUtils;
+import org.openspaces.grid.gsm.machines.plugins.events.MachineStartRequestedEvent;
+
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import org.openspaces.grid.gsm.machines.plugins.events.MachineStartRequestedEvent;
-
-import com.gigaspaces.internal.io.IOUtils;
 
 public class MachineStartRequestedCloudifyEvent extends MachineStartRequestedEvent {
 

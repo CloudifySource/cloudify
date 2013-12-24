@@ -47,6 +47,7 @@
             <copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../security/target/security.jar" />
             <copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../security-ldap/target/security-ldap.jar" />
             <copy overwrite="yes" todir="@{target.dir}/lib/platform/esm" file="../esc/target/esc.jar" />
+            <copy overwrite="yes" todir="@{target.dir}/lib/platform/esm" file="../esc-config/target/esc-config.jar" />
             <copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../domain/target/domain.jar" />
             <copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../utility-domain/target/utility-domain.jar" />
             <copy overwrite="yes" todir="@{target.dir}/lib/platform/cloudify" file="../dsl/target/dsl.jar" />

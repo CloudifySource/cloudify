@@ -12,6 +12,12 @@
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning;
 
+import com.gigaspaces.internal.io.IOUtils;
+import org.cloudifysource.domain.cloud.CloudTemplateInstallerConfiguration;
+import org.cloudifysource.domain.cloud.FileTransferModes;
+import org.cloudifysource.domain.cloud.RemoteExecutionModes;
+import org.cloudifysource.domain.cloud.ScriptLanguages;
+
 import java.io.Externalizable;
 import java.io.File;
 import java.io.IOException;
@@ -19,13 +25,6 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import org.cloudifysource.domain.cloud.CloudTemplateInstallerConfiguration;
-import org.cloudifysource.domain.cloud.FileTransferModes;
-import org.cloudifysource.domain.cloud.RemoteExecutionModes;
-import org.cloudifysource.domain.cloud.ScriptLanguages;
-
-import com.gigaspaces.internal.io.IOUtils;
 
 /*******
  * Described a Machine started by a cloud driver. MachineDetails implements @{link Externalizable} since it is embedded
