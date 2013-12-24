@@ -12,4 +12,4 @@ import org.cloudifysource.dsl.context.Service
 import org.cloudifysource.dsl.context.ServiceInstance
 ```
 
-Than this module is required and should be placed under the <CLOUDIFY_HOME>/lib/platform/cloudify folder.
+Than this module is required and should be placed under the ${CLOUDIFY_HOME}/lib/platform/cloudify folder.
