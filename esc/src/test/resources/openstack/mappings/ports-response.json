@@ -1,0 +1,62 @@
+{
+   "ports":[
+      {
+         "status":"ACTIVE",
+         "name":"",
+         "allowed_address_pairs":[
+
+         ],
+         "admin_state_up":true,
+         "network_id":"472e376f-e92f-493a-8eef-5d4a61f975b5",
+         "tenant_id":"4a2672604a9742cf9769420df4b80394",
+         "extra_dhcp_opts":[
+
+         ],
+         "device_owner":"compute:None",
+         "mac_address":"fa:16:3e:98:dc:a9",
+         "fixed_ips":[
+            {
+               "subnet_id":"935a69a4-304e-4b98-a426-6777c7478438",
+               "ip_address":"149.80.0.1"
+            }
+         ],
+         "id":"3caf67be-04d5-4b44-86ba-563c4380eb56",
+         "security_groups":[
+            "02438bd6-ebf6-4d93-a212-e000a8c7c483",
+            "2a394b9c-c6ba-4a76-a570-06043b8a19cc",
+            "65f6eb2d-07fc-42bb-b120-59351f2d1f1f",
+            "a3359c75-a84e-45c6-a2b2-6e706baec041"
+         ],
+         "device_id":"c9819eab-91b9-4b7a-b7ba-9fca1b8db16d"
+      },
+      {
+         "status":"ACTIVE",
+         "name":"",
+         "allowed_address_pairs":[
+
+         ],
+         "admin_state_up":true,
+         "network_id":"188776d1-e4b2-49fb-960d-750e61c1507b",
+         "tenant_id":"4a2672604a9742cf9769420df4b80394",
+         "extra_dhcp_opts":[
+
+         ],
+         "device_owner":"compute:None",
+         "mac_address":"fa:16:3e:be:22:e6",
+         "fixed_ips":[
+            {
+               "subnet_id":"0cbed2b0-7a9b-47be-95c9-cc0d0ac5ddce",
+               "ip_address":"177.86.0.114"
+            }
+         ],
+         "id":"cfd32cd5-7eb7-4536-a788-2a607715b48a",
+         "security_groups":[
+            "02438bd6-ebf6-4d93-a212-e000a8c7c483",
+            "2a394b9c-c6ba-4a76-a570-06043b8a19cc",
+            "65f6eb2d-07fc-42bb-b120-59351f2d1f1f",
+            "a3359c75-a84e-45c6-a2b2-6e706baec041"
+         ],
+         "device_id":"c9819eab-91b9-4b7a-b7ba-9fca1b8db16d"
+      }
+   ]
+}

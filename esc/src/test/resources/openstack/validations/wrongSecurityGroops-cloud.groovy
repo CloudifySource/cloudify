@@ -1,30 +1,39 @@
 cloud {
 	name = "openstack"
 
-	configuration { managementMachineTemplate "MANAGER" }
+	configuration {  managementMachineTemplate "MANAGER" }
 
 	provider {
 		provider "openstack-nova"
 		managementGroup "cloudify-manager-"
+		machineNamePrefix "cloudify-agent-"
 		numberOfManagementMachines 1
 	}
-
+	user {
+		user "tenant:user"
+		apiKey "apiKey"
+	}
 	cloudNetwork {
 		management {
 			networkConfiguration {
 				name "Cloudify-Management-Network"
 				subnets ([
-					subnet { name "Cloudify-Management-Subnet" }
+					subnet {
+						name "Cloudify-Management-Subnet"
+						range "24.0.0.0/24"
+					}
 				])
-				custom ([ "associateFloatingIpOnBootstrap" : "true" ])
 			}
 		}
 		templates ([
 			"APPLICATION_NET" : networkConfiguration {
 				name "Cloudify-Application-Network"
-				subnets { subnet { name "Cloudify-Application-Subnet"
-					} }
-				custom ([ "associateFloatingIpOnBootstrap" : "true" ])
+				subnets {
+					subnet {
+						name "Cloudify-Application-Subnet"
+						range "10.0.0.0/24"
+					}
+				}
 			}
 		])
 	}
@@ -32,10 +41,10 @@ cloud {
 	cloudCompute {
 		templates ([
 			MANAGER : computeTemplate{
-				imageId "imageId"
+				imageId "region/imageId"
 				remoteDirectory "remoteDirectory"
 				machineMemoryMB 1600
-				hardwareId "hardwareId"
+				hardwareId "region/hardwareId"
 				localDirectory "upload"
 				computeNetwork {
 					networks ([
@@ -43,18 +52,28 @@ cloud {
 						"SOME_INTERNAL_NETWORK_2"
 					])
 				}
+				options ([
+					"securityGroups" : ["default"] as String[],
+				   ])
+				
+				overrides ([
+					"openstack.endpoint": "openstackUrl"
+				])
 			},
 			APPLI : computeTemplate{
-				imageId "imageId"
+				imageId "region/imageId"
 				remoteDirectory "remoteDirectory"
 				machineMemoryMB 1600
-				hardwareId "hardwareId"
+				hardwareId "region/hardwareId"
 				localDirectory "upload"
 				computeNetwork {
 					networks ([
 						"SOME_INTERNAL_NETWORK_2"
 					])
 				}
+				overrides ([
+					"openstack.endpoint": "openstackUrl"
+				])
 			}
 		])
 	}

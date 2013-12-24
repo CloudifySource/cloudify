@@ -14,6 +14,7 @@ package org.cloudifysource.esc.driver.provisioning.openstack;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -40,6 +41,9 @@ import org.cloudifysource.domain.cloud.RestComponent;
 import org.cloudifysource.domain.cloud.UsmComponent;
 import org.cloudifysource.domain.cloud.WebuiComponent;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplateNetwork;
+import org.cloudifysource.domain.cloud.network.CloudNetwork;
+import org.cloudifysource.domain.cloud.network.ManagementNetwork;
 import org.cloudifysource.domain.cloud.network.NetworkConfiguration;
 import org.cloudifysource.domain.network.AccessRule;
 import org.cloudifysource.domain.network.AccessRules;
@@ -83,6 +87,7 @@ import com.j_spaces.kernel.Environment;
  */
 public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
+	private static final int HTTP_AUTHENTIFICATION_ERROR = 401;
 	private static final String CLOUDS_FOLDER_PATH = Environment.getHomeDirectory() + "clouds";
 	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
 
@@ -150,6 +155,14 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 	private static ResourceBundle defaultProvisioningDriverMessageBundle = ResourceBundle.getBundle(
 			"DefaultProvisioningDriverMessages", Locale.getDefault());
+
+	void setComputeApi(final OpenStackComputeClient computeApi) {
+		this.computeApi = computeApi;
+	}
+
+	void setNetworkApi(final OpenStackNetworkClient networkApi) {
+		this.networkApi = networkApi;
+	}
 
 	@Override
 	public void setConfig(final ComputeDriverConfiguration configuration) throws CloudProvisioningException {
@@ -305,6 +318,10 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		final String cloudUser = cloud.getUser().getUser();
 		final String password = cloud.getUser().getApiKey();
 
+		if (cloudUser == null || password == null) {
+			throw new IllegalStateException("Cloud user or password not found");
+		}
+
 		final StringTokenizer st = new StringTokenizer(cloudUser, ":");
 		final String tenant = st.hasMoreElements() ? (String) st.nextToken() : null;
 		final String username = st.hasMoreElements() ? (String) st.nextToken() : null;
@@ -405,14 +422,18 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			this.cleanAllNetworks();
 
 			// Network
-			final Network network = this.getOrCreateNetwork(this.networkHelper.getManagementNetworkPrefixedName());
+			final String managementNetworkPrefixedName = this.networkHelper.getManagementNetworkPrefixedName();
+			final Network network = this.getOrCreateNetwork(managementNetworkPrefixedName);
+			if (network == null) {
+				throw new CloudProvisioningException("Fail to create '" + managementNetworkPrefixedName + "' network");
+			}
 
 			// Subnets
 			final NetworkConfiguration networkTemplate = this.networkHelper.getManagementNetworkTemplate();
 			final List<Subnet> subnets = new ArrayList<Subnet>();
 			if (networkTemplate.getSubnets() != null) {
-				for (org.cloudifysource.domain.cloud.network.Subnet subnetConfig : networkTemplate.getSubnets()) {
-					Subnet subnet = this.getOrCreateSubnet(subnetConfig, network);
+				for (final org.cloudifysource.domain.cloud.network.Subnet subnetConfig : networkTemplate.getSubnets()) {
+					final Subnet subnet = this.getOrCreateSubnet(subnetConfig, network);
 					subnets.add(subnet);
 				}
 			}
@@ -439,7 +460,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			if (this.networkHelper.isExternalNetworkNameSpecified()) {
 				publicNetworkId = networkApi.getPublicNetworkId();
 			} else {
-				Network extNetwork = networkApi.getNetworkByName(this.networkHelper.getExternalNetworkName());
+				final Network extNetwork = networkApi.getNetworkByName(this.networkHelper.getExternalNetworkName());
 				if (extNetwork == null) {
 					throw new CloudProvisioningException("Couldn't find external network '"
 							+ this.networkHelper.getExternalNetworkName() + "'");
@@ -477,13 +498,8 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			final Network network) throws CloudProvisioningException, OpenstackException {
 		Subnet subnet = null;
 		if (subnetConfig == null) {
-			// There is no subnet in the configuration, try to get an existing one
-			final List<Subnet> subnets = networkApi.getSubnetsByNetworkId(network.getId());
-			if (subnets != null && subnets.size() != 0) {
-				subnet = subnets.get(0);
-			} else {
-				throw new CloudProvisioningException("The network '" + network.getName() + "' must have a subnet");
-			}
+			throw new CloudProvisioningException("The network '" + network.getName()
+					+ "' is missing subnet configuration.");
 		} else {
 			// Search for a subnet with the specified name
 			final List<Subnet> subnets = networkApi.getSubnetsByNetworkId(network.getId());
@@ -498,6 +514,10 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 				final Subnet subnetRequest = this.createSubnetRequest(subnetConfig, network.getId());
 				subnet = networkApi.createSubnet(subnetRequest);
 			}
+		}
+
+		if (subnet == null) {
+			throw new CloudProvisioningException("Missing subnets for network '" + network.getName() + "'.");
 		}
 		return subnet;
 	}
@@ -559,15 +579,20 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			if (router != null) {
 				try {
 					final String privateIpNetworkName = this.networkHelper.getPrivateIpNetworkName();
-					Network privateNetwork = this.networkApi.getNetworkByName(privateIpNetworkName);
-					String[] privateNetSubnetIds = privateNetwork.getSubnets();
-
-					final List<Port> ports = networkApi.getPortsByDeviceId(router.getId());
-					for (final Port port : ports) {
-						for (final RouteFixedIp fixedIp : port.getFixedIps()) {
-							for (final String id : privateNetSubnetIds) {
-								if (id.equals(fixedIp.getSubnetId())) {
-									networkApi.deleteRouterInterface(router.getId(), fixedIp.getSubnetId());
+					final Network privateNetwork = this.networkApi.getNetworkByName(privateIpNetworkName);
+					if (privateNetwork != null) {
+						final String[] privateNetSubnetIds = privateNetwork.getSubnets();
+						if (privateNetSubnetIds != null && privateNetSubnetIds.length > 0) {
+							final List<Port> ports = networkApi.getPortsByDeviceId(router.getId());
+							if (ports != null) {
+								for (final Port port : ports) {
+									for (final RouteFixedIp fixedIp : port.getFixedIps()) {
+										for (final String id : privateNetSubnetIds) {
+											if (id.equals(fixedIp.getSubnetId())) {
+												networkApi.deleteRouterInterface(router.getId(), fixedIp.getSubnetId());
+											}
+										}
+									}
 								}
 							}
 						}
@@ -586,9 +611,11 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 		// Delete all remaining application networks
 		final List<Network> appliNetworks = networkApi.getNetworkByPrefix(this.openstackPrefixes.getPrefix());
-		for (final Network n : appliNetworks) {
-			networkApi.deleteNetwork(n.getId());
+		if (appliNetworks != null) {
+			for (final Network n : appliNetworks) {
+				networkApi.deleteNetwork(n.getId());
 
+			}
 		}
 	}
 
@@ -655,7 +682,6 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		final List<String> reservedPortIds = new ArrayList<String>();
 
 		try {
-
 			final NovaServerResquest request = new NovaServerResquest();
 			request.setName(serverName);
 			request.setKeyName(keyName);
@@ -666,6 +692,14 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			if (this.networkHelper.useManagementNetwork()) {
 				final String managementNetworkName = this.networkHelper.getManagementNetworkPrefixedName();
 				final Network managementNetwork = this.networkApi.getNetworkByName(managementNetworkName);
+				if (managementNetwork == null) {
+					throw new CloudProvisioningException("Unexpected missing management network '"
+							+ managementNetworkName + "'");
+				}
+				if (managementNetwork.getSubnets() == null || managementNetwork.getSubnets().length <= 0) {
+					throw new CloudProvisioningException("Unexpected missing subnet in management network '"
+							+ managementNetworkName + "'");
+				}
 				if (managementNetwork.getSubnets().length == 1) {
 					request.addNetworks(managementNetwork.getId());
 				} else {
@@ -681,6 +715,9 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 				if (network == null) {
 					throw new CloudProvisioningException("Couldn't find network '" + networkName + "'");
 				}
+				if (network.getSubnets() == null || network.getSubnets().length <= 0) {
+					throw new CloudProvisioningException("Unexpected missing subnet in network '" + networkName + "'");
+				}
 				if (network.getSubnets().length == 1) {
 					request.addNetworks(network.getId());
 				} else {
@@ -693,6 +730,14 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			if (!management && this.networkHelper.useApplicationNetworkTemplate()) {
 				final String prefixedAppliNetworkName = this.networkHelper.getApplicationNetworkPrefixedName();
 				final Network templateNetwork = this.networkApi.getNetworkByName(prefixedAppliNetworkName);
+				if (templateNetwork == null) {
+					throw new CloudProvisioningException("Unexpected missing management network '"
+							+ prefixedAppliNetworkName + "'");
+				}
+				if (templateNetwork.getSubnets() == null || templateNetwork.getSubnets().length <= 0) {
+					throw new CloudProvisioningException("Unexpected missing subnet in management network '"
+							+ prefixedAppliNetworkName + "'");
+				}
 				if (templateNetwork.getSubnets().length == 1) {
 					request.addNetworks(templateNetwork.getId());
 				} else {
@@ -733,6 +778,10 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			if (this.networkHelper.associateFloatingIp()) {
 				final String privateIPNetworkName = this.networkHelper.getPrivateIpNetworkName();
 				final Network privateIpNetwork = this.networkApi.getNetworkByName(privateIPNetworkName);
+				if (privateIpNetwork == null) {
+					throw new CloudProvisioningException("Couldn't find network '" + privateIPNetworkName
+							+ "' to assign floating IP.");
+				}
 				networkApi.createAndAssociateFloatingIp(serverId, privateIpNetwork.getId());
 			}
 
@@ -788,7 +837,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	}
 
 	private void setSecurityGroupsToServer(final String serverId, final String... securityGroupNames)
-			throws OpenstackException {
+			throws OpenstackException, CloudProvisioningException {
 		final List<Port> ports = networkApi.getPortsByDeviceId(serverId);
 
 		for (final Port port : ports) {
@@ -796,19 +845,28 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			updateRequest.setId(port.getId());
 			for (final String sgn : securityGroupNames) {
 				final SecurityGroup sg = networkApi.getSecurityGroupsByName(sgn);
+				if (sg == null) {
+					throw new CloudProvisioningException("Couldn't find security group '" + sgn + "'");
+				}
 				updateRequest.addSecurityGroup(sg.getId());
 			}
 			networkApi.updatePort(updateRequest);
 		}
 	}
 
-	private void createSecurityGroupsRules() throws OpenstackException {
+	private void createSecurityGroupsRules() throws OpenstackException, CloudProvisioningException {
 
 		final String serviceSecgroupName = this.openstackPrefixes.getServiceName();
 		final SecurityGroup serviceSecGroup = networkApi.getSecurityGroupsByName(serviceSecgroupName);
+		if (serviceSecGroup == null) {
+			throw new CloudProvisioningException("Couldn't find security group '" + serviceSecgroupName + "'");
+		}
 
 		final String managementSecgroupName = this.openstackPrefixes.getManagementName();
 		final SecurityGroup managementSecGroup = networkApi.getSecurityGroupsByName(managementSecgroupName);
+		if (managementSecGroup == null) {
+			throw new CloudProvisioningException("Couldn't find security group '" + managementSecgroupName + "'");
+		}
 
 		// Open the transfert mode port to the managers
 		final ComputeTemplate cloudTemplate = cloud.getCloudCompute().getTemplates().get(cloudTemplateName);
@@ -838,78 +896,84 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 	private void deleteEgressRulesFromSecurityGroup(final String securityGroupName) throws OpenstackException {
 		final SecurityGroup securityGroup = networkApi.getSecurityGroupsByName(securityGroupName);
-		final SecurityGroupRule[] securityGroupRules = securityGroup.getSecurityGroupRules();
-		for (final SecurityGroupRule rule : securityGroupRules) {
-			if ("egress".equals(rule.getDirection())) {
-				networkApi.deleteSecurityGroupRule(rule.getId());
+		if (securityGroup != null) {
+			final SecurityGroupRule[] securityGroupRules = securityGroup.getSecurityGroupRules();
+			if (securityGroupRules != null) {
+				for (final SecurityGroupRule rule : securityGroupRules) {
+					if ("egress".equals(rule.getDirection())) {
+						networkApi.deleteSecurityGroupRule(rule.getId());
+					}
+				}
 			}
 		}
 	}
 
 	private void createAccessRule(final String serviceSecgroupId, final String direction, final AccessRule accessRule)
-			throws OpenstackException {
+			throws OpenstackException, CloudProvisioningException {
 
 		// Parse ports
 		final PortRange portRange = PortRangeFactory.createPortRange(accessRule.getPortRange());
+		if (portRange != null && !portRange.getRanges().isEmpty()) {
+			String targetSecurityGroupId = serviceSecgroupId;
+			String ip = "0.0.0.0/0";
+			String group = null;
 
-		String targetSecurityGroupId = serviceSecgroupId;
-		String ip = "0.0.0.0/0";
-		String group = null;
-
-		switch (accessRule.getType()) {
-		case PUBLIC:
-			// Rules to apply to public network
-			break;
-		case SERVICE:
-			// Rules with group filtering
-			group = this.openstackPrefixes.getServiceName();
-			break;
-		case APPLICATION:
-			// Rules with group filtering
-			group = this.openstackPrefixes.getApplicationName();
-			break;
-		case CLUSTER:
-			// Rules with group filtering
-			group = this.openstackPrefixes.getClusterName();
-			break;
-		case GROUP:
-			// Rules with group filtering
-			group = accessRule.getTarget();
-			break;
-		case RANGE:
-			// Rules with ip filtering
-			if (accessRule.getTarget() == null) {
-				throw new IllegalStateException("No IP defined for the 'Range' access rule type :" + accessRule);
+			switch (accessRule.getType()) {
+			case PUBLIC:
+				// Rules to apply to public network
+				break;
+			case SERVICE:
+				// Rules with group filtering
+				group = this.openstackPrefixes.getServiceName();
+				break;
+			case APPLICATION:
+				// Rules with group filtering
+				group = this.openstackPrefixes.getApplicationName();
+				break;
+			case CLUSTER:
+				// Rules with group filtering
+				group = this.openstackPrefixes.getClusterName();
+				break;
+			case GROUP:
+				// Rules with group filtering
+				group = accessRule.getTarget();
+				break;
+			case RANGE:
+				// Rules with ip filtering
+				if (accessRule.getTarget() == null) {
+					throw new CloudProvisioningException("No IP defined for the 'Range' access rule type :"
+							+ accessRule);
+				}
+				ip = accessRule.getTarget();
+				break;
+			case PRIVATE:
+			default:
+				throw new CloudProvisioningException("Unsupported type of rule '" + accessRule.getType() + "'");
 			}
-			ip = accessRule.getTarget();
-			break;
-		case PRIVATE:
-		default:
-			throw new IllegalStateException("Unsupported type of rule '" + accessRule.getType() + "'");
-		}
 
-		SecurityGroup existingSecgroup = null;
-		if (group != null) {
-			existingSecgroup = this.networkApi.getSecurityGroupsByName(group);
-			if (existingSecgroup == null) {
-				throw new IllegalStateException("Security group '" + group + "' does not exist.");
+			SecurityGroup existingSecgroup = null;
+			if (group != null) {
+				existingSecgroup = this.networkApi.getSecurityGroupsByName(group);
+				if (existingSecgroup == null) {
+					throw new CloudProvisioningException("Security group '" + group + "' does not exist.");
+				}
 			}
-		}
 
-		// Create rules
-		for (final PortRangeEntry pre : portRange.getRanges()) {
-			final SecurityGroupRule request = new SecurityGroupRule();
-			request.setDirection(direction);
-			request.setProtocol(DEFAULT_PROTOCOL);
-			request.setSecurityGroupId(targetSecurityGroupId);
-			request.setPortRangeMax(pre.getTo() == null ? pre.getFrom().toString() : pre.getTo().toString());
-			request.setPortRangeMin(pre.getFrom().toString());
-			if (existingSecgroup != null) {
-				request.setRemoteGroupId(existingSecgroup.getId());
-			} else {
-				request.setRemoteIpPrefix(ip);
+			// Create rules
+			for (final PortRangeEntry pre : portRange.getRanges()) {
+				final SecurityGroupRule request = new SecurityGroupRule();
+				request.setDirection(direction);
+				request.setProtocol(DEFAULT_PROTOCOL);
+				request.setSecurityGroupId(targetSecurityGroupId);
+				request.setPortRangeMax(pre.getTo() == null ? pre.getFrom().toString() : pre.getTo().toString());
+				request.setPortRangeMin(pre.getFrom().toString());
+				if (existingSecgroup != null) {
+					request.setRemoteGroupId(existingSecgroup.getId());
+				} else {
+					request.setRemoteIpPrefix(ip);
+				}
+				networkApi.createSecurityGroupRule(request);
 			}
-			networkApi.createSecurityGroupRule(request);
 		}
 	}
 
@@ -930,7 +994,21 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 			final String privateIpNetworkName = this.networkHelper.getPrivateIpNetworkName();
 			final Network privateIpNetwork = this.networkApi.getNetworkByName(privateIpNetworkName);
+			if (privateIpNetwork == null) {
+				throw new CloudProvisioningException("Couldn't find network '" + privateIpNetworkName
+						+ "' to set private IP.");
+			}
 			final Port privateIpPort = networkApi.getPort(server.getId(), privateIpNetwork.getId());
+			if (privateIpPort == null) {
+				throw new CloudProvisioningException("Server '" + server.getName()
+						+ "' has no port on network '" + privateIpNetwork.getName() + "'.");
+
+			}
+			if (privateIpPort.getFixedIps() == null || privateIpPort.getFixedIps().isEmpty()) {
+				throw new CloudProvisioningException("No fixed IP found on the port which link server '"
+						+ server.getName() + "' tonetwork '" + privateIpNetwork.getName() + "'.");
+			}
+
 			final RouteFixedIp fixedIp = privateIpPort.getFixedIps().get(0);
 			md.setPrivateAddress(fixedIp.getIpAddress());
 
@@ -1005,7 +1083,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 				+ " management machines, " + numberOfErrors
 				+ " failed to start.");
 		if (numberOfManagementMachines > numberOfErrors) {
-			logger.severe("Shutting down the other managememnt machines");
+			logger.severe("Shutting down the other management machines");
 
 			for (final MachineDetails machineDetails : createdManagementMachines) {
 				if (machineDetails != null) {
@@ -1017,6 +1095,16 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 					}
 				}
 			}
+		}
+		try {
+			this.cleanAllSecurityGroups();
+		} catch (final OpenstackException e) {
+			logger.warning(e.getMessage());
+		}
+		try {
+			this.cleanAllNetworks();
+		} catch (final OpenstackException e) {
+			logger.warning(e.getMessage());
 		}
 		throw new CloudProvisioningException(
 				"One or more management machines failed. The first encountered error was: "
@@ -1256,7 +1344,6 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	public void validateCloudConfiguration(final ValidationContext validationContext)
 			throws CloudProvisioningException {
 
-		String templateName;
 		String cloudFolder = CLOUDS_FOLDER_PATH + FILE_SEPARATOR + cloud.getName();
 		String groovyFile = cloudFolder + FILE_SEPARATOR + cloud.getName() + "-cloud.groovy";
 		String propertiesFile = cloudFolder + FILE_SEPARATOR + cloud.getName() + "-cloud.properties";
@@ -1265,163 +1352,459 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 				getFormattedMessage("validating_all_templates"));
 
 		final Map<String, ComputeTemplate> templates = cloud.getCloudCompute().getTemplates();
-		for (Entry<String, ComputeTemplate> entry : templates.entrySet()) {
 
+		final String mangementTemplateName = cloud.getConfiguration().getManagementMachineTemplate();
+		final ComputeTemplate managementComputeTemplate =
+				cloud.getCloudCompute().getTemplates().get(mangementTemplateName);
+
+		// validating openstack endpoint
+		this.validateOpenstackEndpoint(validationContext, managementComputeTemplate);
+
+		// validating credentials
+		validateCredentials(validationContext);
+
+		// validating management network/subnets configuration
+		final CloudNetwork cloudNetwork = configuration.getCloud().getCloudNetwork();
+		this.validateManagementNetwork(validationContext, managementComputeTemplate, cloudNetwork);
+
+		// validating templates networks configuration
+		if (cloudNetwork != null) {
+			this.validateTemplateNetworks(validationContext, cloudNetwork, templates.values());
+		}
+
+		// validating templates
+		this.validateComputeTemplates(validationContext, groovyFile, propertiesFile, templates);
+
+	}
+
+	private void validateCredentials(final ValidationContext validationContext)
+			throws CloudProvisioningException {
+
+		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+				"Validating credentials");
+
+		// test request information from openstack
+		try {
+			this.computeApi.getServers();
+		} catch (OpenstackServerException e) {
+			validationContext.validationEventEnd(ValidationResultType.ERROR);
+			if (e.getStatusCode() == HTTP_AUTHENTIFICATION_ERROR) {
+				throw new CloudProvisioningException(
+						"Authentification operation failed. Please check credentials informations.");
+			}
+			throw new CloudProvisioningException("Could not request Openstack", e);
+		} catch (final OpenstackException e) {
+			validationContext.validationEventEnd(ValidationResultType.ERROR);
+			throw new CloudProvisioningException("Could not request Openstack", e);
+		}
+		validationContext.validationEventEnd(ValidationResultType.OK);
+	}
+
+	private void validateTemplateNetworks(final ValidationContext validationContext, final CloudNetwork cloudNetwork,
+			final Collection<ComputeTemplate> templates)
+			throws CloudProvisioningException {
+
+		// boolean networkInCloud = false;
+		Map<String, NetworkConfiguration> templateNetworkConfigurations = cloudNetwork.getTemplates();
+		if (templateNetworkConfigurations != null && !templateNetworkConfigurations.isEmpty()) {
+
+			validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+					"Validating templates network configuration");
+
+			for (Entry<String, NetworkConfiguration> networkConfigurationEntry : templateNetworkConfigurations
+					.entrySet()) {
+
+				if (!networkHelper.isValidNetworkName(networkConfigurationEntry.getValue())) {
+					validationContext.validationEventEnd(ValidationResultType.ERROR);
+					throw new CloudProvisioningException(String.format(
+							"The name of template network configuration is missing. "
+									+ "Please check template network in '%s'",
+							networkConfigurationEntry.getKey()));
+				}
+
+				List<org.cloudifysource.domain.cloud.network.Subnet> templateNetworkSubnets =
+						networkConfigurationEntry.getValue().getSubnets();
+
+				if (templateNetworkSubnets == null || templateNetworkSubnets.isEmpty()) {
+					validationContext.validationEventEnd(ValidationResultType.ERROR);
+					throw new CloudProvisioningException(
+							String.format(
+									"Subnets list is empty. At least one subnet is required. "
+											+ "Please check template network configuration in '%s'.",
+									networkConfigurationEntry.getValue().getName()));
+				}
+
+				for (org.cloudifysource.domain.cloud.network.Subnet mSub : templateNetworkSubnets) {
+
+					if (!networkHelper.isValidSubnetName(mSub)) {
+						validationContext.validationEventEnd(ValidationResultType.ERROR);
+						throw new CloudProvisioningException(
+								String.format(
+										"The name of the subnet is missing."
+												+ " Please check subnet name in template network "
+												+ "configuration '%s' ",
+										networkConfigurationEntry.getValue().getName()));
+					}
+
+					if (mSub.getRange() == null || StringUtils.trim(mSub.getRange()).isEmpty()) {
+						validationContext.validationEventEnd(ValidationResultType.ERROR);
+						throw new CloudProvisioningException(
+								String.format(
+										"The range is missing in subnet '%s'. "
+												+ "Please check subnet range in template network "
+												+ "configuration '%s' ",
+										mSub.getName(), networkConfigurationEntry.getKey()));
+					}
+				}
+			}
+		}
+		validationContext.validationEventEnd(ValidationResultType.OK);
+	}
+
+	private void validateManagementNetwork(final ValidationContext validationContext,
+			final ComputeTemplate managementComputeTemplate, final CloudNetwork cloudNetwork)
+			throws CloudProvisioningException {
+
+		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+				"Validating management network configuration");
+
+		boolean isNetworkExistsForManager = false;
+		if (cloudNetwork != null) {
+			final ManagementNetwork managementNetwork = cloudNetwork.getManagement();
+			if (managementNetwork != null) {
+				final NetworkConfiguration managementNetworkConfiguration = managementNetwork.getNetworkConfiguration();
+				// network available for management
+				if (managementNetworkConfiguration != null
+						&& (managementNetworkConfiguration.getName() != null
+								|| (managementNetworkConfiguration.getSubnets() != null
+								&& !managementNetworkConfiguration.getSubnets().isEmpty())
+								|| !managementNetworkConfiguration.getCustom().isEmpty())) {
+
+					isNetworkExistsForManager = true;
+
+					final String mngNetName = managementNetworkConfiguration.getName();
+					if (mngNetName == null
+							|| StringUtils.isEmpty(mngNetName.trim())) {
+						validationContext.validationEventEnd(ValidationResultType.ERROR);
+						throw new CloudProvisioningException(
+								"The name of Management network is missing. "
+										+ "Please check management network configuration in CloudNetwork block.");
+					}
+
+					// validating subnets for management network
+					List<org.cloudifysource.domain.cloud.network.Subnet> managementNetwokSubnets =
+							managementNetworkConfiguration.getSubnets();
+
+					if (managementNetwokSubnets != null) {
+
+						// no subnets defined in management network
+						if (managementNetwokSubnets.isEmpty()) {
+							validationContext.validationEventEnd(ValidationResultType.ERROR);
+							throw new CloudProvisioningException(
+									String.format(
+											"Subnets list is empty. At least one subnet is required."
+													+ " Please check management network configuration in '%s'.",
+											mngNetName));
+						} else {
+							// subnets are defined
+							for (org.cloudifysource.domain.cloud.network.Subnet mSub : managementNetwokSubnets) {
+								if (!networkHelper.isValidSubnetName(mSub)) {
+									validationContext.validationEventEnd(ValidationResultType.ERROR);
+									throw new CloudProvisioningException(String.format("The name of subnet is missing."
+											+ " Please check subnet in management network "
+											+ "configuration '%s'.", managementNetwork.getNetworkConfiguration()
+											.getName()));
+
+								}
+								if (!networkHelper.isValidSubnetRange(mSub)) {
+									validationContext.validationEventEnd(ValidationResultType.ERROR);
+									throw new CloudProvisioningException(
+											String.format(
+													"The range is missing in subnet '%s'. "
+															+ "Please check subnet range in management network "
+															+ "configuration.",
+													mSub.getName()));
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (!isNetworkExistsForManager) {
+			if (managementComputeTemplate != null) {
+				final ComputeTemplateNetwork computeNetwork = managementComputeTemplate.getComputeNetwork();
+				List<String> computeNetworks = computeNetwork.getNetworks();
+
+				if (computeNetworks != null && !computeNetworks.isEmpty()) {
+					isNetworkExistsForManager = true;
+				}
+			}
+
+			if (!isNetworkExistsForManager) {
+				validationContext.validationEventEnd(ValidationResultType.ERROR);
+				throw new CloudProvisioningException(
+						"A network must be provided to the management machines "
+								+ "(use either cloudNetwork templates or computeNetwork configuration).");
+			}
+		}
+
+		// management network/ subnets are OK
+		validationContext.validationEventEnd(ValidationResultType.OK);
+	}
+
+	private void validateOpenstackEndpoint(final ValidationContext validationContext,
+			final ComputeTemplate managementComputeTemplate) throws CloudProvisioningException {
+
+		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+				"Validating openstack endpoint property");
+
+		if (managementComputeTemplate.getOverrides() != null
+				&& !managementComputeTemplate.getOverrides().isEmpty()) {
+
+			String openstackProperty =
+					(String) managementComputeTemplate.getOverrides().get(OPENSTACK_ENDPOINT);
+
+			if (openstackProperty == null || openstackProperty.trim().isEmpty()) {
+				validationContext.validationEventEnd(ValidationResultType.ERROR);
+				throw new CloudProvisioningException((String.format(
+						"The openstack endpoint '%s' is missing. "
+								+ "Please check overrides block in management template '%s'. ",
+						OPENSTACK_ENDPOINT, cloud.getConfiguration().getManagementMachineTemplate())));
+			}
+			validationContext.validationEventEnd(ValidationResultType.OK);
+		} else {
+			validationContext.validationEventEnd(ValidationResultType.ERROR);
+			throw new CloudProvisioningException(String.format(
+					"The openstack endpoint option '%s' is missing. "
+							+ "Please check overrides block in management template ",
+					OPENSTACK_ENDPOINT));
+		}
+	}
+
+	private void validateComputeTemplates(final ValidationContext validationContext,
+			final String groovyFile,
+			final String propertiesFile,
+			final Map<String, ComputeTemplate> templates)
+			throws CloudProvisioningException {
+
+		ManagementNetwork managementNetwork = cloud.getCloudNetwork().getManagement();
+
+		boolean isManagementNetwork = true;
+		if (managementNetwork.getNetworkConfiguration() != null
+				&& managementNetwork.getNetworkConfiguration().getName() == null
+				&& managementNetwork.getNetworkConfiguration().getSubnets() != null
+				&& managementNetwork.getNetworkConfiguration().getSubnets().isEmpty()) {
+			isManagementNetwork = false;
+		}
+
+		List<String> missingNetworks = new ArrayList<String>();
+
+		for (Entry<String, ComputeTemplate> entry : templates.entrySet()) {
 			final ComputeTemplate computeTemplate = entry.getValue();
-			templateName = entry.getKey();
+			String templateName = entry.getKey();
 
 			validationContext.validationEvent(ValidationMessageType.GROUP_VALIDATION_MESSAGE,
 					getFormattedMessage("validating_template", templateName));
 
 			final String imageLocation = computeTemplate.getImageId();
-			final String imageId = imageLocation.split("/")[1];
-			final String hardwareId = computeTemplate.getHardwareId().split("/")[1];
-			final String locationId = imageLocation.split("/")[0];
-
-			validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
-					getFormattedMessage("validating_image_hardware_location_combination",
-							imageId == null ? "" : imageId, hardwareId == null ? "" : hardwareId,
-							locationId == null ? "" : locationId));
-
-			// validating imageIds
-			try {
-				if (imageId != null) {
-					try {
-						computeApi.getImage(imageId);
-					} catch (final OpenstackException e) {
-						validationContext.validationEventEnd(ValidationResultType.ERROR);
-						final String availableResources = this.formatResourceList(computeApi.getImages());
-						throw new CloudProvisioningException(
-								getFormattedMessage("error_image_id_validation",
-										imageId == null ? "" : imageId, availableResources));
-					}
-				}
-
-				// validating hardwareId
-				if (hardwareId != null) {
-					try {
-						computeApi.getFlavor(hardwareId);
-					} catch (final OpenstackException e) {
-						validationContext.validationEventEnd(ValidationResultType.ERROR);
-						final String availableResources = this.formatResourceList(computeApi.getFlavors());
-						throw new CloudProvisioningException(
-								getFormattedMessage("error_hardware_id_validation",
-										hardwareId == null ? "" : hardwareId, availableResources));
-					}
-				}
-			} catch (final OpenstackException ex) {
-				validationContext.validationEventEnd(ValidationResultType.ERROR);
-				throw new CloudProvisioningException(
-						getFormattedMessage("error_image_hardware_location_combination_validation",
-								imageId == null ? "" : imageId,
-								hardwareId == null ? "" : hardwareId, locationId == null ? "" : locationId,
-								groovyFile, propertiesFile), ex);
+			if (!imageLocation.contains("/")) {
+				throw new CloudProvisioningException("'imageId' should be formatted as region/imageId."
+						+ " Verify the cloud template : " + templateName);
+			}
+			final String hardwareLocation = computeTemplate.getHardwareId();
+			if (!hardwareLocation.contains("/")) {
+				throw new CloudProvisioningException("'hardwareId' should be formatted as region/flavorId."
+						+ " Verify the cloud template : " + templateName);
 			}
 
-			validationContext.validationEventEnd(ValidationResultType.OK);
+			this.validateImageHardwareLocation(validationContext, groovyFile, propertiesFile, computeTemplate);
 
 			// validating static securityGroupNames
-			final Map<String, Object> computeOptions = computeTemplate.getOptions();
-			if (computeOptions != null) {
-				Object securityGroups = computeOptions.get("securityGroupNames");
-				if (securityGroups == null) {
-					securityGroups = computeOptions.get("securityGroups");
-				}
-				if (securityGroups != null) {
-					if (securityGroups instanceof String[] && ((String[]) securityGroups).length > 0) {
-						final String[] scgArray = (String[]) securityGroups;
-						if (scgArray.length == 1) {
-							validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
-									getFormattedMessage("validating_security_group", scgArray[0]));
-						} else {
-							validationContext.validationOngoingEvent(
-									ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
-									getFormattedMessage("validating_security_groups",
-											org.cloudifysource.esc.util.StringUtils.arrayToString(scgArray, ", ")));
-						}
-
-						try {
-							final Set<String> missingList = new HashSet<String>();
-							final List<SecurityGroup> existingList = networkApi.getSecurityGroups();
-							for (int i = 0; i < scgArray.length; i++) {
-								boolean found = false;
-								if (existingList != null) {
-									for (final SecurityGroup existing : existingList) {
-										if (scgArray[i].equals(existing.getName())) {
-											found = true;
-											break;
-										}
-									}
-								}
-								if (!found || existingList == null || existingList.isEmpty()) {
-									missingList.add(scgArray[i]);
-								}
-							}
-							if (!missingList.isEmpty()) {
-								validationContext.validationEventEnd(ValidationResultType.ERROR);
-								if (missingList.size() == 1) {
-									throw new CloudProvisioningException(getFormattedMessage(
-											"error_security_group_validation",
-											missingList.iterator().next(), groovyFile, propertiesFile));
-								} else if (missingList.size() > 1) {
-									throw new CloudProvisioningException(getFormattedMessage(
-											"error_security_groups_validation",
-											Arrays.toString(missingList.toArray()), groovyFile, propertiesFile));
-								}
-							}
-
-						} catch (final OpenstackException e) {
-							validationContext.validationEventEnd(ValidationResultType.ERROR);
-							throw new CloudProvisioningException("Error requesting security groups.", e);
-						}
-					}
-					validationContext.validationEventEnd(ValidationResultType.OK);
-				}
-			}
+			this.validateStaticSecgroups(validationContext, groovyFile, propertiesFile, computeTemplate);
 
 			// validating static network
-			final List<String> networks = computeTemplate.getComputeNetwork().getNetworks();
-			if (networks != null && !networks.isEmpty()) {
-				validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
-						"Validating network(s): " + networks.toString());
-				try {
-					final Set<String> missingList = new HashSet<String>();
-					final List<Network> existingList = networkApi.getNetworks();
-					for (final String networkName : networks) {
-						boolean found = false;
-						if (existingList != null) {
-							for (final Network network : existingList) {
-								if (networkName.equals(network.getName())) {
-									found = true;
-									break;
-								}
+			this.validateStaticNetworks(validationContext, groovyFile, propertiesFile, computeTemplate);
+
+			if (!isManagementNetwork && computeTemplate.getComputeNetwork() != null) {
+				final List<String> networks = computeTemplate.getComputeNetwork().getNetworks();
+				if (networks == null || networks.isEmpty()) {
+					missingNetworks.add(templateName);
+				}
+			}
+		}
+
+		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+				"Validating cloud compute network configuration");
+		if (!missingNetworks.isEmpty()) {
+			validationContext.validationEventEnd(ValidationResultType.ERROR);
+			if (missingNetworks.size() == 1) {
+				throw new CloudProvisioningException(
+						"Since management network is missing, a network must be provided for the template: "
+								+ missingNetworks.get(0));
+			} else {
+				throw new CloudProvisioningException(
+						"Since management network is missing, a network must be provided for all templates: "
+								+ missingNetworks);
+			}
+		}
+		validationContext.validationEventEnd(ValidationResultType.OK);
+	}
+
+	private void validateStaticNetworks(final ValidationContext validationContext, final String groovyFile,
+			final String propertiesFile, final ComputeTemplate computeTemplate) throws CloudProvisioningException {
+		final List<String> networks = computeTemplate.getComputeNetwork().getNetworks();
+		if (networks != null && !networks.isEmpty()) {
+			validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+					"Validating network(s): " + networks.toString());
+			try {
+				final Set<String> missingList = new HashSet<String>();
+				final List<Network> existingList = networkApi.getNetworks();
+				for (final String networkName : networks) {
+					boolean found = false;
+					if (existingList != null) {
+						for (final Network network : existingList) {
+							if (networkName.equals(network.getName())) {
+								found = true;
+								break;
 							}
 						}
-						if (!found || existingList == null || existingList.isEmpty()) {
-							missingList.add(networkName);
-						}
 					}
-
-					if (!missingList.isEmpty()) {
-						validationContext.validationEventEnd(ValidationResultType.ERROR);
-						if (missingList.size() == 1) {
-							throw new CloudProvisioningException(String.format(
-									"Network \"%s\" does not exist. Please create it or rename in %s or in %s",
-									missingList.iterator().next(), groovyFile, propertiesFile));
-						} else if (missingList.size() > 1) {
-							throw new CloudProvisioningException(String.format(
-									"Networks %s do not exist. Please create them or rename in %s or in %s",
-									Arrays.toString(missingList.toArray()), groovyFile, propertiesFile));
-						}
+					if (!found || existingList == null || existingList.isEmpty()) {
+						missingList.add(networkName);
 					}
+				}
 
-				} catch (final OpenstackException ex) {
+				if (!missingList.isEmpty()) {
 					validationContext.validationEventEnd(ValidationResultType.ERROR);
-					throw new CloudProvisioningException("Error requesting networks.", ex);
+					if (missingList.size() == 1) {
+						throw new CloudProvisioningException(String.format(
+								"Network \"%s\" does not exist. Please create it or rename in %s or in %s",
+								missingList.iterator().next(), groovyFile, propertiesFile));
+					} else if (missingList.size() > 1) {
+						throw new CloudProvisioningException(String.format(
+								"Networks %s do not exist. Please create them or rename in %s or in %s",
+								Arrays.toString(missingList.toArray()), groovyFile, propertiesFile));
+					}
+				}
+
+			} catch (final OpenstackException ex) {
+				validationContext.validationEventEnd(ValidationResultType.ERROR);
+				throw new CloudProvisioningException("Error requesting networks.", ex);
+			}
+			validationContext.validationEventEnd(ValidationResultType.OK);
+		}
+	}
+
+	private void validateStaticSecgroups(final ValidationContext validationContext, final String groovyFile,
+			final String propertiesFile, final ComputeTemplate computeTemplate) throws CloudProvisioningException {
+		final Map<String, Object> computeOptions = computeTemplate.getOptions();
+		if (computeOptions != null) {
+			Object securityGroups = computeOptions.get("securityGroupNames");
+			if (securityGroups == null) {
+				securityGroups = computeOptions.get("securityGroups");
+			}
+			if (securityGroups != null) {
+				if (securityGroups instanceof String[] && ((String[]) securityGroups).length > 0) {
+					final String[] scgArray = (String[]) securityGroups;
+					if (scgArray.length == 1) {
+						validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+								getFormattedMessage("validating_security_group", scgArray[0]));
+					} else {
+						validationContext.validationOngoingEvent(
+								ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+								getFormattedMessage("validating_security_groups",
+										org.cloudifysource.esc.util.StringUtils.arrayToString(scgArray, ", ")));
+					}
+
+					try {
+						final Set<String> missingList = new HashSet<String>();
+						final List<SecurityGroup> existingList = networkApi.getSecurityGroups();
+						for (int i = 0; i < scgArray.length; i++) {
+							boolean found = false;
+							if (existingList != null) {
+								for (final SecurityGroup existing : existingList) {
+									if (scgArray[i].equals(existing.getName())) {
+										found = true;
+										break;
+									}
+								}
+							}
+							if (!found || existingList == null || existingList.isEmpty()) {
+								missingList.add(scgArray[i]);
+							}
+						}
+						if (!missingList.isEmpty()) {
+							validationContext.validationEventEnd(ValidationResultType.ERROR);
+							if (missingList.size() == 1) {
+								throw new CloudProvisioningException(getFormattedMessage(
+										"error_security_group_validation",
+										missingList.iterator().next(), groovyFile, propertiesFile));
+							} else if (missingList.size() > 1) {
+								throw new CloudProvisioningException(getFormattedMessage(
+										"error_security_groups_validation",
+										Arrays.toString(missingList.toArray()), groovyFile, propertiesFile));
+							}
+						}
+
+					} catch (final OpenstackException e) {
+						validationContext.validationEventEnd(ValidationResultType.ERROR);
+						throw new CloudProvisioningException("Error requesting security groups.", e);
+					}
 				}
 				validationContext.validationEventEnd(ValidationResultType.OK);
 			}
 		}
+	}
+
+	private void validateImageHardwareLocation(final ValidationContext validationContext, final String groovyFile,
+			final String propertiesFile, final ComputeTemplate computeTemplate) throws CloudProvisioningException {
+
+		final String imageId = computeTemplate.getImageId().split("/")[1];
+		final String hardwareId = computeTemplate.getHardwareId().split("/")[1];
+		final String locationId = computeTemplate.getImageId().split("/")[0];
+
+		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+				getFormattedMessage("validating_image_hardware_location_combination",
+						imageId == null ? "" : imageId, hardwareId == null ? "" : hardwareId,
+						locationId == null ? "" : locationId));
+		// validating imageIds
+		try {
+			if (imageId != null) {
+				try {
+					computeApi.getImage(imageId);
+				} catch (final OpenstackException e) {
+					validationContext.validationEventEnd(ValidationResultType.ERROR);
+					final String availableResources = this.formatResourceList(computeApi.getImages());
+					throw new CloudProvisioningException(
+							getFormattedMessage("error_image_id_validation",
+									imageId == null ? "" : imageId, availableResources));
+				}
+			}
+
+			// validating hardwareId
+			if (hardwareId != null) {
+				try {
+					computeApi.getFlavor(hardwareId);
+				} catch (final OpenstackException e) {
+					validationContext.validationEventEnd(ValidationResultType.ERROR);
+					final String availableResources = this.formatResourceList(computeApi.getFlavors());
+					throw new CloudProvisioningException(
+							getFormattedMessage("error_hardware_id_validation",
+									hardwareId == null ? "" : hardwareId, availableResources));
+				}
+			}
+		} catch (final OpenstackException ex) {
+			validationContext.validationEventEnd(ValidationResultType.ERROR);
+			throw new CloudProvisioningException(
+					getFormattedMessage("error_image_hardware_location_combination_validation",
+							imageId == null ? "" : imageId,
+							hardwareId == null ? "" : hardwareId, locationId == null ? "" : locationId,
+							groovyFile, propertiesFile), ex);
+		}
+
+		validationContext.validationEventEnd(ValidationResultType.OK);
 	}
 
 	private String formatResourceList(final List<?> resources) {

@@ -47,6 +47,12 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 	private final String serviceName;
 	private final String networkApiVersion;
 
+	/** Testing purpose. */
+	OpenStackNetworkClient() {
+		this.serviceName = "neutron";
+		this.networkApiVersion = "v2.0";
+	}
+
 	public OpenStackNetworkClient(final String endpoint, final String username, final String password,
 			final String tenant, final String region)
 			throws OpenstackJsonSerializationException {

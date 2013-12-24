@@ -79,8 +79,6 @@ class OpenStackNetworkConfigurationHelper {
 		final String name = configuration.isManagement() ? "managers" : configuration.getServiceName();
 		logger.info("Setup network configuration for " + name);
 
-		this.validateNetworkNames(configuration.getCloud().getCloudNetwork());
-
 		this.initManagementNetworkConfig(configuration);
 
 		this.managementNetworkPrefixName = configuration.getCloud().getProvider().getManagementGroup();
@@ -132,13 +130,6 @@ class OpenStackNetworkConfigurationHelper {
 			this.managementNetworkConfiguration = mngConfig;
 		}
 
-		// If this is a management configuration, throw an exception if no networks has been defined.
-		if (configuration.isManagement() && this.managementNetworkConfiguration == null && computeNetworks.isEmpty()) {
-			throw new CloudProvisioningException(
-					"A network must be provided to the management machines "
-							+ "(use either cloudNetwork templates or computeNetwork configuration).");
-		}
-
 		// Logs..
 		if (this.management) {
 			if (this.useManagementNetwork()) {
@@ -174,15 +165,6 @@ class OpenStackNetworkConfigurationHelper {
 			this.computeNetworks = new ArrayList<String>();
 		}
 
-		// At this point, if there is no management network and no service computeNetwork that we can bind to.
-		// It's an error
-		if (!this.useManagementNetwork() && computeNetworks.isEmpty()) {
-			throw new CloudProvisioningException(
-					configuration.getServiceName()
-							+ " has no networks for cloudify communications."
-							+ " You need to define a management network or a computeNetwork.");
-		}
-
 		// Figure out the application network to use
 		final ServiceNetwork serviceNetwork = configuration.getNetwork();
 		if (serviceNetwork != null) {
@@ -195,8 +177,9 @@ class OpenStackNetworkConfigurationHelper {
 			final Map<String, NetworkConfiguration> templates = cloudNetwork.getTemplates();
 			this.applicationNetworkConfiguration = templates.get(serviceNetwork.getTemplate());
 			if (this.applicationNetworkConfiguration == null) {
-				throw new CloudProvisioningException("Service network template not found '"
-						+ serviceNetwork.getTemplate() + "'");
+				final String message = "Service network template not found '" + serviceNetwork.getTemplate() + "'";
+				logger.severe(message);
+				throw new CloudProvisioningException(message);
 			}
 		}
 
@@ -304,6 +287,28 @@ class OpenStackNetworkConfigurationHelper {
 		return serviceAccessRules;
 	}
 
+	private boolean isValidDefiniton(final String definition) {
+
+		if (definition == null || StringUtils.trim(definition).isEmpty()) {
+			return false;
+		}
+		return true;
+
+	}
+
+	public boolean isValidSubnetName(final org.cloudifysource.domain.cloud.network.Subnet subnet) {
+		return isValidDefiniton(subnet.getName());
+	}
+
+	public boolean isValidSubnetRange(final org.cloudifysource.domain.cloud.network.Subnet subnet) {
+		return isValidDefiniton(subnet.getRange());
+	}
+
+	public boolean isValidNetworkName(final NetworkConfiguration networkConfiguration) {
+
+		return isValidDefiniton(networkConfiguration.getName());
+	}
+
 	/**
 	 * Verify that all networks and subnets has a name (including management one).
 	 * 
@@ -327,7 +332,7 @@ class OpenStackNetworkConfigurationHelper {
 		}
 	}
 
-	private void validateNetworkName(final NetworkConfiguration networkConfiguration)
+	public void validateNetworkName(final NetworkConfiguration networkConfiguration)
 			throws CloudProvisioningException {
 		if (networkConfiguration != null) {
 
@@ -422,6 +427,11 @@ class OpenStackNetworkConfigurationHelper {
 		} else if (this.applicationNetworkConfiguration != null) {
 			final String associate =
 					this.applicationNetworkConfiguration.getCustom().get(ASSOCIATE_FLOATING_IP_ON_BOOTSTRAP);
+			return BooleanUtils.toBoolean(associate);
+		} else if (!management && this.applicationNetworkConfiguration == null && this.computeNetworks.isEmpty()) {
+			// We are using management networks only.
+			final String associate = this.managementNetworkConfiguration.getCustom()
+					.get(ASSOCIATE_FLOATING_IP_ON_BOOTSTRAP);
 			return BooleanUtils.toBoolean(associate);
 		}
 		return false;

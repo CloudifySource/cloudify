@@ -29,6 +29,7 @@ import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.ComputeDriverConfiguration;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class OpenStackNetworkConfigurationHelperTest {
@@ -177,6 +178,7 @@ public class OpenStackNetworkConfigurationHelperTest {
 
 		Assert.assertEquals(false, helper.useApplicationNetworkTemplate());
 		Assert.assertEquals(true, helper.useManagementNetwork());
+		Assert.assertEquals(true, helper.associateFloatingIp());
 	}
 
 	/**
@@ -205,6 +207,7 @@ public class OpenStackNetworkConfigurationHelperTest {
 
 		Assert.assertEquals(false, helper.useApplicationNetworkTemplate());
 		Assert.assertEquals(false, helper.useManagementNetwork());
+		Assert.assertEquals(false, helper.associateFloatingIp());
 	}
 
 	/**
@@ -216,7 +219,8 @@ public class OpenStackNetworkConfigurationHelperTest {
 	 * <li>Should throw an exception.</li>
 	 * </ul>
 	 */
-	@Test
+	@Ignore("Moved this verification to validation step")
+	@Test(expected = CloudProvisioningException.class)
 	public void testManagementNoNetworkAtAll() throws CloudProvisioningException {
 
 		this.removeManagementNetworkConfiguration();
@@ -229,6 +233,7 @@ public class OpenStackNetworkConfigurationHelperTest {
 		} catch (CloudProvisioningException e) {
 			Assert.assertTrue("Expected CloudProvisioningException",
 					e.getMessage().contains("A network must be provided to the management machines"));
+			throw e;
 		}
 	}
 
@@ -254,6 +259,7 @@ public class OpenStackNetworkConfigurationHelperTest {
 
 		Assert.assertEquals(true, helper.useApplicationNetworkTemplate());
 		Assert.assertEquals(true, helper.useManagementNetwork());
+		Assert.assertEquals(true, helper.associateFloatingIp());
 	}
 
 	/**
@@ -279,6 +285,7 @@ public class OpenStackNetworkConfigurationHelperTest {
 
 		Assert.assertEquals(false, helper.useApplicationNetworkTemplate());
 		Assert.assertEquals(true, helper.useManagementNetwork());
+		Assert.assertEquals(false, helper.associateFloatingIp());
 	}
 
 	/**
@@ -287,14 +294,16 @@ public class OpenStackNetworkConfigurationHelperTest {
 	 * <ul>
 	 * <li>Using a wrong network template name in recipe.</li>
 	 * </ul>
+	 * 
 	 */
-	@Test
-	public void testAppliFirstTemplateNetwork() {
+	@Test(expected = CloudProvisioningException.class)
+	public void testAppliFirstTemplateNetwork() throws CloudProvisioningException {
 		try {
 			ComputeDriverConfiguration configuration = createConfiguration(cloud, "WRONG_TEMPLATE_NAME", false);
 			new OpenStackNetworkConfigurationHelper(configuration);
-		} catch (Exception e) {
+		} catch (CloudProvisioningException e) {
 			Assert.assertTrue(e.getMessage().contains("Service network template not found"));
+			throw e;
 		}
 
 	}
@@ -309,16 +318,23 @@ public class OpenStackNetworkConfigurationHelperTest {
 	 * </ul>
 	 */
 	@Test
-	public void testAppliNoNetworksAtAll() {
+	public void testAppliNoNetworks() throws CloudProvisioningException {
 		removaApplicationNetworkTemplate();
 		removeApplicationComputeNetworkBlock();
-		try {
-			ComputeDriverConfiguration configuration = createConfiguration(cloud, null, false);
-			new OpenStackNetworkConfigurationHelper(configuration);
-		} catch (Exception e) {
-			Assert.assertTrue(e.getMessage().contains("no networks for cloudify communications"));
-		}
+		ComputeDriverConfiguration configuration = createConfiguration(cloud, null, false);
+		OpenStackNetworkConfigurationHelper helper = new OpenStackNetworkConfigurationHelper(configuration);
 
+		Assert.assertEquals(mngNetConfig, helper.getManagementNetworkTemplate());
+		Assert.assertEquals(null, helper.getApplicationNetworkTemplate());
+		Assert.assertTrue(helper.getComputeNetworks().isEmpty());
+
+		Assert.assertEquals(null, helper.getApplicationNetworkPrefixedName());
+		Assert.assertEquals(prefixedMngNetTemplateName, helper.getManagementNetworkPrefixedName());
+		Assert.assertEquals(prefixedMngNetTemplateName, helper.getPrivateIpNetworkName());
+
+		Assert.assertEquals(false, helper.useApplicationNetworkTemplate());
+		Assert.assertEquals(true, helper.useManagementNetwork());
+		Assert.assertEquals(true, helper.associateFloatingIp());
 	}
 
 	// *****************************
@@ -349,6 +365,7 @@ public class OpenStackNetworkConfigurationHelperTest {
 
 		Assert.assertEquals(true, helper.useApplicationNetworkTemplate());
 		Assert.assertEquals(false, helper.useManagementNetwork());
+		Assert.assertEquals(true, helper.associateFloatingIp());
 	}
 
 	/**
@@ -377,6 +394,7 @@ public class OpenStackNetworkConfigurationHelperTest {
 
 		Assert.assertEquals(false, helper.useApplicationNetworkTemplate());
 		Assert.assertEquals(false, helper.useManagementNetwork());
+		Assert.assertEquals(false, helper.associateFloatingIp());
 	}
 
 	/**
@@ -387,7 +405,8 @@ public class OpenStackNetworkConfigurationHelperTest {
 	 * <li>No computeNetwork.</li>
 	 * </ul>
 	 */
-	@Test
+	@Ignore("Moved this verification to validation step")
+	@Test(expected = CloudProvisioningException.class)
 	public void testAppliNoTemplateNetworkNoManagementNetwork() throws CloudProvisioningException {
 
 		this.removeManagementNetworkConfiguration();
@@ -396,8 +415,9 @@ public class OpenStackNetworkConfigurationHelperTest {
 		ComputeDriverConfiguration configuration = createConfiguration(cloud, null, false);
 		try {
 			new OpenStackNetworkConfigurationHelper(configuration);
-		} catch (Exception e) {
+		} catch (CloudProvisioningException e) {
 			Assert.assertTrue(e.getMessage().contains("no networks for cloudify communications"));
+			throw e;
 		}
 	}
 
