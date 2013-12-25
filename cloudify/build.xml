@@ -52,6 +52,7 @@
 	<property name="esc.local.copy" value="${basedir}/../esc" />
 	<property name="recipes.local.copy" value="${basedir}/../../cloudify-recipes" />
 	<property name="dsl.local.copy" value="${basedir}/../dsl" />
+    <property name="dsl-backwards.local.copy" value="${basedir}/../dsl-backwards" />
 	<property name="domain.local.copy" value="${basedir}/../domain" />
 	<property name="utility.domain.local.copy" value="${basedir}/../utility-domain" />
 	<property name="cli.local.copy" value="${basedir}/../CLI" />
@@ -245,7 +246,7 @@
             <echo message="Copy dsl-backwards component"/>
             <mkdir dir="@{installation.dir}/lib/platform/cloudify"/>
             <copy todir="@{installation.dir}/lib/platform/cloudify" overwrite="true">
-                <fileset dir="${dsl.local.copy}/target/" includes="dsl-backwards.jar" excludes=".svn"/>
+                <fileset dir="${dsl-backwards.local.copy}/target/" includes="dsl-backwards.jar" excludes=".svn"/>
             </copy>
 
             <echo message="Copy domain component"/>
@@ -779,7 +780,7 @@
 			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/dsl.jar -Dsources=target/dsl-sources.jar"/>
 		</exec>
 
-        <exec executable="${mvn.executable}" dir="${dsl.local.copy}">
+        <exec executable="${mvn.executable}" dir="${dsl-backwards.local.copy}">
             <arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/dsl-backwards.jar -Dsources=target/dsl-sources.jar"/>
         </exec>
 
