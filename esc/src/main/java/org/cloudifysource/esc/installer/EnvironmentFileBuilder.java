@@ -57,6 +57,8 @@ public class EnvironmentFileBuilder {
 	private static final String NO_WEB_SERVICES_ENV = "NO_WEB_SERVICES";
 	
 	private static final String NO_MANAGEMENT_SPACE_ENV = "NO_MANAGEMENT_SPACE";
+	
+	private static final String NO_MANAGEMENT_SPACE_CONTAINER_ENV = "NO_MANAGEMENT_SPACE_CONTAINER";
 
 	private static final String LUS_IP_ADDRESS_ENV = "LUS_IP_ADDRESS";
 
@@ -138,6 +140,8 @@ public class EnvironmentFileBuilder {
 						details.isNoWebServices() ? "true" : "false")
 				.exportVar(NO_MANAGEMENT_SPACE_ENV,
 						details.isNoManagementSpace() ? "true" : "false")
+				.exportVar(NO_MANAGEMENT_SPACE_CONTAINER_ENV,
+						details.isNoManagementSpaceContainer() ? "true" : "false")
 				.exportVar(
 						CloudifyConstants.CLOUDIFY_CLOUD_MACHINE_IP_ADDRESS_ENV,
 						details.isBindToPrivateIp() ? safePrivateIpAddress : safePublicIpAddress)
