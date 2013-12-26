@@ -93,7 +93,7 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 			
 			final File puFile = getManagementSpacePUFile();
 			
-			final int numberOfBackups = highlyAvailable?1:0;
+			final int numberOfBackups = highlyAvailable ? 1 : 0;
 			final ProcessingUnitDeployment deployment =
 					new ProcessingUnitDeployment(puFile)
 					.name(serviceName)
@@ -163,13 +163,17 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
             logger.fine("Looking for a space instance that belongs to agent " + agent.getUid());
 				if (space != null) {
 					final SpaceInstance[] spaceInstances = space.getInstances();
+               if (spaceInstances == null || spaceInstances.length == 0) {
+                  logger.fine("Did not find any " + serviceName + " instances");
+                  return false;
+               }
                for (SpaceInstance instance : spaceInstances) {
                   GridServiceAgent instanceAgent = instance.getMachine().getGridServiceAgent();
-                  if (agent.equals(instanceAgent)) {
+                  if (instanceAgent != null && agent.getUid().equals(instanceAgent.getUid())) {
                      // we found a space instance on this agent
                      gigaspace = space.getGigaSpace();
                      return true;
-                  } else {
+                  } else if (instanceAgent != null ) {
                      logger.fine("Found space instance " + instance.getSpaceInstanceName() + " on agent " +
                              instanceAgent.getUid());
                   }
