@@ -12,14 +12,7 @@
  *******************************************************************************/
 package org.cloudifysource.shell.installer;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
+import com.j_spaces.kernel.Environment;
 import org.cloudifysource.shell.AdminFacade;
 import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.exceptions.CLIException;
@@ -29,10 +22,16 @@ import org.openspaces.admin.pu.ProcessingUnitAlreadyDeployedException;
 import org.openspaces.admin.pu.ProcessingUnitDeployment;
 import org.openspaces.admin.pu.dependency.ProcessingUnitDeploymentDependenciesConfigurer;
 import org.openspaces.admin.space.Space;
-import org.openspaces.admin.space.SpacePartition;
+import org.openspaces.admin.space.SpaceInstance;
 import org.openspaces.core.GigaSpace;
 
-import com.j_spaces.kernel.Environment;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author rafi, barakm
@@ -152,7 +151,7 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 	@Override
 	public void waitForInstallation(final AdminFacade adminFacade, final GridServiceAgent agent, final long timeout,
 			final TimeUnit timeunit) throws InterruptedException, TimeoutException, CLIException {
-		createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
+      createConditionLatch(timeout, timeunit).waitFor(new ConditionLatch.Predicate() {
 			/**
 			 * {@inheritDoc}
 			 */
@@ -160,13 +159,21 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 			public boolean isDone() throws CLIException, InterruptedException {
 
 				final Space space = admin.getSpaces().getSpaceByName(serviceName);
-				
+
+            logger.fine("Looking for a space instance that belongs to agent " + agent.getUid());
 				if (space != null) {
-					final SpacePartition partition = space.getPartition(0);
-					if (partition != null && partition.getPrimary() != null) {
-						gigaspace = space.getGigaSpace();
-						return true;
-					}
+					final SpaceInstance[] spaceInstances = space.getInstances();
+               for (SpaceInstance instance : spaceInstances) {
+                  GridServiceAgent instanceAgent = instance.getMachine().getGridServiceAgent();
+                  if (agent.equals(instanceAgent)) {
+                     // we found a space instance on this agent
+                     gigaspace = space.getGigaSpace();
+                     return true;
+                  } else {
+                     logger.fine("Found space instance " + instance.getSpaceInstanceName() + " on agent " +
+                             instanceAgent.getUid());
+                  }
+               }
 				}
 
 				logger.fine("Connecting to management space.");
