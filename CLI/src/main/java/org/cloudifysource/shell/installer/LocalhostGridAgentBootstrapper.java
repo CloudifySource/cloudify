@@ -162,6 +162,7 @@ public class LocalhostGridAgentBootstrapper {
 	private AdminFacade adminFacade;
 	private boolean noWebServices;
 	private boolean noManagementSpace;
+	private boolean noManagementSpaceContainer;
 	private boolean notHighlyAvailableManagementSpace;
 	// private int lusPort = OpenspacesConstants.DEFAULT_LUS_PORT;
 	private boolean waitForWebUi;
@@ -253,6 +254,10 @@ public class LocalhostGridAgentBootstrapper {
 	 */
 	public void setNoManagementSpace(final boolean noManagementSpace) {
 		this.noManagementSpace = noManagementSpace;
+	}
+	
+	public void setNoManagementSpaceContainer(final boolean noManagementSpace) {
+		this.noManagementSpaceContainer = noManagementSpaceContainer;
 	}
 
 	/**
@@ -1004,7 +1009,7 @@ public class LocalhostGridAgentBootstrapper {
 				startLocalCloudManagementServicesContainerAndWait(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),
 						TimeUnit.MILLISECONDS);
 			}
-			else if (!noManagementSpace) {
+			else if (!noManagementSpaceContainer) {
 				// container for cloudifyManagementSpace
 				// cloudifyManagementSpace cannot be elastic PU since the ESM now depends on managementSpace for state backup.
 				startManagementSpaceContainerAndWait(agent, ShellUtils.millisUntil(TIMEOUT_ERROR_MESSAGE, end),

@@ -111,6 +111,10 @@ public class StartManagement extends AbstractGSCommand {
 			+ " management space will be made")
 	private boolean noManagementSpace;
 
+	@Option(required = false, name = "-no-management-space-container", description = "if set, no attempt to start the"
+			+ " container for the management space will be made")
+	private boolean noManagementSpaceContainer;
+	
 	@Option(required = false, name = "-cloud-file", description = "if set, designated the location of the cloud"
 			+ " configuration file")
 	private String cloudFileName;
@@ -158,6 +162,7 @@ public class StartManagement extends AbstractGSCommand {
 		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
 		installer.setNoWebServices(noWebServices);
 		installer.setNoManagementSpace(noManagementSpace);
+		installer.setNoManagementSpaceContainer(noManagementSpaceContainer);
 		installer.setNotHighlyAvailableManagementSpace(isNotHAManagementSpace());
 		installer.setWaitForWebui(true);
 		installer.setCloudFilePath(cloudFileName);
