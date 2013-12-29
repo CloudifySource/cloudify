@@ -180,6 +180,10 @@ public class ByonUtils {
 			// validate the IP
 			host = host.trim();
 
+			if (host.isEmpty()) {
+				continue;
+			}
+			
 			// set the id
 			if (useIdAsTemplate) {
 				currnentId = MessageFormat.format(nodeId, index);

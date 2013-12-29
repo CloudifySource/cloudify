@@ -154,9 +154,11 @@ public class ScpFileTransfer implements FileTransfer {
 
 				// uploading local directory to remote directory
 				File[] files = localDirectory.listFiles();
-				for (File file : files) {
-					if (!excludedFiles.contains(file.getName())) {
-						uploadClient.copy(new FileSystemFile(file), details.getRemoteDir());
+				if (files != null) {
+					for (File file : files) {
+						if (!excludedFiles.contains(file.getName())) {
+							uploadClient.copy(new FileSystemFile(file), details.getRemoteDir());
+						}
 					}
 				}
 
