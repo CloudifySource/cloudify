@@ -84,6 +84,7 @@ public class BaseServiceContext implements ServiceContext {
 
 	@Override
 	public boolean isLocalCloud() {
+		// TODO: this should throw an unsupported exception. 
 		return true;
 	}
 

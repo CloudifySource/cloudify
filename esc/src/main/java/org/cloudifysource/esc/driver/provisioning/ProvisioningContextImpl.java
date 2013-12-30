@@ -112,6 +112,7 @@ public class ProvisioningContextImpl implements ProvisioningContext, ManagementP
 			final boolean notFirstManagementMachine = (i != 0);
 			installationDetails.setNoWebServices(notFirstManagementMachine);
 			installationDetails.setNoManagementSpace(notFirstManagementMachine);
+			installationDetails.setNoManagementSpaceContainer(false);
 			fileBuilder.loadEnvironmentFileFromDetails(installationDetails);
 			fileBuilder.build();
 			final String fileContents = fileBuilder.toString();

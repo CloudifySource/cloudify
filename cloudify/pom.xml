@@ -22,6 +22,7 @@
 		<module>../management-space</module>
 		<module>../version</module>
 		<module>../esc-config</module>
+        <module>../dsl-backwards</module>
 	</modules>
 	<properties>
 		<gsVersion>9.7.0-SNAPSHOT</gsVersion>
@@ -186,6 +187,11 @@
         <groupId>asm</groupId>
         <artifactId>asm-commons</artifactId>
         <version>${asmVersion}</version>
+      </dependency>
+      <dependency>
+      	<groupId>commons-codec</groupId>
+      	<artifactId>commons-codec</artifactId>
+      	<version>1.6</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

@@ -52,6 +52,7 @@
 	<property name="esc.local.copy" value="${basedir}/../esc" />
 	<property name="recipes.local.copy" value="${basedir}/../../cloudify-recipes" />
 	<property name="dsl.local.copy" value="${basedir}/../dsl" />
+    <property name="dsl-backwards.local.copy" value="${basedir}/../dsl-backwards" />
 	<property name="domain.local.copy" value="${basedir}/../domain" />
 	<property name="utility.domain.local.copy" value="${basedir}/../utility-domain" />
 	<property name="cli.local.copy" value="${basedir}/../CLI" />
@@ -88,7 +89,7 @@
 	<property name="streaming-bigdata.pom.file" value="${recipes.local.copy}/apps/streaming-bigdata/pom.xml"/>
 	<property name="s3.cloudify.publish.folder" value="${cloudify.version}-SNAPSHOT"/>
 	<property name="gs.version.tag" value="gsVersion" />
-
+	
 	
 	<taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${tools.lib.dir}/ant/ant-contrib-1.0b3.jar"/>
 	
@@ -222,6 +223,8 @@
 	
 	
     <macrodef name="add.cloudify.modules">
+    	
+    	
     	<attribute name="installation.dir" default="${tmp.dir}/${cloudify.installation.dir}" />
     	<sequential>
     		<property name="current.dir" value="@{installation.dir}" id="current.installation.dir"></property>
@@ -239,8 +242,14 @@
 	        <copy todir="@{installation.dir}/lib/platform/cloudify" overwrite="true">
 		        <fileset dir="${dsl.local.copy}/target/" includes="dsl.jar" excludes=".svn"/>
 	        </copy>
-    		
-	        <echo message="Copy domain component"/>
+
+            <echo message="Copy dsl-backwards component"/>
+            <mkdir dir="@{installation.dir}/lib/platform/cloudify"/>
+            <copy todir="@{installation.dir}/lib/platform/cloudify" overwrite="true">
+                <fileset dir="${dsl-backwards.local.copy}/target/" includes="dsl-backwards.jar" excludes=".svn"/>
+            </copy>
+
+            <echo message="Copy domain component"/>
 	        <copy todir="@{installation.dir}/lib/platform/cloudify" overwrite="true">
 		        <fileset dir="${domain.local.copy}/target/" includes="domain.jar" excludes=".svn"/>
 	        </copy>
@@ -284,10 +293,18 @@
 	        <copy todir="@{installation.dir}/config/security/" overwrite="true">
 	            <fileset dir="${restful.local.copy}/src/main/webapp/WEB-INF" includes="spring-security.xml"/>
 	        </copy>
-			
-			<copy todir="@{installation.dir}/config" overwrite="true">
-				<fileset dir="${gs-webui.related.folder}/config" includes="*.xml"/>
-			</copy>
+    		
+    		<echo message="from_bigdata_package = ${from_bigdata_package}"/>
+    		<if>
+				<not>
+					<equals arg1="${from_bigdata_package}" arg2="yes"/>
+				</not>
+				<then>						
+					<copy todir="@{installation.dir}/config" overwrite="true">
+						<fileset dir="${gs-webui.related.folder}/config" includes="*.xml"/>
+					</copy>
+				</then>
+			</if>			
 	
 	        <echo message="Copy CLOUDIFY esc-command component"/>
 	        <copy todir="@{installation.dir}/tools/cli/plugins/esc" overwrite="true">
@@ -396,7 +413,7 @@
     	 
         <ant target="archive.cloudify.versions"/>
     	
-		<delete dir="${tmp.dir}"/>
+		<delete dir="${tmp.dir}"/>		
  	</target>	
 	
 
@@ -762,8 +779,12 @@
 		<exec executable="${mvn.executable}" dir="${dsl.local.copy}">
 			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/dsl.jar -Dsources=target/dsl-sources.jar"/>
 		</exec>
-			
-		<exec executable="${mvn.executable}" dir="${cli.local.copy}">
+
+        <exec executable="${mvn.executable}" dir="${dsl-backwards.local.copy}">
+            <arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/dsl-backwards.jar -Dsources=target/dsl-sources.jar"/>
+        </exec>
+
+        <exec executable="${mvn.executable}" dir="${cli.local.copy}">
 			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/cli.jar"/>
 		</exec>
 		
@@ -783,6 +804,7 @@
 
 	
 	<target name="prepare.bigdata.package">
+		<property name="from_bigdata_package" value="yes"/>		
 		<unzip.xap new.installation.dir.name="${xap.installation.dir}"/>
 		<add.cloudify.modules installation.dir="${tmp.dir}/${xap.installation.dir}"/>
 		<ant target="fetch.recipes.bigdata" />
@@ -799,6 +821,7 @@
 		<ant target="archive.bigdata.version" />
 		
 		<delete dir="${tmp.dir}"/>
+		<property name="from_bigdata_package" value="no"/>		
 	</target>
 	
 

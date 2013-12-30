@@ -22,6 +22,7 @@ import org.cloudifysource.dsl.internal.context.RemoteStorageProvisioningDriver;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -31,7 +32,7 @@ import java.util.logging.Logger;
  */
 public class RemoteStorageProvisioningDriverAdapter implements RemoteStorageProvisioningDriver {
 
-    Logger logger = java.util.logging.Logger
+    private Logger logger = java.util.logging.Logger
             .getLogger(RemoteStorageProvisioningDriverAdapter.class.getName());
 
 	private static final long DEFAULT_STORAGE_OPERATION_TIMEOUT = 60 * 1000;
@@ -52,6 +53,7 @@ public class RemoteStorageProvisioningDriverAdapter implements RemoteStorageProv
 			storageProvisioningDriver
 				.attachVolume(volumeId, device, ip, DEFAULT_STORAGE_OPERATION_TIMEOUT, TimeUnit.MILLISECONDS);
 		} catch (final Exception e) {
+         logSevere(e);
 			throw new RemoteStorageOperationException("Failed attaching volume with id " + volumeId 
 					+ " to instance with ip " + ip + " : " + e.getMessage(), e);
 		}
@@ -72,6 +74,7 @@ public class RemoteStorageProvisioningDriverAdapter implements RemoteStorageProv
 							TimeUnit.MILLISECONDS);
 			return volumeDetails.getId();
 		} catch (final StorageProvisioningException e) {
+         logSevere(e);
 			throw new RemoteStorageOperationException("Failed creating volume in location " 
 						+ locationId + " : " + e.getMessage(), e);			
 		}
@@ -84,6 +87,7 @@ public class RemoteStorageProvisioningDriverAdapter implements RemoteStorageProv
 			storageProvisioningDriver
 				.detachVolume(volumeId, ip, DEFAULT_STORAGE_OPERATION_TIMEOUT * 2, TimeUnit.MILLISECONDS);
 		} catch (final Exception e) {
+         logSevere(e);
 			throw new RemoteStorageOperationException("Failed detaching volume with id " 
 						+ volumeId + " to instance with ip " + ip, e);
 		}
@@ -95,6 +99,7 @@ public class RemoteStorageProvisioningDriverAdapter implements RemoteStorageProv
 			storageProvisioningDriver
 				.deleteVolume(location, volumeId, DEFAULT_STORAGE_OPERATION_TIMEOUT, TimeUnit.MILLISECONDS);
 		} catch (final Exception e) {
+         logSevere(e);
 			throw new RemoteStorageOperationException("Failed deleting volume with id " 
 					+ volumeId , e);			
 		}
@@ -105,4 +110,8 @@ public class RemoteStorageProvisioningDriverAdapter implements RemoteStorageProv
     public StorageTemplate getTemplate(String templateName) {
         return storageTemplate;
     }
+
+   private void logSevere(final Exception e) {
+      logger.log(Level.SEVERE, e.getMessage(), e);
+   }
 }

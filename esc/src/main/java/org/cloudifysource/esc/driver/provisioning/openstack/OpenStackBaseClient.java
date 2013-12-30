@@ -115,6 +115,9 @@ public abstract class OpenStackBaseClient {
 			if (logger.isLoggable(Level.FINE)) {
 				logger.fine("Request openstack " + this.getServiceType() + " new token.");
 			}
+			if (this.endpoint == null) {
+				throw new IllegalStateException("No endpoint defined");
+			}
 			final WebResource webResource = client.resource(this.endpoint);
 			final String tokenJsonRequest = "{\"auth\":{\"passwordCredentials\":"
 					+ "{\"username\": \"%s\", \"password\":\"%s\"}, \"tenantName\":\"%s\"}}";

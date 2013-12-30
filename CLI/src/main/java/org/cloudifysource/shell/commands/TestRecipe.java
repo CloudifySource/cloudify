@@ -200,6 +200,7 @@ public class TestRecipe extends AbstractGSCommand {
 			final Map<Object, Object> env = new HashMap<Object, Object>();
 			env.putAll(System.getenv());
 			env.put("CLASSPATH", classpath);
+			env.put(CloudifyConstants.GIGASPACES_CLOUD_MACHINE_ID, "localcloud");
 			if (!env.containsKey(JAVA_HOME_ENV_VAR_NAME)) {
 				final String javaHomeDirectory = getJavaHomeDirectory();
 				logger.warning("JAVA_HOME system variables is not set. adding JAVA_HOME with value "
@@ -361,7 +362,7 @@ public class TestRecipe extends AbstractGSCommand {
 	 */
 	private int executeRecipe(final CommandLine cmdLine, final Map<Object, Object> env) {
 		final DefaultExecutor executor = new DefaultExecutor();
-
+		
 		// The watchdog will terminate the process if it does not end within the
 		// specified timeout
 		final int externalProcessTimeout = (this.timeout + EXTERNAL_PROCESS_WATCHDOG_ADDITIONAL_TIMEOUT) * 1000;
