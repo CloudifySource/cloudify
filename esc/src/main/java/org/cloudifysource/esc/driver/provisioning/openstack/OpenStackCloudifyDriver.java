@@ -93,6 +93,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 	private static final String MANAGEMENT_PUBLIC_ROUTER_NAME = "management-public-router";
 	private static final String DEFAULT_PROTOCOL = "tcp";
+	private static final String OPENSTACK_COMPUTE_ZONE = "openstack.compute.zone";
 
 	private static final int MANAGEMENT_SHUTDOWN_TIMEOUT = 60; // 60 seconds
 	private static final int CLOUD_NODE_STATE_POLLING_INTERVAL = 2000;
@@ -166,6 +167,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 	@Override
 	public void setConfig(final ComputeDriverConfiguration configuration) throws CloudProvisioningException {
+		
 		this.networkHelper = new OpenStackNetworkConfigurationHelper(configuration);
 
 		super.setConfig(configuration);
@@ -179,6 +181,25 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		String managementGroup = cloud.getProvider().getManagementGroup();
 		managementGroup = managementGroup == null ? MANAGMENT_MACHINE_PREFIX : managementGroup;
 		this.openstackPrefixes = new OpenStackResourcePrefixes(managementGroup, applicationName, serviceName);
+	}
+	
+	
+	private String getAvailabilityZone(final ComputeTemplate template) throws IllegalArgumentException {
+		
+		String zone = null;
+		Map<String, Object> customSettings = template.getCustom();
+		
+		if (customSettings != null) {
+			Object zoneObj = customSettings.get(OPENSTACK_COMPUTE_ZONE);
+			if (zoneObj instanceof String) {
+				zone = (String) zoneObj;
+			} else {
+				throw new IllegalArgumentException("Custom property " + OPENSTACK_COMPUTE_ZONE 
+						+ " must be of type String");
+			}
+		}
+		
+		return zone;
 	}
 
 	private void initManagementSecurityGroups() throws CloudProvisioningException {
@@ -687,6 +708,11 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			request.setKeyName(keyName);
 			request.setImageRef(imageId);
 			request.setFlavorRef(hardwareId);
+			
+			String availabilityZone = getAvailabilityZone(template);
+			if (StringUtils.isNotBlank(availabilityZone)) {
+				request.setAvailabilityZone(getAvailabilityZone(template));	
+			}
 
 			// Add management network if exists
 			if (this.networkHelper.useManagementNetwork()) {

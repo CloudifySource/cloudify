@@ -155,6 +155,32 @@ public class StorageFacadeImpl implements StorageFacade {
 	public StorageTemplate getTemplate(final String templateName) {
 		return safeGetRemoteStorageProvisioningDriver().getTemplate(templateName);
 	}
+	
+	@Override
+	public void partition(final String device, final long timeoutInMillis)
+			throws LocalStorageOperationException, TimeoutException {
+		validateNotWindows();
+		if (!serviceContext.isPrivileged()) {
+			throw new IllegalStateException("Cannot partition when not running in privileged mode");
+		}
+		logger.info("Partitioning device " + device);
+		VolumeUtils.partition(device, timeoutInMillis);
+		changeStateOfVolumeWithDevice(device, VolumeState.PARTITIONED);
+
+	}
+
+	@Override
+	public void partition(final String device)
+			throws LocalStorageOperationException, TimeoutException {
+		validateNotWindows();
+		if (!serviceContext.isPrivileged()) {
+			throw new IllegalStateException("Cannot partition when not running in privileged mode");
+		}
+		logger.info("Partitioning device " + device);
+		VolumeUtils.partition(device);
+		changeStateOfVolumeWithDevice(device, VolumeState.PARTITIONED);
+	}
+
 
 	@Override
 	public void format(final String device, final String fileSystem, final long timeoutInMillis)

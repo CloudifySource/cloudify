@@ -33,6 +33,7 @@ public class StorageTemplate implements Serializable {
 	private int size;
 	private String namePrefix;
 	private Map<String, Object> custom = new HashMap<String, Object>();
+	private boolean partitioningRequired = false;
 	private boolean deleteOnExit = false;
 	private String path;
 	private String fileSystemType;
@@ -52,6 +53,14 @@ public class StorageTemplate implements Serializable {
 
 	public void setSize(final int size) {
 		this.size = size;
+	}
+	
+	public boolean isPartitioningRequired() {
+		return partitioningRequired;
+	}
+
+	public void setPartitioningRequired(boolean partitioningRequired) {
+		this.partitioningRequired = partitioningRequired;
 	}
 
 	public boolean isDeleteOnExit() {

@@ -84,6 +84,27 @@ public interface StorageFacade {
 	void deleteVolume(final String volumeId) throws RemoteStorageOperationException;
 	
 	/**
+	 * partition the device according to the following - create a new, single, primary partition, on the entire volume. 
+	 * @param device - device name.
+	 * @param timeoutInMillis - the timeout after which the process will be terminated forcefully.
+	 * @throws LocalStorageOperationException - thrown when the command fails.
+	 * @throws TimeoutException - in case of a timeout.
+	 */
+	void partition(final String device, final long timeoutInMillis) 
+			throws LocalStorageOperationException, TimeoutException;
+
+	/**
+	 * partition the device according to the following - create a new, single, primary partition, on the entire volume.
+	 * uses a default timeout of 30 seconds. 
+	 * to use a custom timeout use {@link StorageFacade#partition(String, long)}.
+	 * @param device - device name.
+	 * @throws LocalStorageOperationException - thrown when the command fails.
+	 * @throws TimeoutException - in case of a timeout.
+	 */
+	void partition(final String device) 
+			throws LocalStorageOperationException, TimeoutException;
+	
+	/**
 	 * format a device to a given file system.
 	 * @param device - device name.
 	 * @param fileSystem - file system type.
@@ -120,7 +141,7 @@ public interface StorageFacade {
 	/**
 	 * mount a device to a local mounting point.
 	 * uses a default timeout of 30 seconds. to use a custom timeout 
-	 * 							use {@link StorageFacade#mount(String, String, long)}.
+	 * 	use {@link StorageFacade#mount(String, String, long)}.
 	 * @param device - device name.
 	 * @param path - mounting point (will be created automatically).
 	 * @throws LocalStorageOperationException - thrown when the command fails.

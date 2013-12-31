@@ -17,6 +17,7 @@
 package org.cloudifysource.utilitydomain.context.blockstorage;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
@@ -28,6 +29,7 @@ import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.Executor;
 import org.apache.commons.exec.LogOutputStream;
 import org.apache.commons.exec.PumpStreamHandler;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.context.blockstorage.LocalStorageOperationException;
 import org.cloudifysource.domain.context.blockstorage.StorageFacade;
@@ -56,6 +58,7 @@ public final class VolumeUtils {
 		
 	private static final long MOUNT_TIMEOUT = 30 * 1000;
 	private static final long FORMAT_TIMEOUT = 5 * 60 * 1000;
+	private static final long PARTITION_TIMEOUT = 30 * 1000;
 	private static final long UNMOUNT_TIMEOUT = 15 * 1000;
 	
 	private static final long TEN_SECONDS = 10 * 1000;
@@ -121,7 +124,8 @@ public final class VolumeUtils {
 	public static void format(final String device, final String fileSystem, final long timeoutInMillis) 
 			throws LocalStorageOperationException, TimeoutException {
 		checkFileSystemSupported(fileSystem);
-		executeCommandLine("sudo mkfs -F -t " + fileSystem + " " + device, timeoutInMillis);
+		executeCommandLine("sudo mkfs -t " + fileSystem + " " + device, timeoutInMillis);
+		
 	}
 
 	/**
@@ -134,6 +138,42 @@ public final class VolumeUtils {
 	public static void format(final String device, final String fileSystem) 
 			throws LocalStorageOperationException, TimeoutException {
 		format(device, fileSystem, FORMAT_TIMEOUT);
+	}
+	
+	/**
+	 * @see {@link StorageFacade#partition(String, long)}
+	 * @param device .
+	 * @param timeoutInMillis .
+	 * @throws LocalStorageOperationException .
+	 * @throws TimeoutException .
+	 */
+	public static void partition(final String device, final long timeoutInMillis) 
+			throws LocalStorageOperationException, TimeoutException {
+		try {
+			File tempScriptFile = File.createTempFile("partitionvolume", ".sh");
+			FileUtils.writeStringToFile(tempScriptFile, 
+					"(echo o; echo n; echo p; echo 1; echo; echo; echo w) | sudo fdisk " + device);
+			tempScriptFile.setExecutable(true);
+			tempScriptFile.deleteOnExit();
+			executeCommandLine(tempScriptFile.getAbsolutePath(), timeoutInMillis);
+		} catch (IOException e) {
+			// TODO noak : fdisk returns 1 exit code even when succeed so ignoring the exception, this should be fixed
+			logger.warning("Ignoring fdisk exception: " + e.getMessage());
+			//throw new LocalStorageOperationException("Failed to partition device " + device + ", error occurred "
+			//	+ "while attempting to generate fdisk script file", e);
+		}
+
+	}
+
+	/**
+	 * @see {@link StorageFacade#partition(String)}.
+	 * @param device .
+	 * @throws LocalStorageOperationException .
+	 * @throws TimeoutException .
+	 */
+	public static void partition(final String device) 
+			throws LocalStorageOperationException, TimeoutException {
+		partition(device, PARTITION_TIMEOUT);
 	}
 
 	private static void checkFileSystemSupported(final String fileSystem) throws LocalStorageOperationException {
@@ -177,6 +217,7 @@ public final class VolumeUtils {
 			if (watchdog.killedProcess()) {
 				throw new TimeoutException("Timed out while executing commandLine : '" + commandLine + "'");
 			}
+
 			throw new LocalStorageOperationException("Failed executing commandLine : '" + commandLine 
 					+ ". Process output was : " + outAndErr.getOutput(), e);
 		}

@@ -441,6 +441,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 						+ getUsmLifecycleBean().getConfiguration().getServiceContext());
 				final StorageFacade storage = getUsmLifecycleBean().getConfiguration().getServiceContext().getStorage();
 				final StorageTemplate storageTemplate = storage.getTemplate(storageTemplateName);
+				String deviceName = storageTemplate.getDeviceName();
 				getUsmLifecycleBean().log("Allocating storage with size " + storageTemplate.getSize() + "GB");
 				final ServiceVolume serviceVolume =
 						getServiceVolumeFromSpace(getUsmLifecycleBean().getConfiguration().getServiceContext());
@@ -454,39 +455,40 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 					final ServiceVolume newServiceVolume = managementSpace.readById(ServiceVolume.class, id);
 					logger.fine("Flagging service volume with id " + id + " to be static storage.");
 					managementSpace.change(newServiceVolume, new ChangeSet().set("dynamic", false));
-					getUsmLifecycleBean().log("Attaching volume to device " + storageTemplate.getDeviceName());
-					storage.attachVolume(id, storageTemplate.getDeviceName());
+					getUsmLifecycleBean().log("Attaching volume to device " + deviceName);
+					storage.attachVolume(id, deviceName);
+					if (storageTemplate.isPartitioningRequired()) {
+						getUsmLifecycleBean().log("Partitioning volume at " + deviceName);
+						storage.partition(deviceName);
+					}
 					getUsmLifecycleBean().log("Formatting volume to filesystem " + storageTemplate.getFileSystemType());
-					storage.format(storageTemplate.getDeviceName(), storageTemplate.getFileSystemType());
+					storage.format(deviceName, storageTemplate.getFileSystemType());
 					getUsmLifecycleBean().log("Mounting volume to " + storageTemplate.getPath());
-					storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
+					storage.mount(deviceName, storageTemplate.getPath());
 				} else {
 					logger.fine("Detected an existing volume for this service upon allocation. found in state : "
 							+ serviceVolume.getState());
+					
 					switch (serviceVolume.getState()) {
 
 					case CREATED:
-						getUsmLifecycleBean().log("Attaching volume to device " + storageTemplate.getDeviceName());
-						storage.attachVolume(serviceVolume.getId(), storageTemplate.getDeviceName());
-						getUsmLifecycleBean().log(
-								"Formatting volume to filesystem " + storageTemplate.getFileSystemType());
-						storage.format(storageTemplate.getDeviceName(), storageTemplate.getFileSystemType());
-						getUsmLifecycleBean().log("Mounting volume to " + storageTemplate.getPath());
-						storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
-						break;
+						getUsmLifecycleBean().log("Attaching volume to device " + deviceName);
+						storage.attachVolume(serviceVolume.getId(), deviceName);
 
 					case ATTACHED:
-						getUsmLifecycleBean().log("Attaching volume to device " + storageTemplate.getDeviceName());
-						storage.format(storageTemplate.getDeviceName(), storageTemplate.getFileSystemType());
-						getUsmLifecycleBean().log(
-								"Formatting volume to filesystem " + storageTemplate.getFileSystemType());
-						storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
-						break;
-
+						if (storageTemplate.isPartitioningRequired()) {
+							getUsmLifecycleBean().log("Partitioning volume at " + deviceName);
+							storage.partition(deviceName);
+						}
+						
+					case PARTITIONED:
+						getUsmLifecycleBean().log("Formatting volume to filesystem " 
+								+ storageTemplate.getFileSystemType());
+						storage.format(deviceName, storageTemplate.getFileSystemType());
+						
 					case FORMATTED:
-						getUsmLifecycleBean().log(
-								"Formatting volume to filesystem " + storageTemplate.getFileSystemType());
-						storage.mount(storageTemplate.getDeviceName(), storageTemplate.getPath());
+						getUsmLifecycleBean().log("Mounting volume to " + storageTemplate.getPath());
+						storage.mount(deviceName, storageTemplate.getPath());
 
 					case MOUNTED:
 						break;
@@ -505,6 +507,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 			}
 		}
 	}
+	
 
 	private void deAllocateStorageSync() throws USMException, TimeoutException {
 
@@ -542,36 +545,18 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 					final StorageTemplate template = storage.getTemplate(storageTemplateName);
 					final boolean deleteStorage = template.isDeleteOnExit();
 					logger.fine("Storage will be deleted = " + deleteStorage);
+					
 					switch (serviceVolume.getState()) {
 
 					case MOUNTED:
 						getUsmLifecycleBean().log("Unmounting volume from " + template.getPath());
 						storage.unmount(serviceVolume.getDevice());
-						getUsmLifecycleBean().log("Detaching volume from  " + serviceVolume.getDevice());
-						storage.detachVolume(serviceVolume.getId());
-						if (deleteStorage) {
-							getUsmLifecycleBean().log("Deleting volume with id " + serviceVolume.getId());
-							storage.deleteVolume(serviceVolume.getId());
-						}
-						break;
 
 					case ATTACHED:
-						getUsmLifecycleBean().log("Detaching volume from  " + serviceVolume.getDevice());
-						storage.detachVolume(serviceVolume.getId());
-						if (deleteStorage) {
-							getUsmLifecycleBean().log("Deleting volume with id " + serviceVolume.getId());
-							storage.deleteVolume(serviceVolume.getId());
-						}
-						break;
-
+					case PARTITIONED:
 					case FORMATTED:
 						getUsmLifecycleBean().log("Detaching volume from  " + serviceVolume.getDevice());
 						storage.detachVolume(serviceVolume.getId());
-						if (deleteStorage) {
-							getUsmLifecycleBean().log("Deleting volume with id " + serviceVolume.getId());
-							storage.deleteVolume(serviceVolume.getId());
-						}
-						break;
 
 					case CREATED:
 						if (deleteStorage) {
@@ -873,7 +858,8 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 						e);
 				this.state = USMState.ERROR;
 			} else {
-				logger.warning("Lifecycle failed. Self-healing is active and retry limit was not exceeded - instance will be restarted.");
+				logger.warning("Lifecycle failed. Self-healing is active and retry limit was not exceeded - instance "
+						+ "will be restarted.");
 				writeRetryData();
 				throw e;
 			}
