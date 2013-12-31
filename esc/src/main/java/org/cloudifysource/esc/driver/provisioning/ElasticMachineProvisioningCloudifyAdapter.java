@@ -12,9 +12,24 @@
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning;
 
-import com.gigaspaces.document.SpaceDocument;
-import com.google.common.util.concurrent.RateLimiter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import net.jini.core.discovery.LookupLocator;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -83,21 +98,7 @@ import org.openspaces.grid.gsm.machines.plugins.events.MachineStoppedEvent;
 import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticGridServiceAgentProvisioningException;
 import org.openspaces.grid.gsm.machines.plugins.exceptions.ElasticMachineProvisioningException;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import com.gigaspaces.document.SpaceDocument;
 
 /****************************
  * An ESM machine provisioning implementation used by the Cloudify cloud driver. All calls to start/stop a machine are
@@ -124,7 +125,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private static final int DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE = 5;
 
 	// 5 minutes after 2 consecutive failed requests.
-	private static final long START_MACHINE_FAILURE_THROTTLING_TIMEOUT_SEC = 300;
+	private static final long DEFAULT_START_MACHINE_FAILURE_THROTTLING_TIMEFRAME_SEC = 300;
+	
+	// the default number of consequtive failures that can be occur in the timeframe window.
+	private static final int DEFAULT_START_MACHINE_ALLOWED_FAILED_REQUESTS_IN_TIMEFRAME = 2;
 
 	/**********
 	 * .
@@ -163,7 +167,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	
 	// used to limit the rate of start-machine requests in the event of failure.
 	// this is done to prevent management machine from overloading. CLOUDIFY-2201
-	private RateLimiter exceptionThrottler;
+	private RequestRateLimiter exceptionThrottler;
 
 	private Admin getGlobalAdminInstance(final Admin esmAdminInstance) throws InterruptedException,
 			ElasticMachineProvisioningException {
@@ -455,6 +459,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 			final Object context = new MachineDetailsDocumentConverter().toDocument(machineDetails);
 			// successful start-machine request initilizes exceptionThrottler.
+			// since the request will be blocked only in the event of consequtive failures.
 			initExceptionThrottler();
 			
 			return new StartedGridServiceAgent(gsa, context);
@@ -488,30 +493,45 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	private void initExceptionThrottler() {
 		logger.fine("initilizing start-machine exception throttler.");
-		exceptionThrottler = RateLimiter.create(1.0 / START_MACHINE_FAILURE_THROTTLING_TIMEOUT_SEC);
+		Integer numRequests = (Integer) cloud.getCustom()
+				.get(CloudifyConstants.CUSTOM_PROPERTY_START_MACHINE_THROTTLING_NUM_REQUESTS);
+		if (numRequests == null || numRequests <= 0) {
+			numRequests = DEFAULT_START_MACHINE_ALLOWED_FAILED_REQUESTS_IN_TIMEFRAME;
+		}
+		Long timeFrame = (Long) cloud.getCustom()
+				.get(CloudifyConstants.CUSTOM_PROPERTY_START_MACHINE_THROTTLING_TIME_FRAME_SEC);
+		if (timeFrame == null || timeFrame <= 0) {
+			timeFrame = DEFAULT_START_MACHINE_FAILURE_THROTTLING_TIMEFRAME_SEC;
+		}
+		exceptionThrottler = new RequestRateLimiter(numRequests, timeFrame, TimeUnit.SECONDS);
+		exceptionThrottler.init();
 	}
 
 	// throttling done to prevent esm from overloading 
 	// management machine with start-machine requests in-case of failure.
 	private void blockStartMachineOnException() {
+		// check if throttler is disabled.
+		final Boolean throttlerEnabled = (Boolean) cloud.getCustom()
+				.get(CloudifyConstants.CUSTOM_PROPERTY_START_MACHINE_THROTTLING_ENABLED);
+		if (throttlerEnabled != null && !throttlerEnabled) {
+			return;
+		}
 		final long invocationTimeoutMin = TimeUnit.SECONDS
-				.toMinutes(START_MACHINE_FAILURE_THROTTLING_TIMEOUT_SEC);
-		final boolean acquired = exceptionThrottler.tryAcquire();
+				.toMinutes(exceptionThrottler.getDuration());
+		final boolean blockRequired = exceptionThrottler.tryBlock();
 		// means this request should be blocked.
-		if (!acquired) {
-			// this will only happen if start machine fails 
-			// more then once in the defined time frame window.
+		if (blockRequired) {
+			// We go into here only if start machine fails on more then
+			// the defined number of request attempts in the defined time frame window
 			logger.warning("Maximum number of failed requests to start a machine "
 											+ "has been reached for service '" + serviceName
-						+ "'. Next attempt will be blocked for a cool-down period of " 
+						+ "'. Next attempt will be blocked for the remaining cool-down period of " 
 											+ invocationTimeoutMin + " minutes.");
 		}
-		// on second failure in the time frame window, 
 		// will halt for the remining cool-down period.
-		exceptionThrottler.acquire();
-		if (!acquired) {
-			logger.info("Cool-down period has expired. Start-machine requests are permitted.");
-			initExceptionThrottler();
+		exceptionThrottler.block();
+		if (blockRequired) {
+			logger.info("Cool-down period has expired. Start-machine requests are now permitted.");
 		} else {
 			logger.fine("Start-machine failure has been registered. One more failure is allowed for service '" 
 									+ serviceName + "' for the period of "
