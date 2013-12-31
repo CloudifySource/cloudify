@@ -58,12 +58,7 @@ import com.google.inject.Module;
  */
 public class GrizzlyStorageDriver extends BaseStorageDriver implements StorageProvisioningDriver {
 	
-	/*private static final String OPENSTACK_IDENTITY_URL = "https://region-b.geo-1.identity.hpcloudsvc.com:35357/v2.0/";
-	private static final String USERNAME = "dwayne.cdo.gigaspaces";
-	private static final String TENANT_NAME = "CDO Devops Playground";
-	private static final String API_IDENTITY = TENANT_NAME + ":" + USERNAME;
-	private static final String API_PASSWORD = "giga123";
-	private static final String COMPUTE_PROVIDER = "openstack-nova";*/
+	private static final String ENDPOINT_KEY = "jclouds.endpoint";
 	private static final String API_VERSION_KEY = "jclouds.api-version";
 	private static final String API_VERSION_VALUE = "2";
 	
@@ -159,7 +154,6 @@ public class GrizzlyStorageDriver extends BaseStorageDriver implements StoragePr
 			final long duration, final TimeUnit timeUnit) throws 
 		TimeoutException, StorageProvisioningException {
 		
-		logger.info("***** createVolume starting");
 		final long endTime = System.currentTimeMillis() + timeUnit.toMillis(duration);
 		final VolumeDetails volumeDetails = new VolumeDetails();
 		Volume volume;
@@ -209,7 +203,6 @@ public class GrizzlyStorageDriver extends BaseStorageDriver implements StoragePr
 			}
 		}
 		
-		logger.info("***** createVolume completed");
 		
 		return volumeDetails;
 	}
@@ -218,7 +211,6 @@ public class GrizzlyStorageDriver extends BaseStorageDriver implements StoragePr
 	public void attachVolume(final String volumeId, final String device, final String machineIp, final long duration, 
 			final TimeUnit timeUnit) throws TimeoutException, StorageProvisioningException {
 		
-		logger.info("***** Grizzly attach volume starting");
 		
 		final long endTime = System.currentTimeMillis() + timeUnit.toMillis(duration);
 		NodeMetadata node = deployer.getServerWithIP(machineIp);
@@ -427,25 +419,17 @@ public class GrizzlyStorageDriver extends BaseStorageDriver implements StoragePr
 			logger.fine("Creating JClouds context deployer for Openstack with user: " + cloud.getUser().getUser());
 						
 			final Properties props = new Properties();
-			//props.putAll(computeTemplate.getOverrides());
 			// the existence of this property has been validated already by the compute driver
 			String endpoint = (String) computeTemplate.getOverrides().get(OpenStackCloudifyDriver.OPENSTACK_ENDPOINT);
-			props.put("jclouds.api-version", "2");
-			// //props.put("openstack.endpoint", "https://region-b.geo-1.identity.hpcloudsvc.com:35357/v2.0/");
-			props.put("jclouds.endpoint", endpoint);
-			
-			logger.info("***** GrizzlyStorageDriver.initDeployer: props after adding: " + props);
+			props.put(API_VERSION_KEY, API_VERSION_VALUE);
+			props.put(ENDPOINT_KEY, endpoint);
 
 			deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(),
 					cloud.getUser().getApiKey(), props, new HashSet<Module>());
 		} catch (final Exception e) {
-			logger.info("***** GrizzlyStorageDriver.initDeployer Failed! exception message: " + e.getMessage());
-			e.printStackTrace();
 			publishEvent("connection_to_cloud_api_failed", cloud.getProvider().getProvider());
 			throw new IllegalStateException("Failed to create cloud Deployer", e);
 		}
-		
-		logger.info("***** GrizzlyStorageDriver.initDeployer completed successfully");
 	}
 
 	@Override
@@ -546,63 +530,6 @@ public class GrizzlyStorageDriver extends BaseStorageDriver implements StoragePr
 		logger.fine("region: " + region);		
 		return region;
 	}
-	
-//	public void testCreateVolume(final String region, final String volumeName) throws StorageProvisioningException {
-//		
-//		Properties props = new Properties();
-//		props.put(API_VERSION_PROPERTY, API_VERSION);
-//		
-//		computeContext = ContextBuilder.newBuilder(COMPUTE_PROVIDER)
-//	            .endpoint(OPENSTACK_IDENTITY_URL)
-//	            .credentials(API_IDENTITY, API_PASSWORD)
-//	            .overrides(props)
-//	            .modules(new HashSet<Module>())
-//	            .buildView(ComputeServiceContext.class);
-//		
-//		System.out.println("locations:");
-//		System.out.println(computeContext.getComputeService().listAssignableLocations());
-//		
-//		
-//		//novaContext = this.computeContext.unwrap();
-//		this.region = region;
-//		
-//		Optional<? extends VolumeApi> volumeApi = getVolumeApi();
-//
-//		if (!volumeApi.isPresent()) {
-//			throw new StorageProvisioningException("Failed to create volume, Openstack API is not initialized.");
-//		}
-//				
-//		CreateVolumeOptions options = CreateVolumeOptions.Builder
-//				.name("NoaVolume2" /*volumeName*/)
-//				.description(VOLUME_DESCRIPTION)
-//				.availabilityZone("az1"/*getStorageZone(templateName)*/);
-//
-//		
-//		FluentIterable<? extends Volume> iterable = volumeApi.get().listInDetail();
-//		System.out.println("volumes:");
-//		System.out.println(iterable.toSet());
-//		Optional<? extends VolumeAttachmentApi> volumeAttachmentApi = getAttachmentApi();
-//		System.out.println("nodes");
-//		System.out.println(this.computeContext.getComputeService().listNodes());
-//		
-//		Volume newVolume = volumeApi.get().create(5, options);
-//		
-//		String nodeId = "74d37048-3807-41e2-ad06-4008e6f28968";
-//		// "58e6e6e1-fbf6-4125-9f6d-6fb0134164c0";/*getInstanaceId(); */
-//		volumeAttachmentApi.get().attachVolumeToServerAsDevice(newVolume.getId(), nodeId, "/dev/vdf");
-//		System.out.println("bla");
-//	}
-//	
-//	private String getInstanaceId() {
-//		Set<? extends NodeMetadata> listNodesDetailsMatching = 
-//				computeContext.getComputeService().listNodesDetailsMatching(new Predicate<ComputeMetadata>() {
-//			
-//			@Override
-//			public boolean apply(ComputeMetadata arg0) {
-//				return arg0.getName().equals("cloudify-manager-east-inwork-1387671817");
-//			}
-//		});
-//		return listNodesDetailsMatching.iterator().next().getId();
-//	}
+
 	
 }
