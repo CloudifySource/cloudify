@@ -12,6 +12,7 @@ cloud {
 		// Optional. The cloud implementation class. Defaults to the build in jclouds-based provisioning driver.
 		className "org.cloudifysource.esc.driver.provisioning.openstack.OpenStackCloudifyDriver"
 		networkDriverClassName "org.cloudifysource.esc.driver.provisioning.network.openstack.OpenstackNetworkDriver"
+		storageClassName "org.cloudifysource.esc.driver.provisioning.storage.openstack.GrizzlyStorageDriver"
 
 		// Optional. The template name for the management machines. Defaults to the first template in the templates section below.
 		managementMachineTemplate "MEDIUM_LINUX"
@@ -70,6 +71,24 @@ cloud {
 
 
 	}
+	
+		/********************
+		 * Cloud storage configuration.
+		 */
+		cloudStorage {
+				templates ([
+					SMALL_BLOCK : storageTemplate{
+									deleteOnExit true
+									partitioningRequired true
+									size 1
+									path "/storage"
+									namePrefix "cloudify-storage-volume"
+									deviceName "/dev/vdc"
+									fileSystemType "ext3"
+									custom (["openstack.storage.volume.zone":availabilityZone])
+					}
+			])
+		}
 
 	/********************
 	 * Cloud networking configuration.
@@ -181,6 +200,9 @@ cloud {
 
 				// optional. A native command line to be executed before the cloudify agent is started.
 				// initializationCommand "echo Cloudify agent is about to start"
+				
+				//optional - set the availability zone, required to match storage
+				custom (["openstack.compute.zone":availabilityZone])
 			}
 		])
 
