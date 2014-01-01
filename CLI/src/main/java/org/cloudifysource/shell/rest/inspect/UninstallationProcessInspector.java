@@ -12,10 +12,6 @@
  *******************************************************************************/
 package org.cloudifysource.shell.rest.inspect;
 
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeoutException;
-
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.restclient.RestClient;
 import org.cloudifysource.restclient.exceptions.RestClientException;
@@ -23,6 +19,12 @@ import org.cloudifysource.restclient.exceptions.RestClientResponseException;
 import org.cloudifysource.shell.ConditionLatch;
 import org.cloudifysource.shell.exceptions.CLIException;
 import org.cloudifysource.shell.installer.CLIEventsDisplayer;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created with IntelliJ IDEA.
@@ -32,7 +34,7 @@ import org.cloudifysource.shell.installer.CLIEventsDisplayer;
  */
 public abstract class UninstallationProcessInspector extends InstallationProcessInspector {
 
-	private boolean cloudResourcesReleased = false;
+    private final Set<String> cloudResourceNotReleasedServices;
     private final CLIEventsDisplayer displayer = new CLIEventsDisplayer();
     
     public UninstallationProcessInspector(final RestClient restClient,
@@ -47,6 +49,7 @@ public abstract class UninstallationProcessInspector extends InstallationProcess
               verbose,
               plannedNumberOfInstancesPerService,
               currentRunningInstancesPerService);
+        this.cloudResourceNotReleasedServices = new HashSet<String>(plannedNumberOfInstancesPerService.keySet());
     }
 
     @Override
@@ -73,12 +76,10 @@ public abstract class UninstallationProcessInspector extends InstallationProcess
         				displayer.printNoChange();
         			}
         			
-					// it is hard to determine exactly when the PUI was terminated,
+					// it is hard to determine exactly when the PU was terminated,
         			// since PUIs are terminated almost instantly after calling the uninstall command.
-        			if (!cloudResourcesReleased) {
-        				printIfReleasingCloudResources();
-        			}
-        			
+                    printIfReleasingCloudResources();
+
         			return ended;
         		} catch (final RestClientException e) {
         			String message = e.getMessageFormattedText();
@@ -90,19 +91,27 @@ public abstract class UninstallationProcessInspector extends InstallationProcess
         	}
 
         	private void printIfReleasingCloudResources() throws RestClientException {
-            for (Map.Entry<String, Integer> entry : plannedNumberOfInstancesPerService.entrySet()) {
-                String serviceName = entry.getKey();
-				try {
-					restClient.getServiceDescription(applicationName, serviceName);	
-				} catch (RestClientResponseException e) {
-					if (e.getStatusCode() == CloudifyConstants.HTTP_STATUS_NOT_FOUND) {
-	    				// if we got here the pui is not longer available even through the zone.
-	    				// we assume the ESM is currently releasing cloud resources.
-						cloudResourcesReleased = true;
-						displayer.printEvent(serviceName + ": " + CloudifyConstants.RELEASING_CLOUD_RESOURCES_EVENT);
-					}
-				}
-            }
+
+                if (cloudResourceNotReleasedServices.isEmpty()) {
+                    // cloud resources release was printed for all services
+                    return;
+                }
+
+                for (String serviceName : new HashSet<String>(cloudResourceNotReleasedServices)) {
+                    try {
+                        restClient.getServiceDescription(applicationName, serviceName);
+                    } catch (RestClientResponseException e) {
+                        if (e.getStatusCode() == CloudifyConstants.HTTP_STATUS_NOT_FOUND) {
+                            // if we got here the pu is not longer available even through the zone.
+                            // we assume the ESM is currently releasing cloud resources.
+                            cloudResourceNotReleasedServices.remove(serviceName);
+                            displayer.printEvent(CloudifyConstants.RELEASING_CLOUD_RESOURCES_EVENT + " for service : "
+                                    + serviceName);
+                        } else {
+                            throw e;
+                        }
+                    }
+                }
         }
         });
     }
