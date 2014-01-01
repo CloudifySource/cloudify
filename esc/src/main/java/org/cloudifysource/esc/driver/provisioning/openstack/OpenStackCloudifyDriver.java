@@ -191,11 +191,13 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		
 		if (customSettings != null) {
 			Object zoneObj = customSettings.get(OPENSTACK_COMPUTE_ZONE);
-			if (zoneObj instanceof String) {
-				zone = (String) zoneObj;
-			} else {
-				throw new IllegalArgumentException("Custom property " + OPENSTACK_COMPUTE_ZONE 
-						+ " must be of type String");
+			if (zoneObj != null) {
+				if (zoneObj instanceof String) {
+					zone = (String) zoneObj;
+				} else {
+					throw new IllegalArgumentException("Custom property " + OPENSTACK_COMPUTE_ZONE 
+							+ " must be of type String");
+				}
 			}
 		}
 		

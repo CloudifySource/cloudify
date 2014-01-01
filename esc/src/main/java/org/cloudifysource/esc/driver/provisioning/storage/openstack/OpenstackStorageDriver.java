@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 GigaSpaces Technologies Ltd. All rights reserved
+ * Copyright (c) 2013 GigaSpaces Technologies Ltd. All rights reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- ******************************************************************************/
+ *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning.storage.openstack;
 
 import java.util.HashSet;
@@ -25,12 +25,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
-import com.google.inject.Module;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.domain.cloud.storage.StorageTemplate;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriverListener;
+import org.cloudifysource.esc.driver.provisioning.openstack.OpenStackCloudifyDriver;
 import org.cloudifysource.esc.driver.provisioning.storage.BaseStorageDriver;
 import org.cloudifysource.esc.driver.provisioning.storage.StorageProvisioningDriver;
 import org.cloudifysource.esc.driver.provisioning.storage.StorageProvisioningException;
@@ -49,14 +49,19 @@ import org.jclouds.rest.RestContext;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
+import com.google.inject.Module;
 
 /**
- * Storage Provisioning implementation on Openstack.
+ * Storage Provisioning implementation on Openstack Grizzly.
  * @author noak
- * @since 2.5.0
+ * @since 2.7.0
  */
-public class OpenstackStorageDriver extends BaseStorageDriver implements StorageProvisioningDriver  {
-
+public class OpenstackStorageDriver extends BaseStorageDriver implements StorageProvisioningDriver {
+	
+	private static final String ENDPOINT_KEY = "jclouds.endpoint";
+	private static final String API_VERSION_KEY = "jclouds.api-version";
+	private static final String API_VERSION_VALUE = "2";
+	
 	private static final int VOLUME_POLLING_INTERVAL_MILLIS = 10 * 1000; // 10 seconds
 	private static final String VOLUME_DESCRIPTION = "Cloudify generated volume";
 	private static final String OPENSTACK_CUSTOM_VOLUME_ZONE = "openstack.storage.volume.zone";
@@ -77,27 +82,29 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 	
 	@Override
 	public void setComputeContext(final Object computeContext) {
-		if (computeContext != null) {
-			if (computeContext instanceof ComputeServiceContext) {
-				this.computeContext = (ComputeServiceContext) computeContext;
-			} else {
-				throw new IllegalArgumentException("ComputeContext object is not instance of " 
-						+ ComputeServiceContext.class.getName());
-			}
-		}
+		// expected to be null since the Openstack compute provisioning driver sets this to null 
+		// and does not use jclouds
 	}
 	
 	@Override
 	public void setConfig(final Cloud cloud, final String computeTemplateName) {
 		logger.fine("Initializing storage provisioning on Openstack");
 		this.cloud = cloud;
-		publishEvent(EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
-		publishEvent(EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API, cloud.getProvider().getProvider());
-		novaContext = this.computeContext.unwrap();
-		computeTemplate = cloud.getCloudCompute().getTemplates().get(computeTemplateName);
+		final String provider = cloud.getProvider().getProvider();
+        
+        computeTemplate = cloud.getCloudCompute().getTemplates().get(computeTemplateName);
+        		
+        publishEvent(EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API, provider);
+		publishEvent(EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API, provider);
+		
+        logger.fine("Creating JClouds context");
 		initDeployer();
+		computeContext = deployer.getContext();
+		novaContext = this.computeContext.unwrap();
+
 		region = getRegionFromHardwareId(computeTemplate.getHardwareId());
 	}
+
 
 	@Override
 	public VolumeDetails createVolume(final String templateName, final String location, 
@@ -120,8 +127,8 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 		}
 		
 		StorageTemplate storageTemplate = this.cloud.getCloudStorage().getTemplates().get(templateName);
-		
 		String volumeName = storageTemplate.getNamePrefix() + System.currentTimeMillis();
+		
 		CreateVolumeOptions options = CreateVolumeOptions.Builder
 				.name(volumeName)
 				.description(VOLUME_DESCRIPTION)
@@ -153,12 +160,14 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 			}
 		}
 		
+		
 		return volumeDetails;
 	}
 
 	@Override
 	public void attachVolume(final String volumeId, final String device, final String machineIp, final long duration, 
 			final TimeUnit timeUnit) throws TimeoutException, StorageProvisioningException {
+		
 		
 		final long endTime = System.currentTimeMillis() + timeUnit.toMillis(duration);
 		NodeMetadata node = deployer.getServerWithIP(machineIp);
@@ -174,7 +183,7 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 			throw new StorageProvisioningException("Failed to attach volume " + volumeId 
 					+ ", Openstack API is not initialized.");
 		}
-		logger.fine("Attaching volume on Openstack");
+		logger.info("Attaching volume on Openstack");
 		
 		volumeAttachmentApi.get().attachVolumeToServerAsDevice(volumeId, node.getProviderId(), device);
 		
@@ -360,13 +369,17 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 	private void initDeployer() {
 		
 		if (deployer != null) {
-			return ;
+			return;
 		}
 		
 		try {
 			logger.fine("Creating JClouds context deployer for Openstack with user: " + cloud.getUser().getUser());
+						
 			final Properties props = new Properties();
-			props.putAll(computeTemplate.getOverrides());
+			// the existence of this property has been validated already by the compute driver
+			String endpoint = (String) computeTemplate.getOverrides().get(OpenStackCloudifyDriver.OPENSTACK_ENDPOINT);
+			props.put(API_VERSION_KEY, API_VERSION_VALUE);
+			props.put(ENDPOINT_KEY, endpoint);
 
 			deployer = new JCloudsDeployer(cloud.getProvider().getProvider(), cloud.getUser().getUser(),
 					cloud.getUser().getApiKey(), props, new HashSet<Module>());
@@ -436,6 +449,7 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 		return zone;
 	}
 	
+	
 	private Optional<? extends VolumeApi> getVolumeApi() {
 		if (novaContext == null) {
 			throw new IllegalStateException("Nova context is null");
@@ -474,4 +488,5 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 		return region;
 	}
 
+	
 }
