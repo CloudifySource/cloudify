@@ -12,7 +12,7 @@ cloud {
 		// Optional. The cloud implementation class. Defaults to the build in jclouds-based provisioning driver.
 		className "org.cloudifysource.esc.driver.provisioning.openstack.OpenStackCloudifyDriver"
 		networkDriverClassName "org.cloudifysource.esc.driver.provisioning.network.openstack.OpenstackNetworkDriver"
-		storageClassName "org.cloudifysource.esc.driver.provisioning.storage.openstack.GrizzlyStorageDriver"
+		storageClassName "org.cloudifysource.esc.driver.provisioning.storage.openstack.OpenstackStorageDriver"
 
 		// Optional. The template name for the management machines. Defaults to the first template in the templates section below.
 		managementMachineTemplate "MEDIUM_LINUX"
