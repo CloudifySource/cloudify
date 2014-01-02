@@ -63,8 +63,9 @@ public class ApiVersionValidationAndRestResponseBuilderInterceptor extends Handl
                              final HttpServletResponse response, final Object handler)
             throws Exception {
     	String requestVersion = extractVersionFromRequest(request);
-    	if (CloudifyConstants.SERVICE_CONTROLLER_URL.equals(requestVersion)) {
-    		// if this is a request to service/** than this is not the right interceptor.
+    	if (CloudifyConstants.SERVICE_CONTROLLER_URL.equals(requestVersion) 
+    			|| CloudifyConstants.ADMIN_API_CONTROLLER_URL.equals(requestVersion)) {
+    		// if this is a request to service/** or to admin/** than this is not the right interceptor.
     		// (for example service/templates request will arrive here because of the 'templates' suffix 
     		// but it is not a template controller and it will be processed in the VersionValidateInterceptor)
     		return true;

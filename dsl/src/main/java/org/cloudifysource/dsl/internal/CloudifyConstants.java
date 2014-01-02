@@ -458,9 +458,10 @@ public final class CloudifyConstants {
     public static final String TEST_RECIPE_TIMEOUT_SYSPROP = "com.gs.usm.RecipeShutdownTimeout";
     
     /**
-     * service controller url
+     * controllers url
      */
 	public static final String SERVICE_CONTROLLER_URL = "service";
+	public static final String ADMIN_API_CONTROLLER_URL = "admin";
 
 	/**
 	 * new rest client
