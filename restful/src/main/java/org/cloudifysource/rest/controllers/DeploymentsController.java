@@ -1499,12 +1499,17 @@ public class DeploymentsController extends BaseRestController {
 					public Boolean call() throws Exception {
 						boolean result = processingUnit.undeployAndWait(timeoutInMinutes,
 								TimeUnit.MINUTES);
-						deleteServiceAttributes(appName, serviceName);
-						// write to events cache
-						DeploymentEvent undeployFinishedEvent = new DeploymentEvent();
-						undeployFinishedEvent.setDescription(CloudifyConstants.UNDEPLOYED_SUCCESSFULLY_EVENT);
-						eventsCache.add(new EventsCacheKey(deploymentId), undeployFinishedEvent);
-						return result;
+                        if (!result) { // undeploy was not succesfull
+                            logger.warning("Failed undeploying processing unit " + processingUnit.getName()
+                                    + "in " + timeoutInMinutes + " minutes. Please consult the logs.");
+                        } else { // undeploy was succesfull
+                            deleteServiceAttributes(appName, serviceName);
+                            // write to events cache
+                            DeploymentEvent undeployFinishedEvent = new DeploymentEvent();
+                            undeployFinishedEvent.setDescription(CloudifyConstants.UNDEPLOYED_SUCCESSFULLY_EVENT);
+                            eventsCache.add(new EventsCacheKey(deploymentId), undeployFinishedEvent);
+                        }
+                        return result;
 					}
 				});
 		serviceUndeployExecutor.execute(undeployTask);
