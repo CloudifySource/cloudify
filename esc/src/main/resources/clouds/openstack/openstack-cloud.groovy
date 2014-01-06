@@ -173,7 +173,7 @@ cloud {
 
 					// Optional. This option is relevant only if you use manamgent network. 
 					// By default (if you use a management network), the driver will create a router and link it to an external network, set to 'false' to ignore this step.
-					// By setting this property to 'false', the properties 'externalRouterName' and 'externalNetworkName' will be ignore.
+					// By setting this property to 'false', the properties 'externalRouterName' and 'externalNetworkName' will be ignored.
 					// "skipExternalNetworking": "false",
 					
 					// Optional. Use existing security groups.
@@ -199,8 +199,8 @@ cloud {
 				privileged true
 
 				// optional. A native command line to be executed before the cloudify agent is started.
-				// initializationCommand "echo Cloudify agent is about to start"
-				
+                                initializationCommand "#!/bin/sh\ncp /etc/hosts /tmp/hosts\necho 127.0.0.1 `hostname` > /etc/hosts\ncat  /tmp/hosts >> /etc/hosts"
+                                                
 				//optional - set the availability zone, required to match storage
 				custom (["openstack.compute.zone":availabilityZone])
 			}
