@@ -137,7 +137,7 @@ cloud {
 				// Mandatory. Image ID.
 				imageId imageId
 				// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
-				remoteDirectory "/home/ubuntu/gs-files"
+				remoteDirectory "/root/gs-files"
 				// Mandatory. Amount of RAM available to machine.
 				machineMemoryMB 1600
 				// Mandatory. Hardware ID.
@@ -148,7 +148,7 @@ cloud {
 				// are not used.
 				keyFile keyFile
 
-				username "ubuntu"
+				username "root"
 				
 				// Additional template options.
 				// When used with the default driver, the option names are considered
