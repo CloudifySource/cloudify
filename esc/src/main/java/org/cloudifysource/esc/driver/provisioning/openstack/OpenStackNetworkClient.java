@@ -25,7 +25,7 @@ import org.cloudifysource.esc.driver.provisioning.openstack.rest.RouterInterface
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.SecurityGroup;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.SecurityGroupRule;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Subnet;
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
