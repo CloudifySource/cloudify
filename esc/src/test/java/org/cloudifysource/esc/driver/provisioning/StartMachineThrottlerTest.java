@@ -46,7 +46,6 @@ public class StartMachineThrottlerTest {
 	@Test
 	public void testThrottler() {
 		requestRateLimiter = new RequestRateLimiter(NUM_RETRIES, COOL_DOWN_PERIOD_SECONDS, TimeUnit.SECONDS);
-		requestRateLimiter.init();
 		final long startTime = System.currentTimeMillis();
 		for (int i = 0; i < TOTAL_NUMBER_OF_CALLS; i++) {
 			requestRateLimiter.block();
@@ -71,7 +70,7 @@ public class StartMachineThrottlerTest {
 		final Cloud cloud = ServiceReader.readCloud(cloudFile);
 		final Boolean enabled = (Boolean) cloud.getCustom()
 							.get(CloudifyConstants.CUSTOM_PROPERTY_START_MACHINE_THROTTLING_ENABLED);
-		final Long timeFrame = (Long) cloud.getCustom()
+		final Integer timeFrame = (Integer) cloud.getCustom()
 							.get(CloudifyConstants.CUSTOM_PROPERTY_START_MACHINE_THROTTLING_TIME_FRAME_SEC); 
 		final Integer requests = (Integer) cloud.getCustom()
 				.get(CloudifyConstants.CUSTOM_PROPERTY_START_MACHINE_THROTTLING_NUM_REQUESTS); 
@@ -81,4 +80,5 @@ public class StartMachineThrottlerTest {
 		Assert.assertTrue(requests == 5);
 		
 	}
+	
 }

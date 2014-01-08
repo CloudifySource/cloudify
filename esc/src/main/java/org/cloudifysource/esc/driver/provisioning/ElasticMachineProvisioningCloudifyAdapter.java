@@ -125,7 +125,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private static final int DEFAULT_SHUTDOWN_TIMEOUT_AFTER_PROVISION_FAILURE = 5;
 
 	// 5 minutes after 2 consecutive failed requests.
-	private static final long DEFAULT_START_MACHINE_FAILURE_THROTTLING_TIMEFRAME_SEC = 300;
+	private static final int DEFAULT_START_MACHINE_FAILURE_THROTTLING_TIMEFRAME_SEC = 300;
 	
 	// the default number of consequtive failures that can be occur in the timeframe window.
 	private static final int DEFAULT_START_MACHINE_ALLOWED_FAILED_REQUESTS_IN_TIMEFRAME = 2;
@@ -493,18 +493,29 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
 	private void initExceptionThrottler() {
 		logger.fine("initilizing start-machine exception throttler.");
-		Integer numRequests = (Integer) cloud.getCustom()
-				.get(CloudifyConstants.CUSTOM_PROPERTY_START_MACHINE_THROTTLING_NUM_REQUESTS);
-		if (numRequests == null || numRequests <= 0) {
+		int numRequests = getIntValue(CloudifyConstants.CUSTOM_PROPERTY_START_MACHINE_THROTTLING_NUM_REQUESTS);
+		if (numRequests <= 0) {
+			logger.fine("Throttling number of failed retries property not set. Using default value of " 
+					+ DEFAULT_START_MACHINE_ALLOWED_FAILED_REQUESTS_IN_TIMEFRAME);
 			numRequests = DEFAULT_START_MACHINE_ALLOWED_FAILED_REQUESTS_IN_TIMEFRAME;
 		}
-		Long timeFrame = (Long) cloud.getCustom()
-				.get(CloudifyConstants.CUSTOM_PROPERTY_START_MACHINE_THROTTLING_TIME_FRAME_SEC);
-		if (timeFrame == null || timeFrame <= 0) {
+		int timeFrame = getIntValue(CloudifyConstants.CUSTOM_PROPERTY_START_MACHINE_THROTTLING_TIME_FRAME_SEC);
+		if (timeFrame <= 0) {
+			logger.fine("Throttling failed retries timeframe property not set. Using default value of " 
+					+ DEFAULT_START_MACHINE_FAILURE_THROTTLING_TIMEFRAME_SEC);
 			timeFrame = DEFAULT_START_MACHINE_FAILURE_THROTTLING_TIMEFRAME_SEC;
 		}
 		exceptionThrottler = new RequestRateLimiter(numRequests, timeFrame, TimeUnit.SECONDS);
-		exceptionThrottler.init();
+	}
+
+	// return a safe int value from custom map.
+	private int getIntValue(
+			final String customProperty) {
+		Object number = cloud.getCustom().get(customProperty);
+		if (number == null || !(number instanceof Integer)) {
+			return 0;
+		}
+		return (Integer) number;
 	}
 
 	// throttling done to prevent esm from overloading 
@@ -533,8 +544,8 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		if (blockRequired) {
 			logger.info("Cool-down period has expired. Start-machine requests are now permitted.");
 		} else {
-			logger.fine("Start-machine failure has been registered. One more failure is allowed for service '" 
-									+ serviceName + "' for the period of "
+			logger.fine("Start-machine failure has been registered. " + exceptionThrottler.getRemainingRetries()
+					+ " failures are allowed for service '" + serviceName + "' for the period of "
 										+ invocationTimeoutMin + " minutes.");
 		}
 	}

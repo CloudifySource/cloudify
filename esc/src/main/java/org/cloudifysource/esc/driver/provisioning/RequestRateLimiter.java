@@ -51,11 +51,13 @@ public class RequestRateLimiter {
 	}
 
 	/**
-	 * initializes the request rate limiter. 
-	 * This method should be called once prior to the first request.
+	 * initializes the request rate limiter upon first block request in rotation. 
 	 */
-	public void init() {
-		this.throttler.acquire();
+	private void init() {
+		boolean acquired = this.throttler.tryAcquire();
+		if (acquired) {
+			this.throttler.acquire();
+		}
 	}
 	
 	/**
@@ -64,6 +66,9 @@ public class RequestRateLimiter {
 	 */
 	public boolean block() {
 		incrementRetryCounter();
+		if (isInitRequired()) {
+			init();
+		}
 		if (isThrottlingRequired()) {
 			logger.fine("Request limit has been reached. Rate limit is being enforced.");
 			throttler.acquire();
@@ -73,6 +78,14 @@ public class RequestRateLimiter {
 		return false;
 	}
 	
+	// is this the first block attempt in the rotation?
+	private boolean isInitRequired() {
+		if ((this.requestCounter % this.getNumRequests()) == 1) {
+			return true;
+		}
+		return false;
+	}
+
 	/**
 	 * 
 	 * @return true if blocking is required.
@@ -103,5 +116,15 @@ public class RequestRateLimiter {
 
 	public int getNumRequests() {
 		return numRequests;
+	}
+	
+	/**
+	 * returns the remaining retries until block.
+	 * 
+	 * @return 
+	 * 		remaining retries until block.
+	 */
+	public int getRemainingRetries() {
+		return numRequests - (this.requestCounter % numRequests);
 	}
 }

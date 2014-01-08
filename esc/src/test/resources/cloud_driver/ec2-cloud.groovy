@@ -236,7 +236,7 @@ cloud {
 		"org.cloudifysource.clearRemoteDirectoryOnStart" : true,
         "org.cloudifysource.stop-management-timeout-in-minutes" : 15,
 		"org.cloudifysource.startMachineThrottlingEnabled" : true,
-		"org.cloudifysource.startMachineThrottlingTimeFrameSec" : 300l,
+		"org.cloudifysource.startMachineThrottlingTimeFrameSec" : 300,
 		"org.cloudifysource.startMachineThrottlingNumRequests" : 5
 	])
 }
