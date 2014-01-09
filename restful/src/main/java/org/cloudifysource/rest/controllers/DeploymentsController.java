@@ -16,6 +16,7 @@ import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_LUS;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -1353,7 +1354,7 @@ public class DeploymentsController extends BaseRestController {
 
 				@Override
 				public void run() {
-
+					final List<String> failedTasks = new ArrayList<String>();
 					for (final ProcessingUnit processingUnit : uninstallOrder) {
 						if (permissionEvaluator != null) {
 							final CloudifyAuthorizationDetails authDetails =
@@ -1375,10 +1376,15 @@ public class DeploymentsController extends BaseRestController {
 								logger.log(Level.INFO, "Undeploying Processing Unit " + processingUnit.getName()
                                     + " . Timeout is " + undeployTimeout);
 								populateEventsCache(deploymentId, processingUnit);
-                                processingUnit.undeployAndWait(undeployTimeout,
+                                boolean undeployed = processingUnit.undeployAndWait(undeployTimeout,
 										TimeUnit.MILLISECONDS);
-                                logger.log(Level.INFO, "Processing Unit " + processingUnit.getName() + " was " +
-                                        "undeployed successfully");
+                                if (!undeployed) {
+                                	logger.warning("Failed to undeploy processing unit: " + processingUnit.getName());
+                                	failedTasks.add(ServiceUtils.getApplicationServiceName(processingUnit.getName(), 
+                                			appName));
+                                }
+                                logger.log(Level.INFO, "Processing Unit " + processingUnit.getName() + " was "
+                                       + "undeployed successfully");
 								final String serviceName = ServiceUtils.getApplicationServiceName(
 										processingUnit.getName(), appName);
 								logger.info("Removing application service scope attributes for service " + serviceName);
@@ -1386,6 +1392,7 @@ public class DeploymentsController extends BaseRestController {
 										serviceName);
 							}
 						} catch (final Exception e) {
+							failedTasks.add(ServiceUtils.getApplicationServiceName(processingUnit.getName(), appName));
 							final String msg = "Failed to undeploy processing unit: "
 									+ processingUnit.getName()
 									+ " while uninstalling application "
@@ -1397,10 +1404,19 @@ public class DeploymentsController extends BaseRestController {
 							logger.log(Level.SEVERE, msg, e);
 						}
 					}
-					DeploymentEvent undeployFinishedEvent = new DeploymentEvent();
-					undeployFinishedEvent.setDescription(CloudifyConstants.UNDEPLOYED_SUCCESSFULLY_EVENT);
-					eventsCache.add(new EventsCacheKey(deploymentId), undeployFinishedEvent);
-					logger.log(Level.INFO, "Application " + appName + " uninstalled successfully");
+					if (failedTasks.isEmpty()) {
+						DeploymentEvent undeployFinishedEvent = new DeploymentEvent();
+						undeployFinishedEvent.setDescription(CloudifyConstants.UNDEPLOYED_SUCCESSFULLY_EVENT);
+						eventsCache.add(new EventsCacheKey(deploymentId), undeployFinishedEvent);
+						logger.log(Level.INFO, "Application " + appName + " uninstalled successfully");
+					} else {
+						for (String serviceName : failedTasks) {
+							DeploymentEvent failureEvent = new DeploymentEvent();
+							failureEvent.setDescription(MessageFormat.format(
+									"Service undeployment was interrupted for service: <{0}>", serviceName));
+							eventsCache.add(new EventsCacheKey(deploymentId), failureEvent);
+						}
+					}
 				}
 			}, Boolean.TRUE);
 
@@ -1418,7 +1434,7 @@ public class DeploymentsController extends BaseRestController {
 		throw new RestErrorException(errors);
 	}
 
-    private List<String> orderToNames(List<ProcessingUnit> order) {
+    private List<String> orderToNames(final List<ProcessingUnit> order) {
 
         List<String> names = new ArrayList<String>();
         for (ProcessingUnit pu : order) {
