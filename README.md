@@ -82,3 +82,5 @@ distributed under the License is distributed on an "AS IS" BASIS,<br/>
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.<br/>
 See the License for the specific language governing permissions and<br/>
 limitations under the License.
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/CloudifySource/cloudify/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
