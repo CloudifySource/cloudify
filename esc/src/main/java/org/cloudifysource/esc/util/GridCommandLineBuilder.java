@@ -21,6 +21,7 @@ import org.cloudifysource.domain.cloud.OrchestratorComponent;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.utilitydomain.openspaces.OpenspacesConstants;
 import org.openspaces.admin.gsa.GSAReservationId;
+import org.openspaces.grid.esm.EsmSystemProperties;
 
 /**
  * Service grid system properties utils class.
@@ -184,6 +185,12 @@ public final class GridCommandLineBuilder {
 			//CLOUDIFY-2180
 			esmCommandLineArgs += " -D" + CloudifyConstants.SYSTEM_PROPERTY_ESM_BACKUP_MACHINES_STATE_TO_SPACE_FLAG +"=true";
 		}
+
+        if (esm.isForceMachineShutdown()) {
+            Integer forceMachineShutdownTimeoutInSeconds = esm.getForceMachineShutdownTimeoutInSeconds();
+            esmCommandLineArgs += " -D" + EsmSystemProperties.ESM_FORCE_MACHINE_TERMINATION_TIMEOUT_SECONDS + "="
+                    + forceMachineShutdownTimeoutInSeconds + " ";
+        }
 
 		return esmCommandLineArgs;
 	}
