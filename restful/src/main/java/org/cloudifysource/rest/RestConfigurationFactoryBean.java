@@ -14,7 +14,9 @@ package org.cloudifysource.rest;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -87,18 +89,19 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
         if (cloud != null) {
         	config.setCloud(cloud);
         	setAdditionalTemplatesFolder();
-            initCloudTemplates();
             CloudCompute cloudCompute = cloud.getCloudCompute();
-            if (cloudCompute.getTemplates().isEmpty()) {
+            Map<String, ComputeTemplate> cloudTemplates = cloudCompute.getTemplates();
+			if (cloudTemplates.isEmpty()) {
                 throw new IllegalArgumentException("No templates defined in cloud configuration!");
             }
-            String defaultTemplateName = cloudCompute.getTemplates().keySet().iterator().next();
+			initCloudTemplates();
+            String defaultTemplateName = cloudTemplates.keySet().iterator().next();
             logger.info("Setting default template name to: " + defaultTemplateName
                     + ". This template will be used for services that do not specify an explicit template");
             config.setDefaultTemplateName(defaultTemplateName);
             String managementTemplateName = cloud.getConfiguration().getManagementMachineTemplate();
             config.setManagementTemplateName(managementTemplateName);
-            config.setManagementTemplate(cloudCompute.getTemplates().get(managementTemplateName));
+            config.setManagementTemplate(cloudTemplates.get(managementTemplateName));
         } else {
             logger.info("running in local cloud mode");
         }
@@ -209,6 +212,13 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
 
     private void initCloudTemplates() {
         final File additionalTemplatesFolder = config.getAdditionalTempaltesFolder();
+        Cloud cloud = config.getCloud();
+        Map<String, ComputeTemplate> templates = cloud.getCloudCompute().getTemplates();
+        List<String> templateNames = new ArrayList<String>(templates.keySet());
+		logger.info("[initCloudTemplates] - the templates declared in the cloud: "
+                + templateNames);
+        config.setCloudDeclaredTemplates(templateNames);
+        
         logger.info("[initCloudTemplates] - Adding templates from folder: "
                 + additionalTemplatesFolder.getAbsolutePath());
         if (!additionalTemplatesFolder.exists()) {
@@ -218,10 +228,9 @@ public class RestConfigurationFactoryBean implements FactoryBean<RestConfigurati
         }
         File[] listFiles = additionalTemplatesFolder.listFiles();
         ComputeTemplatesReader reader = new ComputeTemplatesReader();
-        List<ComputeTemplate> addedTemplates = reader.addAdditionalTemplates(config.getCloud(), listFiles);
+		List<ComputeTemplate> addedTemplates = reader.addAdditionalTemplates(cloud, listFiles);
         logger.info("[initCloudTemplates] - Added the following templates: " + addedTemplates);
         config.getLastTemplateFileNum().addAndGet(listFiles.length);
-
     }
 
     private CloudConfigurationHolder getCloudConfigurationFromManagementSpace() {

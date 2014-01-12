@@ -14,6 +14,7 @@ package org.cloudifysource.rest;
 
 import java.io.File;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -23,6 +24,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.rest.util.RestPollingRunnable;
@@ -51,6 +53,7 @@ public class RestConfiguration {
     private File restTempFolder;
 	private CustomPermissionEvaluator permissionEvaluator;
 	private File additionalTemplatesFolder;
+	private List<String> cloudDeclaredTemplates;
 
 	/**
      * A set containing all of the executed lifecycle events. used to avoid duplicate prints.
@@ -193,6 +196,14 @@ public class RestConfiguration {
 
 	public void setAdditionalTemplatesFolder(final File additionalTemplatesFolder) {
 		this.additionalTemplatesFolder = additionalTemplatesFolder;
+	}
+
+	public List<String> getCloudDeclaredTemplates() {
+		return cloudDeclaredTemplates;
+	}
+
+	public void setCloudDeclaredTemplates(final List<String> cloudDeclaredTemplates) {
+		this.cloudDeclaredTemplates = cloudDeclaredTemplates;
 	}
 
 }
