@@ -423,8 +423,13 @@ public enum CloudifyErrorMessages {
 	/**
 	 * 
 	 */
-	INVALID_INSTANCES_COUNT("invalid_instances_count", 1)
-    
+	INVALID_INSTANCES_COUNT("invalid_instances_count", 1),
+	
+	/**
+	 * 
+	 */
+	ILLEGAL_REMOVE_DEFAULT_TEMPLATE("illegal_remove_default_template", 1)
+	
     // CHECKSTYLE:OFF
 	;
 	// CHECKSTYLE:ON

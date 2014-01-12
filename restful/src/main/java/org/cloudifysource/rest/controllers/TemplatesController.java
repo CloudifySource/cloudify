@@ -60,6 +60,8 @@ import org.cloudifysource.rest.repo.UploadRepo;
 import org.cloudifysource.rest.util.RestUtils;
 import org.cloudifysource.rest.validators.AddTemplatesValidationContext;
 import org.cloudifysource.rest.validators.AddTemplatesValidator;
+import org.cloudifysource.rest.validators.RemoveTemplateValidator;
+import org.cloudifysource.rest.validators.RemoveTemplatesValidationContext;
 import org.cloudifysource.rest.validators.TemplatesValidationContext;
 import org.cloudifysource.rest.validators.TemplatesValidator;
 import org.cloudifysource.restDoclet.annotations.InternalMethod;
@@ -97,6 +99,8 @@ public class TemplatesController extends BaseRestController {
 	private UploadRepo repo;
 	@Autowired
 	private final AddTemplatesValidator[] addTemplatesValidators = new AddTemplatesValidator[0];
+	@Autowired
+	private final RemoveTemplateValidator[] removeTemplatesValidators = new RemoveTemplateValidator[0];
 	@Autowired
 	private final TemplatesValidator[] templatesValidators = new TemplatesValidator[0];
 	private Cloud cloud;
@@ -699,6 +703,18 @@ public class TemplatesController extends BaseRestController {
 		
 	}
 
+	private void validateRemoveTemplate(final String templateName) 
+			throws RestErrorException {
+		RemoveTemplatesValidationContext validationContext = new RemoveTemplatesValidationContext();
+		validationContext.setCloud(cloud);
+		validationContext.setTemplateName(templateName);
+		validationContext.setCloudDeclaredTemplates(restConfig.getCloudDeclaredTemplates());
+		validationContext.setAdmin(admin);
+		for (final RemoveTemplateValidator validator : removeTemplatesValidators) {
+			validator.validate(validationContext);
+		}
+	}
+	
 	private void validateAddTemplates(final AddTemplatesRequest request)
 			throws RestErrorException {
 		final AddTemplatesValidationContext validationContext = new AddTemplatesValidationContext();
@@ -732,18 +748,10 @@ public class TemplatesController extends BaseRestController {
 	public void removeTemplate(@PathVariable final String templateName)
 			throws RestErrorException {
 
-		validateTemplateOperation("remove-template");
-
 		log(Level.INFO, "[removeTemplate] - starting remove template [" + templateName + "]");
 
-		// check if the template is being used by at least one service, so it cannot be removed.
-		final List<String> templateServices = getTemplateServices(templateName);
-		if (!templateServices.isEmpty()) {
-			log(Level.WARNING, "[removeTemplate] - failed to remove template [" + templateName
-					+ "]. The template is being used by " + templateServices.size() + " services: " + templateServices);
-			throw new RestErrorException(CloudifyErrorMessages.TEMPLATE_IN_USE.getName(),
-					templateName, templateServices);
-		}
+		// validate
+		validateRemoveTemplate(templateName);
 
 		// remove template from all REST instances
 		final RemoveTemplatesResponse resposne = removeTemplateFromRestInstances(templateName);
@@ -831,14 +839,10 @@ public class TemplatesController extends BaseRestController {
 			removeTemplateInternal(@PathVariable final String templateName)
 					throws RestErrorException {
 		log(Level.INFO, "[removeTemplateInternal] - removing template [" + templateName + "].");
-		// check if the template is being used by at least one service, so it cannot be removed.
-		final List<String> templateServices = getTemplateServices(templateName);
-		if (!templateServices.isEmpty()) {
-			log(Level.WARNING, "[removeTemplateInternal] - failed to remove template [" + templateName
-					+ "]. The template is being used by the following services: " + templateServices);
-			throw new RestErrorException(CloudifyErrorMessages.TEMPLATE_IN_USE.getName(),
-					templateName, templateServices);
-		}
+		
+		// validate
+		validateRemoveTemplate(templateName);
+		
 		// try to remove the template
 		try {
 			removeTemplateFromCloud(templateName);
@@ -867,16 +871,21 @@ public class TemplatesController extends BaseRestController {
 	private void removeTemplateFromCloudList(final String templateName)
 			throws RestErrorException {
 		log(Level.FINE, "[removeTemplateFromCloudList] - removing template [" + templateName + "] from cloud's list.");
-		final Map<String, ComputeTemplate> cloudTemplates = cloud.getCloudCompute().getTemplates();
-		if (!cloudTemplates.containsKey(templateName)) {
-			log(Level.WARNING,
-					"[removeTemplateFromCloudList] - tempalte [" + templateName + "] doesn't exist in cloud's list.");
-			throw new RestErrorException(CloudifyErrorMessages.TEMPLATE_NOT_EXIST.getName(), templateName);
-		}
-		cloudTemplates.remove(templateName);
+		cloud.getCloudCompute().getTemplates().remove(templateName);
 		log(Level.FINE, "[removeTemplateFromCloudList] - template [" + templateName
 				+ "] was removed from cloud's list.");
 	}
+
+	private void validateTemplateExist(final String templateName) 
+			throws RestErrorException {
+		final Map<String, ComputeTemplate> cloudTemplates = cloud.getCloudCompute().getTemplates();
+		if (!cloudTemplates.containsKey(templateName)) {
+			log(Level.WARNING,
+					"[validateTemplateExist] - tempalte [" + templateName + "] doesn't exist in cloud's list.");
+			throw new RestErrorException(CloudifyErrorMessages.TEMPLATE_NOT_EXIST.getName(), templateName);
+		}
+	}
+
 
 	/**
 	 * Deletes the template's file. Deletes the templates folder if no other templates files exist in the folder.
@@ -942,11 +951,15 @@ public class TemplatesController extends BaseRestController {
 	private File getTemplateFolder(final String templateName) {
 		final ComputeTemplate computeTemplate = cloud.getCloudCompute().getTemplates().get(templateName);
 		final String absoluteUploadDir = computeTemplate.getAbsoluteUploadDir();
+		log(Level.FINE, "[getTemplateFolder] - template's [" + templateName
+				+ "] upload directory: " + absoluteUploadDir);
 		final File parentFile = new File(absoluteUploadDir).getParentFile();
 		if (parentFile == null) {
-			log(Level.WARNING, "Failed to get template's folder for template " + templateName
+			log(Level.WARNING, "[getTemplateFolder] - Failed to get template's folder for template " + templateName
 					+ ". The template's upload directory is " + absoluteUploadDir);
 		}
+		log(Level.FINE, "[getTemplateFolder] - Found the folder for template [" 
+				+ templateName + "] - " + parentFile.getAbsolutePath());
 		return parentFile;
 	}
 
@@ -959,7 +972,7 @@ public class TemplatesController extends BaseRestController {
 	 */
 	private File getTemplateFile(final String templateName, final File templateFolder) {
 		final String templateFileName = templateName + DSLUtils.TEMPLATE_DSL_FILE_NAME_SUFFIX;
-		log(Level.FINE, "Searching for template file " + templateFileName + " in "
+		log(Level.FINE, "[getTemplateFile] - Searching for template file " + templateFileName + " in "
 				+ templateFolder.getAbsolutePath());
 		final File[] listFiles = templateFolder.listFiles(new FilenameFilter() {
 			@Override

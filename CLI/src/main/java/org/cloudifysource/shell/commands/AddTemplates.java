@@ -218,8 +218,8 @@ public class AddTemplates extends AdminAwareCommand implements NewRestClientComm
 		request.setUploadKey(uploadKey);
 		try {
 			final AddTemplatesResponse response = newRestClient.addTemplates(request);
-			return getFormattedMessage("templates_added_successfully", Color.GREEN)
-					+ getSuccessfulMessage(response);
+			return getFormattedMessage("templates_added_successfully", Color.GREEN, 
+					getSuccessfulMessage(response));
 
 		} catch (AddTemplatesException e) {
 			// failure or partial failure
@@ -307,6 +307,7 @@ public class AddTemplates extends AdminAwareCommand implements NewRestClientComm
 
 	private String getSuccessfulMessage(final AddTemplatesResponse response) {
 		StringBuilder sb = new StringBuilder();
+		sb.append(CloudifyConstants.NEW_LINE);
 		sb.append("Templates were added to all REST instances: ");
 		sb.append(response.getInstances());
 		Map<String, AddTemplateResponse> templates = response.getTemplates();

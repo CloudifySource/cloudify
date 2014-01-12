@@ -627,7 +627,6 @@ public final class ShellUtils {
 			if (!file.isFile()) {
 				throw new CLIException(file.getAbsolutePath() + " is not a file or is missing");
 			}
-			displayer.printEvent("Uploading " + file.getAbsolutePath());
 			return client.upload(null, file).getUploadKey();
 		}
 		return null;
