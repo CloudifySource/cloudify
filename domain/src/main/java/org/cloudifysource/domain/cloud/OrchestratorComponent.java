@@ -30,6 +30,8 @@ public class OrchestratorComponent extends GridComponent {
 	private Integer port;
     private Integer startMachineTimeoutInSeconds;
     private Integer stopMachineTimeoutInSeconds;
+    private Integer forceMachineShutdownTimeoutInSeconds;
+    private boolean isForceMachineShutdown;
 	
 	public OrchestratorComponent() {
 		this.setMaxMemory("128m");
@@ -37,7 +39,25 @@ public class OrchestratorComponent extends GridComponent {
         this.setStartMachineTimeoutInSeconds(1800);
         this.setStopMachineTimeoutInSeconds(1800);
 		this.setPort(7003);
+        this.setForceMachineShutdown(false); // disabled by default.
+        this.setForceMachineShutdownTimeoutInSeconds(60 * 5);
 	}
+
+    public boolean isForceMachineShutdown() {
+        return isForceMachineShutdown;
+    }
+
+    public void setForceMachineShutdown(boolean forceMachineShutdown) {
+        isForceMachineShutdown = forceMachineShutdown;
+    }
+
+    public Integer getForceMachineShutdownTimeoutInSeconds() {
+        return forceMachineShutdownTimeoutInSeconds;
+    }
+
+    public void setForceMachineShutdownTimeoutInSeconds(Integer forceMachineShutdownTimeoutInSeconds) {
+        this.forceMachineShutdownTimeoutInSeconds = forceMachineShutdownTimeoutInSeconds;
+    }
 
     public Integer getStartMachineTimeoutInSeconds() {
         return startMachineTimeoutInSeconds;
