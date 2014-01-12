@@ -321,8 +321,16 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		if (this.management) {
 			final String managementMachineTemplate = cloud.getConfiguration().getManagementMachineTemplate();
 			cloudTemplate = cloud.getCloudCompute().getTemplates().get(managementMachineTemplate);
+			if (cloudTemplate == null) {
+				throw new IllegalStateException("Management compute template with name <" 
+						+ managementMachineTemplate + "> could not be found.");
+			}
 		} else {
 			cloudTemplate = cloud.getCloudCompute().getTemplates().get(cloudTemplateName);
+			if (cloudTemplate == null) {
+				throw new IllegalStateException("Template with name <"
+						+ cloudTemplate + "> could not be found.");
+			}
 		}
 
 		String endpoint = null;
