@@ -75,8 +75,8 @@ cloud {
 				//The SSH username and password for Cloudify to use when installing and configuring created VMs. 
 				//This configuration assumes you're using simple SSH authentication without a keypair. 
 				//If you're using keypair to authenticate comment out the below two lines. 
-				//username sshUsername
-				//password sshPassword
+				username sshUsername
+				password sshPassword
 
 				//Optional. Name of key file to use for authenticating to the remote machine. Uncomment this line 
 				//if key files are to be used for SSH authentication into the created VM. 
@@ -116,4 +116,3 @@ cloud {
 		])
 	}
 }
-
