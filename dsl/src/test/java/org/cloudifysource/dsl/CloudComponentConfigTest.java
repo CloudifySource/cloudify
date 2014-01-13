@@ -80,6 +80,12 @@ public class CloudComponentConfigTest {
                 orchestrator.getStartMachineTimeoutInSeconds() == 36000);
         Assert.assertTrue("unexpected orchestrator max memory property " + orchestrator.getStopMachineTimeoutInSeconds(),
                 orchestrator.getStopMachineTimeoutInSeconds() == 36000);
+
+        Assert.assertTrue("unexpected orchestrator is force shutdown property " + orchestrator.isForceMachineShutdown(),
+                orchestrator.isForceMachineShutdown());
+        Assert.assertTrue("unexpected orchestrator force machien timeout in seconds property " + orchestrator
+                .getForceMachineShutdownTimeoutInSeconds(),
+                orchestrator.getStopMachineTimeoutInSeconds() == 36000);
     }
 	private void validateDiscoveryValues(final DiscoveryComponent discovery) {
 		Assert.assertTrue("unexpected orchestrator discovery port property " + discovery.getDiscoveryPort(), 

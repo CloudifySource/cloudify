@@ -56,7 +56,9 @@ cloud {
 				port 7779
 				minMemory "64m"
 				maxMemory "4096m"
-			}
+                forceMachineShutdown true
+                forceMachineShutdownTimeoutInSeconds 60
+            }
 
 			rest {
 				//Rest port

@@ -31,7 +31,7 @@ public class OrchestratorComponent extends GridComponent {
     private Integer startMachineTimeoutInSeconds;
     private Integer stopMachineTimeoutInSeconds;
     private Integer forceMachineShutdownTimeoutInSeconds;
-    private boolean isForceMachineShutdown;
+    private boolean forceMachineShutdown;
 	
 	public OrchestratorComponent() {
 		this.setMaxMemory("128m");
@@ -44,11 +44,11 @@ public class OrchestratorComponent extends GridComponent {
 	}
 
     public boolean isForceMachineShutdown() {
-        return isForceMachineShutdown;
+        return forceMachineShutdown;
     }
 
-    public void setForceMachineShutdown(boolean forceMachineShutdown) {
-        isForceMachineShutdown = forceMachineShutdown;
+    public void setForceMachineShutdown(boolean isforceMachineShutdown) {
+        forceMachineShutdown = isforceMachineShutdown;
     }
 
     public Integer getForceMachineShutdownTimeoutInSeconds() {
