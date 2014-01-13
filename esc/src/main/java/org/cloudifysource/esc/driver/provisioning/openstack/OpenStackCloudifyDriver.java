@@ -329,7 +329,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			cloudTemplate = cloud.getCloudCompute().getTemplates().get(cloudTemplateName);
 			if (cloudTemplate == null) {
 				throw new IllegalStateException("Template with name <"
-						+ cloudTemplate + "> could not be found.");
+						+ cloudTemplateName + "> could not be found.");
 			}
 		}
 
