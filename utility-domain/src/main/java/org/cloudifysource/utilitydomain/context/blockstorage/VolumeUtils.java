@@ -150,19 +150,44 @@ public final class VolumeUtils {
 	public static void partition(final String device, final long timeoutInMillis) 
 			throws LocalStorageOperationException, TimeoutException {
 		try {
-			File tempScriptFile = File.createTempFile("partitionvolume", ".sh");
-			FileUtils.writeStringToFile(tempScriptFile, 
+			File tempParitioningScript = File.createTempFile("partitionvolume", ".sh");
+			FileUtils.writeStringToFile(tempParitioningScript, 
 					"(echo o; echo n; echo p; echo 1; echo; echo; echo w) | sudo fdisk " + device);
-			tempScriptFile.setExecutable(true);
-			tempScriptFile.deleteOnExit();
-			executeCommandLine(tempScriptFile.getAbsolutePath(), timeoutInMillis);
-		} catch (IOException e) {
-			// TODO noak : fdisk returns 1 exit code even when succeed so ignoring the exception, this should be fixed
-			logger.warning("Ignoring fdisk exception: " + e.getMessage());
-			//throw new LocalStorageOperationException("Failed to partition device " + device + ", error occurred "
-			//	+ "while attempting to generate fdisk script file", e);
+			tempParitioningScript.setExecutable(true);
+			tempParitioningScript.deleteOnExit();
+			executeCommandLine(tempParitioningScript.getAbsolutePath(), timeoutInMillis);
+		} catch (IOException ioe) {
+			// fdisk returns exit code 1 even when successful so we have to verify
+			logger.info("inspecting fdisk command exception: " + ioe.getMessage());
+			if (!verifyDevicePartitioning(device, timeoutInMillis)) {
+				throw new LocalStorageOperationException("Failed to partition device " + device + ", reported error: "
+						+ ioe.getMessage(), ioe);
+			}
 		}
 
+	}
+	
+	private static boolean verifyDevicePartitioning(final String device, final long timeoutInMillis) 
+			throws LocalStorageOperationException, TimeoutException {
+		
+		boolean deviceFormatted = false;
+
+		try {
+			File tempDeviceListScript = File.createTempFile("getPartitionStatus", ".sh");
+			FileUtils.writeStringToFile(tempDeviceListScript, "sudo fdisk -l | grep " + device);
+			tempDeviceListScript.setExecutable(true);
+			tempDeviceListScript.deleteOnExit();
+			String fdiskOutput = executeSilentCommandLineReturnOutput(tempDeviceListScript.getAbsolutePath(), timeoutInMillis);
+			if (fdiskOutput.contains(device + ":") && 
+					!fdiskOutput.contains(device + " doesn't contain a valid partition table")) {
+				deviceFormatted = true;
+			}
+		} catch (Exception e) {
+			throw new LocalStorageOperationException("Failed verifying paritioning of device: " + device, e);
+		}
+		
+		return deviceFormatted;
+		
 	}
 
 	/**
@@ -221,6 +246,30 @@ public final class VolumeUtils {
 			throw new LocalStorageOperationException("Failed executing commandLine : '" + commandLine 
 					+ ". Process output was : " + outAndErr.getOutput(), e);
 		}
+	}
+	
+	private static String executeSilentCommandLineReturnOutput(final String commandLine, final long timeout) 
+			throws LocalStorageOperationException, TimeoutException {
+		
+		Executor executor = new DefaultExecutor();
+		executor.setExitValue(0);
+		ExecuteWatchdog watchdog = new ExecuteWatchdog(timeout);
+		executor.setWatchdog(watchdog);
+		ProcessOutputStream outAndErr = new ProcessOutputStream();
+		try {
+			PumpStreamHandler streamHandler = new PumpStreamHandler(outAndErr);
+			executor.setStreamHandler(streamHandler);
+			executor.execute(CommandLine.parse(commandLine));
+		} catch (final Exception e) {
+			if (watchdog.killedProcess()) {
+				throw new TimeoutException("Timed out while executing commandLine : '" + commandLine + "'");
+			}
+
+			throw new LocalStorageOperationException("Failed executing commandLine : '" + commandLine 
+					+ ". Process output was : " + outAndErr.getOutput(), e);
+		}
+		
+		return outAndErr.getOutput();
 	}
 	
 	/**
