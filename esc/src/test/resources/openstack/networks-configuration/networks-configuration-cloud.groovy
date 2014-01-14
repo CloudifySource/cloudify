@@ -1,5 +1,5 @@
 cloud {
-	name = "openstack"
+	name = "hp-grizzly"
 
 	configuration { managementMachineTemplate "MANAGER" }
 

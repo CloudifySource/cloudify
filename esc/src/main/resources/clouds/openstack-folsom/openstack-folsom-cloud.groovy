@@ -1,13 +1,12 @@
 /***************
- * Cloud configuration file for the hp-folsom cloud. Uses the default jclouds-based cloud driver.
- * See org.cloudifysource.domain.cloud.Cloud for more details.
+ * Cloud configuration file for the openstack-folsom cloud. Uses the default jclouds-based cloud driver.
+ * See org.cloudifysource.dsl.cloud.Cloud for more details.
  * @author barakme
- *
  */
 
 cloud {
 	// Mandatory. The name of the cloud, as it will appear in the Cloudify UI.
-	name = "hp-folsom"
+	name = "openstack-folsom"
 
 	/********
 	 * General configuration information about the cloud driver implementation.
@@ -15,7 +14,6 @@ cloud {
 	configuration {
 		// Optional. The cloud implementation class. Defaults to the build in jclouds-based provisioning driver.
 		className "org.cloudifysource.esc.driver.provisioning.jclouds.DefaultProvisioningDriver"
-		storageClassName "org.cloudifysource.esc.driver.provisioning.storage.openstack.OpenstackStorageDriver"
 		// Optional. The template name for the management machines. Defaults to the first template in the templates section below.
 		managementMachineTemplate "SMALL_LINUX"
 		// Optional. Indicates whether internal cluster communications should use the machine private IP. Defaults to true.
@@ -24,8 +22,6 @@ cloud {
 		// Optional. Path to folder where management state will be written. Null indicates state will not be written.
 		persistentStoragePath persistencePath
 	}
-	
-	
 
 	/*************
 	 * Provider specific information.
@@ -33,7 +29,7 @@ cloud {
 	provider {
 		// Mandatory. The name of the provider.
 		// When using the default cloud driver, maps to the Compute Service Context provider name.
-		provider "hpcloud-compute"
+		provider "openstack-nova"
 
 
 		// Optional. The HTTP/S URL where cloudify can be downloaded from by newly started machines. Defaults to downloading the
@@ -42,8 +38,7 @@ cloud {
 		// different HTTP server instead.
 		// IMPORTANT: the default linux bootstrap script appends '.tar.gz' to the url whereas the default windows script appends '.zip'.
 		// Therefore, if setting a custom URL, make sure to leave out the suffix.
-
-		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.7.0-5994-RC/gigaspaces-cloudify-2.7.0-rc-b5994.zip"
+		// cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.6.2-5400-RELEASE/gigaspaces-cloudify-2.6.2-ga-b5400.zip"
 
 		// Mandatory. The prefix for new machines started for servies.
 		machineNamePrefix "cloudify-agent-"
@@ -83,21 +78,6 @@ cloud {
 
 	}
 	
-	cloudStorage {
-			templates ([
-				SMALL_BLOCK : storageTemplate{
-								deleteOnExit false
-								size 1
-								path "/storage"
-								namePrefix "cloudify-storage-volume"
-								deviceName "/dev/vdc"
-								fileSystemType "ext4"
-								custom ([:])
-				}
-		])
-	}
-
-	
 	cloudCompute {
 		
 		/***********
@@ -108,10 +88,6 @@ cloud {
 					SMALL_LINUX : computeTemplate{
 						// Mandatory. Image ID.
 						imageId linuxImageId
-						
-						// file transfer protocol
-						fileTransfer org.cloudifysource.domain.cloud.FileTransferModes.SFTP
-						
 						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
 						remoteDirectory "/home/root/gs-files"
 						// Mandatory. Amount of RAM available to machine.
@@ -131,17 +107,13 @@ cloud {
 						options ([
 									"securityGroupNames" : [securityGroup]as String[],
 									"keyPairName" : keyPair,
-									"generateKeyPair": false,
-									"autoAssignFloatingIp": false
+									"generateKeyPair": false
 								])
-						
-						// when set to 'true', will allow to perform reboot of agent machine.
-						autoRestartAgent true
 	
 						// Optional. Overrides to default cloud driver behavior.
 						// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
 						overrides ([
-							"jclouds.keystone.credential-type":"apiAccessKeyCredentials"
+							"jclouds.endpoint": openstackUrl
 						])
 	
 						// enable sudo.
@@ -150,58 +122,12 @@ cloud {
 						// optional. A native command line to be executed before the cloudify agent is started.
 						// initializationCommand "echo Cloudify agent is about to start"
 	
-					},
-					SMALL_UBUNTU : computeTemplate{
-						// Mandatory. Image ID.
-						imageId ubuntuImageId
-						
-						// file transfer protocol
-						fileTransfer org.cloudifysource.domain.cloud.FileTransferModes.SFTP
-						
-						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
-						remoteDirectory "/home/ubuntu/gs-files"
-						// Mandatory. Amount of RAM available to machine.
-						machineMemoryMB 1600
-						// Mandatory. Hardware ID.
-						hardwareId hardwareId
-						// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
-						localDirectory "upload"
-						// Optional. Name of key file to use for authenticating to the remote machine. Remove this line if key files
-						// are not used.
-						keyFile keyFile
-	
-						username "ubuntu"
-						// Additional template options.
-						// When used with the default driver, the option names are considered
-						// method names invoked on the TemplateOptions object with the value as the parameter.
-						options ([
-									"securityGroupNames" : [securityGroup]as String[],
-									"keyPairName" : keyPair,
-									"generateKeyPair": false,
-									"autoAssignFloatingIp": false
-								])
-						
-						// when set to 'true', agent will automatically start after reboot.
-						autoRestartAgent true
-	
-						// Optional. Overrides to default cloud driver behavior.
-						// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
-						overrides ([
-							"jclouds.keystone.credential-type":"apiAccessKeyCredentials"
-						])
-	
-						// enable sudo.
-						privileged true
-	
-						// optional. A native command line to be executed before the cloudify agent is started.
-						// initializationCommand "echo Cloudify agent is about to start"
 					}
 	
 	
 				])
 	
 	}
-
 
 	/*****************
 	 * Optional. Custom properties used to extend existing drivers or create new ones.

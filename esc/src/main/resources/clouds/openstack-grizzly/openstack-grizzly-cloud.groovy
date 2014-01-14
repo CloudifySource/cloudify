@@ -1,9 +1,9 @@
 /***************
- * Cloud configuration file for the Openstack cloud. *
+ * Cloud configuration file for the openstack-grizzly cloud
  */
 cloud {
 	// Mandatory. The name of the cloud, as it will appear in the Cloudify UI.
-	name = "openstack"
+	name = "openstack-grizzly"
 
 	/********
 	 * General configuration information about the cloud driver implementation.
@@ -78,7 +78,7 @@ cloud {
 		cloudStorage {
 				templates ([
 					SMALL_BLOCK : storageTemplate{
-									deleteOnExit true
+									deleteOnExit false
 									partitioningRequired true
 									size 1
 									path "/storage"
@@ -212,7 +212,7 @@ cloud {
 				// Mandatory. Amount of RAM available to machine.
 				machineMemoryMB 3900
 				// Mandatory. Hardware ID.
-				hardwareId hardwareId
+				hardwareId mediumHardwareId
 				// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
 				localDirectory "upload"
 				// Optional. Name of key file to use for authenticating to the remot machine. Remove this line if key files
@@ -270,7 +270,7 @@ cloud {
 				privileged true
 
 				// optional. A native command line to be executed before the cloudify agent is started.
-                initializationCommand "#!/bin/sh\ncp /etc/hosts /tmp/hosts\necho 127.0.0.1 `hostname` > /etc/hosts\ncat  /tmp/hosts >> /etc/hosts"
+                initializationCommand "echo Cloudify agent is about to start"
                                                 
 				//optional - set the availability zone, required to match storage
 				custom (["openstack.compute.zone":availabilityZone])
