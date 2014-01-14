@@ -78,9 +78,9 @@
 	<property name="cloudify.gzip.put.source" value="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.tar.gz" />
 	<property name="cloudify.gzip.put.target" value="org/cloudifysource/${s3.cloudify.dev.and.packages.publish.folder}/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.tar.gz" />
 	<property name="bigdata.put.source" value="${releases.dir}/build_${gs.build.number}/${xap.bigdata.dir}/1.5/${xap.zip.name}" />
-	<property name="bigdata.put.target" value="com/gigaspaces/xap/${s3.gs.packages.publish.folder}/${xap.zip.name}" />
+	<property name="bigdata.put.target" value="com/gigaspaces/xap/${s3.gs.publish.folder}/${xap.zip.name}" />
 	<property name="bigdata.gzip.put.source" value="${releases.dir}/build_${gs.build.number}/${xap.bigdata.dir}/1.5/${xap.installation.dir}-b${gs.build.number}.tar.gz" />
-	<property name="bigdata.gzip.put.target" value="com/gigaspaces/xap/${s3.gs.packages.publish.folder}/${xap.installation.dir}-b${gs.build.number}.tar.gz" />
+	<property name="bigdata.gzip.put.target" value="com/gigaspaces/xap/${s3.gs.publish.folder}/${xap.installation.dir}-b${gs.build.number}.tar.gz" />
 	<property name="tools.lib.dir" value="${basedir}/tools/lib" />
 	<property name="cloudify.base.container" value="gigaspaces-repository-eu" />
 	<property name="cloudify.base.publish.url" value="https://s3.amazonaws.com/${cloudify.base.container}" />
