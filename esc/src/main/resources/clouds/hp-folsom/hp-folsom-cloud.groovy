@@ -113,7 +113,7 @@ cloud {
 						fileTransfer org.cloudifysource.domain.cloud.FileTransferModes.SFTP
 						
 						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
-						remoteDirectory "/home/root/gs-files"
+						remoteDirectory "/root/gs-files"
 						// Mandatory. Amount of RAM available to machine.
 						machineMemoryMB 1600
 						// Mandatory. Hardware ID.
