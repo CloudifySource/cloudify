@@ -98,6 +98,7 @@ public class ManagementSpaceServiceInstaller extends AbstractManagementServiceIn
 					new ProcessingUnitDeployment(puFile)
 					.name(serviceName)
 					.addZone(serviceName)
+					.maxInstancesPerMachine(1)
 					.partitioned(1, numberOfBackups);
 			
 			for (final Entry<Object, Object> prop : getContextProperties().entrySet()) {
