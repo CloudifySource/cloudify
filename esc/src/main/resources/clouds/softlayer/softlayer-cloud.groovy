@@ -71,7 +71,7 @@ cloud {
 		// different HTTP server instead.
 		// IMPORTANT: the default linux bootstrap script appends '.tar.gz' to the url whereas the default windows script appends '.zip'.
 		// Therefore, if setting a custom URL, make sure to leave out the suffix.
-        // cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.7.0-5994-RC/gigaspaces-cloudify-2.7.0-rc-b5994.zip"
+        // cloudifyUrl "http://repository.cloudifysource.org/org/cloudifysource/2.7.0-5995-RC2/gigaspaces-cloudify-2.7.0-rc2-b5995.zip"
 
 		// Mandatory. The prefix for new machines started for servies.
         machineNamePrefix "cloudify-agent-"
@@ -182,7 +182,69 @@ cloud {
                         // optional. A native command line to be executed before the cloudify agent is started.
                         // initializationCommand "echo Cloudify agent is about to start"
 
-                    }
+                    },
+					
+                    MEDIUM_RH : computeTemplate{
+                       // Mandatory. Image ID.
+                       imageId readHatLinuxImageId
+                       // Mandatory. Files from the local directory will be copied to this directory on the remote machine.
+                       remoteDirectory "/tmp/gs-files"
+                       // Mandatory. Amount of RAM available to machine.
+                       machineMemoryMB 1600
+                       // Mandatory. Hardware ID.
+                       hardwareId readHatHardwareId
+                       // Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
+                       localDirectory "upload"
+                       // Optional. Name of key file to use for authenticating to the remote machine. Remove this line if key files
+                       // are not used.						
+                       locationId locationId
+                       username "root"
+					   
+                       options ([
+                              "domainName":"cloudify.org"
+                       ])
+
+                       // when set to 'true', agent will automatically start after reboot.
+                       autoRestartAgent true
+
+                       // enable sudo.
+                      privileged true
+
+                      // optional. A native command line to be executed before the cloudify agent is started.
+                      // initializationCommand "echo Cloudify agent is about to start"
+	
+                   }, 					
+					
+                   MEDIUM_UBUNTU : computeTemplate{
+                       // Mandatory. Image ID.
+                       imageId mediumUbuntuLinuxImageId
+                       // Mandatory. Files from the local directory will be copied to this directory on the remote machine.
+                       remoteDirectory "/tmp/gs-files"
+                       // Mandatory. Amount of RAM available to machine.
+                       machineMemoryMB 1600
+                       // Mandatory. Hardware ID.
+                       hardwareId mediumUbuntuHardwareId
+                       // Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
+                       localDirectory "upload"
+                       // Optional. Name of key file to use for authenticating to the remote machine. Remove this line if key files
+                       // are not used.						
+                       locationId locationId
+                       username "root"
+
+                       options ([
+                              "domainName":"cloudify.org"
+                       ])
+
+                       // when set to 'true', agent will automatically start after reboot.
+                       autoRestartAgent true
+
+                       // enable sudo.
+                       privileged true
+
+                       // optional. A native command line to be executed before the cloudify agent is started.
+                       // initializationCommand "echo Cloudify agent is about to start"
+
+                   }
 
 				])
 	
