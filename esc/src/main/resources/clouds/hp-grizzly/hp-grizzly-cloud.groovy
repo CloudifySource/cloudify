@@ -148,7 +148,7 @@ cloud {
 						remoteDirectory "/root/gs-files"
 
 						// Mandatory. Amount of RAM available to machine.
-						machineMemoryMB 1600
+						machineMemoryMB 1900
 
 						// Mandatory. Hardware ID.
 						hardwareId hardwareId
@@ -226,7 +226,7 @@ cloud {
 						remoteDirectory "/home/ubuntu/gs-files"
 
 						// Mandatory. Amount of RAM available to machine.
-						machineMemoryMB 1600
+						machineMemoryMB 1900
 
 						// Mandatory. Hardware ID.
 						hardwareId hardwareId

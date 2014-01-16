@@ -114,7 +114,7 @@ cloud {
 						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
 						remoteDirectory "/root/gs-files"
 						// Mandatory. Amount of RAM available to machine.
-						machineMemoryMB 1600
+						machineMemoryMB 1900
 						// Mandatory. Hardware ID.
 						hardwareId hardwareId
 						// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
@@ -160,7 +160,7 @@ cloud {
 						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
 						remoteDirectory "/home/ubuntu/gs-files"
 						// Mandatory. Amount of RAM available to machine.
-						machineMemoryMB 1600
+						machineMemoryMB 1900
 						// Mandatory. Hardware ID.
 						hardwareId hardwareId
 						// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
