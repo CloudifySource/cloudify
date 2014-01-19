@@ -168,7 +168,7 @@ cloud {
 							// "computeServiceName" : "nova",
 	
 							// Optional. Set the name to search to find openstack compute endpoint.
-							// "networkServiceName" : "quantum",
+							// "networkServiceName" : "neutron",
 		
 							// Optional. Set the network api version .
 							// "networkApiVersion"  : "v2.0",
