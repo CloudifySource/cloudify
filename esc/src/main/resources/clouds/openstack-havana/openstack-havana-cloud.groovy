@@ -1,9 +1,9 @@
 /***************
- * Cloud configuration file for the openstack-grizzly cloud
+ * Cloud configuration file for the openstack-havana cloud
  */
 cloud {
 	// Mandatory. The name of the cloud, as it will appear in the Cloudify UI.
-	name = "openstack-grizzly"
+	name = "openstack-havana"
 
 	/********
 	 * General configuration information about the cloud driver implementation.
@@ -158,7 +158,7 @@ cloud {
                             // "computeServiceName" : "nova",
 
                             // Optional. Set the name to search to find openstack compute endpoint.
-                            // "networkServiceName" : "quantum",
+                            // "networkServiceName" : "neutron",
 
                             // Optional. Set the network api version .
                             // "networkApiVersion"  : "v2.0",

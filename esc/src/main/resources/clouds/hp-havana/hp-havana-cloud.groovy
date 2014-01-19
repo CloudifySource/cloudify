@@ -1,10 +1,10 @@
 /***************
- * Cloud configuration file for the hp-grizzly cloud.
+ * Cloud configuration file for the hp-havana cloud.
  */
 
 cloud {
 	// Mandatory. The name of the cloud, as it will appear in the Cloudify UI.
-	name = "hp-grizzly"
+	name = "hp-havana"
 
 	/********
 	 * General configuration information about the cloud driver implementation.
