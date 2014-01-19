@@ -55,6 +55,7 @@ public class AgentlessInstaller {
 	}
 	
 	private static final String LINUX_STARTUP_SCRIPT_NAME = "bootstrap-management.sh";
+	
 	private static final String POWERSHELL_STARTUP_SCRIPT_NAME = "bootstrap-management.bat";
 
 	private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(AgentlessInstaller.class
