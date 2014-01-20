@@ -131,7 +131,7 @@
 				<configuration>
 					<aggregate>true</aggregate>
 					<finalName>cloudify</finalName>
-					<sourcepath>${basedir}/../dsl/src/main/java/;${basedir}/../esc/src/main/java/</sourcepath>
+					<sourcepath>${basedir}/../dsl/src/main/java/;${basedir}/../esc/src/main/java/;${basedir}/../domain/src/main/java/</sourcepath>
 					<excludePackageNames>*internal*;*apache*</excludePackageNames>
 				</configuration>
 				<executions>
