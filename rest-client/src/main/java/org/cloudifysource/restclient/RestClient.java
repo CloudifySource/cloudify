@@ -32,13 +32,10 @@ import javax.net.ssl.X509TrustManager;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.impl.client.AbstractHttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.SystemDefaultHttpClient;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -586,7 +583,7 @@ public class RestClient {
 	}
 
 	private RestClientExecutor createExecutor(final URL url, final String apiVersion) throws RestClientException {
-		DefaultHttpClient httpClient;
+		SystemDefaultHttpClient httpClient;
 		if (HTTPS.equals(url.getProtocol())) {
 			httpClient = getSSLHttpClient(url);
 		} else {
@@ -607,17 +604,16 @@ public class RestClient {
 	 * @throws org.cloudifysource.restclient.exceptions.RestClientException
 	 *             Reporting different failures while creating the HTTP client
 	 */
-	private DefaultHttpClient getSSLHttpClient(final URL url) throws RestClientException {
+	private SystemDefaultHttpClient getSSLHttpClient(final URL url) throws RestClientException {
 		try {
 			final X509TrustManager trustManager = createTrustManager();
 			final SSLContext ctx = SSLContext.getInstance("TLS");
 			ctx.init(null, new TrustManager[] { trustManager }, null);
 			final SSLSocketFactory ssf = new SSLSocketFactory(ctx, createHostnameVerifier());
-			final AbstractHttpClient base = new DefaultHttpClient();
-			final ClientConnectionManager ccm = base.getConnectionManager();
-			final SchemeRegistry sr = ccm.getSchemeRegistry();
-			sr.register(new Scheme(HTTPS, url.getPort(), ssf));
-			return new DefaultHttpClient(ccm, base.getParams());
+			final AbstractHttpClient base = new SystemDefaultHttpClient();
+			SystemDefaultHttpClient httpClient = new SystemDefaultHttpClient(base.getParams());
+			httpClient.getConnectionManager().getSchemeRegistry().register(new Scheme(HTTPS, url.getPort(), ssf));
+			return httpClient;
 		} catch (final Exception e) {
 			throw new RestClientException(FAILED_CREATING_CLIENT, "Failed creating http client",
 					ExceptionUtils.getFullStackTrace(e));

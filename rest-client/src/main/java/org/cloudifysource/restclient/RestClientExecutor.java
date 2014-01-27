@@ -40,7 +40,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.SystemDefaultHttpClient;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyErrorMessages;
 import org.cloudifysource.dsl.rest.response.Response;
@@ -64,7 +64,7 @@ public class RestClientExecutor {
     private static final int DEFAULT_TRIALS_NUM = 1;
     private static final int GET_TRIALS_NUM = 3;
 
-    private final DefaultHttpClient httpClient;
+    private final SystemDefaultHttpClient httpClient;
     private String urlStr;
 
 
@@ -74,7 +74,7 @@ public class RestClientExecutor {
      * @param url .
      */
 	public RestClientExecutor(
-			final DefaultHttpClient httpClient,
+			final SystemDefaultHttpClient httpClient,
 			final URL url) {
 		this.httpClient = httpClient;
 		this.urlStr = url.toExternalForm();

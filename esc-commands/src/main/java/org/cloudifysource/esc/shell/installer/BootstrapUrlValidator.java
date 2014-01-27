@@ -22,7 +22,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpHead;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.SystemDefaultHttpClient;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.ScriptLanguages;
@@ -79,7 +78,7 @@ public class BootstrapUrlValidator {
 
 	}
 
-	private void validateUrl(final DefaultHttpClient httpClient, final String cloudifyUrl,
+	private void validateUrl(final SystemDefaultHttpClient httpClient, final String cloudifyUrl,
 			final ValidationContext validationContext)
 			throws CloudProvisioningException {
 
