@@ -223,7 +223,7 @@ cloud {
 						fileTransfer org.cloudifysource.domain.cloud.FileTransferModes.SFTP
 						
 						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
-						remoteDirectory "/home/ubuntu/gs-files"
+						remoteDirectory "/root/gs-files"
 
 						// Mandatory. Amount of RAM available to machine.
 						machineMemoryMB 1900
@@ -239,7 +239,7 @@ cloud {
 						keyFile keyFile
 	
 						// Mandatory. Username to use for authenticating to the remote machine.
-						username "ubuntu"
+						username "root"
 
 						// Additional template options
 						options ([// Optional. Set the name to search to find openstack compute endpoint.
