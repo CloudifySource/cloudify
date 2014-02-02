@@ -79,6 +79,10 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 			+ LocalhostGridAgentBootstrapper.LOCALCLOUD_LOOKUPGROUP
 			+ "'. Override in order to start multiple local clouds on the local machine.")
 	private String lookupGroups;
+	
+	@Option(required = false, 
+			description = "if set, bootstrap will not wait for webui service to start.", name = "-no-wait-for-webui")
+	private boolean noWaitForWebui = false;
 
 	@Option(required = false, description = "Server security mode (on/off)", name = "-secured")
 	private boolean secured;
@@ -138,7 +142,7 @@ public class BootstrapLocalCloud extends AbstractGSCommand {
 		installer.setLookupGroups(lookupGroups);
 		installer.setNicAddress(nicAddress);
 		installer.setProgressInSeconds(DEFAULT_PROGRESS_INTERVAL);
-		installer.setWaitForWebui(true);
+		installer.setWaitForWebui(!noWaitForWebui);
 		installer.addListener(new CLILocalhostBootstrapperListener());
 		installer.setAdminFacade((AdminFacade) session.get(Constants.ADMIN_FACADE));
 		installer.startLocalCloudOnLocalhostAndWait(securityProfile, securityFilePath, username, password,
