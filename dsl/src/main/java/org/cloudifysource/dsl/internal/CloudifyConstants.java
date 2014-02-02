@@ -268,6 +268,8 @@ public final class CloudifyConstants {
     /*******************
      * USM process metrics
      */
+    public static final String USM_METRIC_SYSTEM_WORK_CPU_TIME = "System Cpu Work Time";
+    public static final String USM_METRIC_SYSTEM_TOTAL_CPU_TIME = "Total System Cpu Time";
     public static final String USM_METRIC_PROCESS_CPU_USAGE = "Process Cpu Usage";
     public static final String USM_METRIC_PROCESS_CPU_TIME = "Process Cpu Time";
     public static final String USM_METRIC_PROCESS_CPU_KERNEL_TIME = "Process Cpu Kernel Time";
@@ -275,6 +277,12 @@ public final class CloudifyConstants {
     public static final String USM_METRIC_PROCESS_GROUP_ID = "Process GroupId";
     public static final String USM_METRIC_PROCESS_USER_ID = "Process User Id";
     public static final String USM_METRIC_PROCESS_TOTAL_PAGE_FAULTS = "Total Num Of PageFaults";
+    public static final String USM_METRIC_SYSTEM_FREE_MEMORY = "System Free Memory";
+    public static final String USM_METRIC_SYSTEM_ACTUAL_FREE_MEMORY = "System Actual Free Memory";
+    public static final String USM_METRIC_SYSTEM_USED_MEMORY = "System Used Memory";
+    public static final String USM_METRIC_SYSTEM_ACTUAL_USED_MEMORY = "System Actual Used Memory";
+    public static final String USM_METRIC_SYSTEM_RANDOM_ACCESS_MEMORY = "System Random Access Memory";
+    public static final String USM_METRIC_SYSTEM_TOTAL_MEMORY = "System Total Memory";
     public static final String USM_METRIC_PROCESS_TOTAL_RESIDENTAL_MEMORY = "Total Process Residental Memory";
     public static final String USM_METRIC_PROCESS_TOTAL_SHARED_MEMORY = "Total Process Shared Memory";
     public static final String USM_METRIC_PROCESS_CPU_TOTAL_VIRTUAL_MEMORY = "Total Process Virtual Memory";

@@ -24,6 +24,8 @@ import org.cloudifysource.usm.monitors.MonitorException;
 import org.hyperic.sigar.ProcCpu;
 import org.hyperic.sigar.ProcCred;
 
+import org.hyperic.sigar.Cpu;
+import org.hyperic.sigar.Mem;
 import org.hyperic.sigar.ProcMem;
 import org.hyperic.sigar.ProcState;
 import org.hyperic.sigar.Sigar;
@@ -41,26 +43,72 @@ public class MonitorData {
 	private static java.util.logging.Logger logger =
 			java.util.logging.Logger.getLogger(MonitorData.class.getName());
 
-	public MonitorData(final Sigar sigar, final long pid) throws MonitorException {
+	public MonitorData(final Sigar sigar) throws MonitorException {
 		try {
-			gatherData(sigar, pid);
+			gatherSystemData(sigar);
 		} catch (final SigarException e) {
-			final String msg = "Failed to read external process data via Sigar: " + e;
+			final String msg = "Failed to read external system data via Sigar: " + e;
 			logger.severe(msg);
 			throw new MonitorException(msg, e);
 		}
 	}
-
-	private void gatherData(final Sigar sigar, final long pid)
+	
+	public MonitorData(final Sigar sigar, final long pid) throws MonitorException {
+		try {
+			gatherSystemData(sigar);
+			gatherProcessData(sigar, pid);
+		} catch (final SigarException e) {
+			final String msg = "Failed to read external system and process data via Sigar: " + e;
+			logger.severe(msg);
+			throw new MonitorException(msg, e);
+		}
+	}
+	
+	private void gatherSystemData(final Sigar sigar)
 			throws SigarException {
+		
+		try {
+			final Cpu cpu = sigar.getCpu();
+			systemCpuWorkTime = cpu.getUser() + cpu.getNice() + cpu.getSys();
+			logger.finest("systemCpuWorkTime: " + systemCpuWorkTime);
+			totalSystemCpuTime = cpu.getTotal(); // sum of user+nice+sys+idle
+			logger.finest("totalSystemCpuTime: " + totalSystemCpuTime);
+		} catch (final SigarException e) {
+			logger.log(Level.FINE, "Failed to gather system CPU info from Sigar, error: " + e.getMessage(), e);
+		}
+		
+		
+		try {
+			final Mem mem = sigar.getMem();
+			systemFreeMemory = mem.getFree();
+			logger.finest("systemFreeMemory: " + systemFreeMemory);
+			systemActualFreeMemory = mem.getActualFree();	// actual free memory, i.e. including cached and buffers
+			logger.finest("systemActualFreeMemory: " + systemActualFreeMemory);
+			systemUsedMemory = mem.getUsed();
+			logger.finest("systemUsedMemory: " + systemUsedMemory);
+			systemActualUsedMemory = mem.getActualUsed();	// actual used memory, i.e. excluding cached and buffers
+			logger.finest("systemActualUsedMemory: " + systemActualUsedMemory);
+			systemRandomAccessMemory = mem.getRam();
+			logger.finest("systemRandomAccessMemory: " + systemRandomAccessMemory);
+			totalSystemMemory = mem.getTotal();
+			logger.finest("totalSystemMemory: " + totalSystemMemory);
+		} catch (final SigarException e) {
+			logger.log(Level.FINE, "Failed to gather system memory info from Sigar, error: " + e.getMessage(), e);
+		}
+		
+	}
 
+	private void gatherProcessData(final Sigar sigar, final long pid)
+			throws SigarException {
+		
 		try {
 			final ProcCpu pcpu = sigar.getProcCpu(pid);
 			processCpuUsage = pcpu.getPercent();
 			processCpuKernelTime = pcpu.getSys();
 			totalProcessCpuTime = pcpu.getTotal(); // sum of users+sys
 		} catch (final SigarException e) {
-			logger.log(Level.FINE, "Failed to gather process info from Sigar: " + e.getMessage(), e);
+			logger.log(Level.FINE, "Failed to gather process CPU info from Sigar for process " + pid + ", error: " 
+					+ e.getMessage(), e);
 		}
 		
 
@@ -69,7 +117,8 @@ public class MonitorData {
 			processGroupId = prcred.getGid();
 			processUserId = prcred.getUid();
 		} catch (final SigarException e) {
-			logger.log(Level.FINE, "Failed to gather process info from Sigar: " + e.getMessage(), e);
+			logger.log(Level.FINE, "Failed to gather process credential info from Sigar for process " + pid 
+					+ ", error: " + e.getMessage(), e);
 		}
 
 	
@@ -80,7 +129,8 @@ public class MonitorData {
 			totalProcessSharedMemory = pmem.getShare();
 			totalProcessVirtualMemory = pmem.getSize();
 		} catch (final SigarException e) {
-			logger.log(Level.FINE, "Failed to gather process info from Sigar: " + e.getMessage(), e);
+			logger.log(Level.FINE, "Failed to gather process memory info from Sigar for process " + pid + ", error: " 
+					+ e.getMessage(), e);
 		}
 
 		try {
@@ -88,8 +138,8 @@ public class MonitorData {
 			kernelSchedulingPriority = prcstat.getPriority();
 			numOfActiveThreads = prcstat.getThreads();
 		} catch (final SigarException e) {
-			logger.log(Level.FINE, "Failed to gather process info from Sigar: " + e.getMessage(), e);
-
+			logger.log(Level.FINE, "Failed to gather process state info from Sigar for process " + pid + ", error: " 
+					+ e.getMessage(), e);
 		}
 
 	}
@@ -105,6 +155,10 @@ public class MonitorData {
 	}
 
 	private void addDataToMonitor(final Map<String, Number> monitorMap) {
+		
+		monitorMap.put(CloudifyConstants.USM_METRIC_SYSTEM_WORK_CPU_TIME, systemCpuWorkTime);
+		monitorMap.put(CloudifyConstants.USM_METRIC_SYSTEM_TOTAL_CPU_TIME, totalSystemCpuTime);
+		
 		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_CPU_USAGE, processCpuUsage);
 		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_CPU_KERNEL_TIME, processCpuKernelTime);
 		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_TOTAL_CPU_TIME, totalProcessCpuTime);
@@ -116,6 +170,13 @@ public class MonitorData {
 
 		// monitorMap.put("Process Owner Group Name", MonitorData.safeS(processOwnerGroupName));
 		// monitorMap.put("Process Owner User Name", MonitorData.safeS(processOwnerUserName));
+		
+		monitorMap.put(CloudifyConstants.USM_METRIC_SYSTEM_FREE_MEMORY, systemFreeMemory);
+		monitorMap.put(CloudifyConstants.USM_METRIC_SYSTEM_ACTUAL_FREE_MEMORY, systemActualFreeMemory);
+		monitorMap.put(CloudifyConstants.USM_METRIC_SYSTEM_USED_MEMORY, systemUsedMemory);
+		monitorMap.put(CloudifyConstants.USM_METRIC_SYSTEM_ACTUAL_USED_MEMORY, systemActualUsedMemory);
+		monitorMap.put(CloudifyConstants.USM_METRIC_SYSTEM_RANDOM_ACCESS_MEMORY, systemRandomAccessMemory);
+		monitorMap.put(CloudifyConstants.USM_METRIC_SYSTEM_TOTAL_MEMORY, totalSystemMemory);
 
 		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_TOTAL_PAGE_FAULTS, totalNumOfPageFaults);
 		monitorMap.put(CloudifyConstants.USM_METRIC_PROCESS_TOTAL_RESIDENTAL_MEMORY, totalProcessResidentalMemory);
@@ -135,7 +196,9 @@ public class MonitorData {
 		monitorMap.put(CloudifyConstants.USM_METRIC_PEAK_THREAD_COUNT, peakThreadCount);
 	}
 
-
+	private long systemCpuWorkTime;
+	private long totalSystemCpuTime;
+	
 	private double processCpuUsage;
 	private long processCpuKernelTime;
 	private long totalProcessCpuTime;
@@ -143,8 +206,12 @@ public class MonitorData {
 	private long processGroupId;
 	private long processUserId;
 
-
-
+	private long systemFreeMemory;
+	private long systemActualFreeMemory;
+	private long systemUsedMemory;
+	private long systemActualUsedMemory;
+	private long systemRandomAccessMemory;
+	private long totalSystemMemory;
 
 
 	private long totalNumOfPageFaults;
