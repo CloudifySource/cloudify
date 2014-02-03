@@ -115,8 +115,7 @@ public class BootstrapCloud extends AbstractGSCommand {
 	private File existingManagersFile = null;
 	
 	@Option(required = false, name = "-skip-validation",
-			description = "if set, will attempt to find existing management servers. "
-					+ "Management should already have been shut-down with stop-management.")
+			description = "if set, will not validate the configuration before executing bootstrap")
 	private boolean skipValidation = false;
 
 	private String securityProfile = CloudifyConstants.SPRING_PROFILE_NON_SECURE;
