@@ -582,9 +582,10 @@
        <copy todir="${build.repository.path}/${cloudify}/${cloudify.version}/${build.prefix}${cloudify.build.number}">
            <fileset dir="${releases.dir}/${build.prefix}${cloudify.build.number}"/>
        </copy>
-	   <copy todir="${build.repository.path}/${gs.version}/${build.prefix}${gs.build.number}">
+	   <!-- cancel bigdata packaging from 9.7.1, 10.0.0, 2.7.1 -->
+	   <!--copy todir="${build.repository.path}/${gs.version}/${build.prefix}${gs.build.number}">
 			<fileset dir="${releases.dir}/${build.prefix}${gs.build.number}"/>
-	   </copy>
+	   </copy-->
 		<ant target="update.latest.cloudify.downloadable.packages" />
    	</target>
 
