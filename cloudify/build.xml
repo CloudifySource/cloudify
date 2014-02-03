@@ -520,7 +520,10 @@
     <target name="prepare.and.copy.packages" depends="update_platform_version">
         <delete dir="${releases.dir}" />
         <ant target="prepare.cloudify.package" />
-        <ant target="prepare.bigdata.package" />
+		
+        <!-- cancel bigdata packaging from 9.7.1, 10.0.0, 2.7.1 -->		
+        <!-- ant target="prepare.bigdata.package" /-->
+		
         <ant target="copy.packages.to.build.repository" />
     	
     	<!-- Update and commit poms, upload jars to maven repository -->
@@ -529,8 +532,9 @@
     	<ant target="publish.cloudify.jars.to.maven.repository" />
     	<ant target="publish.cloudify.jars.to.maven.snapshot.repository" />    	
         
+    	<!-- cancel bigdata packaging from 9.7.1, 10.0.0, 2.7.1 -->    	
     	<!-- conditional task (with property: publish.cloudify.build) -->
-        <ant target="publish.bigdata.to.storage" />
+        <!-- ant target="publish.bigdata.to.storage" /-->
 
         <!-- conditional task (with property: publish.cloudify.build) -->
    		 <ant target="publish.cloudify.to.storage" />
