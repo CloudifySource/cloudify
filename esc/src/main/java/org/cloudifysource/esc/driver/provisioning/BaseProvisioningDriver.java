@@ -12,17 +12,11 @@
  ******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
-import org.cloudifysource.domain.cloud.Cloud;
-import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
-import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.openspaces.admin.Admin;
-
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.concurrent.Callable;
@@ -34,6 +28,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
+import org.cloudifysource.dsl.internal.CloudifyConstants;
+import org.openspaces.admin.Admin;
 
 /**
  * @author noak
@@ -61,6 +62,7 @@ public abstract class BaseProvisioningDriver extends BaseComputeDriver {
     protected static final String AGENT_MACHINE_PREFIX = "cloudify-agent-";
     protected static final String MANAGMENT_MACHINE_PREFIX = "cloudify-managememnt-";
 
+    
     protected boolean management;
     protected static AtomicInteger counter = new AtomicInteger();
     protected String serverNamePrefix;
@@ -74,6 +76,8 @@ public abstract class BaseProvisioningDriver extends BaseComputeDriver {
 
     protected Boolean cleanRemoteDirectoryOnStart = false;
     protected boolean isVerboseValidation = true;
+    
+    private AtomicInteger zonesIndex = new AtomicInteger(0);
 
     /**
      * Initializing the cloud deployer according to the given cloud configuration.
@@ -358,6 +362,23 @@ public abstract class BaseProvisioningDriver extends BaseComputeDriver {
         }
     }
 
+
+    /**
+     * Gets the next availability zone if a list of zones is set in the template (round robin).
+     * @param template The compute template to get the list of availability zones from
+     * @return Zone name or an empty string if non is specified
+     */
+	protected String getAvailabilityZone(final ComputeTemplate template) {
+		List<String> zones = template.getAvailabilityZones();
+		String zone = "";
+		if (zones != null && !zones.isEmpty()) {
+			zone = zones.get(zonesIndex.getAndIncrement() % zones.size());
+		}
+		
+		return zone;
+	}
+    
+    
     /**
      * returns the message as it appears in the DefaultProvisioningDriver message bundle.
      *

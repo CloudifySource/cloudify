@@ -149,6 +149,8 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	private OpenStackResourcePrefixes openstackPrefixes;
 
 	private String applicationName;
+	private ComputeTemplate computeTemplate;
+
 
 	public static String getDefaultMangementPrefix() {
 		return MANAGMENT_MACHINE_PREFIX;
@@ -169,7 +171,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	public void setConfig(final ComputeDriverConfiguration configuration) throws CloudProvisioningException {
 		
 		this.networkHelper = new OpenStackNetworkConfigurationHelper(configuration);
-
+		
 		super.setConfig(configuration);
 
 		String serviceName = null;
@@ -183,8 +185,8 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		this.openstackPrefixes = new OpenStackResourcePrefixes(managementGroup, applicationName, serviceName);
 	}
 	
-	
-	private String getAvailabilityZone(final ComputeTemplate template) throws IllegalArgumentException {
+	@Override
+	protected String getAvailabilityZone(final ComputeTemplate template) throws IllegalArgumentException {
 		
 		String zone = null;
 		Map<String, Object> customSettings = template.getCustom();
@@ -199,6 +201,10 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 							+ " must be of type String");
 				}
 			}
+		}
+		
+		if (StringUtils.isBlank(zone)) {
+			zone = super.getAvailabilityZone(template);
 		}
 		
 		return zone;
@@ -719,9 +725,11 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			request.setImageRef(imageId);
 			request.setFlavorRef(hardwareId);
 			
-			String availabilityZone = getAvailabilityZone(template);
-			if (StringUtils.isNotBlank(availabilityZone)) {
-				request.setAvailabilityZone(getAvailabilityZone(template));	
+			// Set the availability zone
+			String zone = getAvailabilityZone(template);
+			if (StringUtils.isNotBlank(zone)) {
+				logger.finest("starting instance in availability zone: " + zone);
+				request.setAvailabilityZone(zone);
 			}
 
 			// Add management network if exists

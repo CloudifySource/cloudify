@@ -12,7 +12,9 @@
  *******************************************************************************/
 package org.cloudifysource.domain.cloud.compute;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.cloudifysource.domain.cloud.CloudTemplateInstallerConfiguration;
@@ -33,16 +35,17 @@ import org.cloudifysource.domain.internal.CloudifyDSLEntity;
 		allowInternalNode = true, allowRootNode = true, parent = "cloudCompute")
 public class ComputeTemplate {
 
-	private String imageId;
+	private int numberOfCores = 1;
 	private int machineMemoryMB;
 	private String hardwareId;
+	private String imageId;
 	private String locationId;
 	private String localDirectory;
 	private String keyFile;
 	private Boolean autoRestartAgent = true;
 
-	private int numberOfCores = 1;
-
+	private List<String> availabilityZones = new ArrayList<String>();
+	
 	private Map<String, Object> options = new HashMap<String, Object>();
 	private Map<String, Object> overrides = new HashMap<String, Object>();
 	private Map<String, Object> custom = new HashMap<String, Object>();
@@ -276,6 +279,14 @@ public class ComputeTemplate {
 	public void setLocalDirectory(final String localDirectory) {
 		this.localDirectory = localDirectory;
 	}
+	
+	public List<String> getAvailabilityZones() {
+		return availabilityZones;
+	}
+
+	public void setAvailabilityZones(final List<String> availabilityZones) {
+		this.availabilityZones = availabilityZones;
+	}
 
 	public String getKeyFile() {
 		return keyFile;
@@ -376,6 +387,7 @@ public class ComputeTemplate {
 		sb.append(getFormatedLine("absoluteUploadDir", absoluteUploadDir));
 		sb.append(getFormatedLine("env ", env));
 		sb.append(getFormatedLine("machineMemoryMB", machineMemoryMB));
+		sb.append(getFormatedLine("availabilityZones", availabilityZones));
 		final String str = sb.substring(0, sb.lastIndexOf(","));
 		return str + newLine + "}";
 	}
@@ -384,14 +396,22 @@ public class ComputeTemplate {
 		if (obj == null) {
 			return "";
 		}
+		
+		if (obj instanceof List) {
+			final List<?> list = (List<?>) obj;
+			if (list.isEmpty()) {
+				return "";
+			}
+		}
+		
 		if (obj instanceof Map) {
 			final Map<?, ?> map = (Map<?, ?>) obj;
 			if (map.isEmpty()) {
 				return "";
 			}
 		}
+		
 		return "\t" + objName + " = " + obj.toString() + "," + System.getProperty("line.separator");
-
 	}
 
 	public ScriptLanguages getScriptLanguage() {
