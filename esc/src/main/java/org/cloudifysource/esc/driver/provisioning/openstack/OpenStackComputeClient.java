@@ -267,7 +267,7 @@ public class OpenStackComputeClient extends OpenStackBaseClient {
 			throw e;
 		}
 
-		final NovaServer nsr = JsonUtils.unwrapRootToObject(NovaServer.class, response);
+		final NovaServer nsr = JsonUtils.unwrapRootToObject(NovaServer.class, response, false);
 		return nsr;
 	}
 

@@ -18,6 +18,7 @@ import java.util.List;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.deserializer.AddressesDeserializer;
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonRootName;
 
@@ -34,10 +35,13 @@ public class NovaServer {
 	private Date updated;
 	private String hostId;
 	private String adminPass;
+	@JsonProperty("OS-EXT-AZ:availability_zone")
+	private String availabilityZone;
 
 	@JsonDeserialize(using = AddressesDeserializer.class)
 	private List<NovaServerAddress> addresses;
 
+	@JsonProperty("security_groups")
 	private NovaServerSecurityGroup[] securityGroups;
 
 	public String getId() {
@@ -104,6 +108,14 @@ public class NovaServer {
 		this.adminPass = adminPass;
 	}
 
+	public String getAvailabilityZone() {
+		return availabilityZone;
+	}
+	
+	public void setAvailabilityZone(final String availabilityZone) {
+		this.availabilityZone = availabilityZone;
+	}
+	
 	@Override
 	public String toString() {
 		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
