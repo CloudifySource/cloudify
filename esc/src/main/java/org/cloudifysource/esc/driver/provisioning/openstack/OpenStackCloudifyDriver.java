@@ -284,6 +284,11 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			throw new CloudProvisioningException(e);
 		}
 	}
+	
+	@Override
+	public Object getComputeContext() {
+		return this.computeApi;
+	}
 
 	private void cleanAllSecurityGroups() throws OpenstackException {
 		final String prefix = this.openstackPrefixes.getPrefix();
