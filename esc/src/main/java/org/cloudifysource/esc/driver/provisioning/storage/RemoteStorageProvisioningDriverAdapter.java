@@ -16,14 +16,16 @@
 
 package org.cloudifysource.esc.driver.provisioning.storage;
 
-import org.cloudifysource.domain.cloud.storage.StorageTemplate;
-import org.cloudifysource.domain.context.blockstorage.RemoteStorageOperationException;
-import org.cloudifysource.dsl.internal.context.RemoteStorageProvisioningDriver;
-
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.cloudifysource.domain.cloud.storage.StorageTemplate;
+import org.cloudifysource.domain.context.blockstorage.RemoteStorageOperationException;
+import org.cloudifysource.dsl.internal.context.RemoteStorageProvisioningDriver;
 
 /**
  * 
@@ -53,9 +55,8 @@ public class RemoteStorageProvisioningDriverAdapter implements RemoteStorageProv
 			storageProvisioningDriver
 				.attachVolume(volumeId, device, ip, DEFAULT_STORAGE_OPERATION_TIMEOUT, TimeUnit.MILLISECONDS);
 		} catch (final Exception e) {
-         logSevere(e);
-			throw new RemoteStorageOperationException("Failed attaching volume with id " + volumeId 
-					+ " to instance with ip " + ip + " : " + e.getMessage(), e);
+			logSevereAndThrow("Failed attaching volume with id " + volumeId + " to instance with ip " + ip + " : " 
+					+ e.getMessage(), e);
 		}
 	}
 
@@ -68,17 +69,18 @@ public class RemoteStorageProvisioningDriverAdapter implements RemoteStorageProv
 	@Override
 	public String createVolume(final String templateName, final String locationId,
 			final long timeoutInMillis) throws RemoteStorageOperationException, TimeoutException {
+		
+		String volumeId = "-1";
 		try {
 			VolumeDetails volumeDetails = storageProvisioningDriver
 					.createVolume(templateName, locationId, timeoutInMillis, 
 							TimeUnit.MILLISECONDS);
-			return volumeDetails.getId();
-		} catch (final StorageProvisioningException e) {
-         logSevere(e);
-			throw new RemoteStorageOperationException("Failed creating volume in location " 
-						+ locationId + " : " + e.getMessage(), e);			
+			volumeId = volumeDetails.getId();
+		} catch (final Exception e) {
+			logSevereAndThrow("Failed creating volume in location " 
+					+ locationId + " : " + e.getMessage(), e);
 		}
-
+		return volumeId;
 	}
 
     @Override
@@ -87,9 +89,8 @@ public class RemoteStorageProvisioningDriverAdapter implements RemoteStorageProv
 			storageProvisioningDriver
 				.detachVolume(volumeId, ip, DEFAULT_STORAGE_OPERATION_TIMEOUT * 2, TimeUnit.MILLISECONDS);
 		} catch (final Exception e) {
-         logSevere(e);
-			throw new RemoteStorageOperationException("Failed detaching volume with id " 
-						+ volumeId + " to instance with ip " + ip, e);
+			logSevereAndThrow("Failed detaching volume with id " + volumeId + " to instance with ip " + ip 
+					+ ", reported error: " + e.getMessage(), e);
 		}
 	}
 
@@ -99,19 +100,52 @@ public class RemoteStorageProvisioningDriverAdapter implements RemoteStorageProv
 			storageProvisioningDriver
 				.deleteVolume(location, volumeId, DEFAULT_STORAGE_OPERATION_TIMEOUT, TimeUnit.MILLISECONDS);
 		} catch (final Exception e) {
-         logSevere(e);
-			throw new RemoteStorageOperationException("Failed deleting volume with id " 
-					+ volumeId , e);			
+			logSevereAndThrow("Failed deleting volume with id " + volumeId + ", reported error: " + e.getMessage(), e);
 		}
 		
 	}
 
     @Override
-    public StorageTemplate getTemplate(String templateName) {
+    public StorageTemplate getTemplate(final String templateName) {
         return storageTemplate;
     }
 
-   private void logSevere(final Exception e) {
-      logger.log(Level.SEVERE, e.getMessage(), e);
+    /**
+     * Logs the exception as severe and throws a {@link RemoteStorageOperationException}. If the exception is 
+     * serializable it is included in the newly thrown exception.
+     * @param message The error message to log
+     * @param e The exception to log and re-throw if possible
+     * @throws RemoteStorageOperationException
+     */
+   private void logSevereAndThrow(final String message, final Exception e) throws RemoteStorageOperationException {
+	   
+	   logger.log(Level.SEVERE, message, e);
+	   
+	   if (isSerializable(e)) {
+			throw new RemoteStorageOperationException(message, e);				
+		} else {
+			throw new RemoteStorageOperationException(message);
+		}
    }
+
+   
+   /**
+    * Checks if the given object can be serialized.
+    * @param obj The object to serialize
+    * @return True is serialization was successful, False otherwise
+    */
+   private boolean isSerializable(final Object obj) {
+	   
+	   boolean serializable = false;
+	   try {
+		   new ObjectOutputStream(new ByteArrayOutputStream()).writeObject(obj);
+		   serializable = true;
+	   } catch (Exception e) {
+		   // failed to serialize
+	   }
+	   
+	   return serializable;
+   }
+   
+   
 }

@@ -27,13 +27,17 @@ public class RemoteStorageOperationException extends Exception {
 
 
 	/**
-	 * 
+	 * Unique UID for serialization
 	 */
 	private static final long serialVersionUID = 1L;
+	
 	
 	public RemoteStorageOperationException(final String message, final Exception e) {
 		super(message, e);
 	}
-	
+		
+	public RemoteStorageOperationException(final String message) {
+		super(message);
+	}	
 
 }
