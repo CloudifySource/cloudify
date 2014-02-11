@@ -624,6 +624,15 @@
 			<arg value="s3client:deploy-native" />
 			<arg value="-Dput.user=${put.user}" />
 			<arg value="-Dput.key=${put.key}" />
+			<arg value="-Dput.source=${maven.repo.local}/org/cloudifysource/esc-config/${s3.cloudify.publish.folder}" />
+			<arg value="-Dput.target=org/cloudifysource/esc-config/${s3.cloudify.publish.folder}" />
+			<arg value="-Dput.container=${cloudify.maven.container}"/>
+		</exec>
+		
+		<exec executable="${mvn.executable}">
+			<arg value="s3client:deploy-native" />
+			<arg value="-Dput.user=${put.user}" />
+			<arg value="-Dput.key=${put.key}" />
 			<arg value="-Dput.source=${maven.repo.local}/org/cloudifysource/USM/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.target=org/cloudifysource/USM/${s3.cloudify.publish.folder}" />
 			<arg value="-Dput.container=${cloudify.maven.container}"/>
