@@ -400,14 +400,14 @@ public class ComputeTemplate {
 		if (obj instanceof List) {
 			final List<?> list = (List<?>) obj;
 			if (list.isEmpty()) {
-				return "";
+				return "[]";
 			}
 		}
 		
 		if (obj instanceof Map) {
 			final Map<?, ?> map = (Map<?, ?>) obj;
 			if (map.isEmpty()) {
-				return "";
+				return "{}";
 			}
 		}
 		

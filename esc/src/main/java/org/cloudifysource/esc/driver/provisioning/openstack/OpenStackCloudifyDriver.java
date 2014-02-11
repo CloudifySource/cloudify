@@ -149,7 +149,6 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	private OpenStackResourcePrefixes openstackPrefixes;
 
 	private String applicationName;
-	private ComputeTemplate computeTemplate;
 
 
 	public static String getDefaultMangementPrefix() {
@@ -1035,6 +1034,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			md.setCloudifyInstalled(false);
 			md.setInstallationDirectory(null);
 			md.setOpenFilesLimit(template.getOpenFilesLimit());
+			md.setLocationId(server.getAvailabilityZone());
 			// md.setInstallationDirectory(template.getRemoteDirectory());
 			// md.setRemoteDirectory(remoteDirectory);
 			// md.setInstallerConfigutation(installerConfigutation);
@@ -1048,6 +1048,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 						+ "' to set private IP.");
 			}
 			final Port privateIpPort = networkApi.getPort(server.getId(), privateIpNetwork.getId());
+			
 			if (privateIpPort == null) {
 				throw new CloudProvisioningException("Server '" + server.getName()
 						+ "' has no port on network '" + privateIpNetwork.getName() + "'.");

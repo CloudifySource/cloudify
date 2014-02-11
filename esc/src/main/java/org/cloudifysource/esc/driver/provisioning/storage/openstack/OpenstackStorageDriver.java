@@ -18,7 +18,6 @@ package org.cloudifysource.esc.driver.provisioning.storage.openstack;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -64,7 +63,6 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 	
 	private static final int VOLUME_POLLING_INTERVAL_MILLIS = 10 * 1000; // 10 seconds
 	private static final String VOLUME_DESCRIPTION = "Cloudify generated volume";
-	private static final String OPENSTACK_CUSTOM_VOLUME_ZONE = "openstack.storage.volume.zone";
 	private static final String EVENT_ATTEMPT_CONNECTION_TO_CLOUD_API = "try_to_connect_to_cloud_api";
 	private static final String EVENT_ACCOMPLISHED_CONNECTION_TO_CLOUD_API = "connection_to_cloud_api_succeeded";
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
@@ -107,7 +105,7 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 
 
 	@Override
-	public VolumeDetails createVolume(final String templateName, final String location, 
+	public VolumeDetails createVolume(final String templateName, final String availabilityZone, 
 			final long duration, final TimeUnit timeUnit) throws 
 		TimeoutException, StorageProvisioningException {
 		
@@ -128,13 +126,16 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 		
 		StorageTemplate storageTemplate = this.cloud.getCloudStorage().getTemplates().get(templateName);
 		String volumeName = storageTemplate.getNamePrefix() + System.currentTimeMillis();
+		int size = storageTemplate.getSize();
+		logger.fine("Creating new volume in availability zone \"" + availabilityZone + "\" of size " + size
+                + " GB, with name \"" + volumeName + "\"");
 		
 		CreateVolumeOptions options = CreateVolumeOptions.Builder
 				.name(volumeName)
 				.description(VOLUME_DESCRIPTION)
-				.availabilityZone(getStorageZone(templateName));
-
-		volume = volumeApi.get().create(storageTemplate.getSize(), options);
+				.availabilityZone(availabilityZone);
+		
+		volume = volumeApi.get().create(size, options);
 		
 		try {
 			waitForVolumeToReachStatus(Volume.Status.AVAILABLE, volumeApi, volume.getId(), endTime);
@@ -422,31 +423,6 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 		final Volume volume = volumeApi.get().get(volumeId);
 		
 		return volume;
-	}
-	
-	
-	private String getStorageZone(final String templateName) throws IllegalArgumentException {
-		String zone;
-		Map<String, Object> customSettings = cloud.getCloudStorage().getTemplates().get(templateName).getCustom();
-		
-		if (customSettings != null) {
-			Object zoneObj = customSettings.get(OPENSTACK_CUSTOM_VOLUME_ZONE);
-			if (zoneObj instanceof String) {
-				zone = (String) zoneObj;
-				if (StringUtils.isBlank(zone)) {
-					throw new IllegalArgumentException("Storate template custom property is missing or empty: " 
-							+ OPENSTACK_CUSTOM_VOLUME_ZONE);
-				}
-			} else {
-				throw new IllegalArgumentException("Storate template custom property \"" + OPENSTACK_CUSTOM_VOLUME_ZONE 
-						+ "\" is missing or not a String"); 
-			}
-		} else {
-			throw new IllegalArgumentException("Storate template is missing a \"custom\" section with the required "
-					+ "property \"" + OPENSTACK_CUSTOM_VOLUME_ZONE  + "\"");
-		}
-		
-		return zone;
 	}
 	
 	
