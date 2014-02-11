@@ -12,33 +12,7 @@
  *******************************************************************************/
 package org.cloudifysource.rest.controllers;
 
-import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_LUS;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.annotation.PostConstruct;
-
 import net.jini.core.discovery.LookupLocator;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.Application;
@@ -157,6 +131,30 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import javax.annotation.PostConstruct;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static org.cloudifysource.rest.ResponseConstants.FAILED_TO_LOCATE_LUS;
+
 /**
  * This controller is responsible for retrieving information about deployments. It is also the entry point for deploying
  * services and application. <br>
@@ -188,7 +186,6 @@ public class DeploymentsController extends BaseRestController {
 	private static final int MAX_NUMBER_OF_EVENTS = 100;
 	private static final int REFRESH_INTERVAL_MILLIS = 500;
 	private static final long WAIT_FOR_PU_SECONDS = 30;
-	private static final int DEPLOYMENT_TIMEOUT_SECONDS = 60;
 	private static final int WAIT_FOR_MANAGED_TIMEOUT_SECONDS = 10;
 	private static final int PU_DISCOVERY_TIMEOUT_SEC = 8;
 	private static final int LOCAL_CLOUD_INSTANCE_MEMORY_MB = 512;
@@ -1616,14 +1613,18 @@ public class DeploymentsController extends BaseRestController {
 			throws TimeoutException {
 		GridServiceManager gsm = getGridServiceManager();
 		ProcessingUnit pu = null;
-		if (deployment instanceof ElasticStatelessProcessingUnitDeployment) {
+
+        Integer serviceDiscoveryTimeoutInSeconds = restConfig.getCloud().getConfiguration().getComponents().getRest()
+                .getServiceDiscoveryTimeoutInSeconds();
+
+        if (deployment instanceof ElasticStatelessProcessingUnitDeployment) {
 			pu = gsm.deploy((ElasticStatelessProcessingUnitDeployment) deployment,
-					DEPLOYMENT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                    serviceDiscoveryTimeoutInSeconds, TimeUnit.SECONDS);
 		} else if (deployment instanceof ElasticStatefulProcessingUnitDeployment) {
 			pu = gsm.deploy((ElasticStatefulProcessingUnitDeployment) deployment,
-					DEPLOYMENT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                    serviceDiscoveryTimeoutInSeconds, TimeUnit.SECONDS);
 		} else if (deployment instanceof ElasticSpaceDeployment) {
-			pu = gsm.deploy((ElasticSpaceDeployment) deployment, DEPLOYMENT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+			pu = gsm.deploy((ElasticSpaceDeployment) deployment, serviceDiscoveryTimeoutInSeconds, TimeUnit.SECONDS);
 		}
 		if (pu == null) {
 			throw new TimeoutException("Timed out waiting for Service "

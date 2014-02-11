@@ -66,7 +66,10 @@ public class CloudComponentConfigTest {
 				rest.getMinMemory().equals("64m"));
 		Assert.assertTrue("unexpected rest max memory property " + rest.getMaxMemory(),
 				rest.getMaxMemory().equals("64m"));
-	}
+        Assert.assertTrue("unexpected rest serviceDiscoveryTimeoutInSeconds property "
+                + rest.getServiceDiscoveryTimeoutInSeconds(),
+                rest.getServiceDiscoveryTimeoutInSeconds() == 5);
+    }
 	
 	private void validateOrchestratorValues(final OrchestratorComponent orchestrator) {
 		Assert.assertTrue("unexpected orchestrator port property " + orchestrator.getPort(), 
