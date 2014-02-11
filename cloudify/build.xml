@@ -50,6 +50,7 @@
 	<property name="gs.webui.war" value="gs-webui-${s3.gs.publish.folder}.war" />
 	<property name="usm.local.copy" value="${basedir}/../USM" />
 	<property name="esc.local.copy" value="${basedir}/../esc" />
+	<property name="esc-config.local.copy" value="${basedir}/../esc-config" />
 	<property name="recipes.local.copy" value="${basedir}/../../cloudify-recipes" />
 	<property name="dsl.local.copy" value="${basedir}/../dsl" />
     <property name="dsl-backwards.local.copy" value="${basedir}/../dsl-backwards" />
@@ -768,6 +769,10 @@
 		
 		<exec executable="${mvn.executable}" dir="${esc.local.copy}">
 			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/esc.jar -Dsources=target/esc-sources.jar"/>
+		</exec>
+		
+		<exec executable="${mvn.executable}" dir="${esc-config.local.copy}">
+			<arg line="deploy:deploy-file -DrepositoryId=${repository.id} -Durl=${s3.url} -DpomFile=pom.xml -Dfile=target/esc-config.jar"/>
 		</exec>
 		
 		<exec executable="${mvn.executable}" dir="${domain.local.copy}">
