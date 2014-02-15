@@ -413,7 +413,8 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			logger.fine("Starting a new cloud server with group: " + groupName);
 			final ComputeTemplate computeTemplate =
 					this.cloud.getCloudCompute().getTemplates().get(this.cloudTemplateName);
-			final MachineDetails md = this.createServer(groupName, end, computeTemplate);
+			
+			final MachineDetails md = this.createServer(groupName, end, computeTemplate, context.getLocationId());
 			return md;
 		} catch (final OpenstackException e) {
 			throw new CloudProvisioningException("Failed to start cloud machine", e);
@@ -714,6 +715,11 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	@Override
 	protected MachineDetails createServer(final String serverName, final long endTime, final ComputeTemplate template)
 			throws CloudProvisioningException, TimeoutException {
+		return createServer(serverName, endTime, template, null);
+	}
+	
+	private MachineDetails createServer(final String serverName, final long endTime, final ComputeTemplate template, 
+			final String locationId) throws CloudProvisioningException, TimeoutException {
 
 		final String imageId = template.getImageId().split("/")[1];
 		final String hardwareId = template.getHardwareId().split("/")[1];
@@ -730,9 +736,15 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			request.setFlavorRef(hardwareId);
 			
 			// Set the availability zone
-			String zone = getAvailabilityZone(template);
+			String zone = locationId;
+			logger.finest("locationId received from Cloudify adapter: " + locationId);
+			if (StringUtils.isBlank(zone)) {
+				zone = getAvailabilityZone(template);
+				logger.finest("using template availability zone: " + zone);
+			}
+			
 			if (StringUtils.isNotBlank(zone)) {
-				logger.finest("starting instance in availability zone: " + zone);
+				logger.fine("setting new instance availability zone: " + zone);
 				request.setAvailabilityZone(zone);
 			}
 
