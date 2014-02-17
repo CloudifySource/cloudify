@@ -254,10 +254,6 @@ public class MicrosoftAzureRequestBodyBuilder {
 			windowsProvisioningSet.setUserName(userName);
 			windowsProvisioningSet.setUserPassword(password);
 			windowsProvisioningSet.setAdminPassword(password);
-    System.err.println("XXXXXXXXXXXXXXXXXXXXXXXXXX computerName " + computerName +  "        " + roleName);
-    Thread.dumpStack();
-    System.err.println("XXXXXXXXXXXXXXXXXXXXXXXXXX computerName " + computerName +  "        " + roleName);
-
 			windowsProvisioningSet.setComputerName(computerName); // (not optional) Windows ComputerName
 			configurationSets.getConfigurationSets().add(windowsProvisioningSet);
 			

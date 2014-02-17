@@ -102,7 +102,7 @@ cloud {
 			},
 			LARGE_WIN2008R2 : computeTemplate{
 
-				imageId "img-fc-nord-5985"
+				imageId "b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-12_04_2-LTS-amd64-server-20130624-en-us-30GB"
 
 				machineMemoryMB 7000
 				hardwareId "Large"
