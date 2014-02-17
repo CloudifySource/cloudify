@@ -17,6 +17,7 @@ package org.cloudifysource.esc.driver.provisioning.storage.aws;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -253,6 +254,53 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 					+ " Reason: " + e.getMessage(), e);
 		}
 	}
+	
+	
+	@Override
+	public void terminateAllVolumes(final long duration, final TimeUnit timeUnit) throws TimeoutException, 
+		StorageProvisioningException {
+		
+		Set<String> cloudifyVolumes = new HashSet<String>();
+		Set<String> volumePrefixes = new HashSet<String>();
+		
+		// get volume prefixes from all storage templates
+		Collection<StorageTemplate> storageTemplates = this.cloud.getCloudStorage().getTemplates().values();
+		for (StorageTemplate template : storageTemplates) {
+			volumePrefixes.add(template.getNamePrefix());
+		}
+		
+		// filter - keep only the Cloudify generated volumes
+		Set<VolumeDetails> allVolumes = listAllVolumes();
+		if (allVolumes != null) {
+			for (VolumeDetails volumeDetails : allVolumes) {
+				for (String volumePrefix: volumePrefixes) {
+					if (volumeDetails.getName().startsWith(volumePrefix)) {
+						cloudifyVolumes.add(volumeDetails.getId());
+						break;
+					}
+				}
+			}
+		}
+		
+		// call to terminate all Cloudify volumes
+		for (String volumeId: cloudifyVolumes) {
+			deleteVolume(volumeId);
+		}
+		
+		// verify volumes reach a "DELETING" status or not found (meaning they were probably deleted already)
+		final long endTime = System.currentTimeMillis() + timeUnit.toMillis(duration);
+		for (String volumeId: cloudifyVolumes) {
+			try {
+				// according to the documentation, the volume should stay in 'deleting' status for a few minutes. 
+				waitForVolumeToReachStatus(Status.DELETING, endTime, volumeId);
+			} catch (final StorageProvisioningException e) {
+				// Volume was not found. Do nothing.
+			}
+			logger.fine("Volume with id " + volumeId + " deleted successfully");
+		}
+		
+	}
+	
 	
 	@Override
 	public Set<VolumeDetails> listVolumes(final String ip, final long duration,

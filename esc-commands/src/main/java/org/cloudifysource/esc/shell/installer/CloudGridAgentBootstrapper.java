@@ -52,6 +52,8 @@ import org.cloudifysource.esc.driver.provisioning.ProvisioningContextImpl;
 import org.cloudifysource.esc.driver.provisioning.context.DefaultProvisioningDriverClassContext;
 import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
 import org.cloudifysource.esc.driver.provisioning.jclouds.ManagementWebServiceInstaller;
+import org.cloudifysource.esc.driver.provisioning.storage.BaseStorageDriver;
+import org.cloudifysource.esc.driver.provisioning.storage.StorageProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.validation.ValidationMessageType;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
@@ -106,6 +108,7 @@ public class CloudGridAgentBootstrapper {
 	private int progressInSeconds;
 
 	private BaseComputeDriver provisioning;
+	private BaseStorageDriver storageDriver;
 
 	private Cloud cloud;
 
@@ -157,11 +160,15 @@ public class CloudGridAgentBootstrapper {
 	}
 
 	/**
-	 * Closes the provisioning driver.
+	 * Closes the provisioning and storage drivers.
 	 */
 	public void close() {
 		if (this.provisioning != null) {
 			this.provisioning.close();
+		}
+		
+		if (this.storageDriver != null) {
+			this.storageDriver.close();
 		}
 	}
 
@@ -579,6 +586,32 @@ public class CloudGridAgentBootstrapper {
 		}
 
 	}
+	
+	
+	private void createStorageDriver() throws CLIException {
+		
+		logger.fine("creating storage provisioning driver.");
+		String storageClassName = cloud.getConfiguration().getStorageClassName();
+		try {
+			final ProvisioningDriverClassBuilder builder = new ProvisioningDriverClassBuilder();
+			Object storageProvisioningInstance =  builder.build(providerDirectory.getAbsolutePath(), storageClassName);
+			if (storageProvisioningInstance instanceof BaseStorageDriver) {
+				storageDriver = (BaseStorageDriver) storageProvisioningInstance;
+				logger.fine("storage provisioning driver created successfully.");
+				storageDriver.setComputeContext(provisioning.getComputeContext());
+				storageDriver.setConfig(cloud, cloud.getConfiguration().getManagementMachineTemplate());
+			}
+			
+			
+		} catch (final ClassNotFoundException e) {
+			throw new CLIException(
+					"Failed to load storage provisioning class for cloud: " + cloud.getName() + ". Class not found: " 
+							+ storageClassName, e);
+		} catch (final Exception e) {
+			throw new CLIException("Failed to load storage provisioning class for cloud: " + cloud.getName() 
+					+ " class name: " + storageClassName, e);
+		}
+	}
 
 	/**
 	 * 
@@ -600,10 +633,12 @@ public class CloudGridAgentBootstrapper {
 				+ timeoutUnit.toMillis(timeout);
 
 		createProvisioningDriver(false /* performValidation */);
+		createStorageDriver();
 
 		ShellUtils.checkNotNull("providerDirectory", providerDirectory);
 
 		destroyManagementServers(CalcUtils.millisUntil(end), TimeUnit.MILLISECONDS);
+		destroyVolumes(CalcUtils.millisUntil(end), TimeUnit.MILLISECONDS);
 
 	}
 
@@ -614,32 +649,32 @@ public class CloudGridAgentBootstrapper {
 		final long end = System.currentTimeMillis()
 				+ timeoutUnit.toMillis(timeout);
 
-		if (!force) {
+			if (!force) {
 
-			if (!adminFacade.isConnected()) {
-				throw new CLIException(
-						"Please connect to the cloud before tearing down");
-			}
-			uninstallApplications(end);
-
-		} else {
-
-			if (adminFacade.isConnected()) {
-				try {
-					uninstallApplications(end);
-				} catch (final InterruptedException e) {
-					throw e;
-				} catch (final TimeoutException e) {
-					logger.fine("Failed to uninstall applications. Shut down of management machines will continue");
-				} catch (final CLIException e) {
-					logger.fine("Failed to uninstall applications. Shut down of management machines will continue");
+				if (!adminFacade.isConnected()) {
+					throw new CLIException(
+							"Please connect to the cloud before tearing down");
 				}
-			} else {
-				logger.info("Teardown performed without connection to the cloud, only management machines will be "
-						+ "terminated.");
-			}
+				uninstallApplications(end);
 
-		}
+			} else {
+
+				if (adminFacade.isConnected()) {
+					try {
+						uninstallApplications(end);
+					} catch (final InterruptedException e) {
+						throw e;
+					} catch (final TimeoutException e) {
+						logger.fine("Failed to uninstall applications. Shut down of management machines will continue");
+					} catch (final CLIException e) {
+						logger.fine("Failed to uninstall applications. Shut down of management machines will continue");
+					}
+				} else {
+					logger.info("Teardown performed without connection to the cloud, only management machines will be "
+							+ "terminated.");
+				}
+
+			}
 
 		logger.info("Terminating cloud machines");
 
@@ -652,6 +687,20 @@ public class CloudGridAgentBootstrapper {
 		}
 		adminFacade.disconnect();
 
+	}
+	
+	private void destroyVolumes(final long timeout, final TimeUnit timeoutUnit) throws CLIException,
+			TimeoutException {
+		if (storageDriver != null) {
+			try {
+				storageDriver.terminateAllVolumes(timeout, timeoutUnit);	
+			} catch (final StorageProvisioningException e) {
+				throw new CLIException(
+						"Failed to terminate volume during tear down of cloud: " + e.getMessage(), e);
+			}
+		} else {
+			logger.fine("Storage driver is not initialized, volumes are not distroyed");
+		}
 	}
 
 	private void uninstallApplications(final long end) throws CLIException,

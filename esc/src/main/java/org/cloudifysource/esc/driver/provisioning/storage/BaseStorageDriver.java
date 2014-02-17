@@ -16,6 +16,8 @@
 package org.cloudifysource.esc.driver.provisioning.storage;
 
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /*****
  * an abstraction for a base storage driver to extend driver functionality.
@@ -60,5 +62,22 @@ public abstract class BaseStorageDriver implements StorageProvisioningDriver {
 	 */
 	public abstract Set<VolumeDetails> listAllVolumes()
 			throws StorageProvisioningException; 
+	
+	/**
+	 * terminates all existing volumes.
+	 * 
+	 * @param duration
+	 *            Duration until times out.
+	 * @param timeUnit
+	 *            The duration timeout units.
+	 * @throws StorageProvisioningException
+	 * 			if searching or terminating volumes failed.
+	 * @throws TimeoutException
+	 * 			if timeout was reached before all volumes terminated.
+	 */
+	public void terminateAllVolumes(final long duration, final TimeUnit timeUnit) 
+			throws StorageProvisioningException, TimeoutException {
+		throw new UnsupportedOperationException("Method not implemented");
+	}
 	
 }

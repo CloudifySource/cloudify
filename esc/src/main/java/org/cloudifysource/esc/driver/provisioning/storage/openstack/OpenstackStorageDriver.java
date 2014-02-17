@@ -15,6 +15,7 @@
  *******************************************************************************/
 package org.cloudifysource.esc.driver.provisioning.storage.openstack;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -321,34 +322,130 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 		return volumeDetailsSet;
 	}
 	
+	@Override
+	public void terminateAllVolumes(final long duration, final TimeUnit timeUnit) throws TimeoutException, 
+		StorageProvisioningException {
+		
+		Set<String> cloudifyVolumes = new HashSet<String>();
+		Set<String> volumePrefixes = new HashSet<String>();
+		
+		Optional<? extends VolumeApi> volumeApi = getVolumeApi();
+		if (!volumeApi.isPresent()) {
+			throw new StorageProvisioningException("Failed to terminate volumes. Openstack API is not initialized.");
+		}
+		
+		// get volume prefixes from all storage templates
+		Collection<StorageTemplate> storageTemplates = this.cloud.getCloudStorage().getTemplates().values();
+		for (StorageTemplate template : storageTemplates) {
+			volumePrefixes.add(template.getNamePrefix());
+		}
+		
+		// filter - keep only the Cloudify generated volumes
+		FluentIterable<? extends Volume> volumesList = volumeApi.get().list();
+		if (volumesList != null) {
+			for (Volume volume : volumesList) {
+				for (String volumePrefix: volumePrefixes) {
+					if (volume.getName().startsWith(volumePrefix)) {
+						cloudifyVolumes.add(volume.getId());
+						break;
+					}
+				}
+			}
+		}
+		
+		// call to terminate all Cloudify volumes
+		for (String volumeId: cloudifyVolumes) {
+			if (!volumeApi.get().delete(volumeId)) {
+				logger.log(Level.WARNING, "Error while deleting volume: " + volumeId + ".It may be leaking.");
+			}
+		}
+		
+		// verify volumes reach a "DELETING" status or not found (meaning they were probably deleted already)
+		final long endTime = System.currentTimeMillis() + timeUnit.toMillis(duration);
+		for (String volumeId: cloudifyVolumes) {
+			waitForVolumeToBeDeleted(volumeApi, volumeId, endTime);
+		}
+		
+	}
+	
+	
 	private void waitForVolumeToReachStatus(final Volume.Status targetStatus, 
 			final Optional<? extends VolumeApi> volumeApi, final String volumeId, final long endTime) 
 					throws StorageProvisioningException, TimeoutException, InterruptedException {
+
+		boolean statusReached = false;
+		Volume.Status volumeStatus = null;
 		
 		if (!volumeApi.isPresent()) {
 			throw new StorageProvisioningException("Failed to get volume status, Openstack API is not initialized.");
 		}
 		
-		logger.info("waiting for volume to reach status: " + targetStatus.toString());
+		logger.fine("waiting for volume " + volumeId + " to reach status: " + targetStatus.toString());
 		
-		while (true) {
+		while (System.currentTimeMillis() < endTime) {
 			final Volume volume = volumeApi.get().get(volumeId);
 			if (volume != null) {
-				Volume.Status volumeStatus = volume.getStatus();
+				volumeStatus = volume.getStatus();
 				if (volumeStatus == targetStatus) {
-					//volume is ready
+					//volume has reach required status
+					statusReached = true;
 					break;
 				} else if (volumeStatus == Volume.Status.ERROR) {
-					throw new StorageProvisioningException("Storage volume management encountered an error. "
-							+ "Volume id: " + volumeId);
-				}
-				if (System.currentTimeMillis() > endTime) {
-					throw new TimeoutException("timeout while waiting for volume to reach status \" " + targetStatus 
-							+ "\". Current status is: " + volume.getStatus());
+					throw new StorageProvisioningException("Storage volume provisioning encountered an error. "
+							+ "Volume id: " + volumeId + " is in status ERROR");
+				} else {
+					logger.fine("Volume[" + volumeId + "] is in status " + volume.getStatus());
 				}
 			}
 
 			Thread.sleep(VOLUME_POLLING_INTERVAL_MILLIS);
+		}
+		
+		if (!statusReached) {
+			throw new TimeoutException("timeout while waiting for volume to reach status \"" + targetStatus 
+					+ "\". Current status is: " + volumeStatus);
+		}
+	}
+	
+	
+	private void waitForVolumeToBeDeleted(final Optional<? extends VolumeApi> volumeApi, 
+			final String volumeId, final long endTime) throws StorageProvisioningException, 
+			TimeoutException {
+		
+		boolean statusReached = false;
+		Volume.Status volumeStatus = null;
+		
+		logger.fine("waiting for volume " + volumeId + " to reach status: \"" + Volume.Status.DELETING + "\"");
+		
+		while (System.currentTimeMillis() < endTime) {
+			final Volume volume = volumeApi.get().get(volumeId);
+			if (volume == null) {
+				// volume not found, considering it deleted
+			} else {
+				volumeStatus = volume.getStatus();
+				if (volumeStatus == Volume.Status.DELETING) {
+					//volume has reach required status
+					statusReached = true;
+					break;
+				} else if (volumeStatus == Volume.Status.ERROR) {
+					throw new StorageProvisioningException("Volume termination failed, volume " + volumeId + " is "
+							+ "in status ERROR");
+				} else {
+					logger.fine("Volume " + volumeId + " is in status: " + volume.getStatus());
+				}
+			}
+
+			try {
+				Thread.sleep(VOLUME_POLLING_INTERVAL_MILLIS);
+			} catch (InterruptedException e) {
+				// does it matter?
+			}
+			
+		}
+		
+		if (!statusReached) {
+			throw new TimeoutException("timed out while waiting for volume to reach status \"" 
+					+ Volume.Status.DELETING + "\". Current status is: " + volumeStatus);	
 		}
 	}
 	
