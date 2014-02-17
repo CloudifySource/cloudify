@@ -105,6 +105,7 @@ public class CloudGridAgentBootstrapper {
 	private boolean verbose;
 
 	private boolean force;
+	private boolean terminateNow;
 
 	private int progressInSeconds;
 
@@ -138,6 +139,10 @@ public class CloudGridAgentBootstrapper {
 
 	public void setForce(final boolean force) {
 		this.force = force;
+	}
+	
+	public void setTerminateNow(final boolean terminateNow) {
+		this.terminateNow = terminateNow;
 	}
 
 	private static String nodePrefix(final MachineDetails node) {
@@ -660,7 +665,7 @@ public class CloudGridAgentBootstrapper {
 				uninstallApplications(end);
 
 			} else {
-
+				// try to shutdown gracefully - uninstall applications
 				if (adminFacade.isConnected()) {
 					try {
 						uninstallApplications(end);
@@ -675,7 +680,6 @@ public class CloudGridAgentBootstrapper {
 					logger.info("Teardown performed without connection to the cloud, only management machines will be "
 							+ "terminated.");
 				}
-
 			}
 
 		logger.info("Terminating cloud machines");

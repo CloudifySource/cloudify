@@ -50,6 +50,7 @@ import org.cloudifysource.shell.exceptions.CLIStatusException;
  * Optional arguments:
  * 		timeout - The number of minutes to wait until the operation is completed (default: 60 minutes)
  * 		force - states whether the management machine be shutdown if other applications are installed
+ * 		terminate-now - triggers immediate termination of all resources, without performing uninstall to applications
  *
  * @author barakme, adaml
  *
@@ -71,6 +72,10 @@ public class TeardownCloud extends AbstractGSCommand {
 	@Option(required = false, name = "-force",
 			description = "Should management machine be shutdown if other applications are installed")
 	private boolean force = false;
+	
+	@Option(required = false, name = "-terminate-now",
+			description = "Terminate all resources immediately, without performing uninstall to applications")
+	private boolean terminateNow = false;
 
 
 	public void setTimeoutInMinutes(final int timeoutInMinutes) {
@@ -79,6 +84,10 @@ public class TeardownCloud extends AbstractGSCommand {
 
 	public void setForce(final boolean force) {
 		this.force = force;
+	}
+	
+	public void setTerminateNow(final boolean terminateNow) {
+		this.terminateNow = terminateNow;
 	}
 	
 
@@ -96,7 +105,7 @@ public class TeardownCloud extends AbstractGSCommand {
 		if (adminFacade.isConnected()) {
 			adminFacade.verifyCloudAdmin();
 		} else {
-			if (!force) {
+			if (!force && !terminateNow) {
 				throw new CLIException("Please connect to the cloud before tearing down");
 			}
 		}
@@ -127,6 +136,7 @@ public class TeardownCloud extends AbstractGSCommand {
 		installer.setProgressInSeconds(POLLING_INTERVAT_SEC);
 		installer.setVerbose(verbose);
 		installer.setForce(force);
+		installer.setTerminateNow(terminateNow);
 		installer.setCloud(cloud);
 
 		// Note: The cloud driver may be very verbose. This is EXTEREMELY useful
