@@ -73,9 +73,9 @@ cloud {
 				
 				localDirectory "upload"
 
-				fileTransfer org.cloudifysource.dsl.cloud.FileTransferModes.SCP
-				remoteExecution org.cloudifysource.dsl.cloud.RemoteExecutionModes.SSH
-				scriptLanguage org.cloudifysource.dsl.cloud.ScriptLanguages.LINUX_SHELL
+				fileTransfer "SCP"
+				remoteExecution "SSH"
+				scriptLanguage "LINUX_SHELL"
 
 				javaUrl "https://s3-eu-west-1.amazonaws.com/cloudify-eu/jdk-6u32-linux-x64.bin"
 
