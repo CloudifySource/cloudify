@@ -24,6 +24,7 @@ import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServer;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServerAddress;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServerResquest;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServerSecurityGroup;
+import org.cloudifysource.esc.driver.provisioning.openstack.rest.Quota;
 
 /**
  * A client for Openstack Nova.
@@ -92,6 +93,7 @@ public class OpenStackComputeClient extends OpenStackBaseClient {
 		final List<Image> image = JsonUtils.unwrapRootToList(Image.class, response);
 		return image;
 	}
+
 
 	/**
 	 * Returns the Openstack flavor.
@@ -284,5 +286,35 @@ public class OpenStackComputeClient extends OpenStackBaseClient {
 			logger.fine("Terminate serverId=" + serverId);
 		}
 		this.doDelete("servers/" + serverId, CODE_OK_204);
+	}
+	
+	/**
+	 * Get quotas for the current tenant.
+	 * 
+	 * @return quota object, containing different quotas 
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
+	 */
+	public Quota getQuotas() throws OpenstackException {
+		String tenantId = getTenantId();
+		if (StringUtils.isBlank(tenantId)) {
+			throw new OpenstackException("Tenant id not found");
+		}
+		return getQuotasForTenant(tenantId);
+	}
+	
+	
+	/**
+	 * Get quotas for the specified tenant.
+	 * 
+	 * @param tenantId
+	 *            The id of the relevant tenant
+	 * @return quota object, containing different quotas
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
+	 */
+	public Quota getQuotasForTenant(final String tenantId) throws OpenstackException {
+		final String response = this.doGet(tenantId + "/limits");
+		return JsonUtils.unwrapRootToObject(Quota.class, response);
 	}
 }

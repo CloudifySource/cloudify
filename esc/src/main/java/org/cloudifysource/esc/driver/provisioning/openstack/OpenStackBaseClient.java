@@ -143,6 +143,24 @@ public abstract class OpenStackBaseClient {
 		this.renewTokenIfNeeded();
 		return this.token.getToken().getId();
 	}
+	
+	
+	/**
+	 * Get the tenant id, if token not null.
+	 * 
+	 * @return The tenant id, or null if token is null
+	 * @throws OpenstackJsonSerializationException
+	 *             If a serialization issue occurs with Openstack request/response.
+	 */
+	protected String getTenantId() throws OpenstackJsonSerializationException {
+		String tenantId = null;
+		if (token != null) {
+			tenantId = token.getToken().getTenant().getId();
+		}
+		
+		return tenantId;
+	}
+	
 
 	/**
 	 * Return the WebResource pre configured with the endpoint.

@@ -30,6 +30,8 @@ public class TokenInfo {
 
 	@JsonProperty("issued_at")
 	private Date issuedAt;
+	
+	private Tenant tenant;
 
 	public String getId() {
 		return id;
@@ -53,6 +55,14 @@ public class TokenInfo {
 
 	public void setIssuedAt(final Date issuedAt) {
 		this.issuedAt = issuedAt;
+	}
+
+	public Tenant getTenant() {
+		return tenant;
+	}
+
+	public void setTenant(final Tenant tenant) {
+		this.tenant = tenant;
 	}
 
 	@Override

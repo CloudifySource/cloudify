@@ -17,15 +17,16 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.FloatingIp;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Network;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Port;
+import org.cloudifysource.esc.driver.provisioning.openstack.rest.Quota;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Router;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.RouterInterface;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.SecurityGroup;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.SecurityGroupRule;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Subnet;
-import org.apache.commons.lang.StringUtils;
 
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
@@ -894,5 +895,36 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 			return this.getSubnetsByNetworkId(network.getId());
 		}
 		return null;
+	}
+	
+	
+	/**
+	 * Get quotas for the current tenant.
+	 * 
+	 * @return quota object, containing different quotas 
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
+	 */
+	public Quota getQuotas() throws OpenstackException {
+		String tenantId = getTenantId();
+		if (StringUtils.isBlank(tenantId)) {
+			throw new OpenstackException("Tenant id not found");
+		}
+		return getQuotasForTenant(tenantId);
+	}
+	
+	
+	/**
+	 * Get quotas for the specified tenant.
+	 * 
+	 * @param tenantId
+	 *            The id of the relevant tenant
+	 * @return quota object, containing different quotas
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
+	 */
+	public Quota getQuotasForTenant(final String tenantId) throws OpenstackException {
+		final String response = this.doGet("quotas/" + tenantId);
+		return JsonUtils.unwrapRootToObject(Quota.class, response);
 	}
 }
