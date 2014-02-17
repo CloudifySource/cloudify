@@ -102,7 +102,7 @@ cloud {
 			},
 			LARGE_WIN2008R2 : computeTemplate{
 
-				imageId "b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-12_04_2-LTS-amd64-server-20130624-en-us-30GB"
+				imageId "0c0083a6d9a24f2d91800e52cad83950__JDK-1.7.0_51-0114-Win"
 
 				machineMemoryMB 7000
 				hardwareId "Large"
