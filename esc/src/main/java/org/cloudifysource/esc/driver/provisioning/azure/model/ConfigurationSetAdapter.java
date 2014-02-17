@@ -28,14 +28,9 @@ public class ConfigurationSetAdapter
 			return null;
 		}
 
-		if (adaptedConfigurationSet.inputEndpoints != null) {
-			NetworkConfigurationSet networkConfigurationSet = new NetworkConfigurationSet();
-			networkConfigurationSet
-					.setConfigurationSetType(adaptedConfigurationSet.configurationSetType);
-			networkConfigurationSet
-					.setInputEndpoints(adaptedConfigurationSet.inputEndpoints);
-			return networkConfigurationSet;
-		} else {
+		
+		if (ConfigurationSet.LINUX_PROVISIONING_CONFIGURATION.equals(adaptedConfigurationSet.configurationSetType)) {
+			
 			LinuxProvisioningConfigurationSet linuxProvisioningConfigurationSet = 
 					new LinuxProvisioningConfigurationSet();
 			linuxProvisioningConfigurationSet
@@ -46,6 +41,35 @@ public class ConfigurationSetAdapter
 					.setUserName(adaptedConfigurationSet.userName);
 			linuxProvisioningConfigurationSet
 					.setUserPassword(adaptedConfigurationSet.userPassword);
+			
+		} else if (ConfigurationSet.WINDOWS_PROVISIONING_CONFIGURATION.equals(adaptedConfigurationSet.configurationSetType)) {
+			WindowsProvisioningConfigurationSet windowsProvisioningConfigurationSet = 
+					new WindowsProvisioningConfigurationSet();
+			windowsProvisioningConfigurationSet
+					.setDisableSshPasswordAuthentication(adaptedConfigurationSet.disableSshPasswordAuthentication);
+			windowsProvisioningConfigurationSet
+					.setHostName(adaptedConfigurationSet.hostName);
+			windowsProvisioningConfigurationSet
+					.setUserName(adaptedConfigurationSet.userName);
+			windowsProvisioningConfigurationSet
+					.setUserPassword(adaptedConfigurationSet.userPassword);
+
+            System.err.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZz computerName " + adaptedConfigurationSet + "    " + adaptedConfigurationSet.computerName);
+            Thread.dumpStack();
+            System.err.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZz computerName " + adaptedConfigurationSet + "    " + adaptedConfigurationSet.computerName);
+
+			windowsProvisioningConfigurationSet
+					.setComputerName(adaptedConfigurationSet.computerName);
+			windowsProvisioningConfigurationSet.setAdminPassword(adaptedConfigurationSet.adminPassword);
+			windowsProvisioningConfigurationSet.setWinRm(adaptedConfigurationSet.winRm);
+			
+		} else {// NetworkConfiguration
+			NetworkConfigurationSet networkConfigurationSet = new NetworkConfigurationSet();
+			networkConfigurationSet
+					.setConfigurationSetType(adaptedConfigurationSet.configurationSetType);
+			networkConfigurationSet
+					.setInputEndpoints(adaptedConfigurationSet.inputEndpoints);
+			return networkConfigurationSet;
 		}
 
 		return null;
@@ -79,6 +103,18 @@ public class ConfigurationSetAdapter
 					.getUserName();
 			adaptedConfigurationSet.userPassword = linuxProvisioningConfigurationSet
 					.getUserPassword();
+		} else if (configurationSet instanceof WindowsProvisioningConfigurationSet) {
+			
+			WindowsProvisioningConfigurationSet WindowsProvisioningConfigurationSet = (WindowsProvisioningConfigurationSet) configurationSet;
+			adaptedConfigurationSet.configurationSetType = WindowsProvisioningConfigurationSet.getConfigurationSetType();
+			adaptedConfigurationSet.disableSshPasswordAuthentication = WindowsProvisioningConfigurationSet.isDisableSshPasswordAuthentication();
+			adaptedConfigurationSet.hostName = WindowsProvisioningConfigurationSet.getHostName();
+			adaptedConfigurationSet.userName = WindowsProvisioningConfigurationSet.getUserName();
+			adaptedConfigurationSet.userPassword = WindowsProvisioningConfigurationSet.getUserPassword();
+			adaptedConfigurationSet.adminPassword = WindowsProvisioningConfigurationSet.getAdminPassword();
+			adaptedConfigurationSet.computerName = WindowsProvisioningConfigurationSet.getComputerName();
+			adaptedConfigurationSet.winRm = WindowsProvisioningConfigurationSet.getWinRm();
+			
 		} else {
 			NetworkConfigurationSet networkConfigurationSet = (NetworkConfigurationSet) configurationSet;
 			adaptedConfigurationSet.inputEndpoints = networkConfigurationSet
@@ -100,6 +136,15 @@ public class ConfigurationSetAdapter
 		@XmlElement(name = "ConfigurationSetType")
 		private String configurationSetType = "LinuxProvisioningConfiguration";
 
+		@XmlElement(name="ComputerName")
+		private String computerName;
+
+		@XmlElement(name="AdminPassword")
+		private String adminPassword;
+		
+		@XmlElement(name="WinRm")
+		private WinRm winRm;
+		
 		@XmlElement(name = "HostName")
 		private String hostName;
 

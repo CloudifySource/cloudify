@@ -87,8 +87,8 @@ public class WinrmExecutor implements RemoteExecutor {
 			}
 		});
 		try {
-			client.invokeRemotePowershellCommand(targetHost, fullCommand, details.getUsername(), details.getPassword(),
-					details.getLocalDir());
+				client.invokeRemotePowershellCommand(targetHost, fullCommand, details.getUsername(), details.getPassword(),
+						details.getLocalDir());
 		} catch (final PowershellClientException e) {
 			throw new InstallerException("Failed to execute powershell remote command", e);
 		}

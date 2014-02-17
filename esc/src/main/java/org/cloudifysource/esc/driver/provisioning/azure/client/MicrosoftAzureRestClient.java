@@ -392,6 +392,7 @@ public class MicrosoftAzureRestClient {
 	 */
 	public RoleDetails createVirtualMachineDeployment(
 			final CreatePersistentVMRoleDeploymentDescriptor deplyomentDesc,
+			final boolean isWindows,
 			final long endTime) throws MicrosoftAzureException,
 			TimeoutException, InterruptedException {
 
@@ -424,7 +425,7 @@ public class MicrosoftAzureRestClient {
 				deplyomentDesc.setHostedServiceName(serviceName);
 				deplyomentDesc.setDeploymentName(serviceName);
 
-				deployment = requestBodyBuilder.buildDeployment(deplyomentDesc);
+				deployment = requestBodyBuilder.buildDeployment(deplyomentDesc,isWindows);
 
 				String xmlRequest = MicrosoftAzureModelUtils.marshall(
 						deployment, false);

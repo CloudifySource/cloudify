@@ -260,6 +260,22 @@ public class EnvironmentFileBuilder {
 
 		return pathWithBackslash;
 	}
+	
+	/**
+	 * Change all \ char to / from a linux path
+	 * @param str
+	 * @return
+	 */
+	public static String normalizeLinuxPath (final String str) {
+		String linuxPath=str;
+		if (str.contains("\\"))
+			linuxPath =  str.replace("\\", "/");
+		if (!str.startsWith("/"))
+			linuxPath = "/"+linuxPath;
+		if (str.endsWith("/"))
+			linuxPath = linuxPath.substring(0, linuxPath.length()-1);
+		return linuxPath;
+	}
 
 	/**
 	 * Normalizes the path and returns a standard windows absolute path.

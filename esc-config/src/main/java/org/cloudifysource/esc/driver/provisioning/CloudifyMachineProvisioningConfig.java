@@ -124,7 +124,10 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 			logger.log(Level.FINE, "Running on windows, modifying remote directory config. Original was: " + remoteDir);
 			remoteDir = getWindowsRemoteDirPath(managementTemplateRemoteDirectory);
 		}
-		logger.log(Level.INFO, "Setting cloud configuration directory to: " + remoteDir);
+		else {
+			remoteDir = template.getRemoteDirectory();
+		}
+
 		setCloudConfigurationDirectory(remoteDir);
 		setCloudTemplateName(cloudTemplateName);
 	}
@@ -152,8 +155,7 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 		return homeDirectoryName;
 	}
 
-	private static final java.util.logging.Logger logger =
-			java.util.logging.Logger.getLogger(CloudifyMachineProvisioningConfig.class.getName());
+	private java.util.logging.Logger logger = java.util.logging.Logger.getLogger(CloudifyMachineProvisioningConfig.class.getName());
 
 	/**************
 	 * .

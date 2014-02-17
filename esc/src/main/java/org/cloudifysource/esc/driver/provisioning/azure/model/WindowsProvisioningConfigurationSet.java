@@ -5,18 +5,21 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * 
- * @author elip
- * 
+ * @author mourouvi (fastconnect)
+ *
  */
 
-@XmlType(propOrder = { "configurationSetType", "hostName", "userName",
+@XmlType(propOrder = { "configurationSetType", "computerName", "adminPassword","winRm","hostName", "userName",
 		"userPassword", "disableSshPasswordAuthentication" })
-public class LinuxProvisioningConfigurationSet extends ConfigurationSet {
+public class WindowsProvisioningConfigurationSet extends ConfigurationSet {
 
-	private String configurationSetType = ConfigurationSet.LINUX_PROVISIONING_CONFIGURATION;
+	private String configurationSetType = ConfigurationSet.WINDOWS_PROVISIONING_CONFIGURATION;
 	private String hostName;
 	private String userName;
 	private String userPassword;
+	private String adminPassword;
+	private String computerName;
+	private WinRm winRm;
 	private boolean disableSshPasswordAuthentication;
 
 	@XmlElement(name = "HostName")
@@ -59,5 +62,32 @@ public class LinuxProvisioningConfigurationSet extends ConfigurationSet {
 	@XmlElement(name = "ConfigurationSetType")
 	public String getConfigurationSetType() {
 		return configurationSetType;
+	}
+
+	@XmlElement(name="AdminPassword")
+	public String getAdminPassword() {
+		return adminPassword;
+	}
+
+	public void setAdminPassword(String adminPassword) {
+		this.adminPassword = adminPassword;
+	}
+
+	@XmlElement(name="ComputerName")
+	public String getComputerName() {
+		return computerName;
+	}
+
+	public void setComputerName(String computerName) {
+		this.computerName = computerName;
+	}
+
+	@XmlElement(name="WinRm")
+	public WinRm getWinRm() {
+		return winRm;
+	}
+
+	public void setWinRm(WinRm winRm) {
+		this.winRm = winRm;
 	}
 }
