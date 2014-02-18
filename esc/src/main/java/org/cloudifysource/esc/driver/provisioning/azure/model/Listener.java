@@ -12,15 +12,15 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name="Listener")
 public class Listener {
 	
-	private String type;
+	private String protocol;
 	private String certificateThumbprint;
 
-	@XmlElement(required=true, name="Type")
-	public String getType() {
-		return type;
+	@XmlElement(required=true, name="Protocol")
+	public String getProtocol() {
+		return protocol;
 	}
-	public void setType(String type) {
-		this.type = type;
+	public void setProtocol(String protocol) {
+		this.protocol = protocol;
 	}
 	
 	@XmlElement(name="CertificateThumbprint")
