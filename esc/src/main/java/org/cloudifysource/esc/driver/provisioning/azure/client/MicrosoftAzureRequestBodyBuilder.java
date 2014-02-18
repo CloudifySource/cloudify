@@ -260,11 +260,18 @@ public class MicrosoftAzureRequestBodyBuilder {
 			// Set WinRM : HTTP without Certificate
 			WinRm winRm = new WinRm();
 			Listeners listeners = new Listeners();
-			Listener listener = new Listener();
+
+            Listener listener = new Listener();
 			listener.setCertificateThumbprint(null); // Configure for Secure Winrm command (?)
 			listener.setProtocol("Http");
 			listeners.getListeners().add(listener);
-			winRm.setListeners(listeners);
+
+            listener = new Listener();
+            listener.setCertificateThumbprint(null); // Configure for Secure Winrm command (?)
+            listener.setProtocol("Https");
+            listeners.getListeners().add(listener);
+
+            winRm.setListeners(listeners);
             windowsProvisioningSet.setWinRm(winRm);
 		}
 		else {
