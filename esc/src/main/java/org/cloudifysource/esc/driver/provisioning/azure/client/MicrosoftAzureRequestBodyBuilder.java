@@ -253,6 +253,7 @@ public class MicrosoftAzureRequestBodyBuilder {
 			windowsProvisioningSet.setHostName(roleName);
 			windowsProvisioningSet.setUserName(userName);
 			windowsProvisioningSet.setUserPassword(password);
+            windowsProvisioningSet.setAdminUsername(userName);
 			windowsProvisioningSet.setAdminPassword(password);
 			windowsProvisioningSet.setComputerName(computerName); // (not optional) Windows ComputerName
 			configurationSets.getConfigurationSets().add(windowsProvisioningSet);

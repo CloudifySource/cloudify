@@ -56,6 +56,7 @@ public class ConfigurationSetAdapter
 
 			windowsProvisioningConfigurationSet
 					.setComputerName(adaptedConfigurationSet.computerName);
+			windowsProvisioningConfigurationSet.setAdminUsername(adaptedConfigurationSet.adminUsername);
 			windowsProvisioningConfigurationSet.setAdminPassword(adaptedConfigurationSet.adminPassword);
 			windowsProvisioningConfigurationSet.setWinRm(adaptedConfigurationSet.winRm);
 			
@@ -107,6 +108,7 @@ public class ConfigurationSetAdapter
 			adaptedConfigurationSet.hostName = WindowsProvisioningConfigurationSet.getHostName();
 			adaptedConfigurationSet.userName = WindowsProvisioningConfigurationSet.getUserName();
 			adaptedConfigurationSet.userPassword = WindowsProvisioningConfigurationSet.getUserPassword();
+			adaptedConfigurationSet.adminUsername = WindowsProvisioningConfigurationSet.getAdminUsername();
 			adaptedConfigurationSet.adminPassword = WindowsProvisioningConfigurationSet.getAdminPassword();
 			adaptedConfigurationSet.computerName = WindowsProvisioningConfigurationSet.getComputerName();
 			adaptedConfigurationSet.winRm = WindowsProvisioningConfigurationSet.getWinRm();
@@ -135,7 +137,10 @@ public class ConfigurationSetAdapter
 		@XmlElement(name="ComputerName")
 		private String computerName;
 
-		@XmlElement(name="AdminPassword")
+        @XmlElement(name="AdminUsername")
+        private String adminUsername;
+
+        @XmlElement(name="AdminPassword")
 		private String adminPassword;
 		
 		@XmlElement(name="WinRm")
