@@ -91,7 +91,7 @@ public class MicrosoftAzureRestClient {
 
 	// Header names and values
 	private static final String X_MS_VERSION_HEADER_NAME = "x-ms-version";
-	private static final String X_MS_VERSION_HEADER_VALUE = "2012-03-01";
+	private static final String X_MS_VERSION_HEADER_VALUE = "2013-03-01";
 	private static final String CONTENT_TYPE_HEADER_NAME = "Content-Type";
 	private static final String CONTENT_TYPE_HEADER_VALUE = "application/xml";
 
