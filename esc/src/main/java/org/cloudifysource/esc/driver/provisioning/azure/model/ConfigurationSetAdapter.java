@@ -54,10 +54,6 @@ public class ConfigurationSetAdapter
 			windowsProvisioningConfigurationSet
 					.setUserPassword(adaptedConfigurationSet.userPassword);
 
-            System.err.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZz computerName " + adaptedConfigurationSet + "    " + adaptedConfigurationSet.computerName);
-            Thread.dumpStack();
-            System.err.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZz computerName " + adaptedConfigurationSet + "    " + adaptedConfigurationSet.computerName);
-
 			windowsProvisioningConfigurationSet
 					.setComputerName(adaptedConfigurationSet.computerName);
 			windowsProvisioningConfigurationSet.setAdminPassword(adaptedConfigurationSet.adminPassword);

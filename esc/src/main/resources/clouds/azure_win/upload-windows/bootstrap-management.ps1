@@ -27,6 +27,7 @@
 # 	LUS_IP_ADDRESS - Ip of the head node that runs a LUS and ESM. May be my IP. (Required)
 #   GSA_MODE - 'agent' if this node should join an already running node. Otherwise, any value.
 #	NO_WEB_SERVICES - 'true' if web-services (rest, webui) should not be deployed (only if GSA_MODE != 'agent')
+#	NO_MANAGEMENT_SPACE - 'true' if cloudifyManagementSpace should not be deployed (only if GSA_MODE != 'agent')
 #   MACHINE_IP_ADDRESS - The IP of this server (Useful if multiple NICs exist)
 # 	WORKING_HOME_DIRECTORY - This is where the files were copied to (cloudify installation, etc..)
 #	GIGASPACES_LINK - If this url is found, it will be downloaded to $WORKING_HOME_DIRECTORY/gigaspaces.zip
@@ -91,6 +92,11 @@ CD $ENV:WORKING_HOME_DIRECTORY
 $workDirectory= (Get-Location).Path
 $parentDirectory = Split-Path -parent $workDirectory
 
+# If directory is top level, the parent will be the drive letter with an extra backslash character
+if($parentDirectory.endsWith("\")) {
+	$parentDirectory = $parentDirectory.Substring(0, $parentDirectory.Length-1)
+}
+
 $javaZip = "$parentDirectory\java.zip"
 $javaDir = "$parentDirectory\java"
 
@@ -136,6 +142,7 @@ if(Test-Path $workDirectory\cloudify-overrides) {
 # Note: the agent is executed from the task scheduler, so it does not inherit the environment from the
 # current session
 Write-Host Updating environment script
+insert-line $cloudifyDir\bin\setenv.bat "set EXT_JAVA_OPTIONS=$Env:EXT_JAVA_OPTIONS"
 insert-line $cloudifyDir\bin\setenv.bat "set NIC_ADDR=$ENV:MACHINE_IP_ADDRESS"
 insert-line $cloudifyDir\bin\setenv.bat "set LOOKUPLOCATORS=$ENV:LUS_IP_ADDRESS"
 insert-line $cloudifyDir\bin\setenv.bat "set JAVA_HOME=$javaDir"
@@ -180,7 +187,11 @@ else {
 	$START_COMMAND_ARGS="$START_COMMAND_ARGS -cloud-file $cloudFile"
 	if ($ENV:NO_WEB_SERVICES -eq "true") 
 	{
-		$START_COMMAND_ARGS="$START_COMMAND_ARGS -no-web-services -no-management-space"
+		$START_COMMAND_ARGS="$START_COMMAND_ARGS -no-web-services"
+	}
+	if ($ENV:NO_MANAGEMENT_SPACE -eq "true")
+	{
+		$START_COMMAND_ARGS="$START_COMMAND_ARGS -no-management-space"
 	} 
 }
 

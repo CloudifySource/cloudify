@@ -265,6 +265,7 @@ public class MicrosoftAzureRequestBodyBuilder {
 			listener.setType("HTTP");
 			listeners.getListeners().add(listener);
 			winRm.setListeners(listeners);
+            windowsProvisioningSet.setWinRm(winRm);
 		}
 		else {
 			LinuxProvisioningConfigurationSet linuxProvisioningSet = new LinuxProvisioningConfigurationSet();
