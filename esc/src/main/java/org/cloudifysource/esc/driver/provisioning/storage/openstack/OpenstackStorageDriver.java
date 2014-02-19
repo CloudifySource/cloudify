@@ -421,9 +421,11 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 			final Volume volume = volumeApi.get().get(volumeId);
 			if (volume == null) {
 				// volume not found, considering it deleted
+				statusReached = true;
+				break;
 			} else {
 				volumeStatus = volume.getStatus();
-				if (volumeStatus == Volume.Status.DELETING) {
+				if (volumeStatus.equals(Volume.Status.DELETING)) {
 					//volume has reach required status
 					statusReached = true;
 					break;

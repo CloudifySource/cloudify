@@ -36,6 +36,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
@@ -590,11 +591,12 @@ public class CloudGridAgentBootstrapper {
 	
 	private void createStorageDriver() throws CLIException {
 		
-		logger.fine("creating storage provisioning driver.");
 		String storageClassName = cloud.getConfiguration().getStorageClassName();
+		logger.fine("creating storage provisioning driver.");
 		try {
 			final ProvisioningDriverClassBuilder builder = new ProvisioningDriverClassBuilder();
-			Object storageProvisioningInstance =  builder.build(providerDirectory.getAbsolutePath(), storageClassName);
+			Object storageProvisioningInstance = 
+					builder.build(providerDirectory.getAbsolutePath(), storageClassName);
 			if (storageProvisioningInstance instanceof BaseStorageDriver) {
 				storageDriver = (BaseStorageDriver) storageProvisioningInstance;
 				logger.fine("storage provisioning driver created successfully.");
@@ -605,8 +607,8 @@ public class CloudGridAgentBootstrapper {
 			
 		} catch (final ClassNotFoundException e) {
 			throw new CLIException(
-					"Failed to load storage provisioning class for cloud: " + cloud.getName() + ". Class not found: " 
-							+ storageClassName, e);
+					"Failed to load storage provisioning class for cloud: " 
+							+ cloud.getName() + ". Class not found: " + storageClassName, e);
 		} catch (final Exception e) {
 			throw new CLIException("Failed to load storage provisioning class for cloud: " + cloud.getName() 
 					+ " class name: " + storageClassName, e);
@@ -633,13 +635,13 @@ public class CloudGridAgentBootstrapper {
 				+ timeoutUnit.toMillis(timeout);
 
 		createProvisioningDriver(false /* performValidation */);
-		createStorageDriver();
-
 		ShellUtils.checkNotNull("providerDirectory", providerDirectory);
-
 		destroyManagementServers(CalcUtils.millisUntil(end), TimeUnit.MILLISECONDS);
-		destroyVolumes(CalcUtils.millisUntil(end), TimeUnit.MILLISECONDS);
 
+		if (StringUtils.isNotBlank(cloud.getConfiguration().getStorageClassName())) {
+			createStorageDriver();
+			destroyVolumes(CalcUtils.millisUntil(end), TimeUnit.MILLISECONDS);
+		}
 	}
 
 	private void destroyManagementServers(final long timeout,

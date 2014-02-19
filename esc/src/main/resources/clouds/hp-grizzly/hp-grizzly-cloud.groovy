@@ -88,7 +88,6 @@ cloud {
 									namePrefix "cloudify-storage-volume"
 									deviceName "/dev/vdc"
 									fileSystemType "ext3"
-									custom (["openstack.storage.volume.zone":availabilityZone])
 					}
 			])
 		}
@@ -211,8 +210,8 @@ cloud {
 						// optional. A native command line to be executed before the cloudify agent is started.
 						initializationCommand "#!/bin/sh\ncp /etc/hosts /tmp/hosts\necho 127.0.0.1 `hostname` > /etc/hosts\ncat  /tmp/hosts >> /etc/hosts"
 
-						//optional - set the availability zone, required to match storage
-						custom (["openstack.compute.zone":availabilityZone])
+						// optional - set a list of availability zones to use
+						// availabilityZones (["az1","az2","az3"])
 	
 					},
 					SMALL_UBUNTU : computeTemplate{
@@ -289,8 +288,8 @@ cloud {
 						// optional. A native command line to be executed before the cloudify agent is started.
 						initializationCommand "#!/bin/sh\ncp /etc/hosts /tmp/hosts\necho 127.0.0.1 `hostname` > /etc/hosts\ncat  /tmp/hosts >> /etc/hosts"
 
-						//optional - set the availability zone, required to match storage
-						custom (["openstack.compute.zone":availabilityZone])
+						// optional - set a list of availability zones to use
+						// availabilityZones (["az1","az2","az3"])
 					}
 	
 	
