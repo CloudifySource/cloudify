@@ -253,7 +253,7 @@ public class MicrosoftAzureRequestBodyBuilder {
 			windowsProvisioningSet.setHostName(roleName);
 			windowsProvisioningSet.setUserName(userName);
 			windowsProvisioningSet.setUserPassword(password);
-            windowsProvisioningSet.setAdminUsername("Admin1234");
+            windowsProvisioningSet.setAdminUsername("Cloudify");
 			windowsProvisioningSet.setAdminPassword(password);
 			windowsProvisioningSet.setComputerName(computerName); // (not optional) Windows ComputerName
 			configurationSets.getConfigurationSets().add(windowsProvisioningSet);
