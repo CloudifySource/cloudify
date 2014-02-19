@@ -45,14 +45,14 @@ public class ConfigurationSetAdapter
 		} else if (ConfigurationSet.WINDOWS_PROVISIONING_CONFIGURATION.equals(adaptedConfigurationSet.configurationSetType)) {
 			WindowsProvisioningConfigurationSet windowsProvisioningConfigurationSet = 
 					new WindowsProvisioningConfigurationSet();
-			windowsProvisioningConfigurationSet
-					.setDisableSshPasswordAuthentication(adaptedConfigurationSet.disableSshPasswordAuthentication);
-			windowsProvisioningConfigurationSet
-					.setHostName(adaptedConfigurationSet.hostName);
-			windowsProvisioningConfigurationSet
-					.setUserName(adaptedConfigurationSet.userName);
-			windowsProvisioningConfigurationSet
-					.setUserPassword(adaptedConfigurationSet.userPassword);
+//			windowsProvisioningConfigurationSet
+//					.setDisableSshPasswordAuthentication(adaptedConfigurationSet.disableSshPasswordAuthentication);
+//			windowsProvisioningConfigurationSet
+//					.setHostName(adaptedConfigurationSet.hostName);
+//			windowsProvisioningConfigurationSet
+//					.setUserName(adaptedConfigurationSet.userName);
+//			windowsProvisioningConfigurationSet
+//					.setUserPassword(adaptedConfigurationSet.userPassword);
 
 			windowsProvisioningConfigurationSet
 					.setComputerName(adaptedConfigurationSet.computerName);
@@ -104,10 +104,10 @@ public class ConfigurationSetAdapter
 			
 			WindowsProvisioningConfigurationSet WindowsProvisioningConfigurationSet = (WindowsProvisioningConfigurationSet) configurationSet;
 			adaptedConfigurationSet.configurationSetType = WindowsProvisioningConfigurationSet.getConfigurationSetType();
-			adaptedConfigurationSet.disableSshPasswordAuthentication = WindowsProvisioningConfigurationSet.isDisableSshPasswordAuthentication();
-			adaptedConfigurationSet.hostName = WindowsProvisioningConfigurationSet.getHostName();
-			adaptedConfigurationSet.userName = WindowsProvisioningConfigurationSet.getUserName();
-			adaptedConfigurationSet.userPassword = WindowsProvisioningConfigurationSet.getUserPassword();
+//			adaptedConfigurationSet.disableSshPasswordAuthentication = WindowsProvisioningConfigurationSet.isDisableSshPasswordAuthentication();
+//			adaptedConfigurationSet.hostName = WindowsProvisioningConfigurationSet.getHostName();
+//			adaptedConfigurationSet.userName = WindowsProvisioningConfigurationSet.getUserName();
+//			adaptedConfigurationSet.userPassword = WindowsProvisioningConfigurationSet.getUserPassword();
 			adaptedConfigurationSet.adminUsername = WindowsProvisioningConfigurationSet.getAdminUsername();
 			adaptedConfigurationSet.adminPassword = WindowsProvisioningConfigurationSet.getAdminPassword();
 			adaptedConfigurationSet.computerName = WindowsProvisioningConfigurationSet.getComputerName();
