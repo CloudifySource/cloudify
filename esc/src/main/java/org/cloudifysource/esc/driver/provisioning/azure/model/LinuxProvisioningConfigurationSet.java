@@ -1,5 +1,6 @@
 package org.cloudifysource.esc.driver.provisioning.azure.model;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -18,6 +19,11 @@ public class LinuxProvisioningConfigurationSet extends ConfigurationSet {
 	private String userName;
 	private String userPassword;
 	private boolean disableSshPasswordAuthentication;
+
+    @XmlAttribute(name = "type")
+    public String getType(){
+        return "LinuxProvisioningConfigurationSet";
+    }
 
 	@XmlElement(name = "HostName")
 	public String getHostName() {
