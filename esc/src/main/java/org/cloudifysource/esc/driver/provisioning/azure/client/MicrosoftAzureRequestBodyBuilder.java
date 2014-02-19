@@ -249,8 +249,8 @@ public class MicrosoftAzureRequestBodyBuilder {
 			String computerName = (computerNameArray[2]).toUpperCase();
 			
 			WindowsProvisioningConfigurationSet windowsProvisioningSet = new WindowsProvisioningConfigurationSet();	
-			windowsProvisioningSet.setDisableSshPasswordAuthentication(true);
-			windowsProvisioningSet.setHostName(roleName);
+//			windowsProvisioningSet.setDisableSshPasswordAuthentication(true);
+//			windowsProvisioningSet.setHostName(roleName);
 //			windowsProvisioningSet.setUserName(userName);
 //			windowsProvisioningSet.setUserPassword(password);
             windowsProvisioningSet.setAdminUsername(userName);

@@ -10,61 +10,60 @@ import javax.xml.bind.annotation.XmlType;
  *
  */
 
-@XmlType(propOrder = { "configurationSetType", "computerName", "adminUsername", "adminPassword","winRm","hostName", "userName",
-		"userPassword", "disableSshPasswordAuthentication" })
+@XmlType(propOrder = { "configurationSetType", "computerName", "adminUsername", "winRm", "adminPassword"})
 public class WindowsProvisioningConfigurationSet extends ConfigurationSet {
 
 	private String configurationSetType = ConfigurationSet.WINDOWS_PROVISIONING_CONFIGURATION;
 	private String hostName;
-	private String userName;
-	private String userPassword;
+//	private String userName;
+//	private String userPassword;
     private String adminUsername;
 	private String adminPassword;
 	private String computerName;
 	private WinRm winRm;
-	private boolean disableSshPasswordAuthentication;
+//	private boolean disableSshPasswordAuthentication;
 
     @XmlAttribute(name = "type")
     public String getType(){
         return "WindowsProvisioningConfigurationSet";
     }
 
-	@XmlElement(name = "HostName")
-	public String getHostName() {
-		return hostName;
-	}
+//	@XmlElement(name = "HostName")
+//	public String getHostName() {
+//		return hostName;
+//	}
+//
+//	public void setHostName(final String hostName) {
+//		this.hostName = hostName;
+//	}
+//
+//	@XmlElement(name = "UserName")
+//	public String getUserName() {
+//		return userName;
+//	}
+//
+//	public void setUserName(final String userName) {
+//		this.userName = userName;
+//	}
+//
+//	@XmlElement(name = "UserPassword")
+//	public String getUserPassword() {
+//		return userPassword;
+//	}
+//
+//	public void setUserPassword(final String userPassword) {
+//		this.userPassword = userPassword;
+//	}
 
-	public void setHostName(final String hostName) {
-		this.hostName = hostName;
-	}
-
-	@XmlElement(name = "UserName")
-	public String getUserName() {
-		return userName;
-	}
-
-	public void setUserName(final String userName) {
-		this.userName = userName;
-	}
-
-	@XmlElement(name = "UserPassword")
-	public String getUserPassword() {
-		return userPassword;
-	}
-
-	public void setUserPassword(final String userPassword) {
-		this.userPassword = userPassword;
-	}
-
-	@XmlElement(name = "DisableSshPasswordAuthentication")
-	public boolean isDisableSshPasswordAuthentication() {
-		return disableSshPasswordAuthentication;
-	}
-
-	public void setDisableSshPasswordAuthentication(
-			final boolean disableSshPasswordAuthentication) {
-		this.disableSshPasswordAuthentication = disableSshPasswordAuthentication;
-	}
+//	@XmlElement(name = "DisableSshPasswordAuthentication")
+//	public boolean isDisableSshPasswordAuthentication() {
+//		return disableSshPasswordAuthentication;
+//	}
+//
+//	public void setDisableSshPasswordAuthentication(
+//			final boolean disableSshPasswordAuthentication) {
+//		this.disableSshPasswordAuthentication = disableSshPasswordAuthentication;
+//	}
 
 	@XmlElement(name = "ConfigurationSetType")
 	public String getConfigurationSetType() {
