@@ -10,7 +10,7 @@ import javax.xml.bind.annotation.XmlType;
  *
  */
 
-@XmlType(propOrder = { "configurationSetType", "computerName", "adminUsername", "winRm", "adminPassword"})
+@XmlType(propOrder = { "configurationSetType", "computerName", "adminPassword", "winRm", "adminUsername"})
 public class WindowsProvisioningConfigurationSet extends ConfigurationSet {
 
 	private String configurationSetType = ConfigurationSet.WINDOWS_PROVISIONING_CONFIGURATION;
