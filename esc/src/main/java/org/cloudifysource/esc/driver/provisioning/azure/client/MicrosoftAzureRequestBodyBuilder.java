@@ -251,10 +251,10 @@ public class MicrosoftAzureRequestBodyBuilder {
 			WindowsProvisioningConfigurationSet windowsProvisioningSet = new WindowsProvisioningConfigurationSet();	
 			windowsProvisioningSet.setDisableSshPasswordAuthentication(true);
 			windowsProvisioningSet.setHostName(roleName);
-			windowsProvisioningSet.setUserName(userName);
-			windowsProvisioningSet.setUserPassword(password);
-            windowsProvisioningSet.setAdminUsername("Cloudify");
-			windowsProvisioningSet.setAdminPassword("f232Fs3SAFa");
+//			windowsProvisioningSet.setUserName(userName);
+//			windowsProvisioningSet.setUserPassword(password);
+            windowsProvisioningSet.setAdminUsername(userName);
+			windowsProvisioningSet.setAdminPassword(password);
 			windowsProvisioningSet.setComputerName(computerName); // (not optional) Windows ComputerName
 			configurationSets.getConfigurationSets().add(windowsProvisioningSet);
 			
