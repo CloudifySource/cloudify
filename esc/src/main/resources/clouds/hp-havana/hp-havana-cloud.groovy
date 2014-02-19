@@ -81,7 +81,7 @@ cloud {
 		cloudStorage {
 				templates ([
 					SMALL_BLOCK : storageTemplate{
-									deleteOnExit true
+									deleteOnExit false
 									partitioningRequired true
 									size 1
 									path "/storage"
