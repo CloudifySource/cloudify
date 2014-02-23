@@ -143,6 +143,7 @@ public class ConfigurationSetAdapter
 		@XmlElement(name = "ConfigurationSetType")
 		private String configurationSetType;
 
+
 		@XmlElement(name="ComputerName")
 		private String computerName;
 
