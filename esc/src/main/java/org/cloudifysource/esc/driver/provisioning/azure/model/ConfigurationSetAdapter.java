@@ -3,7 +3,9 @@
  */
 package org.cloudifysource.esc.driver.provisioning.azure.model;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 
 /**
@@ -90,6 +92,8 @@ public class ConfigurationSetAdapter
 		if (configurationSet instanceof LinuxProvisioningConfigurationSet) {
 			LinuxProvisioningConfigurationSet linuxProvisioningConfigurationSet
 								= (LinuxProvisioningConfigurationSet) configurationSet;
+
+            adaptedConfigurationSet.type = linuxProvisioningConfigurationSet.getType();
 			adaptedConfigurationSet.configurationSetType = linuxProvisioningConfigurationSet
 					.getConfigurationSetType();
 			adaptedConfigurationSet.disableSshPasswordAuthentication = linuxProvisioningConfigurationSet
@@ -103,6 +107,7 @@ public class ConfigurationSetAdapter
 		} else if (configurationSet instanceof WindowsProvisioningConfigurationSet) {
 			
 			WindowsProvisioningConfigurationSet WindowsProvisioningConfigurationSet = (WindowsProvisioningConfigurationSet) configurationSet;
+            adaptedConfigurationSet.type = WindowsProvisioningConfigurationSet.getType();
 			adaptedConfigurationSet.configurationSetType = WindowsProvisioningConfigurationSet.getConfigurationSetType();
 //			adaptedConfigurationSet.disableSshPasswordAuthentication = WindowsProvisioningConfigurationSet.isDisableSshPasswordAuthentication();
 //			adaptedConfigurationSet.hostName = WindowsProvisioningConfigurationSet.getHostName();
@@ -129,24 +134,28 @@ public class ConfigurationSetAdapter
 	 * @author elip
 	 *
 	 */
-	static class AdaptedConfigurationSet {
+
+    static class AdaptedConfigurationSet {
+
+        @XmlAttribute(name="type", namespace = "http://www.w3.org/2001/XMLSchema-instance")
+        private String type;
 
 		@XmlElement(name = "ConfigurationSetType")
-		private String configurationSetType = "LinuxProvisioningConfiguration";
+		private String configurationSetType;
 
 		@XmlElement(name="ComputerName")
 		private String computerName;
-
-        @XmlElement(name="AdminUsername")
-        private String adminUsername;
 
         @XmlElement(name="AdminPassword")
 		private String adminPassword;
 		
 		@XmlElement(name="WinRm")
 		private WinRm winRm;
-		
-		@XmlElement(name = "HostName")
+
+        @XmlElement(name="AdminUsername")
+        private String adminUsername;
+
+        @XmlElement(name = "HostName")
 		private String hostName;
 
 		@XmlElement(name = "UserName")

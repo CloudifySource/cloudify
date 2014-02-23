@@ -10,7 +10,7 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 
-@XmlType(propOrder = { "configurationSetType", "hostName", "userName",
+@XmlType(propOrder = { "type",  "configurationSetType", "hostName", "userName",
 		"userPassword", "disableSshPasswordAuthentication" })
 public class LinuxProvisioningConfigurationSet extends ConfigurationSet {
 
@@ -20,10 +20,12 @@ public class LinuxProvisioningConfigurationSet extends ConfigurationSet {
 	private String userPassword;
 	private boolean disableSshPasswordAuthentication;
 
-    @XmlAttribute(name = "type")
+    @XmlAttribute(name="type")
     public String getType(){
         return "LinuxProvisioningConfigurationSet";
     }
+
+    public void setType(String type){}
 
 	@XmlElement(name = "HostName")
 	public String getHostName() {
