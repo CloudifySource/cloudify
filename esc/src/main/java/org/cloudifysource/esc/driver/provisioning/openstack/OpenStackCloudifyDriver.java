@@ -682,6 +682,23 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			throw new CloudProvisioningException(e);
 		}
 	}
+	
+	
+	private List<String> getServerIdsByPrefix(final String prefix) throws CloudProvisioningException {
+		List<String> serverIds = new ArrayList<String>();
+		try {
+			final List<NovaServer> servers = computeApi.getServersByPrefix(prefix);
+
+			for (NovaServer server : servers) {
+				serverIds.add(server.getId());
+			}
+		} catch (final Exception e) {
+			throw new CloudProvisioningException(e);
+		}
+		
+		return serverIds;
+	}
+	
 
 	private String createExistingServersDescription(final String managementMachinePrefix,
 			final MachineDetails[] existingManagementServers) {
@@ -1266,6 +1283,83 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 		return stopResult;
 	}
+	
+	
+	@Override
+	public void terminateAllResources(final long duration, final TimeUnit unit)
+			throws TimeoutException, CloudProvisioningException {
+		
+		// TODO: throw CloudProvisioningException, don't ignore everything
+		
+		logger.info("Attempting to terminate all cloud resources (timeout set to " + duration + " " + unit  + ")");
+		final long endTime = System.currentTimeMillis() + unit.toMillis(duration);
+		
+		try {
+			// terminating management machines
+			terminateMachinesByPrefix(cloud.getProvider().getManagementGroup(), endTime);
+			// terminating agent machines
+			terminateMachinesByPrefix(cloud.getProvider().getMachineNamePrefix(), endTime);
+			
+			// terminating security groups
+			try {
+				this.cleanAllSecurityGroups();
+			} catch (final Exception e) {
+				logger.warning("Couldn't clean security groups " + this.openstackPrefixes.getPrefix() + "*");
+				logger.warning("Reported error: " + e.getMessage() + ", stack trace: " + e.getStackTrace());
+			}
+
+			// terminating networks
+			try {
+				this.cleanAllNetworks();
+			} catch (final Exception e) {
+				logger.warning("Couldn't clean networks " + this.openstackPrefixes.getPrefix() + "*");
+				logger.warning("Reported error: " + e.getMessage() + ", stack trace: " + e.getStackTrace());
+			}
+			
+		} finally {
+			if (this.computeApi != null) {
+				this.computeApi.close();
+			}
+			if (this.networkApi != null) {
+				this.networkApi.close();
+			}
+		}
+		
+	}
+	
+	/**
+	 * Terminates all machines with the given prefix. Does not stop on exceptions.
+	 * @param prefix The machines prefix
+	 * @param endTime timeout
+	 */
+	private void terminateMachinesByPrefix(final String prefix, final long endTime) {
+		
+		try {
+			List<String> serverIds = getServerIdsByPrefix(prefix);
+			for (String serverId : serverIds) {
+				try {
+					this.releaseFloatingIpsForServerId(serverId);
+					this.computeApi.deleteServer(serverId);
+					this.waitForServerToBeShutdown(serverId, endTime);
+				} catch (final InterruptedException e) {
+					// TODO: wait was interrupted, log and continue
+					logger.warning("thread was interrupted while waiting for machine (" + serverId + ") to shutdown."
+							+ " continuing...");
+				} catch (final Exception e) {
+					logger.warning("Couldn't terminate machine " + serverId + ". Continuing to terminate resourcse."
+							+ " reported error: " + e.getMessage()
+							+ ", stack trace: " + e.getStackTrace());
+				}
+			}
+		} catch (CloudProvisioningException e) {
+			logger.warning("Failed to terminate servers with prefix: " + prefix + ", error while searching servers: " 
+					+ e.getMessage() + ", stack trace: " + e.getStackTrace());
+		}
+		
+		
+		
+	}
+	
 
 	private void releaseFloatingIpsForServerId(final String serverId) {
 		try {
@@ -1287,14 +1381,21 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			logger.log(Level.WARNING, "Could not release floating ip associated to server id='" + serverId + "'", e);
 		}
 	}
+	
 
 	private void waitForServerToBeShutdown(final String serverId, final long duration, final TimeUnit unit)
 			throws CloudProvisioningException, InterruptedException, TimeoutException {
 
 		logger.finer("Wait server '" + serverId + "' to shutdown (" + duration + " " + unit + ")");
-
 		final long endTime = System.currentTimeMillis() + unit.toMillis(duration);
-
+		waitForServerToBeShutdown(serverId, endTime);
+	}
+	
+	
+	private void waitForServerToBeShutdown(final String serverId, final long endTime)
+			throws CloudProvisioningException, InterruptedException, TimeoutException {
+		
+		logger.finest("Waiting for server '" + serverId + "' to shutdown");
 		while (System.currentTimeMillis() < endTime) {
 			final NovaServer server;
 			try {
@@ -1329,6 +1430,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		}
 
 		throw new TimeoutException("Node failed to reach SHUTDOWN mode in time");
+		
 	}
 
 	@Override

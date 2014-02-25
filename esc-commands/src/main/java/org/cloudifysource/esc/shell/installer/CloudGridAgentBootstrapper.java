@@ -641,7 +641,16 @@ public class CloudGridAgentBootstrapper {
 
 		createProvisioningDriver(false /* performValidation */);
 		ShellUtils.checkNotNull("providerDirectory", providerDirectory);
+		
+		if (terminateNow) {
+			try {
+				provisioning.terminateAllResources(timeout, timeoutUnit);	
+			} catch (final CloudProvisioningException e) {
+				throw new CLIException("Failed to terminate resources: " + e.getMessage(), e);
+			}
+		} else {
 		destroyManagementServers(CalcUtils.millisUntil(end), TimeUnit.MILLISECONDS);
+		}
 
 		if (StringUtils.isNotBlank(cloud.getConfiguration().getStorageClassName())) {
 			createStorageDriver();
@@ -681,6 +690,7 @@ public class CloudGridAgentBootstrapper {
 							+ "terminated.");
 				}
 			}
+		
 
 		logger.info("Terminating cloud machines");
 

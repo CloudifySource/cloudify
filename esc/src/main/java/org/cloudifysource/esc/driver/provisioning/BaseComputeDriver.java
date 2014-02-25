@@ -149,6 +149,23 @@ public abstract class BaseComputeDriver {
 			throws TimeoutException, CloudProvisioningException {
 		unsupported();
 	}
+	
+	/*************
+	 * Terminates all cloud resources, identified by their prefix.
+	 * 
+	 * @param duration
+	 *            time to wait for the shutdown operation.
+	 * @param unit
+	 *            time unit for the shutdown operations
+	 * @throws TimeoutException
+	 *             in case the operation exceeded the given timeout.
+	 * @throws CloudProvisioningException
+	 *             If the operation failed.
+	 */
+	public void terminateAllResources(final long duration, final TimeUnit unit)
+			throws TimeoutException, CloudProvisioningException {
+		unsupported();
+	}
 
 	/************
 	 * Returns the name of this cloud.
