@@ -320,8 +320,10 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 	private SecurityGroup createSecurityGroup(final String secgroupName) throws OpenstackException {
 		final SecurityGroup request = new SecurityGroup();
-		request.setName(secgroupName);
-		request.setDescription("Security groups " + secgroupName);
+		// Using '.' in security group name may cause security issues. see CLOUDIFY-2508.
+		final String validSecGroupName = secgroupName.replace('.', '-');
+		request.setName(validSecGroupName);
+		request.setDescription("Security groups " + validSecGroupName);
 		return networkApi.createSecurityGroupsIfNotExist(request);
 	}
 
@@ -410,7 +412,9 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 			final String groupName =
 					serverNamePrefix + this.configuration.getServiceName() + "-" + counter.incrementAndGet();
-			logger.fine("Starting a new cloud server with group: " + groupName);
+			// Using '.' in machine name may cause DNS and security group issues. See CLOUDIFY-2508.
+			final String validGroupName = groupName.replace('.', '-');
+			logger.fine("Starting a new cloud server with group: " + validGroupName);
 			final ComputeTemplate computeTemplate =
 					this.cloud.getCloudCompute().getTemplates().get(this.cloudTemplateName);
 			
