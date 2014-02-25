@@ -418,7 +418,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			final ComputeTemplate computeTemplate =
 					this.cloud.getCloudCompute().getTemplates().get(this.cloudTemplateName);
 			
-			final MachineDetails md = this.createServer(groupName, end, computeTemplate, context.getLocationId());
+			final MachineDetails md = this.createServer(validGroupName, end, computeTemplate, context.getLocationId());
 			return md;
 		} catch (final OpenstackException e) {
 			throw new CloudProvisioningException("Failed to start cloud machine", e);
