@@ -1317,7 +1317,6 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	public Object getExternalApi(final String apiName) throws InterruptedException,
 			ElasticMachineProvisioningException {
 		Object externalApi = null;
-		// TODO: (adaml) extract the names of the apis to constants.
 		if (apiName.equals(CloudifyConstants.STORAGE_REMOTE_API_KEY)) {
 			externalApi = new RemoteStorageProvisioningDriverAdapter(storageProvisioning, cloud.getCloudStorage().
 					getTemplates().get(storageTemplateName));
