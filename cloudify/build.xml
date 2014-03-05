@@ -76,6 +76,7 @@
 	<property name="cloudify.put.source" value="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
 	<property name="cloudify.put.target" value="org/cloudifysource/${s3.cloudify.dev.and.packages.publish.folder}/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />	
 	<property name="cloudify.put.community.target" value="org/cloudifysource/community/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.zip" />
+	<property name="cloudify.put.community.nightly.target" value="org/cloudifysource/community/gigaspaces-${cloudify}-nightly-build.zip" />
 	<property name="cloudify.gzip.put.source" value="${releases.dir}/build_${cloudify.build.number}/${cloudify}/1.5/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.tar.gz" />
 	<property name="cloudify.gzip.put.target" value="org/cloudifysource/${s3.cloudify.dev.and.packages.publish.folder}/gigaspaces-${cloudify}-${cloudify.version}-${cloudify.milestone}-b${cloudify.build.number}.tar.gz" />
 	<property name="bigdata.put.source" value="${releases.dir}/build_${gs.build.number}/${xap.bigdata.dir}/1.5/${xap.zip.name}" />
@@ -539,6 +540,7 @@
 
         <!-- conditional task (with property: publish.cloudify.build) -->
    		 <ant target="publish.cloudify.to.storage" />
+    	 <ant target="publish.cloudify.to.storage.nightly.build" />
  
     </target>
 
@@ -881,6 +883,19 @@
 			<arg value="-Dput.container=${cloudify.base.container}"/>
 		</exec>
 	</target>
+	
+	
+	<target name="publish.cloudify.to.storage.nightly.build">
+		<exec executable="${mvn.executable}">
+			<arg value="s3client:deploy-native" />
+			<arg value="-Dput.user=${put.user}" />
+			<arg value="-Dput.key=${put.key}" />
+			<arg value="-Dput.source=${cloudify.put.source}" />
+			<arg value="-Dput.target=${cloudify.put.community.nightly.target}" />
+			<arg value="-Dput.container=${cloudify.base.container}"/>
+		</exec>
+	</target>
+	
 	
 	<target name="publish.bigdata.to.storage" if="publish.cloudify.build">
 		
