@@ -16,7 +16,7 @@
  *  ******************************************************************************
  */
 
-package org.jclouds.softlayer.compute.functions;
+package org.jclouds.softlayer.compute.functions.guest;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
@@ -25,7 +25,9 @@ import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.NodeMetadataBuilder;
 import org.jclouds.compute.functions.GroupNamingConvention;
 import org.jclouds.domain.Location;
-import org.jclouds.softlayer.domain.VirtualGuest;
+import org.jclouds.softlayer.compute.functions.guest.VirtualGuestToNodeMetadata;
+import org.jclouds.softlayer.domain.SoftLayerNode;
+import org.jclouds.softlayer.domain.guest.VirtualGuest;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -61,14 +63,14 @@ public class VirtualGuestToReducedNodeMetaData extends VirtualGuestToNodeMetadat
     }
 
     @Override
-    public NodeMetadata apply(final VirtualGuest from) {
+    public NodeMetadata apply(final SoftLayerNode from) {
 
         // convert the result object to a jclouds NodeMetadata
         NodeMetadataBuilder builder = new NodeMetadataBuilder();
         builder.ids(from.getId() + "");
         builder.name(from.getHostname());
         builder.hostname(from.getHostname());
-        builder.status(serverStateToNodeStatus.get(from.getPowerState().getKeyName()));
+        builder.status(serverStateToNodeStatus.get(((VirtualGuest) from).getPowerState().getKeyName()));
         builder.group(nodeNamingConvention.groupInUniqueNameOrNull(from.getHostname()));
 
         // These are null for 'bad' guest orders in the HALTED state.
