@@ -29,7 +29,7 @@ import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
  * Base class for all compute driver implementations. A compute driver is a class that is responsible for allocating
  * compute resources for Cloudify service instances.
  * 
- * Includes some default implementations. This is the core
+ * Includes some default implementations. This is the core functionality of a cloud driver.
  * 
  * @author barakme
  * @since 2.7.0
