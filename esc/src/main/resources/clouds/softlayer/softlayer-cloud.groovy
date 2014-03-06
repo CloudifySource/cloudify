@@ -118,7 +118,7 @@ cloud {
 		 */
 		templates ([
 					// Mandatory. Template Name.
-					SMALL_LINUX : computeTemplate{
+					SMALL_LINUX : computeTemplate {
 						// Mandatory. Image ID.
 						imageId linuxImageId
 						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
@@ -149,7 +149,7 @@ cloud {
 	
 					},
                     // Mandatory. Template Name.
-                    SMALL_LINUX_BMI : computeTemplate{
+                    SMALL_LINUX_BMI : computeTemplate {
                         // Mandatory. Image ID.
                         imageId bmiLinuxImageId
                         // Mandatory. Files from the local directory will be copied to this directory on the remote machine.
@@ -172,8 +172,8 @@ cloud {
                                 "domainName":"cloudify.org"
                         ])
 
-                        custom ([
-                                "org.cloudifysource.softlayer.bmi":true
+                        overrides ([
+                                "jclouds.softlayer.package-id":50 // Use Bare Metal Instances Package
                         ])
 
                         // enable sudo.
@@ -181,10 +181,9 @@ cloud {
 
                         // optional. A native command line to be executed before the cloudify agent is started.
                         // initializationCommand "echo Cloudify agent is about to start"
-
                     },
-					
-                    MEDIUM_RH : computeTemplate{
+                    // Mandatory. Template Name.
+                    MEDIUM_RH : computeTemplate {
                        // Mandatory. Image ID.
                        imageId readHatLinuxImageId
                        // Mandatory. Files from the local directory will be copied to this directory on the remote machine.
@@ -213,9 +212,9 @@ cloud {
                       // optional. A native command line to be executed before the cloudify agent is started.
                       // initializationCommand "echo Cloudify agent is about to start"
 	
-                   }, 					
-					
-                   MEDIUM_UBUNTU : computeTemplate{
+                   },
+                   // Mandatory. Template Name.
+                   MEDIUM_UBUNTU : computeTemplate {
                        // Mandatory. Image ID.
                        imageId mediumUbuntuLinuxImageId
                        // Mandatory. Files from the local directory will be copied to this directory on the remote machine.
@@ -244,9 +243,41 @@ cloud {
                        // optional. A native command line to be executed before the cloudify agent is started.
                        // initializationCommand "echo Cloudify agent is about to start"
 
-                   }
+                   },
+                   // Mandatory. Template Name.
+                   BLU_FOR_CLOUD : computeTemplate {
+                       // Mandatory. Files from the local directory will be copied to this directory on the remote machine.
+                       remoteDirectory "/tmp/gs-files"
+                       // Mandatory. Amount of RAM available to machine.
+                       machineMemoryMB 1600
+                       // Mandatory. Hardware ID.
+                       hardwareId hardwareId
+                       // Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
+                       localDirectory "upload"
+                       // Optional. Name of key file to use for authenticating to the remote machine. Remove this line if key files
+                       // are not used.
+                       locationId locationId
+                       username "root"
 
-				])
+                       options ([
+                               "domainName":"cloudify.org"
+                       ])
+
+                       overrides ([
+                               "jclouds.softlayer.package-id":46,
+                               "jclouds.softlayer.flex-image-global-identifier":"5ad7a379-5252-4c19-a02a-1a5882f4fcbf"
+                       ])
+
+                       // when set to 'true', agent will automatically start after reboot.
+                       autoRestartAgent true
+
+                       // enable sudo.
+                       privileged true
+
+                       // optional. A native command line to be executed before the cloudify agent is started.
+                       // initializationCommand "echo Cloudify agent is about to start"
+                   }
+        ])
 	
 	}
 
