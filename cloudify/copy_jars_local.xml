@@ -65,9 +65,7 @@
     <target name="Copy softlayer jar to install dir" depends="">
         <echo message="Copying softlayer jar files to ${cloudify.home.dir}/lib/platform/esm"/>
         <copy overwrite="yes" todir="${cloudify.home.dir}/lib/platform/esm"
-              file="../esc/target/esc/lib/softlayer-fixed-1.6.2-incubating.jar"/>
-        <copy overwrite="yes" todir="${cloudify.home.dir}/lib/platform/esm"
-              file="../esc/target/esc/lib/softlayer-bmi-1.6.2-incubating.jar"/>
+              file="../esc/target/esc/lib/softlayer-all-1.6.2-incubating.jar"/>
     </target>
 
     <!--Cloud dev files -->
