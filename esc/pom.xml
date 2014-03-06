@@ -105,6 +105,12 @@
 			<groupId>org.apache.jclouds</groupId>
 			<artifactId>jclouds-allcompute</artifactId>
 			<version>${jcloudsVersion}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.jclouds.provider</groupId>
+                    <artifactId>softlayer</artifactId>
+                </exclusion>
+            </exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.cloudifysource</groupId>
