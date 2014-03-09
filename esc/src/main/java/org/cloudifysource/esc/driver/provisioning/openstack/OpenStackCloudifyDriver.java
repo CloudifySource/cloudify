@@ -65,7 +65,6 @@ import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServer;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServerNetwork;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServerResquest;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Port;
-import org.cloudifysource.esc.driver.provisioning.openstack.rest.Quota;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.RouteFixedIp;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Router;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.RouterExternalGatewayInfo;
@@ -1533,9 +1532,6 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 		// validating credentials
 		validateCredentials(validationContext);
-		
-		// validating quotas
-		validateQuotas(validationContext);
 
 		// validating management network/subnets configuration
 		final CloudNetwork cloudNetwork = configuration.getCloud().getCloudNetwork();
@@ -1982,51 +1978,6 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	}
 	
 	
-	private void validateQuotas(final ValidationContext validationContext) throws CloudProvisioningException {
-		validationContext.validationEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
-				getFormattedMessage("validating_quotas", asdad));
-		try {
-			Quota quota = networkApi.getQuotas();
-			validateRoutersQuota(Integer.parseInt(quota.getRouter()), validationContext);
-		} catch (OpenstackException ex) {
-			validationContext.validationEventEnd(ValidationResultType.ERROR);
-			throw new CloudProvisioningException(message);
-		}
-		
-	}
-	
-	private void validateRoutersQuota(final int routersQuota, final ValidationContext validationContext) {
-		try {			
-			validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
-					getFormattedMessage("validating_routers", asdad));
-			
-			// validate routers
-			if (networkHelper.isCreateExternalRouter()) {
-				logger.finest("routers quota: " + routersQuota);
-				
-				// the cloud driver will attempt to create 1 external router
-				int plannedRouters = 1;
-				logger.finest("planned routers: " + plannedRouters);
-				
-				// TODO noak: any better way to get current usage of routers?
-				int routersUsage = networkApi.getRouters().size();
-				logger.finest("routers usage: " + routersUsage);
-				
-				if (routersQuota - routersUsage >= plannedRouters) {
-					validationContext.validationEventEnd(ValidationResultType.OK);
-				} else {
-					validationContext.validationEventEnd(ValidationResultType.ERROR);
-					throw new CloudProvisioningException(message);
-				}
-			}
-			
-		} catch (OpenstackException ex) {
-			validationContext.validationEventEnd(ValidationResultType.ERROR);
-			throw new CloudProvisioningException(message);
-		}
-	}
-	
-
 	private String formatResourceList(final List<?> resources) {
 		final StringBuilder sb = new StringBuilder();
 		for (final Object resource : resources) {
