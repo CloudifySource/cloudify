@@ -56,13 +56,13 @@ public interface ValidationContext {
 	
 	/**
 	 * Publish the end result of an ongoing validation to the shell and log it.
-	 * If the validaed ended successfully - the message will be "[OK]", colored green.
-	 * If the validtion ended with a warning - the message will be "[WARNING]", colored yellow.
+	 * If the validation ended successfully - the message will be "[OK]", colored green.
+	 * If the validation ended with a warning - the message will be "[WARNING]", colored yellow.
 	 * if the validation failed - it will be "[ERROR]" colored red.
 	 *
-	 * @param validtionResultType
+	 * @param validationResultType
 	 *            indicates the validation end result (OK, Warning, Error)
 	 */
-	void validationEventEnd(final ValidationResultType validtionResultType);
+	void validationEventEnd(final ValidationResultType validationResultType);
 	
 }

@@ -1317,7 +1317,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			} catch (final Exception e) {
 				logger.warning("Couldn't clean security groups " + this.openstackPrefixes.getPrefix() + "*");
 				logger.warning("Reported error: " + e.getMessage() + ", stack trace: " + e.getStackTrace());
-			}
+				}
 
 			// terminating networks
 			try {
@@ -1325,7 +1325,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			} catch (final Exception e) {
 				logger.warning("Couldn't clean networks " + this.openstackPrefixes.getPrefix() + "*");
 				logger.warning("Reported error: " + e.getMessage() + ", stack trace: " + e.getStackTrace());
-			}
+				}
 			
 		} finally {
 			if (this.computeApi != null) {
@@ -1334,7 +1334,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			if (this.networkApi != null) {
 				this.networkApi.close();
 			}
-		}
+			}
 		
 	}
 	
@@ -1347,21 +1347,21 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		
 		try {
 			List<String> serverIds = getServerIdsByPrefix(prefix);
-			for (String serverId : serverIds) {
-				try {
-					this.releaseFloatingIpsForServerId(serverId);
-					this.computeApi.deleteServer(serverId);
-					this.waitForServerToBeShutdown(serverId, endTime);
-				} catch (final InterruptedException e) {
+		for (String serverId : serverIds) {
+			try {
+				this.releaseFloatingIpsForServerId(serverId);
+				this.computeApi.deleteServer(serverId);
+				this.waitForServerToBeShutdown(serverId, endTime);
+			} catch (final InterruptedException e) {
 					// TODO: wait was interrupted, log and continue
-					logger.warning("thread was interrupted while waiting for machine (" + serverId + ") to shutdown."
-							+ " continuing...");
-				} catch (final Exception e) {
+				logger.warning("thread was interrupted while waiting for machine (" + serverId + ") to shutdown."
+						+ " continuing...");
+			} catch (final Exception e) {
 					logger.warning("Couldn't terminate machine " + serverId + ". Continuing to terminate resourcse."
 							+ " reported error: " + e.getMessage()
-							+ ", stack trace: " + e.getStackTrace());
-				}
+						+ ", stack trace: " + e.getStackTrace());
 			}
+		}
 		} catch (CloudProvisioningException e) {
 			logger.warning("Failed to terminate servers with prefix: " + prefix + ", error while searching servers: " 
 					+ e.getMessage() + ", stack trace: " + e.getStackTrace());
@@ -1542,11 +1542,11 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		// validating credentials
 		validateCredentials(validationContext);
 		
-		// validate network quotas
-		validateNetworkQuotas(validationContext);
-		
 		// validate compute quotas
 		validateComputeQuotas(validationContext, managementComputeTemplate);
+		
+		// validate network quotas
+		validateNetworkQuotas(validationContext);
 
 		// validating management network/subnets configuration
 		final CloudNetwork cloudNetwork = configuration.getCloud().getCloudNetwork();
@@ -1567,23 +1567,41 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			final ComputeTemplate managementComputeTemplate)
 			throws CloudProvisioningException {
 		try {
+			
+			validationContext.validationOngoingEvent(ValidationMessageType.GROUP_VALIDATION_MESSAGE, 
+					"Validating compute quotas");
+			
 			final ComputeLimits limits = this.computeApi.getLimits();
 			if (limits == null) {
-				throw new OpenstackException(
-						"Failed getting cloud compute quotas.");
+				validationContext.validationEventEnd(ValidationResultType.ERROR);
+				logger.warning("Failed to retrieve compute limits, skipping compute quotas validation");
+				return;
+				// TODO: where is the actual call to the validations?
+				// TODO noak: fail the bootstrap on this?
+				// throw new OpenstackException("Failed getting cloud compute quotas.");
 			}
+			validationContext.validationEventEnd(ValidationResultType.OK);
 		} catch (final OpenstackException e) {
 			validationContext.validationEventEnd(ValidationResultType.ERROR);
-			throw new CloudProvisioningException(
-					"Failed validating cloud compute resources. Reason: "
-							+ e.getMessage(), e);
+			// TODO noak: fail the bootstrap on this?
+			throw new CloudProvisioningException("Failed validating cloud compute resources. Reason: "
+					+ e.getMessage(), e);
 		}
 
 	}
 
 	private void validateNetworkQuotas(final ValidationContext validationContext) throws CloudProvisioningException {
 		try {
+			// TODO noak use getFormattedMessage
+			validationContext.validationOngoingEvent(ValidationMessageType.GROUP_VALIDATION_MESSAGE, 
+					"Validating network quotas");
 			final String tenantId = computeApi.getTenantId();
+			if (StringUtils.isBlank(tenantId)) {
+				validationContext.validationEventEnd(ValidationResultType.ERROR);
+				logger.info("Failed to retrieve tenant id, skipping network quotas validation");
+				return;
+			}
+			
 			final Quota quotas = this.networkApi.getQuotasForTenant(tenantId);
 			if (quotas == null) {
 				throw new OpenstackException("Failed getting network quotas.");
@@ -1595,14 +1613,15 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			validateNetworksQuota(validationContext, quotas.getNetwork(), tenantId);
 			validateSubnetsQuota(validationContext, quotas.getSubnet(), tenantId);
 			validateFloatingIpsQuota(validationContext, quotas.getFloatingip());
-
+			validationContext.validationEventEnd(ValidationResultType.OK);
 		} catch (final OpenstackException e) {
 			validationContext.validationEventEnd(ValidationResultType.ERROR);
+			logger.info("Failed to retrieve tenant id, skipping network quotas validation");
+			// TODO noak: should we throw an exception and fail bootstrap on this?
 			throw new CloudProvisioningException(
 					"Failed validating cloud network resources. Reason: "
 							+ e.getMessage(), e);
 		}
-		validationContext.validationEventEnd(ValidationResultType.OK);
 
 	}
 		
