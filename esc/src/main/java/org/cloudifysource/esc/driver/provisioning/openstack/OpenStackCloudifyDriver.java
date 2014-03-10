@@ -59,6 +59,7 @@ import org.cloudifysource.esc.driver.provisioning.MachineDetails;
 import org.cloudifysource.esc.driver.provisioning.ManagementProvisioningContext;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningContext;
 import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
+import org.cloudifysource.esc.driver.provisioning.openstack.rest.ComputeLimits;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.FloatingIp;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Network;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServer;
@@ -1561,18 +1562,18 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			final ValidationContext validationContext,
 			final ComputeTemplate managementComputeTemplate)
 			throws CloudProvisioningException {
-//		try {
-//			final ComputeLimits limits = this.computeApi.getLimits();
-//			if (limits == null) {
-//				throw new OpenstackException(
-//						"Failed getting cloud compute quotas.");
-//			}
-//		} catch (final OpenstackException e) {
-//			validationContext.validationEventEnd(ValidationResultType.ERROR);
-//			throw new CloudProvisioningException(
-//					"Failed validating cloud compute resources. Reason: "
-//							+ e.getMessage(), e);
-//		}
+		try {
+			final ComputeLimits limits = this.computeApi.getLimits();
+			if (limits == null) {
+				throw new OpenstackException(
+						"Failed getting cloud compute quotas.");
+			}
+		} catch (final OpenstackException e) {
+			validationContext.validationEventEnd(ValidationResultType.ERROR);
+			throw new CloudProvisioningException(
+					"Failed validating cloud compute resources. Reason: "
+							+ e.getMessage(), e);
+		}
 
 	}
 

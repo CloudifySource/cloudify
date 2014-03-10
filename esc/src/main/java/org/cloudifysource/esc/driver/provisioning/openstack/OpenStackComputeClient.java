@@ -18,6 +18,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.esc.driver.provisioning.openstack.rest.ComputeLimits;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Flavor;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Image;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServer;
@@ -288,4 +289,27 @@ public class OpenStackComputeClient extends OpenStackBaseClient {
 		this.doDelete("servers/" + serverId, CODE_OK_204);
 	}
 	
+	/**
+	 * Returns the compute resource limit such as 
+	 * 					max total cores and max total memory. 
+	 * @return
+	 * 		An object containing compute resource limit data. 
+	 * @throws OpenstackException
+	 * 			 Thrown when something went wrong with the request.
+	 */
+	public ComputeLimits getLimits() throws OpenstackException {
+		final String response;
+		try {
+			response = doGet("limits");
+			logger.info(response);
+		} catch (final OpenstackServerException e) {
+			if (RESOURCE_NOT_FOUND_STATUS == e.getStatusCode()) {
+				return null;
+			}
+			throw e;
+		}
+
+		final ComputeLimits limits = JsonUtils.unwrapRootToObject(ComputeLimits.class, response, false);
+		return limits;
+	}
 }
