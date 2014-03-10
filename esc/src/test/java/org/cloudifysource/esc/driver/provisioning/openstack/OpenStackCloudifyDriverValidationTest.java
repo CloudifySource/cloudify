@@ -14,7 +14,6 @@ import org.cloudifysource.esc.driver.provisioning.validation.ValidationMessageTy
 import org.cloudifysource.esc.driver.provisioning.validation.ValidationResultType;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -78,7 +77,6 @@ public class OpenStackCloudifyDriverValidationTest {
 	}
 
 	@Test
-	@Ignore
 	public void testOKTemplate() throws Exception {
 		try {
 
