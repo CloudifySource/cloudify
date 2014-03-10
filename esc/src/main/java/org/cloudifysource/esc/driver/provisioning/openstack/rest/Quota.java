@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 GigaSpaces Technologies Ltd. All rights reserved
+ * Copyright (c) 2014 GigaSpaces Technologies Ltd. All rights reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,76 +27,90 @@ import org.codehaus.jackson.map.annotate.JsonRootName;
 @JsonRootName("quota")
 public class Quota {
 
-	private String subnet;
-	private String network;
-	private String floatingip;
+	private int subnet;
+	private int network;
+	private int floatingip;
 	@JsonProperty("security_group_rule")
-	private String securityGroupRule;
+	private int securityGroupRule;
 	@JsonProperty("security_group")
-	private String securityGroup;
-	private String router;
-	private String port;
+	private int securityGroup;
+	private int router;
+	private int port;
 	
-	
-	public String getSubnet() {
-		return subnet;
-	}
-	
-	public void setSubnet(final String subnet) {
-		this.subnet = subnet;
-	}
-	
-	public String getNetwork() {
-		return network;
-	}
-	
-	public void setNetwork(final String network) {
-		this.network = network;
-	}
-	
-	public String getFloatingip() {
-		return floatingip;
-	}
-	
-	public void setFloatingip(final String floatingip) {
-		this.floatingip = floatingip;
-	}
-	
-	public String getSecurityGroupRule() {
-		return securityGroupRule;
-	}
-	
-	public void setSecurityGroupRule(final String securityGroupRule) {
-		this.securityGroupRule = securityGroupRule;
-	}
-	
-	public String getSecurityGroup() {
-		return securityGroup;
-	}
-	
-	public void setSecurityGroup(final String securityGroup) {
-		this.securityGroup = securityGroup;
-	}
-	
-	public String getRouter() {
-		return router;
-	}
-	
-	public void setRouter(final String router) {
-		this.router = router;
-	}
-	
-	public String getPort() {
-		return port;
-	}
-	
-	public void setPort(final String port) {
-		this.port = port;
-	}
 	
 	@Override
 	public String toString() {
 		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
 	}
-	
+
+
+	public int getSubnet() {
+		return subnet;
+	}
+
+
+	public void setSubnet(final int subnet) {
+		this.subnet = subnet;
+	}
+
+
+	public int getNetwork() {
+		return network;
+	}
+
+
+	public void setNetwork(final int network) {
+		this.network = network;
+	}
+
+
+	public int getFloatingip() {
+		return floatingip;
+	}
+
+
+	public void setFloatingip(final int floatingip) {
+		this.floatingip = floatingip;
+	}
+
+
+	public int getSecurityGroupRule() {
+		return securityGroupRule;
+	}
+
+
+	public void setSecurityGroupRule(final int securityGroupRule) {
+		this.securityGroupRule = securityGroupRule;
+	}
+
+
+	public int getSecurityGroup() {
+		return securityGroup;
+	}
+
+
+	public void setSecurityGroup(final int securityGroup) {
+		this.securityGroup = securityGroup;
+	}
+
+
+	public int getRouter() {
+		return router;
+	}
+
+
+	public void setRouter(final int router) {
+		this.router = router;
+	}
+
+
+	public int getPort() {
+		return port;
+	}
+
+
+	public void setPort(final int port) {
+		this.port = port;
+	}
+
 }

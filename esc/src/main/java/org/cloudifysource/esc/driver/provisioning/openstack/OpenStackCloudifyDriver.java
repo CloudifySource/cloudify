@@ -65,6 +65,7 @@ import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServer;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServerNetwork;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServerResquest;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Port;
+import org.cloudifysource.esc.driver.provisioning.openstack.rest.Quota;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.RouteFixedIp;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Router;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.RouterExternalGatewayInfo;
@@ -94,6 +95,9 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	private static final String MANAGEMENT_PUBLIC_ROUTER_NAME = "management-public-router";
 	private static final String DEFAULT_PROTOCOL = "tcp";
 	private static final String OPENSTACK_COMPUTE_ZONE = "openstack.compute.zone";
+	
+	private static final int DEFAULT_SECURITY_GROUPS_COUNT = 3;
+	private static final int DEFAULT_SECURITY_GROUP_RULES = 20;
 
 	private static final int MANAGEMENT_SHUTDOWN_TIMEOUT = 60; // 60 seconds
 	private static final int CLOUD_NODE_STATE_POLLING_INTERVAL = 2000;
@@ -1532,6 +1536,12 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 		// validating credentials
 		validateCredentials(validationContext);
+		
+		// validate network quotas
+		validateNetworkQuotas(validationContext);
+		
+		// validate compute quotas
+		validateComputeQuotas(validationContext, managementComputeTemplate);
 
 		// validating management network/subnets configuration
 		final CloudNetwork cloudNetwork = configuration.getCloud().getCloudNetwork();
@@ -1545,6 +1555,89 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		// validating templates
 		this.validateComputeTemplates(validationContext, groovyFile, propertiesFile, templates);
 
+	}
+	
+	private void validateComputeQuotas(
+			final ValidationContext validationContext,
+			final ComputeTemplate managementComputeTemplate)
+			throws CloudProvisioningException {
+//		try {
+//			final ComputeLimits limits = this.computeApi.getLimits();
+//			if (limits == null) {
+//				throw new OpenstackException(
+//						"Failed getting cloud compute quotas.");
+//			}
+//		} catch (final OpenstackException e) {
+//			validationContext.validationEventEnd(ValidationResultType.ERROR);
+//			throw new CloudProvisioningException(
+//					"Failed validating cloud compute resources. Reason: "
+//							+ e.getMessage(), e);
+//		}
+
+	}
+
+	private void validateNetworkQuotas(final ValidationContext validationContext) throws CloudProvisioningException {
+		try {
+			
+			final Quota quotas = this.networkApi.getQuotasForTenant(this.computeApi.getTenantId());
+			if (quotas == null) {
+				throw new OpenstackException("Failed getting network quotas.");
+			}
+			validateSecurityGroupsQuota(validationContext, quotas.getSecurityGroup());
+			validateSecurityGroupRulesQuota(validationContext, quotas.getSecurityGroupRule());
+//			validateNetworksQuota(validationContext, quotas.getNetwork());
+
+		} catch (final OpenstackException e) {
+			validationContext.validationEventEnd(ValidationResultType.ERROR);
+			throw new CloudProvisioningException(
+					"Failed validating cloud network resources. Reason: "
+							+ e.getMessage(), e);
+		}
+		validationContext.validationEventEnd(ValidationResultType.OK);
+
+	}
+
+	private void validateSecurityGroupRulesQuota(final ValidationContext validationContext,
+			final int limit) throws CloudProvisioningException {
+		validationContext.validationOngoingEvent(
+				ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+								getFormattedMessage("validating_security_group_rules_quota"));
+		final List<SecurityGroup> securityGroups;
+		try {
+			securityGroups = this.networkApi.getSecurityGroups();
+		} catch (OpenstackException e) {
+			throw new CloudProvisioningException(
+					"Error requesting security groups.", e);
+		}
+		int ruleCount = 0;
+		for (final SecurityGroup securityGroup : securityGroups) {
+			ruleCount += securityGroup.getSecurityGroupRules().length;
+		}
+		if (ruleCount + DEFAULT_SECURITY_GROUP_RULES > limit) {
+			throw new CloudProvisioningException(getFormattedMessage("resource_validation_failure",
+					"Security-group rules", limit, ruleCount, DEFAULT_SECURITY_GROUP_RULES));
+		}
+		validationContext.validationEventEnd(ValidationResultType.OK);
+
+	}
+
+	private void validateSecurityGroupsQuota(final ValidationContext validationContext,
+			final int limit) throws CloudProvisioningException {
+		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+				 				getFormattedMessage("validating_security_groups_quota"));
+		final List<SecurityGroup> securityGroups;
+		try {
+			securityGroups = this.networkApi.getSecurityGroups();
+		} catch (OpenstackException e) {
+			throw new CloudProvisioningException(
+					"Error requesting security groups.", e);
+		}
+		
+		if (securityGroups.size() + DEFAULT_SECURITY_GROUPS_COUNT > limit) {
+			throw new CloudProvisioningException(getFormattedMessage("resource_validation_failure",
+					"Security-groups", limit, securityGroups.size(), DEFAULT_SECURITY_GROUPS_COUNT));
+		}
+		validationContext.validationEventEnd(ValidationResultType.OK);
 	}
 
 	private void validateCredentials(final ValidationContext validationContext)
