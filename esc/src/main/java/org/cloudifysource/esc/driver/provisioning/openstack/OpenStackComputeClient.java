@@ -301,7 +301,6 @@ public class OpenStackComputeClient extends OpenStackBaseClient {
 		final String response;
 		try {
 			response = doGet("limits");
-			logger.info(response);
 		} catch (final OpenstackServerException e) {
 			if (RESOURCE_NOT_FOUND_STATUS == e.getStatusCode()) {
 				return null;

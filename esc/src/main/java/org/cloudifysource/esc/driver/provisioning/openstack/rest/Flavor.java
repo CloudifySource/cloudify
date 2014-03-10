@@ -25,6 +25,8 @@ import org.codehaus.jackson.map.annotate.JsonRootName;
 public class Flavor {
 	private String name;
 	private String id;
+	private int vcpus;
+	private int ram;
 
 	public String getName() {
 		return name;
@@ -42,6 +44,22 @@ public class Flavor {
 		this.id = id;
 	}
 
+	public int getVcpus() {
+		return vcpus;
+	}
+
+	public void setVcpus(final int vcpus) {
+		this.vcpus = vcpus;
+	}
+	
+	public int getRam() {
+		return ram;
+	}
+
+	public void setRam(final int ram) {
+		this.ram = ram;
+	}
+	
 	@Override
 	public String toString() {
 		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);

@@ -60,6 +60,7 @@ import org.cloudifysource.esc.driver.provisioning.ManagementProvisioningContext;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningContext;
 import org.cloudifysource.esc.driver.provisioning.context.ValidationContext;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.ComputeLimits;
+import org.cloudifysource.esc.driver.provisioning.openstack.rest.Flavor;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.FloatingIp;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.Network;
 import org.cloudifysource.esc.driver.provisioning.openstack.rest.NovaServer;
@@ -99,6 +100,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	
 	private static final int DEFAULT_SECURITY_GROUPS_COUNT = 3;
 	private static final int DEFAULT_SECURITY_GROUP_RULES = 20;
+	private static final int UNLIMITED_RESOURCE_QUOTA = -1;
 
 	private static final int MANAGEMENT_SHUTDOWN_TIMEOUT = 60; // 60 seconds
 	private static final int CLOUD_NODE_STATE_POLLING_INTERVAL = 2000;
@@ -1558,23 +1560,101 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 	}
 	
-	private void validateComputeQuotas(
-			final ValidationContext validationContext,
-			final ComputeTemplate managementComputeTemplate)
-			throws CloudProvisioningException {
+	private void validateComputeQuotas(final ValidationContext validationContext, 
+			final ComputeTemplate managementComputeTemplate) throws CloudProvisioningException {
 		try {
 			final ComputeLimits limits = this.computeApi.getLimits();
 			if (limits == null) {
 				throw new OpenstackException(
 						"Failed getting cloud compute quotas.");
 			}
+			final int coreLimit = limits.getLimits().getMaxTotalCores();
+			final int ramLimit = limits.getLimits().getMaxTotalRAMSize();
+			final int instanceLimit = limits.getLimits().getMaxTotalInstances();
+			final int numOfManagementMachines = cloud.getProvider().getNumberOfManagementMachines();
+
+			final List<NovaServer> servers = this.computeApi.getServers();
+			if (servers == null) {
+				throw new OpenstackException("Failed getting list of servers");
+			}
+			validateInstanceQuota(validationContext, instanceLimit,
+					numOfManagementMachines, servers);
+			validateCoreAndRamQuota(validationContext,
+					managementComputeTemplate, coreLimit, ramLimit, numOfManagementMachines, servers);
 		} catch (final OpenstackException e) {
 			validationContext.validationEventEnd(ValidationResultType.ERROR);
 			throw new CloudProvisioningException(
 					"Failed validating cloud compute resources. Reason: "
 							+ e.getMessage(), e);
 		}
+	}
 
+	void validateCoreAndRamQuota(final ValidationContext validationContext,
+			final ComputeTemplate managementComputeTemplate,
+			final int coreLimit, final int ramLimit,
+			final int numOfManagementMachines, final List<NovaServer> servers)
+			throws OpenstackException, CloudProvisioningException {
+		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+				getFormattedMessage("validating_total_cores_quota"));
+		int existingVcpus = 0;
+		int existingRam = 0;
+		final List<Flavor> flavors = computeApi.getFlavors();
+		for (final NovaServer novaServer : servers) {
+			final NovaServer serverDetails = this.computeApi.getServerDetails(novaServer.getId());
+			for (final Flavor flavor : flavors) {
+				if (flavor.getId().equals(serverDetails.getFlavor().getId())) {
+					existingVcpus += flavor.getVcpus();
+					existingRam += flavor.getRam();
+					break;
+				}
+			}
+		}
+		final String managementHardwareId = managementComputeTemplate.getHardwareId().split("/")[1];
+		Flavor managementFlavor = null; 
+		for (final Flavor flavor : flavors) {
+			if (flavor.getId().equals(managementHardwareId)) {
+				managementFlavor = computeApi.getFlavor(managementHardwareId);
+				break;
+			}
+		}
+		if (managementFlavor == null) {
+			throw new OpenstackException("Management flavor with ID: " 
+										+ managementHardwareId + " could not be found.");
+		}
+
+		final int requiredVcpus = managementFlavor.getVcpus() * numOfManagementMachines;
+		if (coreLimit != UNLIMITED_RESOURCE_QUOTA) {
+			if (existingVcpus + requiredVcpus > coreLimit) {
+				throw new CloudProvisioningException(getFormattedMessage("resource_validation_failure",
+						"virual cpus", coreLimit, existingVcpus, requiredVcpus));
+			}
+		}
+		validationContext.validationEventEnd(ValidationResultType.OK);
+		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+				getFormattedMessage("validating_total_ram_quota"));
+		final int requiredRam = managementFlavor.getRam() * numOfManagementMachines;
+		if (coreLimit != UNLIMITED_RESOURCE_QUOTA) {
+			if (existingRam + requiredRam > ramLimit) {
+				throw new CloudProvisioningException(getFormattedMessage("resource_validation_failure",
+						"RAM", ramLimit, existingRam, requiredRam));
+			}
+		}
+		validationContext.validationEventEnd(ValidationResultType.OK);
+	}
+
+	void validateInstanceQuota(final ValidationContext validationContext,
+			final int instanceLimit, final int numOfManagementMachines,
+			final List<NovaServer> servers) throws CloudProvisioningException {
+		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+				getFormattedMessage("validating_total_instances_quota"));
+		final int numOfActiveServers = servers.size();
+		if (instanceLimit != UNLIMITED_RESOURCE_QUOTA) {
+			if (numOfManagementMachines + numOfActiveServers > instanceLimit) {
+				throw new CloudProvisioningException(getFormattedMessage("resource_validation_failure",
+						"server instances", instanceLimit, numOfActiveServers, numOfManagementMachines));
+			}
+		}
+		validationContext.validationEventEnd(ValidationResultType.OK);
 	}
 
 	private void validateNetworkQuotas(final ValidationContext validationContext) throws CloudProvisioningException {
