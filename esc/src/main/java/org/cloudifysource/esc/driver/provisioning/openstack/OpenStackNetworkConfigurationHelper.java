@@ -377,11 +377,11 @@ class OpenStackNetworkConfigurationHelper {
 	}
 
 	/***
-	 * Returns <code>false</code> if the configuration need has specified an external network to use.
+	 * Returns <code>true</code> if the configuration specifies an external network to use.
 	 * 
-	 * @return Returns <code>false</code> if the configuration need has specified an external network to use.
+	 * @return Returns <code>false</code> if the configuration requires creating an external network.
 	 */
-	public boolean isExternalNetworkNameSpecified() {
+	public boolean isCreateExternalNetwork() {
 		return this.getExternalNetworkName() == null;
 	}
 

@@ -130,6 +130,21 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 		}
 		return null;
 	}
+	
+	
+	/**
+	 * Retrieve floating IPs.
+	 * 
+	 * @return The list of floating IPs
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
+	 */
+	public List<FloatingIp> getFloatingIps() throws OpenstackException {
+		final String response = this.doGet("floatingips");
+		final List<FloatingIp> floatingips = JsonUtils.unwrapRootToList(FloatingIp.class, response);
+		return floatingips;
+	}
+	
 
 	/**
 	 * Allocation a floating ip for a network.
@@ -356,6 +371,21 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 		}
 		return routers.get(0);
 	}
+	
+	
+	/**
+	 * Retrieve routers by tenant id.
+	 * 
+	 * @param tenantId
+	 *            The tenant's id.
+	 * @return The router matching the tenant id.
+	 * @throws OpenstackException
+	 *             Thrown if something went wrong with the request.
+	 */
+	public List<Router> getRoutersByTenantId(final String tenantId) throws OpenstackException {
+		final String response = this.doGet("routers", new String[] { "tenant_id", tenantId });
+		return JsonUtils.unwrapRootToList(Router.class, response);
+	}
 
 	/**
 	 * Create a network if its not already exists.<br />
@@ -491,7 +521,8 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 		}
 		return null;
 	}
-
+	
+	
 	/**
 	 * Returns networks.
 	 * 
@@ -501,10 +532,21 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 	 */
 	public List<Network> getNetworks() throws OpenstackException {
 		final String response = this.doGet("networks");
-		final List<Network> list = JsonUtils.unwrapRootToList(Network.class, response);
-
-		return list;
+		return JsonUtils.unwrapRootToList(Network.class, response);	}
+	
+	
+	/**
+	 * Returns networks of the given tenant id.
+	 * @param tenantId The id of the tenant
+	 * @return a list of networks
+	 * @throws OpenstackException
+	 *             Thrown if something went wrong with the request.
+	 */
+	public List<Network> getNetworksByTenantId(final String tenantId) throws OpenstackException {
+		final String response = this.doGet("networks", new String[] { "tenant_id", tenantId });
+		return JsonUtils.unwrapRootToList(Network.class, response);		
 	}
+	
 
 	/**
 	 * Retrieve networks with a prefix name.
@@ -724,6 +766,22 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 		}
 		return null;
 	}
+	
+	
+	/**
+	 * Retrieve existing security groups by tenant id.
+	 * 
+	 * @param tenantId
+	 *            The tenant's id.
+	 * @return A list of security groups that match the specified tenant id.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
+	 */
+	public List<SecurityGroup> getSecurityGroupsByTenantId(final String tenantId) throws OpenstackException {
+		final String response = this.doGet("security-groups", new String[] { "tenant_id", tenantId });
+		return JsonUtils.unwrapRootToList(SecurityGroup.class, response);
+	}
+
 
 	/**
 	 * Returns existing security groups.
@@ -838,6 +896,22 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 	public void deleteSecurityGroupRule(final String securityGroupRuleId) throws OpenstackException {
 		this.doDelete("security-group-rules/" + securityGroupRuleId, CODE_OK_204);
 	}
+	
+	
+	/**
+	 * Retrieve existing security groups by tenant id.
+	 * 
+	 * @param tenantId
+	 *            The tenant's id.
+	 * @return A list of security groups that match the specified tenant id.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
+	 */
+	public List<SecurityGroupRule> getSecurityGroupRulesByTenantId(final String tenantId) throws OpenstackException {
+		final String response = this.doGet("security-group-rules", new String[] { "tenant_id", tenantId });
+		return JsonUtils.unwrapRootToList(SecurityGroupRule.class, response);
+	}
+	
 
 	/**
 	 * Create a subnet.
@@ -866,11 +940,11 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 	}
 
 	/**
-	 * Get all subnet of a given network.
+	 * Get all subnets of a given network.
 	 * 
 	 * @param networkId
 	 *            The network id.
-	 * @return A list of subnets belonging to a network.
+	 * @return A list of subnets associated to a network.
 	 * @throws OpenstackException
 	 *             Thrown when something went wrong with the request.
 	 */
@@ -881,7 +955,7 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 	}
 
 	/**
-	 * Get all subnet of a given network.
+	 * Get all subnets of a given network.
 	 * 
 	 * @param networkName
 	 *            The network name.
@@ -895,6 +969,44 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 			return this.getSubnetsByNetworkId(network.getId());
 		}
 		return null;
+	}
+	
+	
+	/**
+	 * Get all subnets associated with the networks of the given tenant id.
+	 * 
+	 * @param tenantId
+	 *            The network id.
+	 * @return A list of subnets associated with the networks of the given tenant id.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
+	 */
+	public List<Subnet> getSubnetsByTenantId(final String tenantId) throws OpenstackException {
+		final List<Subnet> subnets = new ArrayList<Subnet>();
+		final List<Network> tenantNetworks = this.getNetworksByTenantId(tenantId);
+		for (Network tenantNetwork : tenantNetworks) {
+			subnets.addAll(getSubnetsByNetworkId(tenantNetwork.getId()));
+		}
+		
+		return subnets;
+	}
+	
+	
+	/**
+	 * Get all subnets visible to this tenant.
+	 * 
+	 * @return A list of subnets belonging to a network.
+	 * @throws OpenstackException
+	 *             Thrown when something went wrong with the request.
+	 */
+	public List<Subnet> getSubnets() throws OpenstackException {
+		final List<Subnet> subnets = new ArrayList<Subnet>();
+		final List<Network> networks = this.getNetworks();
+		for (Network network : networks) {
+			subnets.addAll(getSubnetsByNetworkId(network.getId()));
+		}
+		
+		return subnets;
 	}
 	
 	
@@ -927,4 +1039,6 @@ public class OpenStackNetworkClient extends OpenStackBaseClient {
 		final String response = this.doGet("quotas/" + tenantId);
 		return JsonUtils.unwrapRootToObject(Quota.class, response);
 	}
+	
+	
 }

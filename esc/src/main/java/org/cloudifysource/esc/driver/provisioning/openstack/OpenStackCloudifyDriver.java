@@ -97,8 +97,12 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	private static final String DEFAULT_PROTOCOL = "tcp";
 	private static final String OPENSTACK_COMPUTE_ZONE = "openstack.compute.zone";
 	
+	private static final int UNLIMITED_RESOURCE_QUOTA = -1;
+
 	private static final int DEFAULT_SECURITY_GROUPS_COUNT = 3;
 	private static final int DEFAULT_SECURITY_GROUP_RULES = 20;
+	private static final int DEFAULT_ROUTERS_COUNT = 1;
+	private static final int DEFAULT_MGMT_NETWORKS_COUNT = 1;
 
 	private static final int MANAGEMENT_SHUTDOWN_TIMEOUT = 60; // 60 seconds
 	private static final int CLOUD_NODE_STATE_POLLING_INTERVAL = 2000;
@@ -509,7 +513,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		final Router router;
 		if (this.networkHelper.isCreateExternalRouter()) {
 			final String publicNetworkId;
-			if (this.networkHelper.isExternalNetworkNameSpecified()) {
+			if (this.networkHelper.isCreateExternalNetwork()) {
 				publicNetworkId = networkApi.getPublicNetworkId();
 			} else {
 				final Network extNetwork = networkApi.getNetworkByName(this.networkHelper.getExternalNetworkName());
@@ -1579,14 +1583,18 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 	private void validateNetworkQuotas(final ValidationContext validationContext) throws CloudProvisioningException {
 		try {
-			
-			final Quota quotas = this.networkApi.getQuotasForTenant(this.computeApi.getTenantId());
+			final String tenantId = computeApi.getTenantId();
+			final Quota quotas = this.networkApi.getQuotasForTenant(tenantId);
 			if (quotas == null) {
 				throw new OpenstackException("Failed getting network quotas.");
 			}
-			validateSecurityGroupsQuota(validationContext, quotas.getSecurityGroup());
-			validateSecurityGroupRulesQuota(validationContext, quotas.getSecurityGroupRule());
-//			validateNetworksQuota(validationContext, quotas.getNetwork());
+			
+			validateSecurityGroupsQuota(validationContext, quotas.getSecurityGroup(), tenantId);
+			validateSecurityGroupRulesQuota(validationContext, quotas.getSecurityGroupRule(), tenantId);
+			validateRoutersQuota(validationContext, quotas.getRouter(), tenantId);
+			validateNetworksQuota(validationContext, quotas.getNetwork(), tenantId);
+			validateSubnetsQuota(validationContext, quotas.getSubnet(), tenantId);
+			validateFloatingIpsQuota(validationContext, quotas.getFloatingip());
 
 		} catch (final OpenstackException e) {
 			validationContext.validationEventEnd(ValidationResultType.ERROR);
@@ -1597,49 +1605,266 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		validationContext.validationEventEnd(ValidationResultType.OK);
 
 	}
+		
 
-	private void validateSecurityGroupRulesQuota(final ValidationContext validationContext,
-			final int limit) throws CloudProvisioningException {
-		validationContext.validationOngoingEvent(
-				ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
-								getFormattedMessage("validating_security_group_rules_quota"));
-		final List<SecurityGroup> securityGroups;
-		try {
-			securityGroups = this.networkApi.getSecurityGroups();
-		} catch (OpenstackException e) {
-			throw new CloudProvisioningException(
-					"Error requesting security groups.", e);
-		}
-		int ruleCount = 0;
-		for (final SecurityGroup securityGroup : securityGroups) {
-			ruleCount += securityGroup.getSecurityGroupRules().length;
-		}
-		if (ruleCount + DEFAULT_SECURITY_GROUP_RULES > limit) {
-			throw new CloudProvisioningException(getFormattedMessage("resource_validation_failure",
-					"Security-group rules", limit, ruleCount, DEFAULT_SECURITY_GROUP_RULES));
-		}
-		validationContext.validationEventEnd(ValidationResultType.OK);
-
-	}
-
-	private void validateSecurityGroupsQuota(final ValidationContext validationContext,
-			final int limit) throws CloudProvisioningException {
+	private void validateSecurityGroupsQuota(final ValidationContext validationContext, final int securityGroupsQuota,
+			final String tenantId) throws CloudProvisioningException {
+		
+		int securityGroupsUsage = 0;
+		
 		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
 				 				getFormattedMessage("validating_security_groups_quota"));
-		final List<SecurityGroup> securityGroups;
-		try {
-			securityGroups = this.networkApi.getSecurityGroups();
-		} catch (OpenstackException e) {
-			throw new CloudProvisioningException(
-					"Error requesting security groups.", e);
+		logger.finest("security groups quota: " + securityGroupsQuota);
+		
+		// if there is no quota (quota = -1) - no need to perform any comparison
+		if (UNLIMITED_RESOURCE_QUOTA == securityGroupsQuota) {
+			validationContext.validationEventEnd(ValidationResultType.OK);
+		} else {
+			// quota defined for security groups, validate it will not be exceeded
+			int plannedSecurityGroupsCount = DEFAULT_SECURITY_GROUPS_COUNT;
+			logger.finest("planned security groups count: " + plannedSecurityGroupsCount);
+			
+			try {
+				final List<SecurityGroup> securityGroups = this.networkApi.getSecurityGroupsByTenantId(tenantId);
+				if (securityGroups != null) {
+					securityGroupsUsage = securityGroups.size();
+				}
+			} catch (OpenstackException e) {
+				throw new CloudProvisioningException("Error requesting security groups.", e);
+			}
+			
+			logger.finest("security groups usage: " + securityGroupsUsage);
+			
+			// compare what we need against the quota - usage
+			if (securityGroupsQuota - securityGroupsUsage >= plannedSecurityGroupsCount) {
+				validationContext.validationEventEnd(ValidationResultType.OK);
+			} else {
+				validationContext.validationEventEnd(ValidationResultType.ERROR);
+				throw new CloudProvisioningException(getFormattedMessage("resource_validation_failure",
+						"Security-groups", securityGroupsQuota, securityGroupsUsage, plannedSecurityGroupsCount));
+			}			
+		}
+	}
+	
+	
+	private void validateSecurityGroupRulesQuota(final ValidationContext validationContext, final int rulesQuota,
+			final String tenantId) throws CloudProvisioningException {
+		
+		int rulesUsage = 0;
+		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+								getFormattedMessage("validating_security_group_rules_quota"));
+		logger.finest("security-group rules quota: " + rulesQuota);
+		
+		// if there is no quota (quota = -1) - no need to perform any comparison
+		if (UNLIMITED_RESOURCE_QUOTA == rulesQuota) {
+			validationContext.validationEventEnd(ValidationResultType.OK);
+		} else {
+			// quota defined for security groups, validate it will not be exceeded
+			int plannedSecurityRulesCount = DEFAULT_SECURITY_GROUP_RULES;
+			logger.finest("planned security-groups rule count: " + plannedSecurityRulesCount);
+			try {
+				final List<SecurityGroupRule> securityRules = networkApi.getSecurityGroupRulesByTenantId(tenantId);
+				if (securityRules != null) {
+					rulesUsage = securityRules.size();
+				}
+			} catch (OpenstackException e) {
+				throw new CloudProvisioningException("Error requesting security groups rules", e);
+			}
+
+			logger.finest("security-group rules usage: " + rulesUsage);
+			
+			// compare what we need against the quota - usage
+			if (rulesQuota - rulesUsage >= plannedSecurityRulesCount) {
+				validationContext.validationEventEnd(ValidationResultType.OK);
+			} else {
+				throw new CloudProvisioningException(getFormattedMessage("resource_validation_failure",
+						"Security-group rules", rulesQuota, rulesUsage, plannedSecurityRulesCount));
+			}			
+		}		
+
+		validationContext.validationEventEnd(ValidationResultType.OK);
+
+	}
+	
+	
+	private void validateRoutersQuota(final ValidationContext validationContext, final int routersQuota,
+			final String tenantId) throws CloudProvisioningException {
+		
+		int routersUsage = 0;
+
+		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+				getFormattedMessage("validating_routers"));
+		logger.finest("routers quota: " + routersQuota);
+		
+		// if there is no quota (quota = -1) - no need to perform any comparison
+		if (UNLIMITED_RESOURCE_QUOTA == routersQuota) {
+			validationContext.validationEventEnd(ValidationResultType.OK);
+		} else {
+			// quota defined for routers, validate it if Cloudify is configured to create a router
+			if (!networkHelper.isCreateExternalRouter()) {
+				// the cloud driver is using an existing router
+				validationContext.validationEventEnd(ValidationResultType.OK);
+			} else {
+				// the cloud driver will attempt to create 1 external router
+				int plannedRoutersCount = DEFAULT_ROUTERS_COUNT;
+				logger.finest("planned routers count: " + plannedRoutersCount);
+				
+				try {
+					List<Router> routers = networkApi.getRoutersByTenantId(tenantId);
+					if (routers != null) {
+						routersUsage = routers.size();	
+					}
+				} catch (OpenstackException e) {
+					throw new CloudProvisioningException("Error getting routers usage from openstack", e);
+				}
+				
+				logger.finest("routers usage: " + routersUsage);
+				
+				// compare what we need against the quota - usage
+				if (routersQuota - routersUsage >= plannedRoutersCount) {
+					validationContext.validationEventEnd(ValidationResultType.OK);
+				} else {
+					validationContext.validationEventEnd(ValidationResultType.ERROR);
+					throw new CloudProvisioningException(getFormattedMessage("resource_validation_failure",
+							"routers", routersQuota, routersUsage, plannedRoutersCount));
+				}
+			}
 		}
 		
-		if (securityGroups.size() + DEFAULT_SECURITY_GROUPS_COUNT > limit) {
-			throw new CloudProvisioningException(getFormattedMessage("resource_validation_failure",
-					"Security-groups", limit, securityGroups.size(), DEFAULT_SECURITY_GROUPS_COUNT));
-		}
-		validationContext.validationEventEnd(ValidationResultType.OK);
 	}
+	
+
+	private void validateNetworksQuota(final ValidationContext validationContext, final int networksQuota,
+			final String tenantId) throws CloudProvisioningException {
+		
+		int networksUsage = 0;
+
+		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+				getFormattedMessage("validating_networks"));			
+		logger.finest("networks quota: " + networksQuota);
+		
+		// if there is no quota (quota = -1) - no need to perform any comparison
+		if (UNLIMITED_RESOURCE_QUOTA == networksQuota) {
+			validationContext.validationEventEnd(ValidationResultType.OK);
+		} else {
+			// quota defined for networks, validate it if Cloudify is configured to create a network
+			if (!networkHelper.isCreateExternalNetwork()) {
+				// the cloud driver is using an existing network
+				validationContext.validationEventEnd(ValidationResultType.OK);
+			} else {
+				// the cloud driver will attempt to create 1 external network
+				int plannedNetworksCount = DEFAULT_MGMT_NETWORKS_COUNT;
+				logger.finest("planned management networks count: " + plannedNetworksCount);
+				
+				try {
+					List<Network> networks = networkApi.getNetworksByTenantId(tenantId);
+					if (networks != null) {
+						networksUsage = networks.size();
+					}
+				} catch (OpenstackException e) {
+					throw new CloudProvisioningException("Error getting networks usage from openstack", e);
+				}
+				
+				logger.finest("networks usage: " + networksUsage);
+				
+				// compare what we need against the quota - usage
+				if (networksQuota - networksUsage >= plannedNetworksCount) {
+					validationContext.validationEventEnd(ValidationResultType.OK);
+				} else {
+					validationContext.validationEventEnd(ValidationResultType.ERROR);
+					throw new CloudProvisioningException(getFormattedMessage("resource_validation_failure",
+							"networks", networksQuota, networksUsage, plannedNetworksCount));
+				}
+			}
+		}		
+	}
+	
+	
+	private void validateSubnetsQuota(final ValidationContext validationContext, final int subnetsQuota,
+			final String tenantId) throws CloudProvisioningException {
+		
+		int subnetsUsage = 0;
+
+		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+				getFormattedMessage("validating_subnets"));
+		logger.finest("subnets quota: " + subnetsQuota);
+		
+		// if there is no quota (quota = -1) - no need to perform any comparison
+		if (UNLIMITED_RESOURCE_QUOTA == subnetsQuota) {
+			validationContext.validationEventEnd(ValidationResultType.OK);
+		} else {
+			// quota defined for subnets, validate it will not be exceeded
+			// TODO handle multiple subnets
+			int plannedSubnetsCount = this.cloud.getProvider().getNumberOfManagementMachines();
+			logger.finest("planned management subnets count: " + plannedSubnetsCount);
+			
+			try {
+				List<Subnet> subnets = networkApi.getSubnetsByTenantId(tenantId);
+				if (subnets != null) {
+					subnetsUsage = subnets.size();
+				}
+			} catch (OpenstackException e) {
+				throw new CloudProvisioningException("Error getting subnets usage from openstack", e);
+			}
+			
+			logger.finest("subnets usage: " + subnetsUsage);
+			
+			// compare what we need against the quota - usage
+			if (subnetsQuota - subnetsUsage >= plannedSubnetsCount) {
+				validationContext.validationEventEnd(ValidationResultType.OK);
+			} else {
+				validationContext.validationEventEnd(ValidationResultType.ERROR);
+				throw new CloudProvisioningException(getFormattedMessage("resource_validation_failure",
+						"subnets", subnetsQuota, subnetsUsage, plannedSubnetsCount));
+			}
+		}		
+	}
+	
+	
+	private void validateFloatingIpsQuota(final ValidationContext validationContext, final int floatingIpsQuota) 
+			throws CloudProvisioningException {
+		
+		int floatingIpsUsage = 0;
+		
+		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+				getFormattedMessage("validating_floating_ips"));
+		logger.finest("floating IPs quota: " + floatingIpsQuota);
+		
+		// if there is no quota (quota = -1) - no need to perform any comparison
+		if (UNLIMITED_RESOURCE_QUOTA == floatingIpsQuota) {
+			validationContext.validationEventEnd(ValidationResultType.OK);
+		} else {
+			// quota defined for floating IPs, validate it if floating IPs association is set
+			if (!this.networkHelper.associateFloatingIp()) {
+				// the cloud driver is not associating floating IPs
+				validationContext.validationEventEnd(ValidationResultType.OK);
+			} else {
+				int plannedFloatingIpsCount = this.cloud.getProvider().getNumberOfManagementMachines();
+				logger.finest("planned management floating IPs count: " + plannedFloatingIpsCount);
+				
+				try {
+					List<FloatingIp> floatingIps = networkApi.getFloatingIps();
+					if (floatingIps != null) {
+						floatingIpsUsage = floatingIps.size();
+					}
+				} catch (OpenstackException e) {
+					throw new CloudProvisioningException("Error getting floating IPs usage from openstack", e);
+				}
+				
+				logger.finest("floating IPs usage: " + floatingIpsUsage);
+				
+				// compare what we need against the quota - usage
+				if (floatingIpsQuota - floatingIpsUsage >= plannedFloatingIpsCount) {
+					validationContext.validationEventEnd(ValidationResultType.OK);
+				} else {
+					validationContext.validationEventEnd(ValidationResultType.ERROR);
+					throw new CloudProvisioningException(getFormattedMessage("resource_validation_failure",
+							"floating IPs", floatingIpsQuota, floatingIpsUsage, plannedFloatingIpsCount));
+				}
+			}
+		}
+	}
+			
 
 	private void validateCredentials(final ValidationContext validationContext)
 			throws CloudProvisioningException {
