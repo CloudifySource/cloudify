@@ -37,6 +37,7 @@ public class NovaServer {
 	private String adminPass;
 	@JsonProperty("OS-EXT-AZ:availability_zone")
 	private String availabilityZone;
+	private ServerFlavor flavor;
 
 	@JsonDeserialize(using = AddressesDeserializer.class)
 	private List<NovaServerAddress> addresses;
@@ -114,6 +115,14 @@ public class NovaServer {
 	
 	public void setAvailabilityZone(final String availabilityZone) {
 		this.availabilityZone = availabilityZone;
+	}
+	
+	public ServerFlavor getFlavor() {
+		return flavor;
+	}
+	
+	public void setFlavor(final ServerFlavor flavor) {
+		this.flavor = flavor;
 	}
 	
 	@Override

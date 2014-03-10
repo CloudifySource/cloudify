@@ -14,6 +14,7 @@ package org.cloudifysource.esc.driver.provisioning.openstack.rest;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonRootName;
 
 /**
@@ -25,6 +26,7 @@ import org.codehaus.jackson.map.annotate.JsonRootName;
 @JsonRootName("limits")
 public class ComputeLimits {
 	
+	@JsonProperty("absolute")
 	private Limits limits;
 
 	public Limits getLimits() {
