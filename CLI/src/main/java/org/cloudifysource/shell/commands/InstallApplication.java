@@ -102,7 +102,7 @@ public class InstallApplication extends AdminAwareCommand implements NewRestClie
 
 	@Option(required = false, name = "-overrides",
 			description = "File containing properties to be used to override the current "
-					+ "propeties of the application and its services")
+					+ "properties of the application and its services")
 	private File overrides;
 
 	@Option(required = false, name = "-cloud-overrides",
