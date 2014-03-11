@@ -345,6 +345,7 @@ public final class IPUtils {
 			try {
 				validatePortIsFree(host, port);
 				connectionEstablished = true;
+				break;
 			} catch (UnknownHostException uhe) {
 				// the hostname couldn't be resolved into an InetAddress
 				// no need to try other ports
