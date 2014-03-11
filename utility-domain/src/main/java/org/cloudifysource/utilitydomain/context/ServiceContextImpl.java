@@ -140,16 +140,16 @@ public class ServiceContextImpl implements ServiceContext {
 		ElasticServiceManager elasticServiceManager;
 		if (admin != null) {
 			elasticServiceManager = admin.getElasticServiceManagers().waitForAtLeastOne();
+			String puName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 			Object remoteApi = null;
 			remoteApi = ((InternalElasticServiceManager) elasticServiceManager)
-					.getRemoteApi(ServiceUtils.getAbsolutePUName(applicationName, serviceName), 
-							apiName);
+					.getRemoteApi(puName, apiName);
 
 			if (logger.isLoggable(Level.FINE)) {
 				if (remoteApi == null) {
-					logger.fine(apiName + " was not found");
+					logger.fine(apiName + " was not found for pu name: " + puName);
 				} else {
-					logger.fine(apiName + " successfully located");
+					logger.fine(apiName + " successfully located for pu name: " + puName);
 				}
 			}
 			if (CloudifyConstants.STORAGE_REMOTE_API_KEY.equals(apiName)) {
