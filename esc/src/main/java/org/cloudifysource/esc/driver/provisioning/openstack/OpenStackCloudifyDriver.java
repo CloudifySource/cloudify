@@ -1568,7 +1568,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		try {
 			
 			validationContext.validationOngoingEvent(ValidationMessageType.GROUP_VALIDATION_MESSAGE, 
-					"Validating compute quotas");
+					getFormattedMessage("validating_compute_quotas"));
 			
 			final ComputeLimits limits = this.computeApi.getLimits();
 			if (limits == null) {
@@ -1623,7 +1623,9 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		final Flavor managementFlavor = getFlavorById(flavors, managementHardwareId);
 		final int numOfManagementMachines = cloud.getProvider().getNumberOfManagementMachines();
 
+		// calculate the required cpus.
 		final int requiredVcpus = managementFlavor.getVcpus() * numOfManagementMachines;
+		logger.finest("used cores amount to: " + existingVcpus + ". Required: " + requiredVcpus);
 		if (coreLimit != UNLIMITED_RESOURCE_QUOTA) {
 			if (existingVcpus + requiredVcpus > coreLimit) {
 				throw new CloudProvisioningException(getFormattedMessage("resource_validation_failure",
@@ -1634,7 +1636,9 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
 				getFormattedMessage("validating_total_ram_quota"));
 		logger.finest("RAM quota limit is: " + ramLimit);
+		// calculate the required RAM.
 		final int requiredRam = managementFlavor.getRam() * numOfManagementMachines;
+		logger.finest("used RAM amounts to: " + existingRam + ". Required: " + requiredRam);
 		if (ramLimit != UNLIMITED_RESOURCE_QUOTA) {
 			if (existingRam + requiredRam > ramLimit) {
 				throw new CloudProvisioningException(getFormattedMessage("resource_validation_failure",
@@ -1659,15 +1663,19 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
 				getFormattedMessage("validating_total_instances_quota"));
 		logger.finest("server instance quota is: " + instanceLimit);
-		final int numOfManagementMachines = cloud.getProvider().getNumberOfManagementMachines();
-		final int numOfActiveServers = servers.size();
-		if (instanceLimit != UNLIMITED_RESOURCE_QUOTA) {
+		if (instanceLimit == UNLIMITED_RESOURCE_QUOTA) {
+			validationContext.validationEventEnd(ValidationResultType.OK);
+		} else {
+			final int numOfManagementMachines = cloud.getProvider().getNumberOfManagementMachines();
+			final int numOfActiveServers = servers.size();
+			logger.finest("active server instance count is: " + servers.size() 
+							+ ". Required: " + numOfManagementMachines);
 			if (numOfManagementMachines + numOfActiveServers > instanceLimit) {
 				throw new CloudProvisioningException(getFormattedMessage("resource_validation_failure",
 						"server instances", instanceLimit, numOfActiveServers, numOfManagementMachines));
 			}
+			validationContext.validationEventEnd(ValidationResultType.OK);
 		}
-		validationContext.validationEventEnd(ValidationResultType.OK);
 	}
 
 	private void validateNetworkQuotas(final ValidationContext validationContext) throws CloudProvisioningException {
