@@ -105,7 +105,7 @@ public class StorageFacadeImpl implements StorageFacade {
 	}
 
 	@Override
-	public void mount(final String device, final String path, final long timeoutInMillis)
+	public void mount(final String volumeId, final String device, final String path, final long timeoutInMillis)
 			throws LocalStorageOperationException, TimeoutException {
 		validateNotWindows();
 		if (!serviceContext.isPrivileged()) {
@@ -113,12 +113,12 @@ public class StorageFacadeImpl implements StorageFacade {
 		}
 		logger.info("Mounting device " + device + " to mount point " + path);
 		VolumeUtils.mount(device, path, timeoutInMillis);
-		changeStateOfVolumeWithDevice(device, VolumeState.MOUNTED);
+		changeStateOfVolumeWithId(volumeId, VolumeState.MOUNTED);
 
 	}
 
 	@Override
-	public void mount(final String device, final String path)
+	public void mount(final String volumeId, final String device, final String path)
 			throws LocalStorageOperationException, TimeoutException {
 		validateNotWindows();
 		if (!serviceContext.isPrivileged()) {
@@ -126,7 +126,7 @@ public class StorageFacadeImpl implements StorageFacade {
 		}
 		logger.info("Mounting device " + device + " to mount point " + path);
 		VolumeUtils.mount(device, path);
-		changeStateOfVolumeWithDevice(device, VolumeState.MOUNTED);
+		changeStateOfVolumeWithId(volumeId, VolumeState.MOUNTED);
 	}
 
 	@Override
@@ -157,7 +157,7 @@ public class StorageFacadeImpl implements StorageFacade {
 	}
 	
 	@Override
-	public void partition(final String device, final long timeoutInMillis)
+	public void partition(final String volumeId, final String device, final long timeoutInMillis)
 			throws LocalStorageOperationException, TimeoutException {
 		validateNotWindows();
 		if (!serviceContext.isPrivileged()) {
@@ -165,12 +165,12 @@ public class StorageFacadeImpl implements StorageFacade {
 		}
 		logger.info("Partitioning device " + device);
 		VolumeUtils.partition(device, timeoutInMillis);
-		changeStateOfVolumeWithDevice(device, VolumeState.PARTITIONED);
+		changeStateOfVolumeWithId(volumeId, VolumeState.PARTITIONED);
 
 	}
 
 	@Override
-	public void partition(final String device)
+	public void partition(final String volumeId, final String device)
 			throws LocalStorageOperationException, TimeoutException {
 		validateNotWindows();
 		if (!serviceContext.isPrivileged()) {
@@ -178,12 +178,12 @@ public class StorageFacadeImpl implements StorageFacade {
 		}
 		logger.info("Partitioning device " + device);
 		VolumeUtils.partition(device);
-		changeStateOfVolumeWithDevice(device, VolumeState.PARTITIONED);
+		changeStateOfVolumeWithId(volumeId, VolumeState.PARTITIONED);
 	}
 
 
 	@Override
-	public void format(final String device, final String fileSystem, final long timeoutInMillis)
+	public void format(final String volumeId, final String device, final String fileSystem, final long timeoutInMillis)
 			throws LocalStorageOperationException, TimeoutException {
 		validateNotWindows();
 		if (!serviceContext.isPrivileged()) {
@@ -191,12 +191,12 @@ public class StorageFacadeImpl implements StorageFacade {
 		}
 		logger.info("Formatting device " + device + " to File System " + fileSystem);
 		VolumeUtils.format(device, fileSystem, timeoutInMillis);
-		changeStateOfVolumeWithDevice(device, VolumeState.FORMATTED);
+		changeStateOfVolumeWithId(volumeId, VolumeState.FORMATTED);
 
 	}
 
 	@Override
-	public void format(final String device, final String fileSystem)
+	public void format(final String volumeId, final String device, final String fileSystem)
 			throws LocalStorageOperationException, TimeoutException {
 		validateNotWindows();
 		if (!serviceContext.isPrivileged()) {
@@ -204,7 +204,7 @@ public class StorageFacadeImpl implements StorageFacade {
 		}
 		logger.info("Formatting device " + device + " to File System " + fileSystem);
 		VolumeUtils.format(device, fileSystem);
-		changeStateOfVolumeWithDevice(device, VolumeState.FORMATTED);
+		changeStateOfVolumeWithId(volumeId, VolumeState.FORMATTED);
 	}
 
 	private void validateNotWindows() {
@@ -232,13 +232,6 @@ public class StorageFacadeImpl implements StorageFacade {
 		ServiceVolume serviceVolume = new ServiceVolume();
 		serviceVolume.setId(volumeId);
 		logger.fine("Changing state of volume with id " + volumeId + " to " + newState);
-		managementSpace.change(serviceVolume, new ChangeSet().set("state", newState));
-	}
-
-	private void changeStateOfVolumeWithDevice(final String deviceName, final VolumeState newState) {
-		ServiceVolume serviceVolume = new ServiceVolume();
-		serviceVolume.setDevice(deviceName);
-		logger.fine("Changing state of volume with device " + deviceName + " to " + newState);
 		managementSpace.change(serviceVolume, new ChangeSet().set("state", newState));
 	}
 

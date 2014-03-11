@@ -449,46 +449,48 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 				if (serviceVolume == null) {
 					logger.fine("service volume is null. this means it hasn't been created yet.");
 					getUsmLifecycleBean().log("Creating volume");
-					final String id = storage.createVolume(storageTemplateName);
-					getUsmLifecycleBean().log("Volume created with id " + id);
+					final String volumeId = storage.createVolume(storageTemplateName);
+					getUsmLifecycleBean().log("Volume created with id " + volumeId);
 					// flag this volume as static. this is to identify it when deallocating on shutdown.
-					final ServiceVolume newServiceVolume = managementSpace.readById(ServiceVolume.class, id);
-					logger.fine("Flagging service volume with id " + id + " to be static storage.");
+					final ServiceVolume newServiceVolume = managementSpace.readById(ServiceVolume.class, volumeId);
+					logger.fine("Flagging service volume with id " + volumeId + " to be static storage.");
 					managementSpace.change(newServiceVolume, new ChangeSet().set("dynamic", false));
 					getUsmLifecycleBean().log("Attaching volume to device " + deviceName);
-					storage.attachVolume(id, deviceName);
+					storage.attachVolume(volumeId, deviceName);
 					if (storageTemplate.isPartitioningRequired()) {
 						getUsmLifecycleBean().log("Partitioning volume at " + deviceName);
-						storage.partition(deviceName);
+						storage.partition(volumeId, deviceName);
 					}
 					getUsmLifecycleBean().log("Formatting volume to filesystem " + storageTemplate.getFileSystemType());
-					storage.format(deviceName, storageTemplate.getFileSystemType());
+					storage.format(volumeId, deviceName, storageTemplate.getFileSystemType());
 					getUsmLifecycleBean().log("Mounting volume to " + storageTemplate.getPath());
-					storage.mount(deviceName, storageTemplate.getPath());
+					storage.mount(volumeId, deviceName, storageTemplate.getPath());
 				} else {
-					logger.fine("Detected an existing volume for this service upon allocation. found in state : "
-							+ serviceVolume.getState());
+					String voluemId = serviceVolume.getId();
+					logger.fine("Detected an existing volume for this service upon allocation. volume Id: " + voluemId
+							+ ", found in state : " + serviceVolume.getState());
 					
 					switch (serviceVolume.getState()) {
 
 					case CREATED:
-						getUsmLifecycleBean().log("Attaching volume to device " + deviceName);
-						storage.attachVolume(serviceVolume.getId(), deviceName);
+						getUsmLifecycleBean().log("Attaching volume with id " + voluemId + " to device " + deviceName);
+						storage.attachVolume(voluemId, deviceName);
 
 					case ATTACHED:
 						if (storageTemplate.isPartitioningRequired()) {
-							getUsmLifecycleBean().log("Partitioning volume at " + deviceName);
-							storage.partition(deviceName);
+							getUsmLifecycleBean().log("Partitioning volume with id " + voluemId + " at " + deviceName);
+							storage.partition(voluemId, deviceName);
 						}
 						
 					case PARTITIONED:
-						getUsmLifecycleBean().log("Formatting volume to filesystem " 
+						getUsmLifecycleBean().log("Formatting volume with id " + voluemId + " to filesystem " 
 								+ storageTemplate.getFileSystemType());
-						storage.format(deviceName, storageTemplate.getFileSystemType());
+						storage.format(voluemId, deviceName, storageTemplate.getFileSystemType());
 						
 					case FORMATTED:
-						getUsmLifecycleBean().log("Mounting volume to " + storageTemplate.getPath());
-						storage.mount(deviceName, storageTemplate.getPath());
+						getUsmLifecycleBean().log("Mounting volume with id " + voluemId + " to " 
+								+ storageTemplate.getPath());
+						storage.mount(voluemId, deviceName, storageTemplate.getPath());
 
 					case MOUNTED:
 						break;

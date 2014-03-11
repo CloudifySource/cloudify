@@ -84,70 +84,76 @@ public interface StorageFacade {
 	void deleteVolume(final String volumeId) throws RemoteStorageOperationException;
 	
 	/**
-	 * partition the device according to the following - create a new, single, primary partition, on the entire volume. 
+	 * partition the device according to the following - create a new, single, primary partition, on the entire volume.
+	 * @param volumeId - the id of the volume to be partitioned. 
 	 * @param device - device name.
 	 * @param timeoutInMillis - the timeout after which the process will be terminated forcefully.
 	 * @throws LocalStorageOperationException - thrown when the command fails.
 	 * @throws TimeoutException - in case of a timeout.
 	 */
-	void partition(final String device, final long timeoutInMillis) 
+	void partition(final String volumeId, final String device, final long timeoutInMillis) 
 			throws LocalStorageOperationException, TimeoutException;
 
 	/**
 	 * partition the device according to the following - create a new, single, primary partition, on the entire volume.
 	 * uses a default timeout of 30 seconds. 
 	 * to use a custom timeout use {@link StorageFacade#partition(String, long)}.
+	 * @param volumeId - the id of the volume to be partitioned.
 	 * @param device - device name.
 	 * @throws LocalStorageOperationException - thrown when the command fails.
 	 * @throws TimeoutException - in case of a timeout.
 	 */
-	void partition(final String device) 
+	void partition(final String volumeId, final String device) 
 			throws LocalStorageOperationException, TimeoutException;
 	
 	/**
 	 * format a device to a given file system.
+	 * @param volumeId - the id of the volume to be formatted.
 	 * @param device - device name.
 	 * @param fileSystem - file system type.
 	 * @param timeoutInMillis - the timeout after which the process will be terminated forcefully.
 	 * @throws LocalStorageOperationException - thrown when the command fails.
 	 * @throws TimeoutException - in case of a timeout.
 	 */
-	void format(final String device, final String fileSystem, final long timeoutInMillis) 
+	void format(final String volumeId, final String device, final String fileSystem, final long timeoutInMillis) 
 			throws LocalStorageOperationException, TimeoutException;
 
 	/**
 	 * format a device to a given file system.
 	 * uses a default timeout of 5 minutes. 
 	 * to use a custom timeout use {@link StorageFacade#format(String, String, long)}.
+	 * @param volumeId - the id of the volume to be formatted.
 	 * @param device - device name.
 	 * @param fileSystem - file system type.
 	 * @throws LocalStorageOperationException - thrown when the command fails.
 	 * @throws TimeoutException - in case of a timeout.
 	 */
-	void format(final String device, final String fileSystem) 
+	void format(final String volumeId, final String device, final String fileSystem) 
 			throws LocalStorageOperationException, TimeoutException;
 
 	/**
 	 * mount a device to a local mounting point.
+	 * @param volumeId - the id of the volume to be mounted.
 	 * @param device - device name.
 	 * @param path - mounting point (will be created automatically).
 	 * @param timeoutInMillis - the timeout after which the process will be terminated forcefully.
 	 * @throws LocalStorageOperationException - thrown when the command fails.
 	 * @throws TimeoutException - in case of a timeout.
 	 */
-	void mount(final String device, final String path, final long timeoutInMillis) 
+	void mount(final String volumeId, final String device, final String path, final long timeoutInMillis) 
 			throws LocalStorageOperationException, TimeoutException;
 	
 	/**
 	 * mount a device to a local mounting point.
 	 * uses a default timeout of 30 seconds. to use a custom timeout 
 	 * 	use {@link StorageFacade#mount(String, String, long)}.
+	 * @param volumeId - the id of the volume to be mounted.
 	 * @param device - device name.
 	 * @param path - mounting point (will be created automatically).
 	 * @throws LocalStorageOperationException - thrown when the command fails.
 	 * @throws TimeoutException - in case of a timeout.
 	 */
-	void mount(final String device, final String path) 
+	void mount(final String volumeId, final String device, final String path) 
 			throws LocalStorageOperationException, TimeoutException;
 	
 	/**
