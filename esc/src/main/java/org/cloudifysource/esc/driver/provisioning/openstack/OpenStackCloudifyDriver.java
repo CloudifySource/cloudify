@@ -1565,6 +1565,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	
 	private void validateComputeQuotas(final ValidationContext validationContext, 
 			final ComputeTemplate managementComputeTemplate) throws CloudProvisioningException {
+		
 		try {
 			
 			validationContext.validationOngoingEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE, 
@@ -1574,6 +1575,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			if (limits == null) {
 				throw new OpenstackException("Error requesting compute limits");
 			}
+			
 			final int coreLimit = limits.getLimits().getMaxTotalCores();
 			final int ramLimit = limits.getLimits().getMaxTotalRAMSize();
 			final int instanceLimit = limits.getLimits().getMaxTotalInstances();
@@ -1582,12 +1584,28 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			if (servers == null) {
 				throw new CloudProvisioningException("Failed requesting list of servers");
 			}
-			validateInstanceQuota(validationContext, instanceLimit, servers);
-			validateCoreAndRamQuota(validationContext, managementComputeTemplate, coreLimit, ramLimit, servers);
+			
+			// if instanceLimit is 0 this is either a mock object or we failed to retrieve the limit -> warn and skip
+			if (instanceLimit == 0) {
+				logger.warning("Failed to retrieve instances quota, skipping instance quota validation");
+				validationContext.validationEventEnd(ValidationResultType.WARNING);
+			} else {
+				validateInstanceQuota(validationContext, instanceLimit, servers);
+			}
+			
+			if (coreLimit == 0 && ramLimit == 0) {
+				logger.warning("Failed to retrieve vCPUs and RAM quotas, skipping vCPUs and RAM validations");
+				validationContext.validationEventEnd(ValidationResultType.WARNING);
+			} else {
+				validateCoreAndRamQuota(validationContext, managementComputeTemplate, coreLimit, ramLimit, servers);
+			}
+			
+			// the validating_compute_quotas event completed successfully
 			validationContext.validationEventEnd(ValidationResultType.OK);
+			
 		} catch (final OpenstackException e) {
 			validationContext.validationEventEnd(ValidationResultType.WARNING);
-			logger.log(Level.INFO, "Cannot validate compute quotas on this provider.");
+			logger.log(Level.WARNING, "Cannot validate compute quotas on this provider.");
 		}
 	}
 
@@ -1595,17 +1613,21 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			final ComputeTemplate managementComputeTemplate,
 			final int coreLimit, final int ramLimit, final List<NovaServer> servers)
 			throws CloudProvisioningException {
+		
 		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
 				getFormattedMessage("validating_total_cores_quota"));
 		logger.finest("virtual-cores quota limit is: " + coreLimit);
+		
 		int existingVcpus = 0;
 		int existingRam = 0;
 		List<Flavor> flavors;
+		
 		try {
 			flavors = computeApi.getFlavors();
 		} catch (final OpenstackException e) {
 			throw new CloudProvisioningException("Error requesting flavors.", e);
 		}
+		
 		for (final NovaServer novaServer : servers) {
 			NovaServer serverDetails = null;
 			try {
@@ -1617,39 +1639,78 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 				throw new CloudProvisioningException("Error requesting server details for server with ID: " 
 								+ novaServer.getId());
 			}
+			
+			// Getting flavor details (vCPUs and RAM) for the current server and sum them
 			logger.finest("Getting flavor details for server instance with ID: " + novaServer.getId());
 			final Flavor flavor = getFlavorById(flavors, serverDetails.getFlavor().getId());
 			existingVcpus += flavor.getVcpus();
 			existingRam += flavor.getRam();
 		}
+		
+		// get the management flavor and number of machines 
 		final String managementHardwareId = managementComputeTemplate.getHardwareId().split("/")[1];
 		final Flavor managementFlavor = getFlavorById(flavors, managementHardwareId);
 		final int numOfManagementMachines = cloud.getProvider().getNumberOfManagementMachines();
 
-		// calculate the required cpus.
-		final int requiredVcpus = managementFlavor.getVcpus() * numOfManagementMachines;
+		// calculate the required vCPUs for the management machine(s), unless quota was not retrieved
+		if (coreLimit == 0) {
+			logger.warning("Failed to retrieve vCPUs quota, skipping vCPUs quota validation");
+			validationContext.validationEventEnd(ValidationResultType.WARNING);
+		} else {
+			validateCpusQuota(validationContext, coreLimit, existingVcpus, managementFlavor.getVcpus(), 
+					numOfManagementMachines);
+		}
+		
+		// calculate the required RAM for the management machine(s), unless quota was not retrieved
+		if (ramLimit == 0) {
+			logger.warning("Failed to retrieve RAM quota, skipping RAM quota validation");
+			validationContext.validationEventEnd(ValidationResultType.WARNING);
+		} else {
+			validateRamQuota(validationContext, ramLimit, existingRam, managementFlavor.getRam(), 
+					numOfManagementMachines);
+		}
+	}
+	
+
+	private void validateCpusQuota(final ValidationContext validationContext, final int coreLimit, int existingVcpus,
+			final int managementFlavorVcpus, final int numOfManagementMachines) throws CloudProvisioningException {
+		
+		final int requiredVcpus = managementFlavorVcpus * numOfManagementMachines;
 		logger.finest("used cores amount to: " + existingVcpus + ". Required: " + requiredVcpus);
+		
+		// if vCPUs limit is unlimited (-1) - skip the calculation
 		if (coreLimit != UNLIMITED_RESOURCE_QUOTA) {
 			if (existingVcpus + requiredVcpus > coreLimit) {
+				validationContext.validationEventEnd(ValidationResultType.ERROR);
 				throw new CloudProvisioningException(getFormattedMessage("resource_validation_failure",
-						"virtual cpus", coreLimit, existingVcpus, requiredVcpus));
+						"virtual CPUs", coreLimit, existingVcpus, requiredVcpus));
 			}
 		}
 		validationContext.validationEventEnd(ValidationResultType.OK);
+	}
+	
+
+	private void validateRamQuota(final ValidationContext validationContext, final int ramLimit, int existingRam,
+			final int managementFlavorRAM, final int numOfManagementMachines) throws CloudProvisioningException {
+		
 		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
 				getFormattedMessage("validating_total_ram_quota"));
 		logger.finest("RAM quota limit is: " + ramLimit);
-		// calculate the required RAM.
-		final int requiredRam = managementFlavor.getRam() * numOfManagementMachines;
+
+		final int requiredRam = managementFlavorRAM * numOfManagementMachines;
 		logger.finest("used RAM amounts to: " + existingRam + ". Required: " + requiredRam);
+		
+		// if ram limit is unlimited (-1) - skip the calculation
 		if (ramLimit != UNLIMITED_RESOURCE_QUOTA) {
 			if (existingRam + requiredRam > ramLimit) {
+				validationContext.validationEventEnd(ValidationResultType.ERROR);
 				throw new CloudProvisioningException(getFormattedMessage("resource_validation_failure",
 						"RAM", ramLimit, existingRam, requiredRam));
 			}
 		}
 		validationContext.validationEventEnd(ValidationResultType.OK);
 	}
+	
 	
 	private Flavor getFlavorById(final List<Flavor> flavors, final String flavorId) 
 							throws CloudProvisioningException {
@@ -1660,6 +1721,7 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		}
 		throw new CloudProvisioningException("Could not find flavor with ID: " + flavorId);
 	}
+	
 
 	private void validateInstanceQuota(final ValidationContext validationContext,
 			final int instanceLimit, final List<NovaServer> servers) throws CloudProvisioningException {
@@ -1683,23 +1745,28 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			validationContext.validationEventEnd(ValidationResultType.OK);
 		}
 	}
+	
 
 	private void validateNetworkQuotas(final ValidationContext validationContext) throws CloudProvisioningException {
 		try {
 			validationContext.validationOngoingEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE,
 					getFormattedMessage("validating_network_quotas"));
+			
+			// get the tenant id (same value for compute and network)
 			final String tenantId = computeApi.getTenantId();
 			if (StringUtils.isBlank(tenantId)) {
 				validationContext.validationEventEnd(ValidationResultType.WARNING);
-				logger.info("Failed to retrieve tenant id, skipping network quotas validation");
+				logger.warning("Failed to retrieve tenant id, skipping network quotas validation");
 				return;
 			}
 			
+			// retrieve the quotas for this tenant
 			final Quota quotas = this.networkApi.getQuotasForTenant(tenantId);
 			if (quotas == null) {
 				throw new OpenstackException("Failed getting network quotas.");
 			}
 			
+			// validate quotas will not be exceeded by the bootstrap process
 			validateSecurityGroupsQuota(validationContext, quotas.getSecurityGroup(), tenantId);
 			validateSecurityGroupRulesQuota(validationContext, quotas.getSecurityGroupRule(), tenantId);
 			validateRoutersQuota(validationContext, quotas.getRouter(), tenantId);
