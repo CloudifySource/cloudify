@@ -683,13 +683,43 @@ public class DeploymentsController extends BaseRestController {
 	}
 
 	/**
+	 * Deploys an application to the service grid. An application is consisted of a group of services that might have 
+	 * dependencies between themselves. The application will be deployed according to the dependency order defined in 
+	 * the application file and deployed asynchronously if possible.
+	 * 
+	 * Prior to calling this method, the application recipe must be packed and uploaded through the upload controller.
+	 * Each upload yields a unique key, used by this method.
+	 * Uploading the recipe is mandatory.
+	 * Optional uploads allowing to customize the deployment:
+	 * cloud configuration – File or directory containing cloud configuration to be used for this application
+	 * overrides – File containing properties to be used to override the properties of the application and its services
+	 * cloud overrides – File containing properties to be used to override the current cloud configuration for this 
+	 * application and its services
+	 * 
+	 * The request body values are:
+	 * Application name – mandatory – The application name
+	 * applcationFileUploadKey – mandatory – key of the uploaded packed recipe file
+	 * cloudConfigurationUploadKey – optional – the key of the uploaded cloud configuration
+	 * applicationOverridesUploadKey – optional – the key of the uploaded overrides file
+	 * cloudOverridesUploadKey – optional – the key of the uploaded cloud overrides file
+	 * authGroups – optional – Used when bootstrapped in secured mode. Set the auth-groups the application will be
+	 * exposed to. If empty will use the calling user's auth-groups
+	 * selfHealing – mandatory – if true, there will be an attempt to restart the recipe in case a problem occurred in 
+	 * its life-cycle. Otherwise, no attempt to recover will made if the recipe fails to execute
+	 * debugAll – optional – defaults to False. This flag is used for recipe debugging. It indicates whether all 
+	 * lifecycle events should have a breakpoint.
+	 * debugEvents – optional. This flag is used for recipe debugging. Indicates which lifecycle events should have a 
+	 * breakpoint.
+	 * debugMode – optional. This flag is used for recipe debugging. It indicates the debug mode to use (either 
+	 * 'instead', 'after' or 'onError')
 	 * 
 	 * @param appName
 	 *            The application name.
 	 * @param request
 	 *            install application request.
 	 * @return an install application response.
-	 * @throws RestErrorException .
+	 * @throws RestErrorException
+	 *            indicates a failure to install the application
 	 * 
 	 */
 	@RequestMapping(value = "/{appName}", method = RequestMethod.POST)
