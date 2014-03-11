@@ -1571,16 +1571,13 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			final int coreLimit = limits.getLimits().getMaxTotalCores();
 			final int ramLimit = limits.getLimits().getMaxTotalRAMSize();
 			final int instanceLimit = limits.getLimits().getMaxTotalInstances();
-			final int numOfManagementMachines = cloud.getProvider().getNumberOfManagementMachines();
 
 			final List<NovaServer> servers = this.computeApi.getServers();
 			if (servers == null) {
 				throw new OpenstackException("Failed getting list of servers");
 			}
-			validateInstanceQuota(validationContext, instanceLimit,
-					numOfManagementMachines, servers);
-			validateCoreAndRamQuota(validationContext,
-					managementComputeTemplate, coreLimit, ramLimit, numOfManagementMachines, servers);
+			validateInstanceQuota(validationContext, instanceLimit, servers);
+			validateCoreAndRamQuota(validationContext, managementComputeTemplate, coreLimit, ramLimit, servers);
 		} catch (final OpenstackException e) {
 			validationContext.validationEventEnd(ValidationResultType.ERROR);
 			throw new CloudProvisioningException(
@@ -1589,51 +1586,44 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		}
 	}
 
-	void validateCoreAndRamQuota(final ValidationContext validationContext,
+	private void validateCoreAndRamQuota(final ValidationContext validationContext,
 			final ComputeTemplate managementComputeTemplate,
-			final int coreLimit, final int ramLimit,
-			final int numOfManagementMachines, final List<NovaServer> servers)
+			final int coreLimit, final int ramLimit, final List<NovaServer> servers)
 			throws OpenstackException, CloudProvisioningException {
 		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
 				getFormattedMessage("validating_total_cores_quota"));
+		logger.finest("virtual-cores quota limit is: " + coreLimit);
 		int existingVcpus = 0;
 		int existingRam = 0;
 		final List<Flavor> flavors = computeApi.getFlavors();
 		for (final NovaServer novaServer : servers) {
 			final NovaServer serverDetails = this.computeApi.getServerDetails(novaServer.getId());
-			for (final Flavor flavor : flavors) {
-				if (flavor.getId().equals(serverDetails.getFlavor().getId())) {
-					existingVcpus += flavor.getVcpus();
-					existingRam += flavor.getRam();
-					break;
-				}
+			if (serverDetails == null) {
+				throw new OpenstackException("Failed getting running server's details for server with ID: " 
+										+ novaServer.getId());
 			}
+			logger.finest("Getting flavor details for server instance with ID: " + novaServer.getId());
+			final Flavor flavor = getFlavorById(flavors, serverDetails.getFlavor().getId());
+			existingVcpus += flavor.getVcpus();
+			existingRam += flavor.getRam();
 		}
 		final String managementHardwareId = managementComputeTemplate.getHardwareId().split("/")[1];
-		Flavor managementFlavor = null; 
-		for (final Flavor flavor : flavors) {
-			if (flavor.getId().equals(managementHardwareId)) {
-				managementFlavor = computeApi.getFlavor(managementHardwareId);
-				break;
-			}
-		}
-		if (managementFlavor == null) {
-			throw new OpenstackException("Management flavor with ID: " 
-										+ managementHardwareId + " could not be found.");
-		}
+		final Flavor managementFlavor = getFlavorById(flavors, managementHardwareId);
+		final int numOfManagementMachines = cloud.getProvider().getNumberOfManagementMachines();
 
 		final int requiredVcpus = managementFlavor.getVcpus() * numOfManagementMachines;
 		if (coreLimit != UNLIMITED_RESOURCE_QUOTA) {
 			if (existingVcpus + requiredVcpus > coreLimit) {
 				throw new CloudProvisioningException(getFormattedMessage("resource_validation_failure",
-						"virual cpus", coreLimit, existingVcpus, requiredVcpus));
+						"virtual cpus", coreLimit, existingVcpus, requiredVcpus));
 			}
 		}
 		validationContext.validationEventEnd(ValidationResultType.OK);
 		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
 				getFormattedMessage("validating_total_ram_quota"));
+		logger.finest("RAM quota limit is: " + ramLimit);
 		final int requiredRam = managementFlavor.getRam() * numOfManagementMachines;
-		if (coreLimit != UNLIMITED_RESOURCE_QUOTA) {
+		if (ramLimit != UNLIMITED_RESOURCE_QUOTA) {
 			if (existingRam + requiredRam > ramLimit) {
 				throw new CloudProvisioningException(getFormattedMessage("resource_validation_failure",
 						"RAM", ramLimit, existingRam, requiredRam));
@@ -1641,12 +1631,23 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		}
 		validationContext.validationEventEnd(ValidationResultType.OK);
 	}
+	
+	private Flavor getFlavorById(final List<Flavor> flavors, final String flavorId) 
+							throws OpenstackException {
+		for (final Flavor flavor : flavors) {
+			if (flavor.getId().equals(flavorId)) {
+				return flavor;
+			}
+		}
+		throw new OpenstackException("Could not find flavor with ID: " + flavorId);
+	}
 
-	void validateInstanceQuota(final ValidationContext validationContext,
-			final int instanceLimit, final int numOfManagementMachines,
-			final List<NovaServer> servers) throws CloudProvisioningException {
+	private void validateInstanceQuota(final ValidationContext validationContext,
+			final int instanceLimit, final List<NovaServer> servers) throws CloudProvisioningException {
 		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
 				getFormattedMessage("validating_total_instances_quota"));
+		logger.finest("server instance quota is: " + instanceLimit);
+		final int numOfManagementMachines = cloud.getProvider().getNumberOfManagementMachines();
 		final int numOfActiveServers = servers.size();
 		if (instanceLimit != UNLIMITED_RESOURCE_QUOTA) {
 			if (numOfManagementMachines + numOfActiveServers > instanceLimit) {
