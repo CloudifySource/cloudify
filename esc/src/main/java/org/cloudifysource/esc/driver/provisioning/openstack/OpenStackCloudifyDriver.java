@@ -1567,17 +1567,12 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			final ComputeTemplate managementComputeTemplate) throws CloudProvisioningException {
 		try {
 			
-			validationContext.validationOngoingEvent(ValidationMessageType.GROUP_VALIDATION_MESSAGE, 
+			validationContext.validationOngoingEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE, 
 					getFormattedMessage("validating_compute_quotas"));
 			
 			final ComputeLimits limits = this.computeApi.getLimits();
 			if (limits == null) {
-				validationContext.validationEventEnd(ValidationResultType.ERROR);
-				logger.warning("Failed to retrieve compute limits, skipping compute quotas validation");
-				return;
-				// TODO: where is the actual call to the validations?
-				// TODO noak: fail the bootstrap on this?
-				// throw new OpenstackException("Failed getting cloud compute quotas.");
+				throw new OpenstackException("Error requesting compute limits");
 			}
 			final int coreLimit = limits.getLimits().getMaxTotalCores();
 			final int ramLimit = limits.getLimits().getMaxTotalRAMSize();
@@ -1585,34 +1580,42 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 
 			final List<NovaServer> servers = this.computeApi.getServers();
 			if (servers == null) {
-				throw new OpenstackException("Failed getting list of servers");
+				throw new CloudProvisioningException("Failed requesting list of servers");
 			}
 			validateInstanceQuota(validationContext, instanceLimit, servers);
 			validateCoreAndRamQuota(validationContext, managementComputeTemplate, coreLimit, ramLimit, servers);
 			validationContext.validationEventEnd(ValidationResultType.OK);
 		} catch (final OpenstackException e) {
-			validationContext.validationEventEnd(ValidationResultType.ERROR);
-			// TODO noak: fail the bootstrap on this?
-			throw new CloudProvisioningException("Failed validating cloud compute resources. Reason: "
-					+ e.getMessage(), e);
+			validationContext.validationEventEnd(ValidationResultType.WARNING);
+			logger.log(Level.INFO, "Cannot validate compute quotas on this provider.");
 		}
 	}
 
 	private void validateCoreAndRamQuota(final ValidationContext validationContext,
 			final ComputeTemplate managementComputeTemplate,
 			final int coreLimit, final int ramLimit, final List<NovaServer> servers)
-			throws OpenstackException, CloudProvisioningException {
+			throws CloudProvisioningException {
 		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
 				getFormattedMessage("validating_total_cores_quota"));
 		logger.finest("virtual-cores quota limit is: " + coreLimit);
 		int existingVcpus = 0;
 		int existingRam = 0;
-		final List<Flavor> flavors = computeApi.getFlavors();
+		List<Flavor> flavors;
+		try {
+			flavors = computeApi.getFlavors();
+		} catch (final OpenstackException e) {
+			throw new CloudProvisioningException("Error requesting flavors.", e);
+		}
 		for (final NovaServer novaServer : servers) {
-			final NovaServer serverDetails = this.computeApi.getServerDetails(novaServer.getId());
+			NovaServer serverDetails = null;
+			try {
+				serverDetails = this.computeApi.getServerDetails(novaServer.getId());
+			} catch (final OpenstackException e) {
+				throw new CloudProvisioningException("Error requesting server details", e);
+			}
 			if (serverDetails == null) {
-				throw new OpenstackException("Failed getting running server's details for server with ID: " 
-										+ novaServer.getId());
+				throw new CloudProvisioningException("Error requesting server details for server with ID: " 
+								+ novaServer.getId());
 			}
 			logger.finest("Getting flavor details for server instance with ID: " + novaServer.getId());
 			final Flavor flavor = getFlavorById(flavors, serverDetails.getFlavor().getId());
@@ -1649,13 +1652,13 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	}
 	
 	private Flavor getFlavorById(final List<Flavor> flavors, final String flavorId) 
-							throws OpenstackException {
+							throws CloudProvisioningException {
 		for (final Flavor flavor : flavors) {
 			if (flavor.getId().equals(flavorId)) {
 				return flavor;
 			}
 		}
-		throw new OpenstackException("Could not find flavor with ID: " + flavorId);
+		throw new CloudProvisioningException("Could not find flavor with ID: " + flavorId);
 	}
 
 	private void validateInstanceQuota(final ValidationContext validationContext,
@@ -1663,29 +1666,31 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
 				getFormattedMessage("validating_total_instances_quota"));
 		logger.finest("server instance quota is: " + instanceLimit);
+		
 		if (instanceLimit == UNLIMITED_RESOURCE_QUOTA) {
 			validationContext.validationEventEnd(ValidationResultType.OK);
 		} else {
 			final int numOfManagementMachines = cloud.getProvider().getNumberOfManagementMachines();
 			final int numOfActiveServers = servers.size();
+			
 			logger.finest("active server instance count is: " + servers.size() 
 							+ ". Required: " + numOfManagementMachines);
 			if (numOfManagementMachines + numOfActiveServers > instanceLimit) {
 				throw new CloudProvisioningException(getFormattedMessage("resource_validation_failure",
 						"server instances", instanceLimit, numOfActiveServers, numOfManagementMachines));
 			}
+			
 			validationContext.validationEventEnd(ValidationResultType.OK);
 		}
 	}
 
 	private void validateNetworkQuotas(final ValidationContext validationContext) throws CloudProvisioningException {
 		try {
-			// TODO noak use getFormattedMessage
-			validationContext.validationOngoingEvent(ValidationMessageType.GROUP_VALIDATION_MESSAGE, 
-					"Validating network quotas");
+			validationContext.validationOngoingEvent(ValidationMessageType.TOP_LEVEL_VALIDATION_MESSAGE,
+					getFormattedMessage("validating_network_quotas"));
 			final String tenantId = computeApi.getTenantId();
 			if (StringUtils.isBlank(tenantId)) {
-				validationContext.validationEventEnd(ValidationResultType.ERROR);
+				validationContext.validationEventEnd(ValidationResultType.WARNING);
 				logger.info("Failed to retrieve tenant id, skipping network quotas validation");
 				return;
 			}
@@ -1703,12 +1708,8 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			validateFloatingIpsQuota(validationContext, quotas.getFloatingip());
 			validationContext.validationEventEnd(ValidationResultType.OK);
 		} catch (final OpenstackException e) {
-			validationContext.validationEventEnd(ValidationResultType.ERROR);
-			logger.info("Failed to retrieve tenant id, skipping network quotas validation");
-			// TODO noak: should we throw an exception and fail bootstrap on this?
-			throw new CloudProvisioningException(
-					"Failed validating cloud network resources. Reason: "
-							+ e.getMessage(), e);
+			validationContext.validationEventEnd(ValidationResultType.WARNING);
+			logger.info("Cannot validate network quotas on this provider.");
 		}
 
 	}
