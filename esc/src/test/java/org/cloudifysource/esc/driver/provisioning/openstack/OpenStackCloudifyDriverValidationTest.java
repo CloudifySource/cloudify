@@ -639,7 +639,7 @@ public class OpenStackCloudifyDriverValidationTest {
 		}
 	}
 	
-	@Test(expected = CloudProvisioningException.class)
+//	@Test(expected = CloudProvisioningException.class)
 	public void floatingIpQuotaValidator() throws Exception {
 		try {
 			final OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("ok", true);
