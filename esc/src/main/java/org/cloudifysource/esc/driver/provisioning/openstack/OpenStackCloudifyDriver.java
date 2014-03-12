@@ -1767,13 +1767,50 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 				throw new OpenstackException("Failed getting network quotas.");
 			}
 			
-			// validate quotas will not be exceeded by the bootstrap process
-			validateSecurityGroupsQuota(validationContext, quotas.getSecurityGroup(), tenantId);
-			validateSecurityGroupRulesQuota(validationContext, quotas.getSecurityGroupRule(), tenantId);
-			validateRoutersQuota(validationContext, quotas.getRouter(), tenantId);
-			validateNetworksQuota(validationContext, quotas.getNetwork(), tenantId);
-			validateSubnetsQuota(validationContext, quotas.getSubnet(), tenantId);
-			validateFloatingIpsQuota(validationContext, quotas.getFloatingip());
+			// if instanceLimit is 0 this is either a mock object or we failed to retrieve the limit -> warn and skip
+			if (quotas.getSecurityGroup() == 0) {
+				logger.warning("Failed to retrieve security-group quota, skipping security-group quota validation");
+				validationContext.validationEventEnd(ValidationResultType.WARNING);
+			} else {
+				validateSecurityGroupsQuota(validationContext, quotas.getSecurityGroup(), tenantId);
+			}
+			
+			if (quotas.getSecurityGroupRule() == 0) {
+				logger.warning("Failed to retrieve security-group rules quota, " 
+											+ "skipping security-group rule quota validation");
+				validationContext.validationEventEnd(ValidationResultType.WARNING);
+			} else {
+				validateSecurityGroupRulesQuota(validationContext, quotas.getSecurityGroupRule(), tenantId);
+			}
+			
+			if (quotas.getRouter() == 0) {
+				logger.warning("Failed to retrieve routers quota, skipping routers quota validation");
+				validationContext.validationEventEnd(ValidationResultType.WARNING);
+			} else {
+				validateRoutersQuota(validationContext, quotas.getRouter(), tenantId);
+			}
+			
+			if (quotas.getNetwork() == 0) {
+				logger.warning("Failed to retrieve networks quota, skipping networks quota validation");
+				validationContext.validationEventEnd(ValidationResultType.WARNING);
+			} else {
+				validateNetworksQuota(validationContext, quotas.getNetwork(), tenantId);
+			}
+			
+			if (quotas.getSubnet() == 0) {
+				logger.warning("Failed to retrieve subnets quota, skipping subnets quota validation");
+				validationContext.validationEventEnd(ValidationResultType.WARNING);
+			} else {
+				validateSubnetsQuota(validationContext, quotas.getSubnet(), tenantId);
+			}
+			
+			if (quotas.getFloatingip() == 0) {
+				logger.warning("Failed to retrieve floating-ip quota, skipping floating-ip quota validation");
+				validationContext.validationEventEnd(ValidationResultType.WARNING);
+			} else {
+				validateFloatingIpsQuota(validationContext, quotas.getFloatingip());
+			}
+			
 			validationContext.validationEventEnd(ValidationResultType.OK);
 		} catch (final OpenstackException e) {
 			validationContext.validationEventEnd(ValidationResultType.WARNING);
