@@ -1614,10 +1614,6 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 			final int coreLimit, final int ramLimit, final List<NovaServer> servers)
 			throws CloudProvisioningException {
 		
-		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
-				getFormattedMessage("validating_total_cores_quota"));
-		logger.finest("virtual-cores quota limit is: " + coreLimit);
-		
 		int existingVcpus = 0;
 		int existingRam = 0;
 		List<Flavor> flavors;
@@ -1672,8 +1668,13 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	}
 	
 
-	private void validateCpusQuota(final ValidationContext validationContext, final int coreLimit, int existingVcpus,
-			final int managementFlavorVcpus, final int numOfManagementMachines) throws CloudProvisioningException {
+	private void validateCpusQuota(final ValidationContext validationContext, final int coreLimit,
+			final int existingVcpus, final int managementFlavorVcpus, final int numOfManagementMachines) 
+					throws CloudProvisioningException {
+		
+		validationContext.validationOngoingEvent(ValidationMessageType.ENTRY_VALIDATION_MESSAGE,
+				getFormattedMessage("validating_total_cores_quota"));
+		logger.finest("virtual-cores quota limit is: " + coreLimit);
 		
 		final int requiredVcpus = managementFlavorVcpus * numOfManagementMachines;
 		logger.finest("used cores amount to: " + existingVcpus + ". Required: " + requiredVcpus);
