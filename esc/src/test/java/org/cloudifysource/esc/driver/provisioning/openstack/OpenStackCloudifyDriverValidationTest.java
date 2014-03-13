@@ -53,7 +53,6 @@ public class OpenStackCloudifyDriverValidationTest {
 	public void before() throws OpenstackException {
 		computeApi = Mockito.mock(OpenStackComputeClient.class, Mockito.RETURNS_MOCKS);
 		networkApi = Mockito.mock(OpenStackNetworkClient.class, Mockito.RETURNS_MOCKS);
-		networkHelper = Mockito.mock(OpenStackNetworkConfigurationHelper.class, Mockito.RETURNS_MOCKS);
 
 		List<Network> createNetworks = this.createNetworks("SOME_INTERNAL_NETWORK_1", "SOME_INTERNAL_NETWORK_2");
 		Mockito.when(networkApi.getNetworks()).thenReturn(createNetworks);
@@ -558,9 +557,6 @@ public class OpenStackCloudifyDriverValidationTest {
 			// set quotas mocking
 			Mockito.when(networkApi.getQuotasForTenant("tenantId")).thenReturn(quota);
 			
-			// set it so an external router is required.
-			Mockito.when(networkHelper.isCreateExternalRouter()).thenReturn(true);
-			
 			// init the existing router list
 			final List<Router> existingRouters = new ArrayList<Router>();
 			existingRouters.add(new Router());
@@ -639,7 +635,7 @@ public class OpenStackCloudifyDriverValidationTest {
 		}
 	}
 	
-//	@Test(expected = CloudProvisioningException.class)
+	@Test(expected = CloudProvisioningException.class)
 	public void floatingIpQuotaValidator() throws Exception {
 		try {
 			final OpenStackCloudifyDriver newDriverInstance = this.newDriverInstance("ok", true);
@@ -653,9 +649,6 @@ public class OpenStackCloudifyDriverValidationTest {
 			Mockito.when(computeApi.getTenantId()).thenReturn("tenantId");
 			// set quotas mocking
 			Mockito.when(networkApi.getQuotasForTenant("tenantId")).thenReturn(quota);
-			
-			// set floating-ip as required
-			Mockito.when(this.networkHelper.associateFloatingIp()).thenReturn(true);
 			
 			// init the existing floating-ip list
 			final List<FloatingIp> existingFloatingIps = new ArrayList<FloatingIp>();

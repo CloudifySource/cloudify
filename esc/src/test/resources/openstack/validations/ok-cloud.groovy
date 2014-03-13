@@ -23,6 +23,7 @@ cloud {
 						range "24.0.0.0/24"
 					}
 				])
+				custom ([ "associateFloatingIpOnBootstrap" : "true" ])
 			}
 		}
 		templates ([
