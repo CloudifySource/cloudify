@@ -93,6 +93,26 @@ public interface StorageFacade {
 	 */
 	void partition(final String volumeId, final String device, final long timeoutInMillis) 
 			throws LocalStorageOperationException, TimeoutException;
+	
+
+	/**
+	 * partition the device according to the following - create a new, single, primary partition, on the entire volume.
+	 * @param device - device name.
+	 * @param timeoutInMillis - the timeout after which the process will be terminated forcefully.
+	 * @throws LocalStorageOperationException - thrown when the command fails.
+	 * @throws TimeoutException - in case of a timeout.
+	 */
+	void partition(final String device, final long timeoutInMillis)
+			throws LocalStorageOperationException, TimeoutException;
+	
+	/**
+	 * partition the device according to the following - create a new, single, primary partition, on the entire volume.
+	 * @param device - device name.
+	 * @throws LocalStorageOperationException - thrown when the command fails.
+	 * @throws TimeoutException - in case of a timeout.
+	 */
+	void partition(final String device)
+			throws LocalStorageOperationException, TimeoutException;
 
 	/**
 	 * partition the device according to the following - create a new, single, primary partition, on the entire volume.
@@ -116,6 +136,27 @@ public interface StorageFacade {
 	 * @throws TimeoutException - in case of a timeout.
 	 */
 	void format(final String volumeId, final String device, final String fileSystem, final long timeoutInMillis) 
+			throws LocalStorageOperationException, TimeoutException;
+	
+	/**
+	 * format a device to a given file system.
+	 * @param device - device name.
+	 * @param fileSystem - file system type.
+	 * @param timeoutInMillis - the timeout after which the process will be terminated forcefully.
+	 * @throws LocalStorageOperationException - thrown when the command fails.
+	 * @throws TimeoutException - in case of a timeout.
+	 */
+	void format(final String device, final String fileSystem, final long timeoutInMillis) 
+			throws LocalStorageOperationException, TimeoutException;
+	
+	/**
+	 * format a device to a given file system.
+	 * @param device - device name.
+	 * @param fileSystem - file system type.
+	 * @throws LocalStorageOperationException - thrown when the command fails.
+	 * @throws TimeoutException - in case of a timeout.
+	 */
+	void format(final String device, final String fileSystem)
 			throws LocalStorageOperationException, TimeoutException;
 
 	/**
@@ -141,6 +182,27 @@ public interface StorageFacade {
 	 * @throws TimeoutException - in case of a timeout.
 	 */
 	void mount(final String volumeId, final String device, final String path, final long timeoutInMillis) 
+			throws LocalStorageOperationException, TimeoutException;
+	
+	/**
+	 * mount a device to a local mounting point.
+	 * @param device - device name.
+	 * @param path - mounting point (will be created automatically).
+	 * @param timeoutInMillis - the timeout after which the process will be terminated forcefully.
+	 * @throws LocalStorageOperationException - thrown when the command fails.
+	 * @throws TimeoutException - in case of a timeout.
+	 */
+	void mount(final String device, final String path, final long timeoutInMillis)
+			throws LocalStorageOperationException, TimeoutException;
+	
+	/**
+	 * mount a device to a local mounting point.
+	 * @param device - device name.
+	 * @param path - mounting point (will be created automatically).
+	 * @throws LocalStorageOperationException - thrown when the command fails.
+	 * @throws TimeoutException - in case of a timeout.
+	 */
+	void mount(final String device, final String path)
 			throws LocalStorageOperationException, TimeoutException;
 	
 	/**

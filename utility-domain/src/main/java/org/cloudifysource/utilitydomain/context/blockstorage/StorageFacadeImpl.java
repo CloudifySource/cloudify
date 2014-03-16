@@ -113,7 +113,11 @@ public class StorageFacadeImpl implements StorageFacade {
 		}
 		logger.info("Mounting device " + device + " to mount point " + path);
 		VolumeUtils.mount(device, path, timeoutInMillis);
-		changeStateOfVolumeWithId(volumeId, VolumeState.MOUNTED);
+		if (volumeId != null) {
+			changeStateOfVolumeWithId(volumeId, VolumeState.MOUNTED);
+		} else {
+			changeStateOfVolumeWithDevice(device, VolumeState.MOUNTED);
+		}
 
 	}
 
@@ -126,7 +130,23 @@ public class StorageFacadeImpl implements StorageFacade {
 		}
 		logger.info("Mounting device " + device + " to mount point " + path);
 		VolumeUtils.mount(device, path);
-		changeStateOfVolumeWithId(volumeId, VolumeState.MOUNTED);
+		if (volumeId != null) {
+			changeStateOfVolumeWithId(volumeId, VolumeState.MOUNTED);
+		} else {
+			changeStateOfVolumeWithDevice(device, VolumeState.MOUNTED);
+		}
+	}
+	
+	@Override
+	public void mount(final String device, final String path, final long timeoutInMillis)
+			throws LocalStorageOperationException, TimeoutException {
+		mount(null, device, path, timeoutInMillis);
+	}
+
+	@Override
+	public void mount(final String device, final String path)
+			throws LocalStorageOperationException, TimeoutException {
+		mount(null, device, path);
 	}
 
 	@Override
@@ -165,8 +185,35 @@ public class StorageFacadeImpl implements StorageFacade {
 		}
 		logger.info("Partitioning device " + device);
 		VolumeUtils.partition(device, timeoutInMillis);
-		changeStateOfVolumeWithId(volumeId, VolumeState.PARTITIONED);
+		if (volumeId != null) {
+			changeStateOfVolumeWithId(volumeId, VolumeState.PARTITIONED);
+		} else {
+			changeStateOfVolumeWithDevice(device, VolumeState.PARTITIONED);
+		}
 
+	}
+	
+	@Override
+	public void partition(final String device, final long timeoutInMillis)
+			throws LocalStorageOperationException, TimeoutException {
+		partition(null, device, timeoutInMillis);
+	}
+
+	@Override
+	public void partition(final String device) throws LocalStorageOperationException,
+			TimeoutException {
+		partition(null, device);
+	}
+
+	private void changeStateOfVolumeWithDevice(final String device,
+			final VolumeState newState) {
+		ServiceVolume serviceVolume = new ServiceVolume();
+		serviceVolume.setDevice(device);
+		serviceVolume.setApplicationName(serviceContext.getApplicationName());
+		serviceVolume.setServiceName(serviceContext.getServiceName());
+		serviceVolume.setIp(serviceContext.getBindAddress());
+		logger.fine("Changing state of volume with device " + device + " to " + newState);
+		managementSpace.change(serviceVolume, new ChangeSet().set("state", newState));
 	}
 
 	@Override
@@ -178,7 +225,11 @@ public class StorageFacadeImpl implements StorageFacade {
 		}
 		logger.info("Partitioning device " + device);
 		VolumeUtils.partition(device);
-		changeStateOfVolumeWithId(volumeId, VolumeState.PARTITIONED);
+		if (volumeId != null) {
+			changeStateOfVolumeWithId(volumeId, VolumeState.PARTITIONED);
+		} else {
+			changeStateOfVolumeWithDevice(device, VolumeState.PARTITIONED);
+		}
 	}
 
 
@@ -191,7 +242,11 @@ public class StorageFacadeImpl implements StorageFacade {
 		}
 		logger.info("Formatting device " + device + " to File System " + fileSystem);
 		VolumeUtils.format(device, fileSystem, timeoutInMillis);
-		changeStateOfVolumeWithId(volumeId, VolumeState.FORMATTED);
+		if (volumeId != null) {
+			changeStateOfVolumeWithId(volumeId, VolumeState.FORMATTED);
+		} else {
+			changeStateOfVolumeWithDevice(device, VolumeState.FORMATTED);
+		}
 
 	}
 
@@ -204,7 +259,23 @@ public class StorageFacadeImpl implements StorageFacade {
 		}
 		logger.info("Formatting device " + device + " to File System " + fileSystem);
 		VolumeUtils.format(device, fileSystem);
-		changeStateOfVolumeWithId(volumeId, VolumeState.FORMATTED);
+		if (volumeId != null) {
+			changeStateOfVolumeWithId(volumeId, VolumeState.FORMATTED);
+		} else {
+			changeStateOfVolumeWithDevice(device, VolumeState.FORMATTED);
+		}
+	}
+	
+	@Override
+	public void format(final String device, final String fileSystem, long timeoutInMillis)
+			throws LocalStorageOperationException, TimeoutException {
+		format(null, device, fileSystem, timeoutInMillis);
+	}
+
+	@Override
+	public void format(final String device, final String fileSystem)
+			throws LocalStorageOperationException, TimeoutException {
+		format(null, device, fileSystem);
 	}
 
 	private void validateNotWindows() {
@@ -249,5 +320,4 @@ public class StorageFacadeImpl implements StorageFacade {
 		}
 		return remoteStorageProvisioningDriver;
 	}
-
 }
