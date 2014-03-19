@@ -501,6 +501,13 @@ public final class CloudifyConstants {
 	 */
 	public static final long DEFAULT_DUMP_FILE_SIZE_LIMIT = 10 * 1024 * 1024;
 
+	
+	/******
+	 * sysprop for setting the REST API version number used in the CLI.
+	 */
+	public static final String SYSTEM_PROPERTY_CLI_REST_API_VERSION =
+            "org.cloudifysource.cli.rest.api-version";
+	
 	// CHECKSTYLE:ON
 
 }
