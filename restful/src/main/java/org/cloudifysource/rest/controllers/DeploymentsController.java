@@ -1614,8 +1614,7 @@ public class DeploymentsController extends BaseRestController {
 		GridServiceManager gsm = getGridServiceManager();
 		ProcessingUnit pu = null;
 
-        Integer serviceDiscoveryTimeoutInSeconds = restConfig.getCloud().getConfiguration().getComponents().getRest()
-                .getServiceDiscoveryTimeoutInSeconds();
+		Integer serviceDiscoveryTimeoutInSeconds = getServiceDiscoveryTimeout();                
 
         if (deployment instanceof ElasticStatelessProcessingUnitDeployment) {
 			pu = gsm.deploy((ElasticStatelessProcessingUnitDeployment) deployment,
@@ -1631,6 +1630,24 @@ public class DeploymentsController extends BaseRestController {
 					+ serviceName + " deployment.");
 		}
 		return pu;
+	}
+
+	/**
+	 * Gets the service discovery timeout from the cloud configuration.
+	 * If the cloud object is null (e.g. localcloud), uses the default timeout (60 seconds)
+	 * @return service discovery timeout in seconds
+	 */
+	private Integer getServiceDiscoveryTimeout() {
+		Integer serviceDiscoveryTimeoutInSeconds = new Integer(CloudifyConstants.DEFAULT_SERVICE_DISCOVERY_TIMEOUT_SEC);
+		Cloud cloud = restConfig.getCloud();
+		if (cloud != null) {
+			serviceDiscoveryTimeoutInSeconds = cloud.getConfiguration().getComponents().getRest()
+					.getServiceDiscoveryTimeoutInSeconds();	
+		}
+		
+		logger.finest("serviceDiscoveryTimeoutInSeconds value is set to: " + serviceDiscoveryTimeoutInSeconds);
+		
+		return serviceDiscoveryTimeoutInSeconds;
 	}
 
 	private GridServiceManager getGridServiceManager() {
