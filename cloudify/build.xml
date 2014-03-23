@@ -737,7 +737,7 @@
             <arg value="-Dput.user=${put.user}" />
             <arg value="-Dput.key=${put.key}" />
             <arg value="-Dput.source=${maven.repo.local}/org/apache/jclouds/provider/softlayer-all/${s3.jclouds.publish.folder}" />
-            <arg value="-Dput.target=org/cloudifysource/version/${s3.jclouds.publish.folder}" />
+            <arg value="-Dput.target=org/apache/jclouds/provider/softlayer-all/${s3.jclouds.publish.folder}" />
             <arg value="-Dput.container=${cloudify.maven.container}"/>
         </exec>
 
