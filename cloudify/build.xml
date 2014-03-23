@@ -49,7 +49,7 @@
 	<property name="gs.boot.jar" value="gs-boot.jar" />
 	<property name="gs.webui.war" value="gs-webui-${s3.gs.publish.folder}.war" />
 	<property name="usm.local.copy" value="${basedir}/../USM" />
-    <property name="softlayer-cci.local.copy" value="${basedir}/../../jclouds/providers/softlayer-cci" />
+    <property name="softlayer-cci.local.copy" value="${basedir}/../../jclouds/providers/softlayer" />
     <property name="softlayer-bmi.local.copy" value="${basedir}/../../jclouds/providers/softlayer-bmi" />
 	<property name="esc.local.copy" value="${basedir}/../esc" />
 	<property name="recipes.local.copy" value="${basedir}/../../cloudify-recipes" />
