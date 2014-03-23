@@ -49,6 +49,8 @@
 	<property name="gs.boot.jar" value="gs-boot.jar" />
 	<property name="gs.webui.war" value="gs-webui-${s3.gs.publish.folder}.war" />
 	<property name="usm.local.copy" value="${basedir}/../USM" />
+    <property name="softlayer-cci.local.copy" value="${basedir}/../../jclouds/providers/softlayer-cci" />
+    <property name="softlayer-bmi.local.copy" value="${basedir}/../../jclouds/providers/softlayer-bmi" />
 	<property name="esc.local.copy" value="${basedir}/../esc" />
 	<property name="recipes.local.copy" value="${basedir}/../../cloudify-recipes" />
 	<property name="dsl.local.copy" value="${basedir}/../dsl" />
@@ -88,6 +90,7 @@
 	<property name="cloudify.parent.pom.file" value="${basedir}/pom.xml"/>
 	<property name="streaming-bigdata.pom.file" value="${recipes.local.copy}/apps/streaming-bigdata/pom.xml"/>
 	<property name="s3.cloudify.publish.folder" value="${cloudify.version}-SNAPSHOT"/>
+    <property name="s3.jclouds.publish.folder" value="${jclouds.version}"/>
 	<property name="gs.version.tag" value="gsVersion" />
 	
 	
@@ -228,7 +231,18 @@
     	<attribute name="installation.dir" default="${tmp.dir}/${cloudify.installation.dir}" />
     	<sequential>
     		<property name="current.dir" value="@{installation.dir}" id="current.installation.dir"></property>
-	        <echo message="Copy USM component"/>
+
+            <echo message="Copy softlayer-cci provider"/>
+            <copy todir="@{installation.dir}/lib/platform/esm" overwrite="true">
+                <fileset dir="${softlayer-cci.local.copy}/target/" includes="softlayer-cci-${jclouds.version}.jar" excludes=".svn"/>
+            </copy>
+
+            <echo message="Copy softlayer-bmi provider"/>
+            <copy todir="@{installation.dir}/lib/platform/esm" overwrite="true">
+                <fileset dir="${softlayer-bmi.local.copy}/target/" includes="softlayer-bmi-${jclouds.version}.jar" excludes=".svn"/>
+            </copy>
+
+            <echo message="Copy USM component"/>
 	        <copy todir="@{installation.dir}/lib/platform/usm" overwrite="true">
 	            <fileset dir="${usm.local.copy}/target/" includes="usm.jar" excludes=".svn"/>
 	        </copy>
@@ -711,6 +725,28 @@
             <arg value="-Dput.key=${put.key}" />
             <arg value="-Dput.source=${maven.repo.local}/org/cloudifysource/utility-domain/${s3.cloudify.publish.folder}" />
             <arg value="-Dput.target=org/cloudifysource/utility-domain/${s3.cloudify.publish.folder}" />
+            <arg value="-Dput.container=${cloudify.maven.container}"/>
+        </exec>
+
+        <echo message="uploading softlayer-cci jar artifacts to S3" />
+
+        <exec executable="${mvn.executable}">
+            <arg value="s3client:deploy-native" />
+            <arg value="-Dput.user=${put.user}" />
+            <arg value="-Dput.key=${put.key}" />
+            <arg value="-Dput.source=${maven.repo.local}/org/apache/jclouds/provider/softlayer-cci/${s3.jclouds.publish.folder}" />
+            <arg value="-Dput.target=org/apache/jclouds/provider/softlayer-cci/${s3.jclouds.publish.folder}" />
+            <arg value="-Dput.container=${cloudify.maven.container}"/>
+        </exec>
+
+        <echo message="uploading softlayer-bmi jar artifacts to S3" />
+
+        <exec executable="${mvn.executable}">
+            <arg value="s3client:deploy-native" />
+            <arg value="-Dput.user=${put.user}" />
+            <arg value="-Dput.key=${put.key}" />
+            <arg value="-Dput.source=${maven.repo.local}/org/apache/jclouds/provider/softlayer-bmi/${s3.jclouds.publish.folder}" />
+            <arg value="-Dput.target=org/apache/jclouds/provider/softlayer-bmi/${s3.jclouds.publish.folder}" />
             <arg value="-Dput.container=${cloudify.maven.container}"/>
         </exec>
 
