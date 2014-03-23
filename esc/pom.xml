@@ -23,12 +23,6 @@
 			</snapshots>
 		</repository>
 
-        <!-- We need this repo for the softlayer jclouds fix -->
-        <repository>
-            <id>my.mvn.repo</id>
-            <url>https://github.com/iliapolo/maven-repo/raw/master</url>
-        </repository>
-
 	</repositories>
 
 	<dependencies>
