@@ -26,11 +26,14 @@ import org.cloudifysource.domain.internal.CloudifyDSLEntity;
 @CloudifyDSLEntity(name = "rest", clazz = RestComponent.class, allowInternalNode = true,
 	allowRootNode = false, parent = "components")
 public class RestComponent  extends GridComponent {
+	
 	private Integer port;
+	private Integer serviceDiscoveryTimeoutInSeconds;
 	
 	public RestComponent() {
 		this.setMaxMemory("128m");
 		this.setMinMemory("128m");
+		this.setServiceDiscoveryTimeoutInSeconds(60);
 	}
 
 	public Integer getPort() {
@@ -40,4 +43,13 @@ public class RestComponent  extends GridComponent {
 	public void setPort(final Integer port) {
 		this.port = port;
 	}
+	
+	public void setServiceDiscoveryTimeoutInSeconds(Integer serviceDiscoveryTimeoutInSeconds) {
+		this.serviceDiscoveryTimeoutInSeconds = serviceDiscoveryTimeoutInSeconds;
+	}
+	
+	public Integer getServiceDiscoveryTimeoutInSeconds() {
+		return serviceDiscoveryTimeoutInSeconds;
+	}
+	
 }

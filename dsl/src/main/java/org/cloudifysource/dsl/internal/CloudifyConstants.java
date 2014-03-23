@@ -457,6 +457,7 @@ public final class CloudifyConstants {
     public static final String INSTALL_SERVICE_REQUEST_PARAM_NAME = "install-service-request";
     public static final String EXTRACTED_FILES_FOLDER_NAME = "extracted";
     public static final int LIFECYCLE_EVENT_POLLING_INTERVAL_SEC = 4;
+    public static final int DEFAULT_SERVICE_DISCOVERY_TIMEOUT_SEC = 60;
 
     // uninstall-service constants
     public static final String UNDEPLOYED_SUCCESSFULLY_EVENT = "Internal event - undeployed successfully";

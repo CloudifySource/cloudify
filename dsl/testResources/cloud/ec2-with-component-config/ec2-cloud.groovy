@@ -63,6 +63,7 @@ cloud {
 				port 8102
 				minMemory "64m"
 				maxMemory "64m"
+				serviceDiscoveryTimeoutInSeconds 5
 			}
 			webui {
 				//Webui port
