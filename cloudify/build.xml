@@ -232,9 +232,9 @@
     	<sequential>
     		<property name="current.dir" value="@{installation.dir}" id="current.installation.dir"></property>
 
-            <echo message="Copy softlayer-cci provider"/>
+            <echo message="Copy softlayer provider"/>
             <copy todir="@{installation.dir}/lib/platform/esm" overwrite="true">
-                <fileset dir="${softlayer-cci.local.copy}/target/" includes="softlayer-cci-${jclouds.version}.jar" excludes=".svn"/>
+                <fileset dir="${softlayer-cci.local.copy}/target/" includes="softlayer-fixed-${jclouds.version}.jar" excludes=".svn"/>
             </copy>
 
             <echo message="Copy softlayer-bmi provider"/>
@@ -728,14 +728,14 @@
             <arg value="-Dput.container=${cloudify.maven.container}"/>
         </exec>
 
-        <echo message="uploading softlayer-cci jar artifacts to S3" />
+        <echo message="uploading softlayer jar artifacts to S3" />
 
         <exec executable="${mvn.executable}">
             <arg value="s3client:deploy-native" />
             <arg value="-Dput.user=${put.user}" />
             <arg value="-Dput.key=${put.key}" />
-            <arg value="-Dput.source=${maven.repo.local}/org/apache/jclouds/provider/softlayer-cci/${s3.jclouds.publish.folder}" />
-            <arg value="-Dput.target=org/apache/jclouds/provider/softlayer-cci/${s3.jclouds.publish.folder}" />
+            <arg value="-Dput.source=${maven.repo.local}/org/apache/jclouds/provider/softlayer-fixed/${s3.jclouds.publish.folder}" />
+            <arg value="-Dput.target=org/apache/jclouds/provider/softlayer-fixed/${s3.jclouds.publish.folder}" />
             <arg value="-Dput.container=${cloudify.maven.container}"/>
         </exec>
 
