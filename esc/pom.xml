@@ -28,7 +28,7 @@
 	<dependencies>
         <dependency>
             <groupId>org.apache.jclouds.provider</groupId>
-            <artifactId>softlayer-cci</artifactId>
+            <artifactId>softlayer-fixed</artifactId>
             <version>${jcloudsVersion}</version>
         </dependency>
         <dependency>
