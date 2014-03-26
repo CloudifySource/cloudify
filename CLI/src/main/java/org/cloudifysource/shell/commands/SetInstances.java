@@ -53,7 +53,7 @@ public class SetInstances extends AdminAwareCommand implements NewRestClientComm
 	private int count;
 
 	@Option(required = false, name = "-timeout",
-			description = "number of minutes to wait for instances. Default is set to 1 minute")
+			description = "number of minutes to wait for instances. Default is set to 10 minutes")
 	protected int timeout = DEFAULT_TIMEOUT_MINUTES;
 
 	// NOTE: This flag has been disabled as manual scaling is not supported with location aware services in Cloudify
