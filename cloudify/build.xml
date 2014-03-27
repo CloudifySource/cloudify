@@ -210,6 +210,16 @@
 
    </target>
 	
+   <target name="set_gs_version">
+   <replaceregexp file="${cloudify.parent.pom.file}"
+				match="&lt;${gs.version.tag}&gt;(.*)&lt;/${gs.version.tag}&gt;"
+				replace="&lt;${gs.version.tag}&gt;${s3.gs.publish.folder}&lt;/${gs.version.tag}&gt;"/>
+			
+			<replaceregexp file="${streaming-bigdata.pom.file}"
+				match="&lt;${gs.version.tag}&gt;(.*)&lt;/${gs.version.tag}&gt;"
+				replace="&lt;${gs.version.tag}&gt;${s3.gs.publish.folder}&lt;/${gs.version.tag}&gt;"/>
+    </target>
+	
     <target name="update.lus.groups">
         <echo message="Updating LUS Groups in directory: ${tmp.dir}/${cloudify.installation.dir} ..."/>
         <property name="lookup.group" value="gigaspaces-${CLOUDIFY}-${cloudify.version}-${cloudify.milestone}"/>
