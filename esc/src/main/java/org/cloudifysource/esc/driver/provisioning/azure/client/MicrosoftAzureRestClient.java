@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.net.ssl.SSLContext;
@@ -437,11 +438,11 @@ public class MicrosoftAzureRestClient {
 						+ serviceName + "/deployments", xmlRequest);
 				String requestId = extractRequestId(response);
 				waitForRequestToFinish(requestId, endTime);
-				logger.fine(getThreadIdentity() + "About to release lock " + pendingRequest.hashCode());
+                logger.fine(getThreadIdentity() + "About to release lock " + pendingRequest.hashCode());
 				pendingRequest.unlock();
 			} catch (final Exception e) {
-				logger.fine(getThreadIdentity() + "A failure occured : about to release lock " 
-							+ pendingRequest.hashCode());
+				logger.log(Level.FINE, getThreadIdentity() + "A failure occured : about to release lock "
+                        + pendingRequest.hashCode(), e);
 				if (serviceName != null) {
 					try {
 						// delete the dedicated cloud service that was created for the virtual machine.

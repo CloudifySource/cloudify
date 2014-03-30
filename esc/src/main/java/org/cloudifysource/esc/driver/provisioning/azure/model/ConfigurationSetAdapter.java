@@ -60,7 +60,7 @@ public class ConfigurationSetAdapter
 					.setComputerName(adaptedConfigurationSet.computerName);
 			windowsProvisioningConfigurationSet.setAdminUsername(adaptedConfigurationSet.adminUsername);
 			windowsProvisioningConfigurationSet.setAdminPassword(adaptedConfigurationSet.adminPassword);
-			windowsProvisioningConfigurationSet.setWinRm(adaptedConfigurationSet.winRm);
+			windowsProvisioningConfigurationSet.setWinRM(adaptedConfigurationSet.winRM);
 			
 		} else {// NetworkConfiguration
 			NetworkConfigurationSet networkConfigurationSet = new NetworkConfigurationSet();
@@ -116,7 +116,7 @@ public class ConfigurationSetAdapter
 			adaptedConfigurationSet.adminUsername = WindowsProvisioningConfigurationSet.getAdminUsername();
 			adaptedConfigurationSet.adminPassword = WindowsProvisioningConfigurationSet.getAdminPassword();
 			adaptedConfigurationSet.computerName = WindowsProvisioningConfigurationSet.getComputerName();
-			adaptedConfigurationSet.winRm = WindowsProvisioningConfigurationSet.getWinRm();
+			adaptedConfigurationSet.winRM = WindowsProvisioningConfigurationSet.getWinRM();
 			
 		} else {
 			NetworkConfigurationSet networkConfigurationSet = (NetworkConfigurationSet) configurationSet;
@@ -150,8 +150,8 @@ public class ConfigurationSetAdapter
         @XmlElement(name="AdminPassword")
 		private String adminPassword;
 		
-		@XmlElement(name="WinRm")
-		private WinRm winRm;
+		@XmlElement(name="WinRM")
+		private WinRM winRM;
 
         @XmlElement(name="AdminUsername")
         private String adminUsername;

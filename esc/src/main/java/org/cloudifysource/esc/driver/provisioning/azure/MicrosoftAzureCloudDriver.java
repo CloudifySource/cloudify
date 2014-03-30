@@ -202,14 +202,14 @@ public class MicrosoftAzureCloudDriver extends CloudDriverSupport implements
 		
 		// Test endpoints / firewall port for winrm at least 5985
 		this.endpoints = (List<Map<String, String>>) this.template.getCustom().get(AZURE_ENDPOINTS);
-		boolean winRmEndpoint = false;
+		boolean winRMEndpoint = false;
 		String endPointPort = "";
 		for (Map<String, String> endpointMap : endpoints) {
 			endPointPort = endpointMap.get("port");
 			if ( !endPointPort.contains("-") && RemoteExecutionModes.WINRM.getDefaultPort() == Integer.parseInt(endPointPort) )
-				winRmEndpoint = true;
+				winRMEndpoint = true;
 		}
-		if (endpoints == null || !winRmEndpoint) {
+		if (endpoints == null || !winRMEndpoint) {
 			throw new IllegalArgumentException("Custom field '"
 					+ AZURE_ENDPOINTS + "' must be set at least with WinRM port "+RemoteExecutionModes.WINRM.getDefaultPort());
 		}

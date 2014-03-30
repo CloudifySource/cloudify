@@ -38,7 +38,7 @@ Set-Item WSMan:\localhost\Shell\MaxMemoryPerShellMB -Value 0 -Force
 Set-ExecutionPolicy -Force bypass
 
 Write-Host "Connecting to management service of $target"
-Connect-WSMan -Credential $cred $target 
+Connect-WSMan -UseSSL -Port 5986 -Credential $cred -ComputerName $target -SessionOption (New-PSSessionOption -SkipCACheck -SkipCNCheck)
 
 set-item WSMan:\$target\Client\TrustedHosts -Value * -Force
 set-item WSMan:\$target\Shell\MaxMemoryPerShellMB -Value 0 -Force
@@ -46,7 +46,7 @@ set-item WSMan:\$target\Shell\MaxMemoryPerShellMB -Value 0 -Force
 Write-Host Invoking command on Remote host $target
 $trusted=$(Get-Item WSMan:\localhost\Client\TrustedHosts).value
 Write-Host "Current Trusted Host : $trusted"
-Invoke-Command -ComputerName $target -Credential $cred  -ScriptBlock { 	
+Invoke-Command -UseSSL  -Port 5986 -ComputerName $target -Credential $cred -SessionOption (New-PSSessionOption -SkipCACheck -SkipCNCheck) -ScriptBlock {
 	Invoke-Expression $args[0]
 } -ArgumentList $command
 Write-Host "Command finished"

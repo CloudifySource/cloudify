@@ -38,7 +38,7 @@ import org.cloudifysource.esc.driver.provisioning.azure.model.NetworkConfigurati
 import org.cloudifysource.esc.driver.provisioning.azure.model.VirtualNetworkConfiguration;
 import org.cloudifysource.esc.driver.provisioning.azure.model.VirtualNetworkSite;
 import org.cloudifysource.esc.driver.provisioning.azure.model.VirtualNetworkSites;
-import org.cloudifysource.esc.driver.provisioning.azure.model.WinRm;
+import org.cloudifysource.esc.driver.provisioning.azure.model.WinRM;
 import org.cloudifysource.esc.driver.provisioning.azure.model.WindowsProvisioningConfigurationSet;
 
 import com.sun.jersey.core.util.Base64;
@@ -111,7 +111,7 @@ public class MicrosoftAzureRequestBodyBuilder {
 
 		CreateHostedService hostedService = new CreateHostedService();
 		hostedService.setAffinityGroup(affinityGroup);
-		
+
 		String randomUID = generateRandomUUID(UUID_LENGTH);
 		
 		try {
@@ -193,9 +193,9 @@ public class MicrosoftAzureRequestBodyBuilder {
 
 		return networkConfiguration;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param desc .
 	 * @return  - an object representing a body of the create virtual machine deployment
 	 *         request. <br>
@@ -259,7 +259,7 @@ public class MicrosoftAzureRequestBodyBuilder {
 			configurationSets.getConfigurationSets().add(windowsProvisioningSet);
 			
 			// Set WinRM : HTTP without Certificate
-			WinRm winRm = new WinRm();
+			WinRM winRM = new WinRM();
 			Listeners listeners = new Listeners();
 
             Listener listener = new Listener();
@@ -267,13 +267,12 @@ public class MicrosoftAzureRequestBodyBuilder {
 			listener.setProtocol("Http");
 			listeners.getListeners().add(listener);
 
-            listener = new Listener();
             listener.setCertificateThumbprint(null); // Configure for Secure Winrm command (?)
             listener.setProtocol("Https");
             listeners.getListeners().add(listener);
 
-            winRm.setListeners(listeners);
-            windowsProvisioningSet.setWinRm(winRm);
+            winRM.setListeners(listeners);
+            windowsProvisioningSet.setWinRM(winRM);
 		}
 		else {
 			LinuxProvisioningConfigurationSet linuxProvisioningSet = new LinuxProvisioningConfigurationSet();
