@@ -263,10 +263,6 @@ public class MicrosoftAzureRequestBodyBuilder {
 			Listeners listeners = new Listeners();
 
             Listener listener = new Listener();
-			listener.setCertificateThumbprint(null); // Configure for Secure Winrm command (?)
-			listener.setProtocol("Http");
-			listeners.getListeners().add(listener);
-
             listener.setCertificateThumbprint(null); // Configure for Secure Winrm command (?)
             listener.setProtocol("Https");
             listeners.getListeners().add(listener);

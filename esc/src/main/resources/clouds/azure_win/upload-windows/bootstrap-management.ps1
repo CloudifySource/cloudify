@@ -165,10 +165,10 @@ insert-line $cloudifyDir\bin\setenv.bat "call $scriptPath\cloudify_env.bat"
 
 
 Write-Host "Disabling local firewall (OFF)"
-#$firewallCommand = "netsh advfirewall set allprofiles state off"
-#Set-Content -Encoding ASCII firewall.bat $firewallCommand
-#cmd.exe /c firewall.bat
-#rm -Force firewall.bat
+$firewallCommand = "netsh advfirewall set allprofiles state off"
+Set-Content -Encoding ASCII firewall.bat $firewallCommand
+cmd.exe /c firewall.bat
+rm -Force firewall.bat
 
 # create the launch commandline
 $START_COMMAND_ARGS="-timeout 30 --verbose"
