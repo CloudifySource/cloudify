@@ -171,7 +171,7 @@ Write-Host "Disabling local firewall (OFF)"
 #rm -Force firewall.bat
 
 # create the launch commandline
-$START_COMMAND_ARGS="-timeout 30 --verbose -auto-shutdown"
+$START_COMMAND_ARGS="-timeout 30 --verbose"
 if ($ENV:GSA_MODE -eq "agent")
 {
 	Write-Host "Starting agent node"
