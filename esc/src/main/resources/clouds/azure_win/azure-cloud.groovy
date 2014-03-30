@@ -102,8 +102,7 @@ cloud {
 			},
 			LARGE_WIN2008R2 : computeTemplate{
 
-				imageId "0c0083a6d9a24f2d91800e52cad83950__JDK-1.7.0_51-0114-Win"
-
+				imageId "bd507d3a70934695bc2128e3e5a255ba__RightImage-Windows-2012-x64-v13.5"
 				machineMemoryMB 7000
 				hardwareId "Large"
 				
@@ -169,8 +168,8 @@ cloud {
 //						[name:"WINRM", protocol:"TCP", port:"5985"],
 						[name:"WINRM_SSL", protocol:"TCP", port:"5986"],
 						[name:"HTTP", protocol:"TCP", port:"80"],
-                        [name:"CLOUDIFY_GUI", protocol:"TCP", port:"8099"],
-                        [name:"CLOUDIFY_REST", protocol:"TCP", port:"8100"]
+//                        [name:"CLOUDIFY_GUI", protocol:"TCP", port:"8099"],
+//                        [name:"CLOUDIFY_REST", protocol:"TCP", port:"8100"]
 //						[name:"CLOUDIFY_LUS", protocol:"TCP", port:"4174"],
 //						[name:"CLOUDIFY_HTTPPU", protocol:"TCP", port:"6666"],
 //						[name:"CLOUDIFY_LRMI0", protocol:"TCP", port:"7000"],
@@ -182,8 +181,8 @@ cloud {
 
 					// Firewall port to open (winrm port 5985 should be opened by default on the image)
 					"azure.firewall.ports" : [
-//						[name:"CLOUDIFY_GUI", protocol:"TCP", port:"8099"],
-//						[name:"CLOUDIFY_REST", protocol:"TCP", port:"8100"],
+						[name:"CLOUDIFY_GUI", protocol:"TCP", port:"8099"],
+						[name:"CLOUDIFY_REST", protocol:"TCP", port:"8100"],
 //						[name:"CLOUDIFY_LUS", protocol:"TCP", port:"4174"],
 //						[name:"CLOUDIFY_HTTPPU", protocol:"TCP", port:"6666"],
 //						[name:"CLOUDIFY_LRMI0", protocol:"TCP", port:"7000"],
@@ -245,10 +244,10 @@ cloud {
 						[name:"WINRM", protocol:"TCP", port:"5985"],
 						[name:"WINRM_SSL", protocol:"TCP", port:"5986"],
 						[name:"HTTP", protocol:"TCP", port:"80"],
-                        [name:"CLOUDIFY_GUI", protocol:"TCP", port:"8099"],
-                        [name:"CLOUDIFY_REST", protocol:"TCP", port:"8100"]/*,
-						[name:"CLOUDIFY_LUS", protocol:"TCP", port:"4174"],
-						[name:"CLOUDIFY_LRMIALL", protocol:"TCP", port:"7010-7110"]*/
+//                        [name:"CLOUDIFY_GUI", protocol:"TCP", port:"8099"],
+//                        [name:"CLOUDIFY_REST", protocol:"TCP", port:"8100"],
+//						[name:"CLOUDIFY_LUS", protocol:"TCP", port:"4174"],
+//						[name:"CLOUDIFY_LRMIALL", protocol:"TCP", port:"7010-7110"]*/
 					],
 
 					// Firewall port to open (winrm port 5985 should be opened by default on the image)
