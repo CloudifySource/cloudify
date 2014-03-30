@@ -127,8 +127,8 @@ public class CloudifyMachineProvisioningConfig implements ElasticMachineProvisio
 		else {
 			remoteDir = template.getRemoteDirectory();
 		}
-
-		setCloudConfigurationDirectory(remoteDir);
+        logger.log(Level.INFO, "Setting cloud configuration directory to: " + remoteDir);
+        setCloudConfigurationDirectory(remoteDir);
 		setCloudTemplateName(cloudTemplateName);
 	}
 
