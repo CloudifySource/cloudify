@@ -4,14 +4,13 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 /**
- * 
+ * WinRM model
  * @author mourouvi (fastconnect)
  *
  */
+@XmlType(name= "WinRM")
+public class WinRM {
 
-@XmlType(name="WinRm")
-public class WinRm {
-	
 	private Listeners listeners;
 
 	@XmlElement(name="Listeners")
@@ -22,5 +21,4 @@ public class WinRm {
 	public void setListeners(Listeners listeners) {
 		this.listeners = listeners;
 	}
-
 }
