@@ -38,7 +38,7 @@ Set-Item WSMan:\localhost\Shell\MaxMemoryPerShellMB -Value 0 -Force
 Set-ExecutionPolicy -Force bypass
 
 Write-Host "Connecting to management service of $target"
-Connect-WSMan -UseSSL -Port 5986 -Credential $cred -ComputerName $target -SessionOption (New-PSSessionOption -SkipCACheck -SkipCNCheck)
+Connect-WSMan -UseSSL -Port 5986 -Credential $cred -ComputerName $target -SessionOption (New-WSManSessionOption -SkipCACheck -SkipCNCheck)
 
 set-item WSMan:\$target\Client\TrustedHosts -Value * -Force
 set-item WSMan:\$target\Shell\MaxMemoryPerShellMB -Value 0 -Force
