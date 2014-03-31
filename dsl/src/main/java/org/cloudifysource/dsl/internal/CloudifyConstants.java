@@ -120,6 +120,7 @@ public final class CloudifyConstants {
     public static final String USM_ENV_SERVICE_FILE_NAME = "USM_SERVICE_FILE_NAME";
     public static final String USM_ENV_APPLICATION_NAME = "USM_APPLICATION_NAME";
     public static final String USM_ENV_SERVICE_NAME = "USM_SERVICE_NAME";
+    
 
     /****************
      * Key names for USM Monitors
@@ -218,6 +219,13 @@ public final class CloudifyConstants {
     public static final String SERVICE_CLOUD_CONFIGURATION_FILE_NAME = "__Cloud_Configuration.zip";
     public static final String TEMP_FOLDER = System.getProperty("java.io.tmpdir");
     public static final String REST_FOLDER = TEMP_FOLDER + File.separator + "Cloudify";
+    
+    
+    /**
+     * Space timeouts
+     */
+    public static final long MANAGEMENT_SPACE_FIND_TIMEOUT = 10; // 10 seconds
+	public static final long MANAGEMENT_SPACE_FIND_REPEAT = 3; // 3 repeats
 
 
     /***************
@@ -376,6 +384,7 @@ public final class CloudifyConstants {
     public static final String GSM_JAVA_OPTIONS_ENVIRONMENT_VAR = "GSM_JAVA_OPTIONS";
     public static final String ESM_JAVA_OPTIONS_ENVIRONMENT_VAR = "ESM_JAVA_OPTIONS";    
     public static final String LUS_IP_ADDRESS_ENV = "LUS_IP_ADDRESS";    
+    public static final String USM_ATTRIBUTES_STORE_DISCOVERY_TIMEOUT_ENV_VAR = "ATTRIBUTES_STORE_DISCOVERY_TIMEOUT_IN_SECONDS";
 
     /*********************
      * service grid components configuration.

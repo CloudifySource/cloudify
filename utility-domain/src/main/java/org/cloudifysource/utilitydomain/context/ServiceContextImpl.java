@@ -410,6 +410,11 @@ public class ServiceContextImpl implements ServiceContext {
 	public String getBindAddress() {
 		return System.getenv(CloudifyConstants.CLOUDIFY_CLOUD_MACHINE_IP_ADDRESS_ENV);
 	}
+	
+	@Override
+	public String getAttributesStoreDiscoveryTimeout() {
+		return System.getenv(CloudifyConstants.USM_ATTRIBUTES_STORE_DISCOVERY_TIMEOUT_ENV_VAR);
+	}
 
 	@Override
 	public void stopMaintenanceMode() {

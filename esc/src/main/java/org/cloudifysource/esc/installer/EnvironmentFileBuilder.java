@@ -160,6 +160,8 @@ public class EnvironmentFileBuilder {
 				// maintain backwards compatibility for pre 2.3.0
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PRIVATE_IP, safePrivateIpAddress)
 				.exportVar(CloudifyConstants.CLOUDIFY_CLOUD_LOCATION_ID, details.getLocationId())
+				.exportVar(CloudifyConstants.USM_ATTRIBUTES_STORE_DISCOVERY_TIMEOUT_ENV_VAR, 
+						details.getAttributesStoreDiscoveryTimeout().toString())
 				.exportVar(CloudifyConstants.CLOUDIFY_AGENT_ENV_PUBLIC_IP, safePublicIpAddress);
 
 		if (details.isManagement()) {

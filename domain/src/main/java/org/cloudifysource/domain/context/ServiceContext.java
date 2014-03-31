@@ -159,6 +159,13 @@ public interface ServiceContext {
 	 */
 	String getBindAddress();
 	
+	
+	/**
+	 * 
+	 * @return - the attributes store discovery time (in seconds)
+	 */
+	String getAttributesStoreDiscoveryTimeout();
+	
 	/**
 	 * Enables the host machine failure detection for a specific service instance. Machine
 	 * failure or restart will result in the provisioning of a new machine instance.

@@ -145,6 +145,7 @@ public class InstallationDetails implements Cloneable {
 	private String webuiMaxMemory;
 	private Integer restPort;
 	private Integer webuiPort;
+	private Integer attributesStoreDiscoveryTimeout;
 
 	// persistent management
 	private boolean persistent = false;
@@ -518,6 +519,14 @@ public class InstallationDetails implements Cloneable {
 
 	public void setWebuiMaxMemory(final String webuiMaxMemory) {
 		this.webuiMaxMemory = webuiMaxMemory;
+	}
+	
+	public Integer getAttributesStoreDiscoveryTimeout() {
+		return attributesStoreDiscoveryTimeout;
+	}
+	
+	public void setAttributesStoreDiscoveryTimeout(final Integer attributesStoreDiscoveryTimeoutInSeconds) {
+		this.attributesStoreDiscoveryTimeout = attributesStoreDiscoveryTimeoutInSeconds;
 	}
 
 	public ScriptLanguages getScriptLanguage() {

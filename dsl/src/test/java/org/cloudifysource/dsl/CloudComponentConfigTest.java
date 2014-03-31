@@ -48,6 +48,9 @@ public class CloudComponentConfigTest {
 				usm.getMinMemory().equals("64m"));
 		Assert.assertTrue("unexpected usm max memory property " + usm.getMaxMemory(),
 				usm.getMaxMemory().equals("1024m"));
+		Assert.assertTrue("unexpected usm attributes store discovery timeout property " 
+				+ usm.getAttributesStoreDiscoveryTimeoutInSeconds(), 
+				usm.getAttributesStoreDiscoveryTimeoutInSeconds() == 30);
 		
 	}
 	private void validateWebuiValues(final WebuiComponent webui) {
@@ -81,7 +84,8 @@ public class CloudComponentConfigTest {
         Assert.assertTrue(
                 "unexpected orchestrator max memory property " + orchestrator.getStartMachineTimeoutInSeconds(),
                 orchestrator.getStartMachineTimeoutInSeconds() == 36000);
-        Assert.assertTrue("unexpected orchestrator max memory property " + orchestrator.getStopMachineTimeoutInSeconds(),
+        Assert.assertTrue("unexpected orchestrator max memory property " 
+                + orchestrator.getStopMachineTimeoutInSeconds(), 
                 orchestrator.getStopMachineTimeoutInSeconds() == 36000);
     }
 	private void validateDiscoveryValues(final DiscoveryComponent discovery) {

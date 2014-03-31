@@ -277,7 +277,8 @@ public final class Utils {
 
 			// setting management grid components command-line arguments
 			final String esmCommandlineArgs =
-					gridCommandBuilder.getEsmCommandlineArgs(componentsConfig.getOrchestrator(), rebootstrapping, isNoManagementSpace);
+					gridCommandBuilder.getEsmCommandlineArgs(componentsConfig.getOrchestrator(), rebootstrapping, 
+							isNoManagementSpace);
 			final String lusCommandlineArgs =
 					gridCommandBuilder.getLusCommandlineArgs(componentsConfig.getDiscovery(), lookupLocatorsString);
 			final String gsmCommandlineArgs = gridCommandBuilder.getGsmCommandlineArgs(cloud, lookupLocatorsString,
@@ -297,6 +298,10 @@ public final class Utils {
 		} else {
 			details.setConnectedToPrivateIp(cloud.getConfiguration().isConnectToPrivateIp());
 		}
+		
+		details.setAttributesStoreDiscoveryTimeout(
+				componentsConfig.getUsm().getAttributesStoreDiscoveryTimeoutInSeconds());
+		
 		String agentCommandlineArgs = gridCommandBuilder.getAgentCommandlineArgs(componentsConfig.getAgent(),
 				details.isManagement() ? MANAGEMENT_ZONE : details.getZones(), reservationId);
 
@@ -459,6 +464,8 @@ public final class Utils {
 			return installerConfiguration.getRemoteExecutionPort();
 		}
 	}
+	
+
 
 	public static SSHClient createSSHClient(final InstallationDetails details, final String host, final int port)
 			throws InstallerException {

@@ -175,4 +175,10 @@ public class BaseServiceContext implements ServiceContext {
 				+ " services running outside a GSC.");
 	}
 
+	@Override
+	public String getAttributesStoreDiscoveryTimeout() {
+		unsupported();
+		return null;
+	}
+
 }

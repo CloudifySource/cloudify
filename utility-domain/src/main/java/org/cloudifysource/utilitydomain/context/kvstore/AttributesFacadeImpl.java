@@ -35,9 +35,9 @@ import org.openspaces.core.GigaSpace;
  */
 public class AttributesFacadeImpl extends GroovyObjectSupport implements AttributesFacade {
 
-	private static final long MANAGEMENT_SPACE_FIND_TIMEOUT = 10; // 10 seconds
-	private static final long MANAGEMENT_SPACE_FIND_REPEAT = 3; // 3 repeats
-
+	private static final java.util.logging.Logger logger = java.util.logging.Logger
+			.getLogger(AttributesFacadeImpl.class.getName());
+	
 	private final ServiceContext serviceContext;
 	private final ApplicationAttributesAccessor applicationAttributesAccessor;
 	private final ServiceAttributesAccessor serviceAttributesAccessor;
@@ -101,10 +101,11 @@ public class AttributesFacadeImpl extends GroovyObjectSupport implements Attribu
 			}
 
 			Space space = null;
-			for (int i = 0; i < MANAGEMENT_SPACE_FIND_REPEAT; ++i) {
+			long timeout = getAttributesStoreDiscoveryTimeout();
+			logger.finest("attempting to get attributes store, timeout: " + timeout);
+			for (int i = 0; i < CloudifyConstants.MANAGEMENT_SPACE_FIND_REPEAT; ++i) {
 				space = admin.getSpaces().waitFor(CloudifyConstants.MANAGEMENT_SPACE_NAME,
-						MANAGEMENT_SPACE_FIND_TIMEOUT,
-						TimeUnit.SECONDS);
+						timeout, TimeUnit.SECONDS);
 				if (space != null) {
 					break;
 				}
@@ -121,4 +122,31 @@ public class AttributesFacadeImpl extends GroovyObjectSupport implements Attribu
 			return managementSpace;
 		}
 	}
+	
+	private long getAttributesStoreDiscoveryTimeout() {
+
+		long discoveryTimeout;
+		
+		final long DEFAULT_TIMEOUT = CloudifyConstants.MANAGEMENT_SPACE_FIND_TIMEOUT;
+		
+		String envVar = serviceContext.getAttributesStoreDiscoveryTimeout();
+		if (envVar == null) {
+			logger.info("Could not find environment variable: " 
+					+ CloudifyConstants.USM_ATTRIBUTES_STORE_DISCOVERY_TIMEOUT_ENV_VAR + ". Using default value: " 
+					+ DEFAULT_TIMEOUT + " instead.");
+			envVar = "" + DEFAULT_TIMEOUT;
+		}
+		
+		try {
+			discoveryTimeout = Long.parseLong(envVar);
+		} catch (final NumberFormatException nfe) {
+			logger.warning("Failed to parse integer environment variable: "
+					+ CloudifyConstants.USM_ATTRIBUTES_STORE_DISCOVERY_TIMEOUT_ENV_VAR + ". Value was: " + envVar 
+					+ ". Using default value " + DEFAULT_TIMEOUT + " instead");
+			discoveryTimeout = DEFAULT_TIMEOUT;
+		}
+
+		return discoveryTimeout;
+	}
+	
 }

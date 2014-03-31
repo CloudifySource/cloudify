@@ -25,6 +25,7 @@ cloud {
 				portRange "7000-7110"
 				minMemory "64m"
 				maxMemory "1024m"
+				attributesStoreDiscoveryTimeoutInSeconds 30
 			}
 			agent {
 				//RMI port

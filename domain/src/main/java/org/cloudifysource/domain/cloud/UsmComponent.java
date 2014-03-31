@@ -27,12 +27,16 @@ import org.cloudifysource.domain.internal.CloudifyDSLEntity;
 allowRootNode = false, parent = "components")
 public class UsmComponent extends GridComponent {
 
+	public static final int ATTRIBUTES_STORE_DISCOVERY_TIMEOUT_IN_SECONDS = 10;
+	
 	private String portRange;
+	private Integer attributesStoreDiscoveryTimeoutInSeconds;
 
 	public UsmComponent() {
 		this.setMaxMemory("128m");
 		this.setMinMemory("128m");
 		this.setPortRange("7010-7110");
+		this.setAttributesStoreDiscoveryTimeoutInSeconds(ATTRIBUTES_STORE_DISCOVERY_TIMEOUT_IN_SECONDS);
 	}
 
 	public String getPortRange() {
@@ -42,4 +46,13 @@ public class UsmComponent extends GridComponent {
 	public void setPortRange(final String portRange) {
 		this.portRange = portRange;
 	}
+
+	public Integer getAttributesStoreDiscoveryTimeoutInSeconds() {
+		return attributesStoreDiscoveryTimeoutInSeconds;
+	}
+
+	public void setAttributesStoreDiscoveryTimeoutInSeconds(Integer attributesStoreDiscoveryTimeoutInSeconds) {
+		this.attributesStoreDiscoveryTimeoutInSeconds = attributesStoreDiscoveryTimeoutInSeconds;
+	}
+	
 }
