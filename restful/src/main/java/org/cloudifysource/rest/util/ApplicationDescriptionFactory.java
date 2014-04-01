@@ -12,6 +12,13 @@
  *******************************************************************************/
 package org.cloudifysource.rest.util;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.CloudifyConstants.DeploymentState;
 import org.cloudifysource.dsl.internal.CloudifyConstants.USMState;
@@ -22,6 +29,7 @@ import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.dsl.utils.ServiceUtils.FullServiceName;
 import org.cloudifysource.rest.exceptions.ResourceNotFoundException;
 import org.openspaces.admin.Admin;
+import org.openspaces.admin.AdminException;
 import org.openspaces.admin.application.Application;
 import org.openspaces.admin.application.Applications;
 import org.openspaces.admin.internal.pu.DefaultProcessingUnit;
@@ -35,13 +43,6 @@ import org.openspaces.admin.zone.Zone;
 import org.openspaces.admin.zone.Zones;
 import org.openspaces.core.properties.BeanLevelProperties;
 import org.openspaces.pu.service.ServiceMonitors;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * This factory class is responsible for manufacturing an application description POJO. The application description will
@@ -559,8 +560,20 @@ public class ApplicationDescriptionFactory {
     }
 
     private boolean isUsmStateOfPuiRunning(final ProcessingUnitInstance pui) {
-        USMState instanceState = getInstanceUsmState(pui);
-        return (instanceState == CloudifyConstants.USMState.RUNNING);
+    	
+    	boolean isInstanceRunning = false;
+    	try {
+    		USMState instanceState = getInstanceUsmState(pui);
+    		if (instanceState != null) {
+    			isInstanceRunning = (instanceState == CloudifyConstants.USMState.RUNNING);
+    		}
+    	} catch (AdminException e) {
+    		// instance is not available for monitoring, so it's not considered running
+    		logger.finest("instance is not available for monitoring, so it's not considered running. "
+    				+ "reported error: " + e.getMessage());
+    	}    	
+        
+        return isInstanceRunning;
     }
 
     /**
