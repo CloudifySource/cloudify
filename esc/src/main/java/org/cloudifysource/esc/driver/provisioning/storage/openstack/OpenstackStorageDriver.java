@@ -29,6 +29,9 @@ import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.domain.cloud.storage.StorageTemplate;
+import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
+import org.cloudifysource.esc.driver.provisioning.MachineDetails;
+import org.cloudifysource.esc.driver.provisioning.ProvisioningContext;
 import org.cloudifysource.esc.driver.provisioning.ProvisioningDriverListener;
 import org.cloudifysource.esc.driver.provisioning.openstack.OpenStackCloudifyDriver;
 import org.cloudifysource.esc.driver.provisioning.storage.BaseStorageDriver;
@@ -533,6 +536,7 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 		return novaContext.getApi().getVolumeExtensionForZone(region);
 	}
 	
+	
 	private Optional<? extends VolumeAttachmentApi> getAttachmentApi() {
 		if (novaContext == null) {
 			throw new IllegalStateException("Nova context is null");
@@ -563,5 +567,36 @@ public class OpenstackStorageDriver extends BaseStorageDriver implements Storage
 		return region;
 	}
 
-	
+
+	@Override
+	public void onMachineFailure(final ProvisioningContext context, final String templateName, final long duration, 
+			final TimeUnit timeunit) throws TimeoutException, CloudProvisioningException, 
+			StorageProvisioningException {
+		
+		logger.finest("Handling storage resource cleanup following machine failure");
+		
+		// customary call to the super implementation
+		super.onMachineFailure(context, templateName, duration, timeunit);
+		
+		MachineDetails previoudMachineDetails = context.getPreviousMachineDetails();
+		String previousMachineId = previoudMachineDetails.getMachineId();
+		String attachedVolumeId = previoudMachineDetails.getAttachedVolumeId();
+		
+		logger.finest("previous machine id: " + previousMachineId + ", volume id: " + attachedVolumeId);
+		
+		if (StringUtils.isNotBlank(attachedVolumeId)) {
+			StorageTemplate storageTemplate = this.cloud.getCloudStorage().getTemplates().get(templateName);
+			final boolean deleteStorage = storageTemplate.isDeleteOnExit();
+			if (deleteStorage) {
+				logger.info("Deleting volume: " + attachedVolumeId + " following failure of machine: " 
+						+ previousMachineId);
+				deleteVolume(previoudMachineDetails.getLocationId(), attachedVolumeId, duration, timeunit);
+				logger.finest("Volume " + attachedVolumeId + " deleted");
+			} else {
+				logger.finest("DeleteOnExit set to false, volume " + attachedVolumeId 
+						+ " remains available for re-attachment");
+			}
+		}
+		
+	}
 }

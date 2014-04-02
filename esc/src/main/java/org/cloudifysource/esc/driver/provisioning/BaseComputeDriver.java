@@ -221,6 +221,25 @@ public abstract class BaseComputeDriver {
 			throws InterruptedException, TimeoutException, CloudProvisioningException {
 
 	}
+	
+	
+	/**
+	 * Called after machine failure occurred. Useful for cloud resource cleanup.
+	 * 
+	 * @param context
+	 *            the provisioning context for the failed machine.
+	 * @param duration
+	 *            Time duration to wait for the operation to complete
+	 * @param unit
+	 *            Time unit to wait for the operation to complete
+	 * @throws TimeoutException
+	 *             If the operation exceeded the given timeout.
+	 * @throws CloudProvisioningException
+	 *             If the operation encountered an error.
+	 */
+	public void onMachineFailure(final ProvisioningContext context, final long duration, final TimeUnit unit)
+			throws TimeoutException, CloudProvisioningException {		
+	}
 
 	/*******
 	 * Setter for the provisioning context.

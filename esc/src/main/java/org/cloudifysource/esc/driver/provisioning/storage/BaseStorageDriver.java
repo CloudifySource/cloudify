@@ -19,6 +19,9 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
+import org.cloudifysource.esc.driver.provisioning.ProvisioningContext;
+
 /*****
  * an abstraction for a base storage driver to extend driver functionality.
  * 
@@ -78,6 +81,30 @@ public abstract class BaseStorageDriver implements StorageProvisioningDriver {
 	public void terminateAllVolumes(final long duration, final TimeUnit timeUnit) 
 			throws StorageProvisioningException, TimeoutException {
 		throw new UnsupportedOperationException("Method not implemented");
+	}
+	
+	
+	/**
+	 * Called after machine failure occurred. Useful for storage resource cleanup.
+	 * 
+	 * @param context
+	 *            the provisioning context for the failed machine.
+	 * @param templateName
+	 *            the name of the storage template used
+	 * @param duration
+	 *            Time duration to wait for the operation to complete
+	 * @param unit
+	 *            Time unit to wait for the operation to complete
+	 * @throws TimeoutException
+	 *             If the operation exceeded the given timeout.
+	 * @throws CloudProvisioningException
+	 *             If a compute related operation encountered an error.
+	 * @throws StorageProvisioningException
+	 *             If a storage related operation encountered an error.
+	 */
+	public void onMachineFailure(final ProvisioningContext context, final String templateName, final long duration, 
+			final TimeUnit unit)
+			throws TimeoutException, CloudProvisioningException, StorageProvisioningException {		
 	}
 	
 }

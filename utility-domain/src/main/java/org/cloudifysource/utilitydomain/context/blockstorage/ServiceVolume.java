@@ -108,6 +108,7 @@ public class ServiceVolume {
                 ", serviceName='" + serviceName + '\'' +
                 ", state=" + state +
                 ", id='" + id + '\'' +
+                ", ip='" + ip + '\'' +
                 ", device='" + device + '\'' +
                 ", dynamic=" + dynamic +
                 '}';

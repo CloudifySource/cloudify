@@ -72,6 +72,8 @@ public class MachineDetails implements Externalizable {
 	private File keyFile;
 
 	private String openFilesLimit;
+	
+	private String attachedVolumeId;
 
 	private Map<String, String> environment = new LinkedHashMap<String, String>();
 
@@ -176,6 +178,14 @@ public class MachineDetails implements Externalizable {
 
 	public void setRemoteDirectory(final String remoteDirectory) {
 		this.remoteDirectory = remoteDirectory;
+	}
+	
+	public String getAttachedVolumeId() {
+		return attachedVolumeId;
+	}
+
+	public void setAttachedVolumeId(final String attachedVolumeId) {
+		this.attachedVolumeId = attachedVolumeId;
 	}
 
 	@Override
