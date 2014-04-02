@@ -1493,6 +1493,22 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		}
 
 	}
+	
+	
+	@Override
+	public void onMachineFailure(final ProvisioningContext context, final long duration, final TimeUnit unit) 
+			throws CloudProvisioningException, TimeoutException {
+		
+		logger.finest("Handling compute resources following machine failure");
+		
+		// customary call to the super implementation
+		super.onMachineFailure(context, duration, unit);
+		
+		MachineDetails previoudMachineDetails = context.getPreviousMachineDetails();
+		logger.info("Releasing floating IPs following failure of machine: " + previoudMachineDetails.getMachineId());
+		releaseFloatingIpsForServerId(context.getPreviousMachineDetails().getMachineId());
+	}
+	
 
 	/**
 	 * returns the message as it appears in the DefaultProvisioningDriver message bundle.
