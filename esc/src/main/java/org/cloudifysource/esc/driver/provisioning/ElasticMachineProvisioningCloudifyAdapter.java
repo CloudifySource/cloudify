@@ -63,6 +63,7 @@ import org.cloudifysource.esc.util.CalcUtils;
 import org.cloudifysource.esc.util.InstallationDetailsBuilder;
 import org.cloudifysource.esc.util.ProvisioningDriverClassBuilder;
 import org.cloudifysource.esc.util.Utils;
+import org.cloudifysource.utilitydomain.context.blockstorage.ServiceVolume;
 import org.cloudifysource.utilitydomain.data.reader.ComputeTemplatesReader;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.openspaces.admin.Admin;
@@ -81,6 +82,7 @@ import org.openspaces.admin.pu.elastic.ElasticMachineProvisioningConfig;
 import org.openspaces.admin.zone.config.ExactZonesConfig;
 import org.openspaces.admin.zone.config.ExactZonesConfigurer;
 import org.openspaces.admin.zone.config.ZonesConfig;
+import org.openspaces.core.GigaSpace;
 import org.openspaces.core.bean.Bean;
 import org.openspaces.grid.gsm.capacity.CapacityRequirements;
 import org.openspaces.grid.gsm.capacity.CpuCapacityRequirement;
@@ -151,6 +153,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private BaseComputeDriver cloudifyProvisioning;
 	private BaseNetworkDriver networkProvisioning;
 	private Admin originalESMAdmin;
+	private GigaSpace managementSpace;
 	private Cloud cloud;
 	private Map<String, String> properties;
 	private String cloudTemplateName;
@@ -399,19 +402,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		logger.info("Machine was provisioned by implementation. Machine is: " + machineDetails);
 
 		// which IP should be used in the cluster
-		String machineIp;
-		if (cloud.getConfiguration().isConnectToPrivateIp()) {
-			machineIp = machineDetails.getPrivateAddress();
-		} else {
-			machineIp = machineDetails.getPublicAddress();
-		}
-		if (machineIp == null) {
-			final String errorMessage = "The IP of the new machine is null! Machine Details are: " 
-						+ machineDetails + ".";
-			logger.warning(errorMessage);
-			blockStartMachineOnException();
-			throw new IllegalStateException(errorMessage);
-		}
+		String machineIp = getBindIpAddress(machineDetails);
 
 		fireMachineStartedEvent(machineDetails, machineIp);
 
@@ -946,14 +937,12 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	@Override
 	public void setAdmin(final Admin admin) {
 		this.originalESMAdmin = admin;
-
 	}
 
 	@Override
 	public void setProperties(final Map<String, String> properties) {
 		this.properties = properties;
 		this.config = new CloudifyMachineProvisioningConfig(properties);
-
 	}
 
 	@Override
@@ -1312,6 +1301,34 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 			throw new ElasticMachineProvisioningException("Failed to cleanup cloud", e);
 		}
 	}
+	
+	
+	@Override
+	public void onMachineFailure(final FailedGridServiceAgent failedAgent, final long duration, final TimeUnit 
+			timeUnit) throws ElasticMachineProvisioningException, InterruptedException, TimeoutException {
+		try {
+			
+			final MachineDetails previousMachineDetails = getPreviousMachineDetailsFromFailedGSA(failedAgent);
+			ServiceVolume volume = getAttachedVolumeFromSpace(serviceName, previousMachineDetails);
+			previousMachineDetails.setAttachedVolumeId(volume.getId());
+			final ProvisioningContextImpl ctx = setUpProvisioningContext(null /*locationId*/, null/*reservationId*/, 
+					previousMachineDetails);
+			
+			// handling compute resources
+			cloudifyProvisioning.onMachineFailure(ctx, duration, timeUnit);
+			
+			// handling storage resources
+			if (storageProvisioning != null && storageProvisioning instanceof BaseStorageDriver) {
+				((BaseStorageDriver) storageProvisioning).onMachineFailure(ctx, storageTemplateName, duration, 
+						timeUnit);
+			}
+			
+		} catch (final Exception e) {
+			throw new ElasticMachineProvisioningException("Failed to manage cloud resources following machine failure",
+					e);
+		}
+	}
+	
 
 	@Override
 	public Object getExternalApi(final String apiName) throws InterruptedException,
@@ -1339,4 +1356,73 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 					+ e.getMessage(), e);
 		}
 	}
+	
+	
+	
+	/**
+	 * Reads a service volume object from the space, according to the given service name and machine details.
+	 * @param serviceName the service name
+	 * @param previousMachineDetails the MachineDetails of the failed machine
+	 * @return The found volume or null otherwise
+	 */
+	private ServiceVolume getAttachedVolumeFromSpace(final String absoluteServiceName, 
+			final MachineDetails previousMachineDetails) {
+		
+		final ServiceVolume serviceVolume = new ServiceVolume();
+		
+		// TODO there must be a better way to get the app and service names
+		final String[] serviceNameParts = StringUtils.split(serviceName, ".");
+		final String applicationName = serviceNameParts[0];
+		final String shortServiceName = serviceNameParts[1];
+		serviceVolume.setApplicationName(applicationName);
+		serviceVolume.setServiceName(shortServiceName);
+		serviceVolume.setDynamic(false);	// dynamic storage is not managed through the ESM, but through a recipe
+		serviceVolume.setIp(getBindIpAddress(previousMachineDetails));
+
+		logger.info("Retrieving service volume from the management space, using volume template : " + serviceVolume);
+		ServiceVolume spaceServiceVolume = managementSpace.read(serviceVolume);
+		
+		if (spaceServiceVolume != null) {
+			logger.finest("Found matching service volume in space, volume details: " + serviceVolume);
+		} else {
+			logger.finest("A matching volume was not found");
+		}
+		
+		return spaceServiceVolume;
+	}
+
+	/**
+	 * Calc the machine bind IP address according to the cloud configuration.
+	 * @param machineDetails The machine details
+	 * @return the bound IP address
+	 */
+	private String getBindIpAddress(final MachineDetails machineDetails) {
+		
+		String machineIp;	
+		if (cloud.getConfiguration().isConnectToPrivateIp()) {
+			machineIp = machineDetails.getPrivateAddress();
+		} else {
+			machineIp = machineDetails.getPublicAddress();
+		}
+		
+		if (machineIp == null) {
+			String errorMessage = "Failed to get IP address for machine: " + machineDetails;
+			if (cloud.getConfiguration().isConnectToPrivateIp()) {
+				errorMessage += ", which should be bound on its private IP";
+			} else {
+				errorMessage += ", which should be bound on its public IP";
+			}
+			logger.warning(errorMessage);
+			throw new IllegalStateException(errorMessage);
+		}
+		
+		return machineIp;
+	}
+	
+	
+	@Override
+	public void setElasticMachineProvisioningSpace(final GigaSpace theFinalFrontier) {
+		this.managementSpace = theFinalFrontier;
+	}
+	
 }

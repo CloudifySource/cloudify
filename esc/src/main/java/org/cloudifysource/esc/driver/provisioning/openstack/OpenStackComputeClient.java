@@ -152,8 +152,13 @@ public class OpenStackComputeClient extends OpenStackBaseClient {
 	 */
 	public List<NovaServer> getServers() throws OpenstackException {
 		final String response = this.doGet("servers");
-		final List<NovaServer> list = JsonUtils.unwrapRootToList(NovaServer.class, response);
-		return list;
+		final List<NovaServer> servers = JsonUtils.unwrapRootToList(NovaServer.class, response);
+		final List<NovaServer> detailServers = new ArrayList<NovaServer>(servers.size());
+		for (final NovaServer sv : servers) {
+			final NovaServer serverDetails = this.getServerDetails(sv.getId());
+			detailServers.add(serverDetails);
+		}
+		return detailServers;
 	}
 
 	/**
