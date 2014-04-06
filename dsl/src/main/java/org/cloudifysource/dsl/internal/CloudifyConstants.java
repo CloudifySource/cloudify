@@ -500,6 +500,8 @@ public final class CloudifyConstants {
 	 */
 	public static final String SYSTEM_PROPERTY_CLI_REST_API_VERSION =
             "org.cloudifysource.cli.rest.api-version";
+	public static final String SYSTEM_PROPERTY_CLI_OLD_REST_API_VERSION =
+            "org.cloudifysource.cli.rest.old-api-version";
 	
 	// CHECKSTYLE:ON
 

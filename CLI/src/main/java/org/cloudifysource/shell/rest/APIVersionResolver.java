@@ -38,4 +38,19 @@ public class APIVersionResolver {
 		final String platformVersion = PlatformVersion.getVersion();
 		return platformVersion;
 	}
+	
+	/*********
+	 * Resolves the API version to be used with the old (Pre-2.7) API.
+	 * @return the REST API version.
+	 */
+	public String resolveOldAPIVersion() {
+		final String sysprop = System.getProperty(CloudifyConstants.SYSTEM_PROPERTY_CLI_OLD_REST_API_VERSION);
+		if (sysprop != null) {
+			return sysprop;
+		}
+
+		final String platformVersion = PlatformVersion.getVersionNumber();
+		return platformVersion;
+	}
+
 }
