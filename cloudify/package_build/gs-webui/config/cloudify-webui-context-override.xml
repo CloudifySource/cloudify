@@ -6,6 +6,7 @@
 	<bean id="activeFeatures" class="com.gigaspaces.admin.webui.shared.beans.ActiveFeaturesImpl">
         	<property name="recipesRepository" value="true"/>
         	<property name="uninstallApplications" value="true"/>
+        	<property name="userNameMandatory" value="#{ systemProperties['com.gigaspaces.webui.username.mandatory'] == null ? 'false' : systemProperties['com.gigaspaces.webui.username.mandatory']}"/>
 	</bean>
 
 
