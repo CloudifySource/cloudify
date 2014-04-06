@@ -13,12 +13,10 @@ import com.j_spaces.kernel.PlatformVersion;
  * @version $Revision: 1.0 $
  */
 public class APIVersionResolverTest {
+	
 	/**
-	 * Run the String resolveAPIVersion() method test.
-	 * 
-	 * @throws Exception
-	 * 
-	 * @generatedBy CodePro at 3/18/14 1:54 PM
+	 * Test resolving the new API version by the system property org.cloudifysource.cli.rest.api-version
+	 * @throws Exception If resolving fails
 	 */
 	@Test
 	public void testResolveAPIVersionFromSysProp()
@@ -42,13 +40,39 @@ public class APIVersionResolverTest {
 		}
 
 	}
+	
+	
+	/**
+	 * Test resolving the old API version by the system property org.cloudifysource.cli.rest.old-api-version
+	 * @throws Exception If resolving fails
+	 */
+	@Test
+	public void testResolveOldAPIVersionFromSysProp()
+			throws Exception {
+		APIVersionResolver fixture = new APIVersionResolver();
+
+		final String sysPropBefore = System.getProperty(CloudifyConstants.SYSTEM_PROPERTY_CLI_OLD_REST_API_VERSION);
+		String value = "10.0.0";
+		System.setProperty(CloudifyConstants.SYSTEM_PROPERTY_CLI_OLD_REST_API_VERSION, value);
+
+		String result = fixture.resolveOldAPIVersion();
+		try {
+			Assert.assertEquals(value, result);
+		} finally {
+			if (sysPropBefore == null) {
+				System.clearProperty(CloudifyConstants.SYSTEM_PROPERTY_CLI_OLD_REST_API_VERSION);
+			} else {
+				System.setProperty(CloudifyConstants.SYSTEM_PROPERTY_CLI_OLD_REST_API_VERSION, sysPropBefore);
+			}
+
+		}
+
+	}
+	
 
 	/**
-	 * Run the String resolveAPIVersion() method test.
-	 * 
-	 * @throws Exception
-	 * 
-	 * @generatedBy CodePro at 3/18/14 1:54 PM
+	 * Test resolving the new API version by PlatformVersion.getVersion(), when the system property is empty
+	 * @throws Exception If resolving fails
 	 */
 	@Test
 	public void testResolveAPIVersionByPlatformVersion()
@@ -71,6 +95,34 @@ public class APIVersionResolverTest {
 		}
 	}
 
+	
+	/**
+	 * Test resolving the old API version by PlatformVersion.getVersionNumber(), 
+	 * when the relevant system property is empty
+	 * @throws Exception If resolving fails
+	 */
+	@Test
+	public void testResolveOldAPIVersionByPlatformVersion()
+			throws Exception {
+		APIVersionResolver fixture = new APIVersionResolver();
+
+		final String sysPropBefore = System.getProperty(CloudifyConstants.SYSTEM_PROPERTY_CLI_OLD_REST_API_VERSION);
+		System.clearProperty(CloudifyConstants.SYSTEM_PROPERTY_CLI_OLD_REST_API_VERSION);
+
+		String result = fixture.resolveOldAPIVersion();
+		try {
+			Assert.assertEquals(PlatformVersion.getVersionNumber(), result);
+		} finally {
+			if (sysPropBefore == null) {
+				System.clearProperty(CloudifyConstants.SYSTEM_PROPERTY_CLI_OLD_REST_API_VERSION);
+			} else {
+				System.setProperty(CloudifyConstants.SYSTEM_PROPERTY_CLI_OLD_REST_API_VERSION, sysPropBefore);
+			}
+
+		}
+	}
+	
+	
 	/**
 	 * Perform pre-test initialization.
 	 * 
