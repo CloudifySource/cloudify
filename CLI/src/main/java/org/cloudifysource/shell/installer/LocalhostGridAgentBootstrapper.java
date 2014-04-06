@@ -256,7 +256,7 @@ public class LocalhostGridAgentBootstrapper {
 		this.noManagementSpace = noManagementSpace;
 	}
 	
-	public void setNoManagementSpaceContainer(final boolean noManagementSpace) {
+	public void setNoManagementSpaceContainer(final boolean noManagementSpaceContainer) {
 		this.noManagementSpaceContainer = noManagementSpaceContainer;
 	}
 
