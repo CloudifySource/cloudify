@@ -393,7 +393,7 @@ public class OpenStackCloudifyDriverValidationTest {
 			
 			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
 		} catch (final CloudProvisioningException e) {
-			if (!e.getMessage().contains("server instances resource quota exceeded its limit")) {
+			if (!e.getMessage().contains("server instances quota limit exceeded")) {
 				e.printStackTrace();
 				Assert.fail("Validation must fail: " + e.getMessage());
 			}
@@ -439,7 +439,7 @@ public class OpenStackCloudifyDriverValidationTest {
 			
 			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
 		} catch (final CloudProvisioningException e) {
-			if (!e.getMessage().contains("virtual CPUs resource quota exceeded its limit.")) {
+			if (!e.getMessage().contains("virtual CPUs quota limit exceeded")) {
 				e.printStackTrace();
 				Assert.fail("Validation must fail: " + e.getMessage());
 			}
@@ -485,7 +485,7 @@ public class OpenStackCloudifyDriverValidationTest {
 			
 			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
 		} catch (final CloudProvisioningException e) {
-			if (!e.getMessage().contains("RAM resource quota exceeded its limit.")) {
+			if (!e.getMessage().contains("RAM quota limit exceeded")) {
 				e.printStackTrace();
 				Assert.fail("Validation must fail: " + e.getMessage());
 			}
@@ -515,7 +515,7 @@ public class OpenStackCloudifyDriverValidationTest {
 			
 			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
 		} catch (final CloudProvisioningException e) {
-			if (!e.getMessage().contains("Security-groups resource quota exceeded its limit.")) {
+			if (!e.getMessage().contains("Security-groups quota limit exceeded")) {
 				e.printStackTrace();
 				Assert.fail("Validation must fail: " + e.getMessage());
 			}
@@ -545,7 +545,7 @@ public class OpenStackCloudifyDriverValidationTest {
 			
 			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
 		} catch (final CloudProvisioningException e) {
-			if (!e.getMessage().contains("Security-group rules resource quota exceeded its limit.")) {
+			if (!e.getMessage().contains("Security-group rules quota limit exceeded")) {
 				e.printStackTrace();
 				Assert.fail("Validation must fail: " + e.getMessage());
 			}
@@ -576,7 +576,7 @@ public class OpenStackCloudifyDriverValidationTest {
 			
 			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
 		} catch (final CloudProvisioningException e) {
-			if (!e.getMessage().contains("routers resource quota exceeded its limit.")) {
+			if (!e.getMessage().contains("routers quota limit exceeded")) {
 				e.printStackTrace();
 				Assert.fail("Validation must fail: " + e.getMessage());
 			}
@@ -607,7 +607,7 @@ public class OpenStackCloudifyDriverValidationTest {
 			
 			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
 		} catch (final CloudProvisioningException e) {
-			if (!e.getMessage().contains("networks resource quota exceeded its limit.")) {
+			if (!e.getMessage().contains("networks quota limit exceeded")) {
 				e.printStackTrace();
 				Assert.fail("Validation must fail: " + e.getMessage());
 			}
@@ -638,7 +638,7 @@ public class OpenStackCloudifyDriverValidationTest {
 			
 			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
 		} catch (final CloudProvisioningException e) {
-			if (!e.getMessage().contains("subnets resource quota exceeded its limit.")) {
+			if (!e.getMessage().contains("subnets quota limit exceeded")) {
 				e.printStackTrace();
 				Assert.fail("Validation must fail: " + e.getMessage());
 			}
@@ -669,7 +669,7 @@ public class OpenStackCloudifyDriverValidationTest {
 			
 			newDriverInstance.validateCloudConfiguration(new ValidationContextStub());
 		} catch (final CloudProvisioningException e) {
-			if (!e.getMessage().contains("floating IPs resource quota exceeded its limit.")) {
+			if (!e.getMessage().contains("floating IPs quota limit exceeded")) {
 				e.printStackTrace();
 				Assert.fail("Validation must fail: " + e.getMessage());
 			}
