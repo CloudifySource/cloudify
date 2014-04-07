@@ -22,8 +22,7 @@ function setCloudifyJavaOptions() {
 	fi
 	
 	CLOUDIFY_DEBUG_OPTIONS="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9000 -Xnoagent -Djava.compiler=NONE"
-	CLOUDIFY_JAVA_OPTIONS="-Xmx500m -Dcom.gigaspaces.logger.RollingFileHandler.debug-level=WARNING -Dcom.gs.transport_protocol.lrmi.bind-port=${LRMI_PORT_RANGE} ${EXT_JAVA_OPTIONS}"
-
+	CLOUDIFY_JAVA_OPTIONS="-Xmx500m -Dcom.gigaspaces.logger.RollingFileHandler.debug-level=WARNING -Dcom.gs.transport_protocol.lrmi.bind-port=${LRMI_PORT_RANGE} ${CLOUDIFY_VERSION_OPTIONS} ${EXT_JAVA_OPTIONS}"
 }
 
 function setCloudifyClassPath() {
