@@ -81,9 +81,11 @@ public class RestAdminFacade extends AbstractAdminFacade {
 			this.urlObj = new URL(ShellUtils.getFormattedRestUrl(url, sslUsed));
 			
 			final APIVersionResolver apiResolver = new APIVersionResolver();
+			final String oldVersion = apiResolver.resolveOldAPIVersion();
 			final String version = apiResolver.resolveAPIVersion();
-			
-			client = new GSRestClient(user, password, getUrl(), version);
+
+			logger.finest("connecting with oldVersion: " + oldVersion + " and new version: " + version);
+			client = new GSRestClient(user, password, getUrl(), oldVersion);
 			newRestClient = new RestClient(urlObj, user, password, version);
 			// test connection
 			client.get(SERVICE_CONTROLLER_URL + "testrest");
