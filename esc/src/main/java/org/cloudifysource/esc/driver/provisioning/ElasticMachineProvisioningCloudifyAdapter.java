@@ -36,8 +36,6 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.cloudifysource.domain.ServiceNetwork;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.FileTransferModes;
-import org.cloudifysource.domain.cloud.RemoteExecutionModes;
-import org.cloudifysource.domain.cloud.ScriptLanguages;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
@@ -1341,19 +1339,24 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		try {
 			
 			final MachineDetails previousMachineDetails = getPreviousMachineDetailsFromFailedGSA(failedAgent);
-			ServiceVolume volume = getAttachedVolumeFromSpace(serviceName, previousMachineDetails);
-			previousMachineDetails.setAttachedVolumeId(volume.getId());
+			if (managementSpace != null) {
+				ServiceVolume volume = getAttachedVolumeFromSpace(serviceName, previousMachineDetails);
+				if (volume != null) {
+					previousMachineDetails.setAttachedVolumeId(volume.getId());	
+				}				
+			}
+			
 			final ProvisioningContextImpl ctx = setUpProvisioningContext(null /*locationId*/, null/*reservationId*/, 
 					previousMachineDetails);
-			
-			// handling compute resources
-			cloudifyProvisioning.onMachineFailure(ctx, duration, timeUnit);
-			
+
 			// handling storage resources
 			if (storageProvisioning != null && storageProvisioning instanceof BaseStorageDriver) {
 				((BaseStorageDriver) storageProvisioning).onMachineFailure(ctx, storageTemplateName, duration, 
 						timeUnit);
 			}
+			
+			// handling compute resources
+			cloudifyProvisioning.onMachineFailure(ctx, duration, timeUnit);
 			
 		} catch (final Exception e) {
 			throw new ElasticMachineProvisioningException("Failed to manage cloud resources following machine failure",
@@ -1386,24 +1389,32 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 	private ServiceVolume getAttachedVolumeFromSpace(final String absoluteServiceName, 
 			final MachineDetails previousMachineDetails) {
 		
-		final ServiceVolume serviceVolume = new ServiceVolume();
+		final ServiceVolume serviceVolumeTemplate = new ServiceVolume();
+		ServiceVolume spaceServiceVolume = null;
+		
+		if (managementSpace == null) {
+			logger.fine("managementSpace is null, getAttachedVolumeFromSpace is aborted");
+			return null;
+		}
 		
 		// TODO there must be a better way to get the app and service names
 		final String[] serviceNameParts = StringUtils.split(serviceName, ".");
 		final String applicationName = serviceNameParts[0];
 		final String shortServiceName = serviceNameParts[1];
-		serviceVolume.setApplicationName(applicationName);
-		serviceVolume.setServiceName(shortServiceName);
-		serviceVolume.setDynamic(false);	// dynamic storage is not managed through the ESM, but through a recipe
-		serviceVolume.setIp(getBindIpAddress(previousMachineDetails));
+		serviceVolumeTemplate.setApplicationName(applicationName);
+		serviceVolumeTemplate.setServiceName(shortServiceName);
+		serviceVolumeTemplate.setDynamic(false); // dynamic storage is not managed through the ESM, but through a recipe
+		serviceVolumeTemplate.setIp(getBindIpAddress(previousMachineDetails));
 
-		logger.info("Retrieving service volume from the management space, using volume template : " + serviceVolume);
-		ServiceVolume spaceServiceVolume = managementSpace.read(serviceVolume);
-		
-		if (spaceServiceVolume != null) {
-			logger.finest("Found matching service volume in space, volume details: " + serviceVolume);
-		} else {
-			logger.finest("A matching volume was not found");
+		logger.info("Retrieving service volume from the management space, using volume template : " 
+				+ serviceVolumeTemplate);
+		if (managementSpace != null) {
+			spaceServiceVolume = managementSpace.read(serviceVolumeTemplate);
+			if (spaceServiceVolume != null) {
+				logger.fine("Found matching service volume in space, volume details: " + spaceServiceVolume);
+			} else {
+				logger.fine("A matching volume was not found");
+			}
 		}
 		
 		return spaceServiceVolume;
@@ -1443,10 +1454,4 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 		this.managementSpace = theFinalFrontier;
 	}
 	
-
-    private boolean isComputeTemplateWindows(final ComputeTemplate computeTemplate) {
-        return RemoteExecutionModes.WINRM.equals(computeTemplate.getRemoteExecution())
-                || ScriptLanguages.WINDOWS_BATCH.equals(computeTemplate.getScriptLanguage());
-    }
-
 }
