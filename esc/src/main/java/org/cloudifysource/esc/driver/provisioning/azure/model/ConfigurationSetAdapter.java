@@ -3,6 +3,7 @@
  */
 package org.cloudifysource.esc.driver.provisioning.azure.model;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 
@@ -28,14 +29,9 @@ public class ConfigurationSetAdapter
 			return null;
 		}
 
-		if (adaptedConfigurationSet.inputEndpoints != null) {
-			NetworkConfigurationSet networkConfigurationSet = new NetworkConfigurationSet();
-			networkConfigurationSet
-					.setConfigurationSetType(adaptedConfigurationSet.configurationSetType);
-			networkConfigurationSet
-					.setInputEndpoints(adaptedConfigurationSet.inputEndpoints);
-			return networkConfigurationSet;
-		} else {
+		
+		if (ConfigurationSet.LINUX_PROVISIONING_CONFIGURATION.equals(adaptedConfigurationSet.configurationSetType)) {
+			
 			LinuxProvisioningConfigurationSet linuxProvisioningConfigurationSet = 
 					new LinuxProvisioningConfigurationSet();
 			linuxProvisioningConfigurationSet
@@ -46,6 +42,32 @@ public class ConfigurationSetAdapter
 					.setUserName(adaptedConfigurationSet.userName);
 			linuxProvisioningConfigurationSet
 					.setUserPassword(adaptedConfigurationSet.userPassword);
+			
+		} else if (ConfigurationSet.WINDOWS_PROVISIONING_CONFIGURATION.equals(adaptedConfigurationSet.configurationSetType)) {
+			WindowsProvisioningConfigurationSet windowsProvisioningConfigurationSet = 
+					new WindowsProvisioningConfigurationSet();
+//			windowsProvisioningConfigurationSet
+//					.setDisableSshPasswordAuthentication(adaptedConfigurationSet.disableSshPasswordAuthentication);
+//			windowsProvisioningConfigurationSet
+//					.setHostName(adaptedConfigurationSet.hostName);
+//			windowsProvisioningConfigurationSet
+//					.setUserName(adaptedConfigurationSet.userName);
+//			windowsProvisioningConfigurationSet
+//					.setUserPassword(adaptedConfigurationSet.userPassword);
+
+			windowsProvisioningConfigurationSet
+					.setComputerName(adaptedConfigurationSet.computerName);
+			windowsProvisioningConfigurationSet.setAdminUsername(adaptedConfigurationSet.adminUsername);
+			windowsProvisioningConfigurationSet.setAdminPassword(adaptedConfigurationSet.adminPassword);
+			windowsProvisioningConfigurationSet.setWinRM(adaptedConfigurationSet.winRM);
+			
+		} else {// NetworkConfiguration
+			NetworkConfigurationSet networkConfigurationSet = new NetworkConfigurationSet();
+			networkConfigurationSet
+					.setConfigurationSetType(adaptedConfigurationSet.configurationSetType);
+			networkConfigurationSet
+					.setInputEndpoints(adaptedConfigurationSet.inputEndpoints);
+			return networkConfigurationSet;
 		}
 
 		return null;
@@ -69,6 +91,8 @@ public class ConfigurationSetAdapter
 		if (configurationSet instanceof LinuxProvisioningConfigurationSet) {
 			LinuxProvisioningConfigurationSet linuxProvisioningConfigurationSet
 								= (LinuxProvisioningConfigurationSet) configurationSet;
+
+            adaptedConfigurationSet.type = linuxProvisioningConfigurationSet.getType();
 			adaptedConfigurationSet.configurationSetType = linuxProvisioningConfigurationSet
 					.getConfigurationSetType();
 			adaptedConfigurationSet.disableSshPasswordAuthentication = linuxProvisioningConfigurationSet
@@ -79,6 +103,20 @@ public class ConfigurationSetAdapter
 					.getUserName();
 			adaptedConfigurationSet.userPassword = linuxProvisioningConfigurationSet
 					.getUserPassword();
+		} else if (configurationSet instanceof WindowsProvisioningConfigurationSet) {
+			
+			WindowsProvisioningConfigurationSet WindowsProvisioningConfigurationSet = (WindowsProvisioningConfigurationSet) configurationSet;
+            adaptedConfigurationSet.type = WindowsProvisioningConfigurationSet.getType();
+			adaptedConfigurationSet.configurationSetType = WindowsProvisioningConfigurationSet.getConfigurationSetType();
+//			adaptedConfigurationSet.disableSshPasswordAuthentication = WindowsProvisioningConfigurationSet.isDisableSshPasswordAuthentication();
+//			adaptedConfigurationSet.hostName = WindowsProvisioningConfigurationSet.getHostName();
+//			adaptedConfigurationSet.userName = WindowsProvisioningConfigurationSet.getUserName();
+//			adaptedConfigurationSet.userPassword = WindowsProvisioningConfigurationSet.getUserPassword();
+			adaptedConfigurationSet.adminUsername = WindowsProvisioningConfigurationSet.getAdminUsername();
+			adaptedConfigurationSet.adminPassword = WindowsProvisioningConfigurationSet.getAdminPassword();
+			adaptedConfigurationSet.computerName = WindowsProvisioningConfigurationSet.getComputerName();
+			adaptedConfigurationSet.winRM = WindowsProvisioningConfigurationSet.getWinRM();
+			
 		} else {
 			NetworkConfigurationSet networkConfigurationSet = (NetworkConfigurationSet) configurationSet;
 			adaptedConfigurationSet.inputEndpoints = networkConfigurationSet
@@ -95,12 +133,29 @@ public class ConfigurationSetAdapter
 	 * @author elip
 	 *
 	 */
-	static class AdaptedConfigurationSet {
+
+    static class AdaptedConfigurationSet {
+
+        @XmlAttribute(name="type", namespace = "http://www.w3.org/2001/XMLSchema-instance")
+        private String type;
 
 		@XmlElement(name = "ConfigurationSetType")
-		private String configurationSetType = "LinuxProvisioningConfiguration";
+		private String configurationSetType;
 
-		@XmlElement(name = "HostName")
+
+		@XmlElement(name="ComputerName")
+		private String computerName;
+
+        @XmlElement(name="AdminPassword")
+		private String adminPassword;
+		
+		@XmlElement(name="WinRM")
+		private WinRM winRM;
+
+        @XmlElement(name="AdminUsername")
+        private String adminUsername;
+
+        @XmlElement(name = "HostName")
 		private String hostName;
 
 		@XmlElement(name = "UserName")

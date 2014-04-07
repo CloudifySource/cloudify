@@ -31,6 +31,10 @@ public final class ModelContextFactory {
 		CLASSES.add(InputEndpoint.class);
 		CLASSES.add(InputEndpoints.class);
 		CLASSES.add(LinuxProvisioningConfigurationSet.class);
+		CLASSES.add(WindowsProvisioningConfigurationSet.class);
+		CLASSES.add(WinRM.class);
+		CLASSES.add(Listener.class);
+		CLASSES.add(Listeners.class);
 		CLASSES.add(NetworkConfigurationSet.class);
 		CLASSES.add(OSVirtualHardDisk.class);
 		CLASSES.add(Role.class);

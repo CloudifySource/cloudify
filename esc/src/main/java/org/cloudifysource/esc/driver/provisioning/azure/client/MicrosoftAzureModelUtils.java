@@ -79,10 +79,10 @@ public final class MicrosoftAzureModelUtils {
 							// that i can generate proper model object using
 							// xjc.
 				xml = addNameSpaceToRootElement(xml,
-						"http://schemas.microsoft.com/ServiceHosting/2011/07/NetworkConfiguration");
+						"xmlns=\"http://schemas.microsoft.com/ServiceHosting/2011/07/NetworkConfiguration\"");
 			} else {
-				xml = addNameSpaceToRootElement(xml,
-						"http://schemas.microsoft.com/windowsazure");
+				xml = addNameSpaceToRootElement(xml, "xmlns=\"http://schemas.microsoft.com/windowsazure\"");
+                xml = addNameSpaceToRootElement(xml, "xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\"");
 			}
 			return xml;
 		} catch (JAXBException e) {
@@ -105,8 +105,7 @@ public final class MicrosoftAzureModelUtils {
 		}
 		String first = xml.substring(0, i - 1);
 		String second = xml.substring(i, xml.length());
-		return first + " xmlns=" + '"' + nameSpace + '"' + ">"
-				+ second;
+		return first + " " + nameSpace + ">" + second;
 
 	}
 

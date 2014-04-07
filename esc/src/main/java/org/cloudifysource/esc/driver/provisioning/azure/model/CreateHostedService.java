@@ -17,7 +17,7 @@ public class CreateHostedService {
 	private String label;
 	private String description;
 	private String affinityGroup;
-	
+
 	@XmlElement(name = "ServiceName")
 	public String getServiceName() {
 		return serviceName;
@@ -44,7 +44,7 @@ public class CreateHostedService {
 	public void setDescription(final String description) {
 		this.description = description;
 	}
-	
+
 	@XmlElement(name = "AffinityGroup")
 	public String getAffinityGroup() {
 		return affinityGroup;

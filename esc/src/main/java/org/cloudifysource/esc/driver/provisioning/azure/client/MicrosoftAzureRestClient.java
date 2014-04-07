@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.net.ssl.SSLContext;
@@ -91,7 +92,7 @@ public class MicrosoftAzureRestClient {
 
 	// Header names and values
 	private static final String X_MS_VERSION_HEADER_NAME = "x-ms-version";
-	private static final String X_MS_VERSION_HEADER_VALUE = "2012-03-01";
+	private static final String X_MS_VERSION_HEADER_VALUE = "2013-03-01";
 	private static final String CONTENT_TYPE_HEADER_NAME = "Content-Type";
 	private static final String CONTENT_TYPE_HEADER_VALUE = "application/xml";
 
@@ -392,6 +393,7 @@ public class MicrosoftAzureRestClient {
 	 */
 	public RoleDetails createVirtualMachineDeployment(
 			final CreatePersistentVMRoleDeploymentDescriptor deplyomentDesc,
+			final boolean isWindows,
 			final long endTime) throws MicrosoftAzureException,
 			TimeoutException, InterruptedException {
 
@@ -424,7 +426,7 @@ public class MicrosoftAzureRestClient {
 				deplyomentDesc.setHostedServiceName(serviceName);
 				deplyomentDesc.setDeploymentName(serviceName);
 
-				deployment = requestBodyBuilder.buildDeployment(deplyomentDesc);
+				deployment = requestBodyBuilder.buildDeployment(deplyomentDesc,isWindows);
 
 				String xmlRequest = MicrosoftAzureModelUtils.marshall(
 						deployment, false);
@@ -436,11 +438,11 @@ public class MicrosoftAzureRestClient {
 						+ serviceName + "/deployments", xmlRequest);
 				String requestId = extractRequestId(response);
 				waitForRequestToFinish(requestId, endTime);
-				logger.fine(getThreadIdentity() + "About to release lock " + pendingRequest.hashCode());
+                logger.fine(getThreadIdentity() + "About to release lock " + pendingRequest.hashCode());
 				pendingRequest.unlock();
 			} catch (final Exception e) {
-				logger.fine(getThreadIdentity() + "A failure occured : about to release lock " 
-							+ pendingRequest.hashCode());
+				logger.log(Level.FINE, getThreadIdentity() + "A failure occured : about to release lock "
+                        + pendingRequest.hashCode(), e);
 				if (serviceName != null) {
 					try {
 						// delete the dedicated cloud service that was created for the virtual machine.

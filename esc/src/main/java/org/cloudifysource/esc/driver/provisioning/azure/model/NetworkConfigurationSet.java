@@ -11,7 +11,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(propOrder = {"configurationSetType" , "inputEndpoints" })
 public class NetworkConfigurationSet extends ConfigurationSet {
 	
-	private String configurationSetType = "NetworkConfiguration";
+	private String configurationSetType = ConfigurationSet.NETWORK_PROVISIONING_CONFIGURATION;
 	private InputEndpoints inputEndpoints;
 
 	@XmlElement(name = "InputEndpoints")

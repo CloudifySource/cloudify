@@ -28,14 +28,18 @@ import org.cloudifysource.esc.driver.provisioning.azure.model.Deployment;
 import org.cloudifysource.esc.driver.provisioning.azure.model.GlobalNetworkConfiguration;
 import org.cloudifysource.esc.driver.provisioning.azure.model.InputEndpoints;
 import org.cloudifysource.esc.driver.provisioning.azure.model.LinuxProvisioningConfigurationSet;
+import org.cloudifysource.esc.driver.provisioning.azure.model.Listener;
+import org.cloudifysource.esc.driver.provisioning.azure.model.Listeners;
+import org.cloudifysource.esc.driver.provisioning.azure.model.NetworkConfigurationSet;
 import org.cloudifysource.esc.driver.provisioning.azure.model.OSVirtualHardDisk;
 import org.cloudifysource.esc.driver.provisioning.azure.model.RestartRoleOperation;
 import org.cloudifysource.esc.driver.provisioning.azure.model.Role;
 import org.cloudifysource.esc.driver.provisioning.azure.model.RoleList;
-import org.cloudifysource.esc.driver.provisioning.azure.model.NetworkConfigurationSet;
 import org.cloudifysource.esc.driver.provisioning.azure.model.VirtualNetworkConfiguration;
 import org.cloudifysource.esc.driver.provisioning.azure.model.VirtualNetworkSite;
 import org.cloudifysource.esc.driver.provisioning.azure.model.VirtualNetworkSites;
+import org.cloudifysource.esc.driver.provisioning.azure.model.WinRM;
+import org.cloudifysource.esc.driver.provisioning.azure.model.WindowsProvisioningConfigurationSet;
 
 import com.sun.jersey.core.util.Base64;
 
@@ -105,7 +109,7 @@ public class MicrosoftAzureRequestBodyBuilder {
 
 		CreateHostedService hostedService = new CreateHostedService();
 		hostedService.setAffinityGroup(affinityGroup);
-		
+
 		String randomUID = generateRandomUUID(UUID_LENGTH);
 		
 		try {
@@ -187,9 +191,9 @@ public class MicrosoftAzureRequestBodyBuilder {
 
 		return networkConfiguration;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param desc .
 	 * @return  - an object representing a body of the create virtual machine deployment
 	 *         request. <br>
@@ -197,8 +201,8 @@ public class MicrosoftAzureRequestBodyBuilder {
 	 *         "http://msdn.microsoft.com/en-us/library/windowsazure/jj157194.aspx"
 	 *         >Create Virtual Machine Deployment</a>
 	 */
-	public Deployment buildDeployment(
-			final CreatePersistentVMRoleDeploymentDescriptor desc) {
+	public Deployment buildDeployment(final CreatePersistentVMRoleDeploymentDescriptor desc, 
+									final boolean isWindows) {
 
 		String deploymentSlot = desc.getDeploymentSlot();
 		String imageName = desc.getImageName();
@@ -213,6 +217,7 @@ public class MicrosoftAzureRequestBodyBuilder {
 
 		Deployment deployment = new Deployment();
 		deployment.setDeploymentSlot(deploymentSlot);
+		deployment.setDeploymentName(roleName);
 		deployment.setVirtualNetworkName(networkName);
 		deployment.setLabel(deploymentName);
 		deployment.setName(deploymentName);
@@ -235,19 +240,49 @@ public class MicrosoftAzureRequestBodyBuilder {
 
 		ConfigurationSets configurationSets = new ConfigurationSets();
 
-		LinuxProvisioningConfigurationSet linuxProvisioningConfiguration = new LinuxProvisioningConfigurationSet();
-		linuxProvisioningConfiguration
-				.setDisableSshPasswordAuthentication(false);
-		linuxProvisioningConfiguration.setHostName(roleName);
-		linuxProvisioningConfiguration.setUserName(userName);
-		linuxProvisioningConfiguration.setUserPassword(password);
+		if ( isWindows ) {
+			
+			// Windows Specific : roleName de la forme cloudify_manager_roled57f => ROLED57F (15 car limit size limit)
+			String[] computerNameArray = roleName.split("_");
+			String computerName = (computerNameArray[2]).toUpperCase();
+			
+			WindowsProvisioningConfigurationSet windowsProvisioningSet = new WindowsProvisioningConfigurationSet();	
+//			windowsProvisioningSet.setDisableSshPasswordAuthentication(true);
+//			windowsProvisioningSet.setHostName(roleName);
+//			windowsProvisioningSet.setUserName(userName);
+//			windowsProvisioningSet.setUserPassword(password);
+            windowsProvisioningSet.setAdminUsername(userName);
+			windowsProvisioningSet.setAdminPassword(password);
+			windowsProvisioningSet.setComputerName(computerName); // (not optional) Windows ComputerName
+			configurationSets.getConfigurationSets().add(windowsProvisioningSet);
+			
+			// Set WinRM : HTTP without Certificate
+			WinRM winRM = new WinRM();
+			Listeners listeners = new Listeners();
 
+            Listener listener = new Listener();
+            listener.setCertificateThumbprint(null); // Configure for Secure Winrm command (?)
+            listener.setProtocol("Https");
+            listeners.getListeners().add(listener);
+
+            winRM.setListeners(listeners);
+            windowsProvisioningSet.setWinRM(winRM);
+		}
+		else {
+			LinuxProvisioningConfigurationSet linuxProvisioningSet = new LinuxProvisioningConfigurationSet();
+			linuxProvisioningSet.setDisableSshPasswordAuthentication(true);
+			linuxProvisioningSet.setHostName(roleName);
+			linuxProvisioningSet.setUserName(userName);
+			linuxProvisioningSet.setUserPassword(password);
+			configurationSets.getConfigurationSets().add(linuxProvisioningSet);
+		}
+
+
+		// NetworkConfiguration
 		NetworkConfigurationSet networkConfiguration = new NetworkConfigurationSet();
 
 		networkConfiguration.setInputEndpoints(endPoints);
 
-		configurationSets.getConfigurationSets().add(
-				linuxProvisioningConfiguration);
 		configurationSets.getConfigurationSets().add(networkConfiguration);
 
 		role.setConfigurationSets(configurationSets);
