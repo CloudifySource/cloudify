@@ -52,16 +52,13 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.impl.client.SystemDefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
@@ -107,7 +104,7 @@ public class GSRestClient {
 	private static final String MIME_TYPE_APP_JSON = "application/json";
 
 	// TODO change when legit certificate is available
-	private final DefaultHttpClient httpClient;
+	private final SystemDefaultHttpClient httpClient;
 	private final URL url;
 	private final String urlStr;
 
@@ -134,7 +131,7 @@ public class GSRestClient {
 		if (isSSL()) {
 			httpClient = getSSLHttpClient();
 		} else {
-			httpClient = new DefaultHttpClient();
+			httpClient = new SystemDefaultHttpClient();
 		}
 		httpClient.addRequestInterceptor(new HttpRequestInterceptor() {
 
@@ -169,7 +166,7 @@ public class GSRestClient {
 		if (isSSL()) {
 			httpClient = getSSLHttpClient();
 		} else {
-			httpClient = new DefaultHttpClient();
+			httpClient = new SystemDefaultHttpClient();
 		}
 		httpClient.addRequestInterceptor(new HttpRequestInterceptor() {
 
@@ -820,7 +817,7 @@ public class GSRestClient {
 	 * @throws RestException
 	 *             Reporting different failures while creating the HTTP client
 	 */
-	public final DefaultHttpClient getSSLHttpClient() throws RestException {
+	public final SystemDefaultHttpClient getSSLHttpClient() throws RestException {
 		try {
 			final KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
 			// TODO : support self-signed certs if configured by user upon
@@ -833,13 +830,10 @@ public class GSRestClient {
 			final HttpParams params = new BasicHttpParams();
 			HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
 			HttpProtocolParams.setContentCharset(params, HTTP.UTF_8);
-
-			final SchemeRegistry registry = new SchemeRegistry();
-			registry.register(new Scheme(HTTPS, sf, url.getPort()));
-
-			final ClientConnectionManager ccm = new ThreadSafeClientConnManager(params, registry);
-
-			return new DefaultHttpClient(ccm, params);
+			SystemDefaultHttpClient httpClient = new SystemDefaultHttpClient(params);
+			httpClient.getConnectionManager().getSchemeRegistry().register(new Scheme(HTTPS, sf, url.getPort()));
+			
+			return httpClient;
 		} catch (final KeyStoreException e) {
 			throw new RestException(e);
 		} catch (final NoSuchAlgorithmException e) {
