@@ -52,7 +52,7 @@ public class MachineDetailsDocumentConverterTest {
 		// add additional test code here
 		assertNotNull(result);
 		assertEquals(
-				"SpaceDocument [typeName=org.cloudifysource.esc.driver.provisioning.PersistentMachineDetails, version=0, transient=false, properties=DocumentProperties {keyFile=null,machineId=null,agentRunning=false,privateAddress=null,remoteDirectory=null,locationId=null,remoteExecutionMode=SSH,remoteUsername=null,keyFileName=null,remotePassword=null,publicAddress=null,scriptLangeuage=LINUX_SHELL,installationDirectory=null,cloudifyInstalled=false,fileTransferMode=SFTP,environment={},cleanRemoteDirectoryOnStart=false,openFilesLimit=null}]",
+				"SpaceDocument [typeName=org.cloudifysource.esc.driver.provisioning.PersistentMachineDetails, version=0, transient=false, properties=DocumentProperties {publicAddress=null,cloudifyInstalled=false,environment={},installationDirectory=null,privateAddress=null,keyFileName=null,locationId=null,cleanRemoteDirectoryOnStart=false,machineId=null,remoteDirectory=null,remoteExecutionMode=SSH,keyFile=null,openFilesLimit=null,attachedVolumeId=null,fileTransferMode=SFTP,remotePassword=null,remoteUsername=null,agentRunning=false,scriptLangeuage=LINUX_SHELL}]",
 				result.toString());
 		assertEquals("org.cloudifysource.esc.driver.provisioning.PersistentMachineDetails", result.getTypeName());
 		assertEquals(false, result.isTransient());
