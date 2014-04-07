@@ -1411,7 +1411,7 @@ public class LocalhostGridAgentBootstrapper {
 
 		final ConnectionLogsFilter connectionLogs = new ConnectionLogsFilter();
 		connectionLogs.supressConnectionErrors();
-		final Admin admin = createAdmin();
+		final Admin admin = createAdmin(GridServiceAgent.class);
 		try {
 			setLookupDefaults(admin);
 
@@ -1450,7 +1450,8 @@ public class LocalhostGridAgentBootstrapper {
 		waitForManagementProcesses(agent, false, false, true, timeout, timeunit);
 	}
 	
-	private void waitForManagementProcesses(final GridServiceAgent agent, final boolean waitForLus, final boolean waitForGsm, final boolean waitForEsm, final long timeout, final TimeUnit timeunit)
+	private void waitForManagementProcesses(final GridServiceAgent agent, final boolean waitForLus, final boolean waitForGsm, 
+			final boolean waitForEsm, final long timeout, final TimeUnit timeunit)
 			throws TimeoutException, InterruptedException, CLIException {
 
 		final Admin admin = agent.getAdmin();
@@ -1757,7 +1758,7 @@ public class LocalhostGridAgentBootstrapper {
 		return securityProfile + "," + CloudifyConstants.PERSISTENCE_PROFILE_TRANSIENT;
 	}
 
-	private Admin createAdmin() {
+	private Admin createAdmin(Class...serviceTypes) {
 		final AdminFactory adminFactory = new AdminFactory();
 		adminFactory.useGsLogging(false);
 		if (lookupGroups != null) {
@@ -1768,6 +1769,7 @@ public class LocalhostGridAgentBootstrapper {
 			adminFactory.addLocators(lookupLocators);
 		}
 
+		adminFactory.setDiscoveryServices(serviceTypes);
 		final Admin admin = adminFactory.create();
 		if (verbose) {
 			if (admin.getLocators().length > 0) {
