@@ -136,33 +136,33 @@ public interface ServiceContext {
 	/********
 	 * Return the current machine's location id.
 	 * 
-	 * @return - the actual location of the instance(availability zone in case of aws)
+	 * @return the actual location of the instance(availability zone in case of aws)
 	 */
 	String getLocationId();
 	
 	/*********
 	 * Access to the storage provisioning driver.
 	 * 
-	 * @return - interface for executing storage API calls.
+	 * @return interface for executing storage API calls.
 	 */
 	StorageFacade getStorage();
 	
 	/********
 	 * 
-	 * @return - true if we are running in privileged mode, false otherwise.
+	 * @return true if we are running in privileged mode, false otherwise.
 	 */
 	boolean isPrivileged();
 	
 	/*********
 	 * 
-	 * @return - the address cloudify bind on.
+	 * @return the address cloudify bind on.
 	 */
 	String getBindAddress();
 	
 	
 	/**
 	 * 
-	 * @return - the attributes store discovery time (in seconds)
+	 * @return the attributes store discovery time (in seconds)
 	 */
 	String getAttributesStoreDiscoveryTimeout();
 	
@@ -187,8 +187,7 @@ public interface ServiceContext {
 	
 	/*********
 	 * Access to the network provisioning driver.
-	 * @return
-	 * 		 interface for executing network API calls.
+	 * @return interface for executing network API calls.
 	 */
 	NetworkFacade getNetwork();
 	
