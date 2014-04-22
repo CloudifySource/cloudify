@@ -311,7 +311,7 @@ public class SSHExec extends SSHBase {
 
         try {
             final ChannelExec channel;
-            session.setTimeout((int) maxwait);
+            session.setTimeout(CalcUtils.safeLongToInt(maxwait, true));
             /* execute the command */
             channel = (ChannelExec) session.openChannel("exec");
             channel.setCommand(cmd);
@@ -397,7 +397,7 @@ public class SSHExec extends SSHBase {
             FileUtils.close(istream);
         }
     }
-
+    
     /**
      * Writes a string to a file. If destination file exists, it may be
      * overwritten depending on the "append" value.
