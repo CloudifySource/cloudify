@@ -25,6 +25,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminFactory;
@@ -92,6 +93,7 @@ public class FeaturesTest {
 		USMUtils.shutdownAdmin();
 	}
 
+	@Ignore
 	@Test
 	public void testRetriesWithRetryLeft() throws IOException, InterruptedException {
 		final IntegratedProcessingUnitContainer ipuc = createContainer("classpath:/retries/META-INF/spring/pu.xml");
@@ -114,6 +116,7 @@ public class FeaturesTest {
 
 	}
 
+	@Ignore
 	@Test
 	public void testRetriesWithNoRetryLeft() throws IOException, InterruptedException {
 		final ServiceInstanceAttemptData data = createServiceInstanceAttempDataTemplate();
@@ -135,6 +138,7 @@ public class FeaturesTest {
 
 	}
 
+	@Ignore
 	@Test
 	public void testDebug() throws IOException, InterruptedException {
 		if (ServiceUtils.isWindows()) {
@@ -242,6 +246,7 @@ public class FeaturesTest {
 		return data;
 	}
 
+	@Ignore
 	@Test
 	public void testRecoveryAfterRetry() throws IOException, InterruptedException {
 		final ServiceInstanceAttemptData data = createServiceInstanceAttempDataTemplate();
