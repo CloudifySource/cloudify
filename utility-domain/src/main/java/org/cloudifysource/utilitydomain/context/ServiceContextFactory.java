@@ -21,8 +21,7 @@ import org.cloudifysource.dsl.internal.CloudifyConstants;
 import org.cloudifysource.dsl.internal.DSLException;
 import org.cloudifysource.dsl.internal.ServiceReader;
 import org.cloudifysource.dsl.internal.packaging.PackagingException;
-import org.openspaces.admin.Admin;
-import org.openspaces.admin.AdminFactory;
+import org.cloudifysource.utilitydomain.admin.TimedAdmin;
 import org.openspaces.core.cluster.ClusterInfo;
 
 /***************
@@ -38,7 +37,7 @@ public final class ServiceContextFactory {
 
 	private static final java.util.logging.Logger logger = java.util.logging.Logger
 			.getLogger(ServiceContextFactory.class.getName());
-	private static Admin admin = null;
+	private static TimedAdmin timedAdmin = null;
 	private static ServiceContext context = null;
 
 	/*****
@@ -83,27 +82,25 @@ public final class ServiceContextFactory {
 			ServiceContextImpl newContext = new ServiceContextImpl(info, new File(".").getAbsolutePath());
 
 			// TODO - this code assumes running code only from a GSC. Test-recipe will not work here!
-			newContext.init(service, getAdmin(),
-					info);
+			newContext.init(service, getTimedAdmin(), info);
 			context = newContext;
 		}
 		return context;
 	}
 
-	private static synchronized Admin getAdmin() {
-		if (admin != null) {
-			return admin;
+	private static synchronized TimedAdmin getTimedAdmin() {
+		if (timedAdmin != null) {
+			logger.info("using a cached instance of TimedAdmin");
+			return timedAdmin;
 		}
-
-		final AdminFactory factory = new AdminFactory();
-		factory.useDaemonThreads(true);
-		admin = factory.createAdmin();
-
-		logger.fine("Created new Admin Object with groups: "
-				+ Arrays.toString(admin.getGroups()) + " and Locators: "
-				+ Arrays.toString(admin.getLocators()));
-
-		return admin;
+		
+		logger.info("creating a new instance of TimedAdmin");
+		timedAdmin = new TimedAdmin();
+		timedAdmin.setStatisticsHistorySize(0);
+		logger.fine("Created new Admin Object with groups: " + Arrays.toString(timedAdmin.getAdminGroups()) 
+				+ " and Locators: " + Arrays.toString(timedAdmin.getAdminLocators()));
+		
+		return timedAdmin;
 	}
 
 	private static ClusterInfo createClusterInfo() {

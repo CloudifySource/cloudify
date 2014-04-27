@@ -26,6 +26,7 @@ import org.cloudifysource.dsl.internal.context.RemoteNetworkProvisioningDriver;
 import org.cloudifysource.dsl.internal.context.RemoteStorageProvisioningDriver;
 import org.cloudifysource.dsl.utils.ServiceUtils;
 import org.cloudifysource.dsl.utils.ServiceUtils.FullServiceName;
+import org.cloudifysource.utilitydomain.admin.TimedAdmin;
 import org.cloudifysource.utilitydomain.context.blockstorage.StorageFacadeImpl;
 import org.cloudifysource.utilitydomain.context.kvstore.AttributesFacadeImpl;
 import org.cloudifysource.utilitydomain.context.network.NetworkFacadeImpl;
@@ -35,6 +36,7 @@ import org.openspaces.admin.esm.ElasticServiceManager;
 import org.openspaces.admin.internal.esm.InternalElasticServiceManager;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.core.cluster.ClusterInfo;
+
 
 
 /**
@@ -47,7 +49,7 @@ public class ServiceContextImpl implements ServiceContext {
 
 	private static final String LOCALCLOUD = "localcloud";
 	private org.cloudifysource.domain.Service service;
-	private Admin admin;
+	private TimedAdmin timedAdmin;
 	private final String serviceDirectory;
 	private ClusterInfo clusterInfo;
 	private boolean initialized = false;
@@ -101,10 +103,9 @@ public class ServiceContextImpl implements ServiceContext {
 	 * @param clusterInfo
 	 *            .
 	 */
-	public void init(final Service service, final Admin admin,
-			final ClusterInfo clusterInfo) {
+	public void init(final Service service, final TimedAdmin timedAdmin, final ClusterInfo clusterInfo) {
 		this.service = service;
-		this.admin = admin;
+		this.timedAdmin = timedAdmin;
 
 		// TODO - is the null path even possible?
 		if (clusterInfo == null) {
@@ -120,26 +121,23 @@ public class ServiceContextImpl implements ServiceContext {
 			this.applicationName = fullServiceName.getApplicationName();
 
 		}
-		if (admin != null) {
-			final boolean found = this.admin.getLookupServices().waitFor(1, 30,
-					TimeUnit.SECONDS);
+		if (timedAdmin != null) {
+			final boolean found = this.timedAdmin.waitForLookupServices(1, 30, TimeUnit.SECONDS);
 			if (!found) {
 				throw new AdminException(
 						"A service context could not be created as the Admin API could not find a lookup service "
-								+ "in the network, using groups: "
-								+ Arrays.toString(admin.getGroups())
-								+ " and locators: "
-								+ Arrays.toString(admin.getLocators()));
+								+ "in the network, using groups: " + Arrays.toString(timedAdmin.getAdminGroups())
+								+ " and locators: " + Arrays.toString(timedAdmin.getAdminLocators()));
 			}
 		}
-		this.attributesFacade = new AttributesFacadeImpl(this, admin);
+		this.attributesFacade = new AttributesFacadeImpl(this, timedAdmin);
 		initialized = true;
 	}
 
 	private Object getRemoteApi(final String apiName) {
 		ElasticServiceManager elasticServiceManager;
-		if (admin != null) {
-			elasticServiceManager = admin.getElasticServiceManagers().waitForAtLeastOne();
+		if (timedAdmin != null) {
+			elasticServiceManager = timedAdmin.waitForElasticServiceManager();
 			String puName = ServiceUtils.getAbsolutePUName(applicationName, serviceName);
 			Object remoteApi = null;
 			remoteApi = ((InternalElasticServiceManager) elasticServiceManager)
@@ -178,7 +176,7 @@ public class ServiceContextImpl implements ServiceContext {
 
 		this.applicationName = CloudifyConstants.DEFAULT_APPLICATION_NAME;
 
-		this.attributesFacade = new AttributesFacadeImpl(this, admin);
+		this.attributesFacade = new AttributesFacadeImpl(this, timedAdmin);
 		initialized = true;
 
 	}
@@ -214,7 +212,7 @@ public class ServiceContextImpl implements ServiceContext {
 			final String name, final int timeout, final TimeUnit unit) {
 		checkInitialized();
 
-		if (this.admin != null) {
+		if (this.timedAdmin != null) {
 			final String puName = ServiceUtils.getAbsolutePUName(
 					this.applicationName, name);
 			final ProcessingUnit pu = waitForProcessingUnitFromAdmin(puName,
@@ -244,8 +242,7 @@ public class ServiceContextImpl implements ServiceContext {
 	private ProcessingUnit waitForProcessingUnitFromAdmin(final String name,
 			final long timeout, final TimeUnit unit) {
 
-		final ProcessingUnit pu = admin.getProcessingUnits().waitFor(name,
-				timeout, unit);
+		final ProcessingUnit pu = timedAdmin.waitForPU(name, timeout, unit);
 		if (pu == null) {
 			logger.warning("Processing unit with name: "
 					+ name
@@ -274,7 +271,7 @@ public class ServiceContextImpl implements ServiceContext {
 	 * @return the admin.
 	 */
 	public Admin getAdmin() {
-		return admin;
+		return timedAdmin.getInnerAdminObject();
 	}
 
 	/**
@@ -418,8 +415,7 @@ public class ServiceContextImpl implements ServiceContext {
 
 	@Override
 	public void stopMaintenanceMode() {
-    	InternalElasticServiceManager esm = (InternalElasticServiceManager) admin.getElasticServiceManagers()
-    			.waitForAtLeastOne();
+    	InternalElasticServiceManager esm = (InternalElasticServiceManager) timedAdmin.waitForElasticServiceManager();
     	String absolutePUName = ServiceUtils.getAbsolutePUName(getApplicationName(), getServiceName());
     	esm.enableAgentFailureDetection(absolutePUName);
 	}
@@ -427,8 +423,7 @@ public class ServiceContextImpl implements ServiceContext {
 	@Override
 	public void startMaintenanceMode(final long timeout,
 			final TimeUnit unit) {
-    	InternalElasticServiceManager esm = (InternalElasticServiceManager) admin.getElasticServiceManagers()
-    			.waitForAtLeastOne();
+    	InternalElasticServiceManager esm = (InternalElasticServiceManager) timedAdmin.waitForElasticServiceManager();
     	String absolutePUName = ServiceUtils.getAbsolutePUName(getApplicationName(), getServiceName());
 		esm.disableAgentFailureDetection(absolutePUName, timeout, unit);
 	}

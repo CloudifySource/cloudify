@@ -20,7 +20,6 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -28,13 +27,17 @@ import java.util.Map;
 
 import org.apache.commons.lang.math.NumberUtils;
 import org.cloudifysource.dsl.utils.ServiceUtils;
+import org.cloudifysource.utilitydomain.admin.TimedAdmin;
 import org.hyperic.sigar.FileInfo;
 import org.hyperic.sigar.ProcState;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 import org.jini.rio.boot.ServiceClassLoader;
-import org.openspaces.admin.Admin;
-import org.openspaces.admin.AdminFactory;
+import org.openspaces.admin.esm.ElasticServiceManager;
+import org.openspaces.admin.gsc.GridServiceContainer;
+import org.openspaces.admin.gsm.GridServiceManager;
+import org.openspaces.admin.pu.ProcessingUnit;
+import org.openspaces.admin.space.Space;
 import org.openspaces.pu.container.support.ResourceApplicationContext;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
@@ -56,7 +59,7 @@ public final class USMUtils {
 	}
 
 	private static java.util.logging.Logger logger = java.util.logging.Logger.getLogger(USMUtils.class.getName());
-	private static Admin admin;
+	private static TimedAdmin timedAdmin;
 
 	/********
 	 * Marks a file as executable by the operating system. On windows, always returns true. Otherwise, attempts will be
@@ -241,29 +244,33 @@ public final class USMUtils {
 
 		return puWorkDir;
 	}
+	
 
-	/***********
-	 * Returns a cached admin instance.
-	 *
-	 * @return the admin API instance.
+	/**
+	 * Returns a cached instance of TimedAdmin, creates it if necessary.
+	 * @return a cached instance of TimedAdmin
 	 */
-	public static synchronized Admin getAdmin() {
-		if (admin != null) {
-			return admin;
+	public static synchronized TimedAdmin getTimedAdmin() {
+		if (timedAdmin != null) {
+			logger.info("using a cached instance of TimedAdmin");
+			return timedAdmin;
 		}
-
-		final AdminFactory factory = new AdminFactory();
-		factory.useDaemonThreads(true);
+			
+		logger.warning("creating a new instance of TimedAdmin");
+		timedAdmin = new TimedAdmin();
 		// useful for unit tests
-		factory.discoverUnmanagedSpaces();
-		admin = factory.createAdmin();
-		admin.setStatisticsHistorySize(0);
+		timedAdmin.discoverUnmanagedSpaces();
 
-		logger.info("Created new Admin Object with groups: " + Arrays.toString(admin.getGroups()) + " and Locators: "
-				+ Arrays.toString(admin.getLocators()));
-
-		return admin;
+		// Don't discover GridServiceAgent objects, not required for the USM and could potentially generate a lot 
+		// of objects in memory and multiple network connections
+		final Class[] discoveryServices = new Class[] { GridServiceManager.class, GridServiceContainer.class,
+				ElasticServiceManager.class, ProcessingUnit.class, Space.class };
+		timedAdmin.setDiscoveryServices(discoveryServices);
+		timedAdmin.setStatisticsHistorySize(0);
+		
+		return timedAdmin;
 	}
+
 
 	/*********
 	 * Returns the list of parent processes, starting by the child pid and ending with the current pid.
@@ -393,14 +400,8 @@ public final class USMUtils {
 	 *
 	 */
 	public static synchronized void shutdownAdmin() {
-		if (admin == null) {
-			return;
-		}
-
-		admin.close();
-		admin = null;
-		logger.info("USM Admin API instance was shut down");
-
+		timedAdmin.close();
+		logger.info("USM timed Admin instance was shut down");
 	}
 
 	/*********
@@ -421,5 +422,6 @@ public final class USMUtils {
 			return null;
 		}
 	}
+	
 
 }

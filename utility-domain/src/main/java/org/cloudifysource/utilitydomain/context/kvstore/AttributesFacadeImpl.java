@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 import org.cloudifysource.domain.context.ServiceContext;
 import org.cloudifysource.domain.context.kvstorage.AttributesFacade;
 import org.cloudifysource.dsl.internal.CloudifyConstants;
-import org.openspaces.admin.Admin;
+import org.cloudifysource.utilitydomain.admin.TimedAdmin;
 import org.openspaces.admin.space.Space;
 import org.openspaces.core.GigaSpace;
 
@@ -47,11 +47,11 @@ public class AttributesFacadeImpl extends GroovyObjectSupport implements Attribu
 
 	private volatile GigaSpace managementSpace;
 	private final Object managementSpaceLock = new Object();
-	private final Admin admin;
+	private final TimedAdmin timedAdmin;
 
-	public AttributesFacadeImpl(final ServiceContext serviceContext, final Admin admin) {
+	public AttributesFacadeImpl(final ServiceContext serviceContext, final TimedAdmin timedAdmin) {
 		this.serviceContext = serviceContext;
-		this.admin = admin;
+		this.timedAdmin = timedAdmin;
 		this.applicationAttributesAccessor =
 				new ApplicationAttributesAccessor(this, serviceContext.getApplicationName());
 		this.serviceAttributesAccessor =
@@ -104,15 +104,14 @@ public class AttributesFacadeImpl extends GroovyObjectSupport implements Attribu
 			long timeout = getAttributesStoreDiscoveryTimeout();
 			logger.finest("attempting to get attributes store, timeout: " + timeout);
 			for (int i = 0; i < CloudifyConstants.MANAGEMENT_SPACE_FIND_REPEAT; ++i) {
-				space = admin.getSpaces().waitFor(CloudifyConstants.MANAGEMENT_SPACE_NAME,
-						timeout, TimeUnit.SECONDS);
+				space = timedAdmin.waitForSpace(CloudifyConstants.MANAGEMENT_SPACE_NAME, timeout, TimeUnit.SECONDS);
 				if (space != null) {
 					break;
 				}
 			}
 			if (space == null) {
 				// see GS-8475 - retry one last time - if still null, throw exception
-				space = admin.getSpaces().getSpaceByName(CloudifyConstants.MANAGEMENT_SPACE_NAME);
+				space = timedAdmin.getSpaceByName(CloudifyConstants.MANAGEMENT_SPACE_NAME);
 				if (space == null) {
 					throw new IllegalStateException("No management space located");
 				}

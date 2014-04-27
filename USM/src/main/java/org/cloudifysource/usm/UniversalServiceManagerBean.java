@@ -57,13 +57,13 @@ import org.cloudifysource.usm.events.StartReason;
 import org.cloudifysource.usm.events.StopReason;
 import org.cloudifysource.usm.tail.RollingFileAppenderTailer;
 import org.cloudifysource.usm.tail.RollingFileAppenderTailer.LineHandler;
+import org.cloudifysource.utilitydomain.admin.TimedAdmin;
 import org.cloudifysource.utilitydomain.context.blockstorage.ServiceVolume;
 import org.cloudifysource.utilitydomain.context.kvstore.AttributesFacadeImpl;
 import org.cloudifysource.utilitydomain.data.ServiceInstanceAttemptData;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 import org.jini.rio.boot.ServiceClassLoader;
-import org.openspaces.admin.Admin;
 import org.openspaces.admin.pu.ProcessingUnit;
 import org.openspaces.admin.pu.ProcessingUnitInstance;
 import org.openspaces.admin.pu.events.ProcessingUnitInstanceAddedEventListener;
@@ -359,12 +359,10 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 							.getAttributes())
 							.getManagementSpace();
 		} else {
-			final Admin admin = USMUtils.getAdmin();
-			// Space space = admin.getSpaces().getSpaceByName(CloudifyConstants.MANAGEMENT_SPACE_NAME);
-			// if (space == null) {
-			Space space = admin.getSpaces().waitFor(CloudifyConstants.MANAGEMENT_SPACE_NAME,
+			logger.info("initManagementSpace is getting timed admin");
+			final TimedAdmin timedAdmin = USMUtils.getTimedAdmin();
+			Space space = timedAdmin.waitForSpace(CloudifyConstants.MANAGEMENT_SPACE_NAME,
 					MANAGEMENT_SPACE_LOOKUP_TIMEOUT, TimeUnit.SECONDS);
-			// }
 
 			if (space == null) {
 				// this is only valid in test-recipe
@@ -387,6 +385,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		synchronized (this.stateMutex) {
 
 			this.state = USMState.INITIALIZING;
+			// TODO improve the output: "Configuration is: org.cloudifysource.usm.dsl.ServiceConfiguration@69a66ce8"
 			logger.info("USM Started. Configuration is: "
 					+ getUsmLifecycleBean().getConfiguration());
 
@@ -772,9 +771,9 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	}
 
 	private void registerPostPUILifecycleTask() {
-		final Admin admin = USMUtils.getAdmin();
-		final ProcessingUnit pu = admin.getProcessingUnits().waitFor(
-				this.clusterName, 30, TimeUnit.SECONDS);
+		logger.info("registerPostPUILifecycleTask is getting timed admin");
+		final TimedAdmin timedAdmin = USMUtils.getTimedAdmin();
+		final ProcessingUnit pu = timedAdmin.waitForPU(this.clusterName, 30, TimeUnit.SECONDS);
 
 		final int instanceIdToMatch = this.instanceId;
 
@@ -805,7 +804,6 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 								@Override
 								public void run() {
 									try {
-
 										installAndRun();
 									} catch (final Exception e) {
 										logger.log(
@@ -873,16 +871,15 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		logger.info("Waiting for dependencies");
 		final long startTime = System.currentTimeMillis();
 		final long endTime = startTime + WAIT_FOR_DEPENDENCIES_TIMEOUT_MILLIS;
-		final Admin admin = USMUtils.getAdmin();
-		for (final String dependantService : this.dependencies) {
-
-			logger.info("Waiting for dependency: " + dependantService);
-			final ProcessingUnit pu = waitForPU(endTime, admin,
-					dependantService);
-
-			waitForPUI(endTime, dependantService, pu);
-			logger.info("Dependency " + dependantService + " is available");
-
+		if (dependencies.length > 0) {
+			logger.info("waitForDependencies is getting timed admin");
+			final TimedAdmin timedAdmin = USMUtils.getTimedAdmin();
+			for (final String dependantService : this.dependencies) {
+				logger.info("Waiting for dependency: " + dependantService);
+				final ProcessingUnit pu = waitForPU(endTime, timedAdmin, dependantService);
+				waitForPUI(endTime, dependantService, pu);
+				logger.info("Dependency " + dependantService + " is available");
+			}
 		}
 
 		logger.info("All dependencies are available");
@@ -946,7 +943,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		}
 	}
 
-	private ProcessingUnit waitForPU(final long endTime, final Admin admin,
+	private ProcessingUnit waitForPU(final long endTime, final TimedAdmin timedAdmin,
 			final String dependantService) {
 		ProcessingUnit pu = null;
 		while (true) {
@@ -961,8 +958,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 			// sampling routine is a workaround for a
 			// possible bug in the admin api where the admin does not recognize
 			// the PU.
-			pu = admin.getProcessingUnits().waitFor(dependantService, 2,
-					TimeUnit.MILLISECONDS);
+			pu = timedAdmin.waitForPU(dependantService, 2, TimeUnit.MILLISECONDS);
 			if (pu != null) {
 				return pu;
 			}
@@ -1709,6 +1705,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 
 		return splitResult;
 	}
+	
 
 	public USMLifecycleBean getUsmLifecycleBean() {
 		return usmLifecycleBean;
@@ -1741,5 +1738,5 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 	public int getCurrentAttempt() {
 		return currentAttempt;
 	}
-
+	
 }

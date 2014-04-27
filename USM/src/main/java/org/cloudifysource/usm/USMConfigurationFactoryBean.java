@@ -127,9 +127,10 @@ public class USMConfigurationFactoryBean implements FactoryBean<ServiceConfigura
 						CloudifyConstants.DEFAULT_APPLICATION_NAME, service.getName()));
 			}
 			
-			((ServiceContextImpl)serviceContext).init(service, USMUtils.getAdmin(), clusterInfoToUseInGsc);
+			logger.info("handleDsl is getting timed admin...");
+			((ServiceContextImpl) serviceContext).init(service, USMUtils.getTimedAdmin(), clusterInfoToUseInGsc);
 		} else {
-			((ServiceContextImpl)serviceContext).initInIntegratedContainer(service);
+			((ServiceContextImpl) serviceContext).initInIntegratedContainer(service);
 		}
 		
 		return new ServiceConfiguration(service, serviceContext, this.puExtDir, dslReader.getDslFile(),
