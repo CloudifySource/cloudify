@@ -187,6 +187,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
                     factory.addLocator(IPUtils.getSafeIpAddress(locator.getHost()) + ":" + locator.getPort());
                 }
                 globalAdminInstance = factory.createAdmin();
+                globalAdminInstance.setStatisticsHistorySize(0);
 
                 // sync the newly created admin with the original admin passed on from the ESM.
                 waitForAgentsToBeDiscovered(esmAdminInstance, globalAdminInstance);
