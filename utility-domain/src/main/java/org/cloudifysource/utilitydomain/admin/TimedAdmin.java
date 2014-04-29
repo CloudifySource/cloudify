@@ -31,6 +31,7 @@ import org.openspaces.security.AdminFilter;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * Wraps the {@link Admin} object in order to monitor the object usage and close it after it is no longer in use.
@@ -159,7 +160,18 @@ public class TimedAdmin {
 	 * the maximum idle time, the object is closed and nullified.
 	 */
 	private synchronized void startTimingThread() {
-		executor = Executors.newFixedThreadPool(1);
+		
+		// create daemon threads, so the timing thread won't keep the process alive
+		executor = Executors.newSingleThreadExecutor(new ThreadFactory() {
+			
+			@Override
+			public Thread newThread(Runnable runnable) {
+				Thread thread = Executors.defaultThreadFactory().newThread(runnable);
+				thread.setDaemon(true);
+				return thread;
+			}
+		});
+		
 		executor.execute(new Runnable() {
 			@Override
 			public void run() {

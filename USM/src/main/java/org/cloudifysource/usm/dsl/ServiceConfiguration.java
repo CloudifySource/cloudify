@@ -72,5 +72,11 @@ public class ServiceConfiguration {
 	public ClassLoader getDslClassLoader() {
 		return dslClassLoader;
 	}
+	
+	@Override
+	public String toString() {
+		return "ServiceConfiguration [service=" + service + ", serviceContext=" + serviceContext  + ", puExtDir=" 
+				+ puExtDir + ", serviceFile=" + serviceFile + ", dslClassLoader=" + dslClassLoader + "]";
+	}
 
 }
