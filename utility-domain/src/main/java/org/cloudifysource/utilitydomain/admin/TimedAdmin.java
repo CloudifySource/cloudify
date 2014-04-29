@@ -42,15 +42,15 @@ import java.util.concurrent.Executors;
 public class TimedAdmin {
 
 	private static Logger logger = Logger.getLogger(TimedAdmin.class.getName());
-	private volatile boolean running = true; 
 	// TODO noak: make configurable
-	private static final long MAX_IDLE_TIME_MILLIS = 60 * 1000; // defaults to 60 seconds
-	private static final long POLLING_INTERVAL_MILLIS = 10 * 1000; // defaults to 1 second
+	private static final long MAX_IDLE_TIME_MILLIS = 120 * 1000; // defaults to 120 seconds
+	private static final long POLLING_INTERVAL_MILLIS = 10 * 1000; // defaults to 10 seconds
 
 	private long lastUsed = System.currentTimeMillis();
 	private Admin admin;
 	
 	private boolean discoverUnmanagedSpaces;
+	boolean running;
 	private int statisticsHistorySize = Admin.DEFAULT_HISTORY_SIZE;
 	private String groups;
 	private String locators;
@@ -163,12 +163,14 @@ public class TimedAdmin {
 		executor.execute(new Runnable() {
 			@Override
 			public void run() {
+				running = true;
 				while (running) {
 					try {
 						if (admin != null && (lastUsed + MAX_IDLE_TIME_MILLIS < System.currentTimeMillis())) {
 							logger.info("Closing expired admin object");
 							admin.close();
 							admin = null;
+							running = false;
 						}
 						Thread.sleep(POLLING_INTERVAL_MILLIS);
 					} catch (final InterruptedException e) {
@@ -243,21 +245,7 @@ public class TimedAdmin {
 		initAdmin();
 		return admin.getElasticServiceManagers().waitForAtLeastOne();
 	}
-	
-	
-	/**
-	 * Returns the Admin Object the underlies the TimedAdmin. Note: this is intended as a debugging aid only!
-	 * This bypasses the timing mechanism and might result in a premature termination of the object!
-	 *
-	 * @return the admin.
-	 */
-	public Admin getInnerAdminObject() {
-		logger.warning("Accessing the admin object underlying a timed admin is not recommended!"
-				+ " This action is bypasses the timing mechanism and might result in a premature admin termination!");
-		initAdmin();
-		return admin;
-	}
-	
+
 	
 	/**
 	 * Closes the admin object and stops the timing thread.
@@ -269,7 +257,8 @@ public class TimedAdmin {
 			admin = null;
 		}
 		
-		executor.shutdown();
+		// this should cause the timing thread to end
+		running = false;
 	}
 	
 	

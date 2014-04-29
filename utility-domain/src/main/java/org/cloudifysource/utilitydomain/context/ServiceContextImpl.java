@@ -32,6 +32,7 @@ import org.cloudifysource.utilitydomain.context.kvstore.AttributesFacadeImpl;
 import org.cloudifysource.utilitydomain.context.network.NetworkFacadeImpl;
 import org.openspaces.admin.Admin;
 import org.openspaces.admin.AdminException;
+import org.openspaces.admin.AdminFactory;
 import org.openspaces.admin.esm.ElasticServiceManager;
 import org.openspaces.admin.internal.esm.InternalElasticServiceManager;
 import org.openspaces.admin.pu.ProcessingUnit;
@@ -50,6 +51,7 @@ public class ServiceContextImpl implements ServiceContext {
 	private static final String LOCALCLOUD = "localcloud";
 	private org.cloudifysource.domain.Service service;
 	private TimedAdmin timedAdmin;
+	private Admin openAdmin;
 	private final String serviceDirectory;
 	private ClusterInfo clusterInfo;
 	private boolean initialized = false;
@@ -271,7 +273,29 @@ public class ServiceContextImpl implements ServiceContext {
 	 * @return the admin.
 	 */
 	public Admin getAdmin() {
-		return timedAdmin.getInnerAdminObject();
+		logger.warning("Using an admin object directly is not recommended. This action is bypasses the admin"
+				+ " timing mechanism and might hinder performace");
+		return getOpenAdmin();
+	}
+	
+	private synchronized Admin getOpenAdmin() {
+		if (openAdmin != null) {
+			logger.info("using a cached un-timed Admin");
+			return openAdmin;
+		}
+
+		logger.fine("creating a new un-timed Admin object");
+		final AdminFactory factory = new AdminFactory();
+		factory.useDaemonThreads(true);
+		factory.discoverUnmanagedSpaces();
+		
+		openAdmin = factory.createAdmin();		
+		openAdmin.setStatisticsHistorySize(0);
+
+		logger.info("Created a new un-timed Admin object with groups: " + Arrays.toString(timedAdmin.getAdminGroups()) 
+				+ " and Locators: " + Arrays.toString(timedAdmin.getAdminLocators()));
+		
+		return openAdmin;
 	}
 
 	/**
