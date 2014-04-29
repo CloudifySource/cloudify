@@ -256,7 +256,7 @@ public final class USMUtils {
 			return timedAdmin;
 		}
 			
-		logger.warning("creating a new instance of TimedAdmin");
+		logger.info("creating a new instance of TimedAdmin");
 		timedAdmin = new TimedAdmin();
 		// useful for unit tests
 		timedAdmin.discoverUnmanagedSpaces();
