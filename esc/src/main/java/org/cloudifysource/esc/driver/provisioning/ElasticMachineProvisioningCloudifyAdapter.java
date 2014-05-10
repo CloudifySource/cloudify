@@ -1099,9 +1099,14 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
 
         final ServiceNetwork network = createNetworkObject();
         configuration.setNetwork(network);
-
-        this.cloudifyProvisioning.setConfig(configuration);
-
+        
+        try {
+        	this.cloudifyProvisioning.setConfig(configuration);
+        } catch (Exception e) {
+        	logger.fine("Cloud driver configuration failed with error: " + e.getMessage());
+        	throw new CloudProvisioningException(e);
+        }
+        
         // initialize the storage driver
         if (this.storageProvisioning != null) {
             if (this.storageProvisioning instanceof BaseStorageDriver) {

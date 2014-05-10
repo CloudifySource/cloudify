@@ -21,11 +21,18 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang.StringUtils;
+import org.cloudifysource.domain.cloud.Cloud;
+import org.cloudifysource.domain.cloud.CloudUser;
+import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.esc.util.TarGzUtils;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.HttpMethod;
+import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.regions.Region;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration;
@@ -51,17 +58,39 @@ public class AmazonS3Uploader {
 	private AmazonS3 s3client;
 	private String accessKey;
 
-	public AmazonS3Uploader(final String accessKey, final String secretKey) {
-		this(accessKey, secretKey, null);
-	}
+	public AmazonS3Uploader(final Cloud cloud, final ComputeTemplate managementTemplate) {
+		
+		final CloudUser user = cloud.getUser();
+		accessKey = user.getUser();
+		final AWSCredentials credentials = new BasicAWSCredentials(accessKey, user.getApiKey());
+		
+		String s3LocationId = (String) managementTemplate.getCustom().get("s3LocationId");
+		if (StringUtils.isBlank(s3LocationId)) {
+			throw new IllegalArgumentException("S3 Location Id not set on the management template");
+		}
 
-	public AmazonS3Uploader(final String accessKey, final String secretKey, final String locationId) {
-		this.accessKey = accessKey;
-		final AWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
-
-		this.s3client = new AmazonS3Client(credentials);
-		if (locationId != null) {
-			this.s3client.setRegion(RegionUtils.convertLocationId2Region(locationId));
+		final String protocol = (String) cloud.getCustom().get("protocol");
+		if (StringUtils.isNotBlank(protocol)) {
+			// set the client protocol
+			logger.info("setting the S3 client protocol to: " + protocol);
+			ClientConfiguration clientConfig = new ClientConfiguration();
+			clientConfig.setProtocol(Protocol.valueOf(protocol));
+			this.s3client = new AmazonS3Client(credentials, clientConfig);
+		} else {
+			logger.info("using the default protocol for the S3 client (https)");
+			this.s3client = new AmazonS3Client(credentials);	
+		}
+		
+		final String endpoint = (String) cloud.getCustom().get("s3endpoint");
+		if (StringUtils.isNotBlank(endpoint)) {
+			logger.info("setting S3 endpoint: " + endpoint);
+			s3client.setEndpoint(endpoint);
+		} else if (StringUtils.isNotBlank(s3LocationId)) {
+			Region s3Region = RegionUtils.convertLocationId2Region(s3LocationId);
+			logger.info("setting S3 region: " + s3Region);
+			this.s3client.setRegion(s3Region);
+		} else {
+			logger.warning("S3 endpoint and location not set, please set one of them");
 		}
 	}
 

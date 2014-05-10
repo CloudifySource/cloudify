@@ -37,10 +37,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.CharEncoding;
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.cloud.Cloud;
 import org.cloudifysource.domain.cloud.CloudUser;
 import org.cloudifysource.domain.cloud.ScriptLanguages;
@@ -62,10 +62,11 @@ import org.cloudifysource.esc.driver.provisioning.privateEc2.parser.beans.Instan
 import org.cloudifysource.esc.driver.provisioning.privateEc2.parser.beans.PrivateEc2Template;
 import org.cloudifysource.esc.driver.provisioning.privateEc2.parser.beans.VolumeMapping;
 import org.cloudifysource.esc.driver.provisioning.privateEc2.parser.beans.VolumeProperties;
-import org.cloudifysource.esc.driver.provisioning.privateEc2.parser.beans.types.ValueType;
 import org.cloudifysource.esc.util.TarGzUtils;
 
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Region;
@@ -127,7 +128,7 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 			this.agentPort = agentPort;
 			this.instanceId = instanceId;
 			this.logHeader = "[" + instanceId + "] ";
-			this.ec2 = createAmazonEC2();
+			this.ec2 = createAmazonEC2Client(cloud, getManagerComputeTemplate());
 		}
 
 		@Override
@@ -210,6 +211,8 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 	private static final String CLOUDIFY_ENV_SCRIPT = "cloudify_env.sh";
 	private static final String PATTERN_PROPS_JSON = "\\s*\\\"[\\w-]*\\\"\\s*:\\s*([^{(\\[\"][\\w-]+)\\s*,?";
 	private static final String VOLUME_PREFIX = "cloudify-storage-";
+	private static final String REGIONS_OVERRIDES_SYSTEM_PROPERTY = "com.amazonaws.regions.RegionUtils.fileOverride";
+	private static final String REGIONS_FILE = "regionsFile";
 
 	/** Key name for amazon tag resource's name. */
 	private static final String TK_NAME = "Name";
@@ -233,16 +236,15 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 	/** Map which contains all parsed CFN template. */
 	private final Map<String, PrivateEc2Template> cfnTemplatePerService = new HashMap<String, PrivateEc2Template>();
 
-	private AmazonEC2 ec2;
+	private AmazonEC2 ec2Client;
 	private AmazonS3Uploader amazonS3Uploader;
 
 	/** short name of the service (i.e without applicationName). */
 	private String serviceName;
 
 	private PrivateEc2Template privateEc2Template;
-	private Object cloudTemplateName;
+	private String cloudTemplateName;
 	private String cloudName;
-	private String managerCfnTemplateFileName;
 
 	private ExecutorService debugExecutors;
 
@@ -388,34 +390,26 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 		this.serviceName = this.getSimpleServiceName(fullServiceName);
 		this.cloudTemplateName = cloudTemplateName;
 		this.cloudName = cloud.getName();
+		
 		super.setConfig(cloud, cloudTemplateName, management, fullServiceName);
-
+		
 		if (logger.isLoggable(Level.FINER)) {
 			logger.finer("Service name : " + this.serviceName + "(" + fullServiceName + ")");
 		}
 
 		try {
-			ComputeTemplate managerTemplate = this.getManagerComputeTemplate();
+			
+			setRegionsFile(cloud);
 
-			// Initialize the ec2 client if the service use the CFN template
-			if (management) {
-				// TODO - NO VALIDATION!
-				managerCfnTemplateFileName = (String) managerTemplate.getCustom().get("cfnManagerTemplate");
-			} else {
-				this.privateEc2Template = cfnTemplatePerService.get(this.serviceName);
-				if (this.privateEc2Template == null) {
-					throw new IllegalArgumentException("CFN template not found for service:" + fullServiceName);
-				}
-			}
-			this.ec2 = this.createAmazonEC2();
+			ComputeTemplate managementTemplate = getManagerComputeTemplate();
+			// Initialize the ec2 client
+			this.ec2Client = this.createAmazonEC2Client(cloud, managementTemplate);
 
-			// Create s3 client
-			String locationId = (String) managerTemplate.getCustom().get("s3LocationId");
-			CloudUser user = this.cloud.getUser();
-			this.amazonS3Uploader = new AmazonS3Uploader(user.getUser(), user.getApiKey(), locationId);
+			// Initialize the S3 client
+			this.amazonS3Uploader = new AmazonS3Uploader(cloud, managementTemplate);
 
 			// Setup debug console output
-			final boolean debug = BooleanUtils.toBoolean((String) managerTemplate.getCustom().get("debugMode"));
+			final boolean debug = BooleanUtils.toBoolean((String) managementTemplate.getCustom().get("debugMode"));
 			if (debug) {
 				this.debugExecutors = Executors.newFixedThreadPool(NB_THREADS_CONSOLE_OUTPUT);
 			}
@@ -425,14 +419,77 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 		}
 	}
 
+	
+	private void setPrivateEc2Template()
+			throws CloudProvisioningException {
+		
+		if (!management) {
+			// not management. check if a specific template was set for this service
+			this.privateEc2Template = cfnTemplatePerService.get(this.serviceName);
+			if (this.privateEc2Template != null) {
+				logger.fine("Found service-specific template for service: " + serviceName);
+				return;
+			}
+		}
+
+		String cfnTemplateFileName = null;
+		File cloudDirectory = null;
+		if (management) {
+			ComputeTemplate computeTemplate = this.getManagerComputeTemplate();
+			cfnTemplateFileName = (String) computeTemplate.getCustom().get("cfnManagerTemplate");
+			if (StringUtils.isBlank(cfnTemplateFileName)) {
+				throw new CloudProvisioningException("cfnManagerTemplate value not set on management template");
+			}
+			cloudDirectory = 
+					new ProvisioningContextAccess().getManagementProvisioiningContext().getCloudFile().getParentFile();
+		} else {
+			logger.fine("Using template: " + cloudTemplateName);
+			ComputeTemplate computeTemplate = cloud.getCloudCompute().getTemplates().get(cloudTemplateName);
+			cfnTemplateFileName = (String) computeTemplate.getCustom().get("cfnTemplate");
+			if (StringUtils.isBlank(cfnTemplateFileName)) {
+				throw new CloudProvisioningException("cfnTemplate value not set on template: " + cloudTemplateName);
+			}
+			cloudDirectory = new ProvisioningContextAccess().getProvisioiningContext().getCloudFile().getParentFile();
+		}
+		
+		try {
+			logger.fine("using template: " + cfnTemplateFileName + " from directory: " + cloudDirectory);
+			this.cloud.getCustom().put("###CLOUD_DIRECTORY###", cloudDirectory);
+			this.privateEc2Template = this.getPrivateEc2TemplateFromFile(cloudDirectory, cfnTemplateFileName);
+		} catch (Exception e) {
+			throw new CloudProvisioningException("Failed to read template from file : " + cfnTemplateFileName 
+					+ ", reported error: " + e.getMessage(), e);
+		}
+	}
+
+	private void setRegionsFile(final Cloud cloud) {
+		
+		String regionsFileName = "";
+		if (cloud.getCustom() != null) {
+			regionsFileName = (String) cloud.getCustom().get(REGIONS_FILE);
+		}
+		
+		if (StringUtils.isNotBlank(regionsFileName)) {
+			File regionsFile = new File(regionsFileName);
+			
+			if (regionsFile.isFile()) {
+				logger.info("setting regions overrides file: " + regionsFile.getAbsolutePath());
+				System.setProperty(REGIONS_OVERRIDES_SYSTEM_PROPERTY, regionsFile.getAbsolutePath());	
+			} else {
+				throw new IllegalArgumentException("Failed to resolve regions file: " + regionsFileName);
+			}			
+		}
+	}
+
 	private ComputeTemplate getManagerComputeTemplate() {
 		final String managementMachineTemplate = this.cloud.getConfiguration().getManagementMachineTemplate();
 		final ComputeTemplate managerTemplate =
 				this.cloud.getCloudCompute().getTemplates().get(managementMachineTemplate);
 		return managerTemplate;
 	}
+	
 
-	PrivateEc2Template getManagerPrivateEc2Template(final File cloudDirectory, final String templateFileName)
+	private PrivateEc2Template getPrivateEc2TemplateFromFile(final File cloudDirectory, final String templateFileName)
 			throws PrivateEc2ParserException, IOException {
 		final File file = new File(cloudDirectory, templateFileName);
 
@@ -440,22 +497,23 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 			throw new IllegalArgumentException("CFN Template not found: " + file.getPath());
 		}
 
-		logger.fine("Manager cfn template: " + file.getPath());
+		logger.fine("CFN template: " + file.getPath());
 
 		final String templateName = this.getTemplatName(file);
-		final File pFile = new File(file.getParent(), templateName + "-cfn.properties");
+		final File propsFile = new File(file.getParent(), templateName + "-cfn.properties");
 
-		logger.fine("Searching for manager cfn properties: " + file.getPath());
+		logger.fine("Searching for CFN properties: " + file.getPath());
 
 		PrivateEc2Template mapJson = null;
-		if (pFile.exists()) {
+		if (propsFile.exists()) {
 			// Replace properties variable with values if the properties file exists
-			final String templateString = this.replaceProperties(file, pFile);
-			logger.fine("The template:\n" + templateString);
+			final String templateString = this.replaceProperties(file, propsFile);
+			logger.fine("The merged template:\n" + templateString);
 			mapJson = ParserUtils.mapJson(PrivateEc2Template.class, templateString);
 		} else {
 			mapJson = ParserUtils.mapJson(PrivateEc2Template.class, file);
 		}
+		
 		return mapJson;
 	}
 
@@ -474,32 +532,48 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 		return fullServiceName;
 	}
 
-	private AmazonEC2 createAmazonEC2() throws CloudProvisioningException {
+	
+	private AmazonEC2 createAmazonEC2Client(final Cloud cloud, final ComputeTemplate managementTemplate) 
+			throws CloudProvisioningException {
+		
+		AmazonEC2 ec2;
 		final CloudUser user = cloud.getUser();
 		final AWSCredentials credentials = new BasicAWSCredentials(user.getUser(), user.getApiKey());
-
-		final AmazonEC2 ec2 = new AmazonEC2Client(credentials);
+		
+		String ec2LocationId = managementTemplate.getLocationId();
+		if (StringUtils.isBlank(ec2LocationId)) {
+			throw new IllegalArgumentException("Location Id not set on the management template");
+		}
+		
+		logger.info("creating EC2 client");
+		final String protocol = (String) cloud.getCustom().get("protocol");
+		if (StringUtils.isNotBlank(protocol)) {
+			// set the client protocol
+			logger.info("setting the EC2 client protocol to: " + protocol);
+			ClientConfiguration clientConfig = new ClientConfiguration();
+			clientConfig.setProtocol(Protocol.valueOf(protocol));
+			ec2 = new AmazonEC2Client(credentials, clientConfig);
+		} else {
+			logger.info("using the default protocol for the EC2 client (https)");
+			ec2 = new AmazonEC2Client(credentials);
+		}
+		
 
 		final String endpoint = (String) cloud.getCustom().get("endpoint");
-		if (endpoint != null) {
+		if (StringUtils.isNotBlank(endpoint)) {
+			logger.info("setting EC2 endpoint: " + endpoint);
 			ec2.setEndpoint(endpoint);
-		} else {
-			final Region region = this.getRegion();
+		} else if (StringUtils.isNotBlank(ec2LocationId)) {
+			Region region = RegionUtils.convertLocationId2Region(ec2LocationId);
+			logger.info("setting EC2 region: " + region);
 			ec2.setRegion(region);
+		} else {
+			logger.warning("EC2 endpoint and location not set, please set one of them");
 		}
+		
 		return ec2;
 	}
 
-	private Region getRegion() throws CloudProvisioningException {
-		final AWSEC2Instance instance = this.privateEc2Template.getEC2Instance();
-		final ValueType availabilityZoneObj = instance.getProperties().getAvailabilityZone();
-		if (availabilityZoneObj != null) {
-			final Region region = RegionUtils.convertAvailabilityZone2Region(availabilityZoneObj.getValue());
-			logger.info("Amazon ec2 region: " + region);
-			return region;
-		}
-		throw new CloudProvisioningException("Region and/or endpoint aren't defined");
-	}
 
 	/**
 	 * *****************************************************************************************************************
@@ -530,6 +604,8 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 					+ " serviceName=" + this.serviceName);
 		}
 
+		setPrivateEc2Template();
+		
 		final String newName = this.createNewName(TagResourceType.INSTANCE, cloud.getProvider().getMachineNamePrefix());
 		final ProvisioningContextImpl ctx =
 				(ProvisioningContextImpl) new ProvisioningContextAccess().getProvisioiningContext();
@@ -552,13 +628,13 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 		logger.info("Stopping instance server ip = " + serverIp + "...");
 		final DescribeInstancesRequest describeInstance = new DescribeInstancesRequest();
 		describeInstance.withFilters(new Filter("private-ip-address", Arrays.asList(serverIp)));
-		final DescribeInstancesResult describeInstances = ec2.describeInstances(describeInstance);
+		final DescribeInstancesResult describeInstances = ec2Client.describeInstances(describeInstance);
 
 		final Reservation reservation = describeInstances.getReservations().get(0);
 		if (reservation != null && reservation.getInstances().get(0) != null) {
 			final TerminateInstancesRequest tir = new TerminateInstancesRequest();
 			tir.withInstanceIds(reservation.getInstances().get(0).getInstanceId());
-			final TerminateInstancesResult terminateInstances = ec2.terminateInstances(tir);
+			final TerminateInstancesResult terminateInstances = ec2Client.terminateInstances(tir);
 
 			final String instanceId = terminateInstances.getTerminatingInstances().get(0).getInstanceId();
 
@@ -588,7 +664,7 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 
 			final DescribeInstancesRequest describeRequest = new DescribeInstancesRequest();
 			describeRequest.withInstanceIds(instanceId);
-			final DescribeInstancesResult describeInstances = ec2.describeInstances(describeRequest);
+			final DescribeInstancesResult describeInstances = ec2Client.describeInstances(describeRequest);
 
 			for (final Reservation resa : describeInstances.getReservations()) {
 				for (final Instance instance : resa.getInstances()) {
@@ -658,7 +734,7 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 		if (volumeMappings != null) {
 			final DescribeVolumesRequest request = new DescribeVolumesRequest();
 			request.withFilters(new Filter("attachment.instance-id", Arrays.asList(instanceId)));
-			final DescribeVolumesResult describeVolumes = ec2.describeVolumes(request);
+			final DescribeVolumesResult describeVolumes = ec2Client.describeVolumes(request);
 
 			for (final Volume volume : describeVolumes.getVolumes()) {
 				String volumeRef = null;
@@ -708,7 +784,7 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 			final DescribeTagsRequest tagRequest = new DescribeTagsRequest();
 			tagRequest.withFilters(new Filter("resource-type", Arrays.asList(resourceType.getValue())));
 			tagRequest.withFilters(new Filter("value", Arrays.asList(newName)));
-			final DescribeTagsResult describeTags = ec2.describeTags(tagRequest);
+			final DescribeTagsResult describeTags = ec2Client.describeTags(tagRequest);
 			final List<TagDescription> tags = describeTags.getTags();
 			if (tags == null || tags.isEmpty()) {
 				foundFreeName = true;
@@ -743,7 +819,7 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 			final CreateTagsRequest ctr = new CreateTagsRequest();
 			ctr.setTags(tags);
 			ctr.withResources(resourceId);
-			this.ec2.createTags(ctr);
+			this.ec2Client.createTags(ctr);
 		}
 	}
 
@@ -759,7 +835,7 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 
 			final DescribeInstancesRequest describeRequest = new DescribeInstancesRequest();
 			describeRequest.setInstanceIds(Arrays.asList(ec2instance.getInstanceId()));
-			final DescribeInstancesResult describeInstances = this.ec2.describeInstances(describeRequest);
+			final DescribeInstancesResult describeInstances = this.ec2Client.describeInstances(describeRequest);
 
 			for (final Reservation resa : describeInstances.getReservations()) {
 				for (final Instance instance : resa.getInstances()) {
@@ -813,7 +889,7 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 			request.withFilters(new Filter("instance-state-name", Arrays.asList(InstanceStateType.RUNNING.getName())),
 					new Filter("tag-key", Arrays.asList("Name")),
 					new Filter("tag-value", Arrays.asList(cloud.getProvider().getManagementGroup() + "*")));
-			final DescribeInstancesResult describeInstances = ec2.describeInstances(request);
+			final DescribeInstancesResult describeInstances = ec2Client.describeInstances(request);
 			return describeInstances;
 		} catch (final AmazonServiceException e) {
 			if (e.getStatusCode() == AMAZON_EXCEPTION_CODE_400) {
@@ -906,7 +982,7 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 				sb.append(properties.getUserData().getValue());
 				userData = sb.toString();
 				logger.fine("Instanciate ec2 with user data:\n" + userData);
-				userData = StringUtils.newStringUtf8(Base64.encodeBase64(userData.getBytes()));
+				userData = org.apache.commons.codec.binary.StringUtils.newStringUtf8(Base64.encodeBase64(userData.getBytes()));
 			}
 
 			List<BlockDeviceMapping> blockDeviceMappings = null;
@@ -937,7 +1013,7 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 				logger.finest("EC2::Instance request=" + runInstancesRequest);
 			}
 
-			final RunInstancesResult runInstances = this.ec2.runInstances(runInstancesRequest);
+			final RunInstancesResult runInstances = this.ec2Client.runInstances(runInstancesRequest);
 			if (runInstances.getReservation().getInstances().size() != 1) {
 				throw new CloudProvisioningException("Request runInstace fails (request=" + runInstancesRequest + ").");
 			}
@@ -1111,21 +1187,11 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 		final long endTime = System.currentTimeMillis() + unit.toMillis(duration);
 
 		logger.fine("DefaultCloudProvisioning: startMachine - management == " + management);
-
-		try {
-			final File cloudDirectory =
-					new ProvisioningContextAccess().getManagementProvisioiningContext().getCloudFile().getParentFile();
-			this.cloud.getCustom().put("###CLOUD_DIRECTORY###", cloudDirectory);
-			this.privateEc2Template =
-					this.getManagerPrivateEc2Template(cloudDirectory, this.managerCfnTemplateFileName);
-		} catch (PrivateEc2ParserException e) {
-			throw new CloudProvisioningException("Failed to read management template: " + e.getMessage(), e);
-		} catch (IOException e) {
-			throw new CloudProvisioningException("Failed to read management template: " + e.getMessage(), e);
-		}
+		
+		setPrivateEc2Template();
 
 		final String managementMachinePrefix = this.cloud.getProvider().getManagementGroup();
-		if (org.apache.commons.lang.StringUtils.isBlank(managementMachinePrefix)) {
+		if (StringUtils.isBlank(managementMachinePrefix)) {
 			throw new CloudProvisioningException(
 					"The management group name is missing - can't locate existing servers!");
 		}
@@ -1262,7 +1328,7 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 					logger.severe("Shutting down machine: " + machineDetails);
 					final TerminateInstancesRequest terminateInstancesRequest = new TerminateInstancesRequest();
 					terminateInstancesRequest.setInstanceIds(Arrays.asList(machineDetails.getMachineId()));
-					ec2.terminateInstances(terminateInstancesRequest);
+					ec2Client.terminateInstances(terminateInstancesRequest);
 				}
 			}
 		}
@@ -1284,7 +1350,7 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 		terminateInstancesRequest.setInstanceIds(ids);
 
 		logger.info("Terminating management instances... " + terminateInstancesRequest);
-		ec2.terminateInstances(terminateInstancesRequest);
+		ec2Client.terminateInstances(terminateInstancesRequest);
 	}
 
 	@Override
@@ -1294,8 +1360,8 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 
 	@Override
 	public void close() {
-		if (ec2 != null) {
-			ec2.shutdown();
+		if (ec2Client != null) {
+			ec2Client.shutdown();
 		}
 		if (debugExecutors != null) {
 			if (logger.isLoggable(Level.FINEST)) {
