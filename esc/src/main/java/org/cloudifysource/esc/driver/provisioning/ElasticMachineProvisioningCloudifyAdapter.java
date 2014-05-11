@@ -969,8 +969,10 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
         logger = java.util.logging.Logger.getLogger(ElasticMachineProvisioningCloudifyAdapter.class.getName());
 
         String cloudConfigDirectoryPath = findCloudConfigDirectoryPath();
+        logger.fine("cloudConfigDirectoryPath is set to: " + cloudConfigDirectoryPath);
+        
         try {
-            final String cloudOverridesPerService = config.getCloudOverridesPerService();
+        	final String cloudOverridesPerService = config.getCloudOverridesPerService();
 
             initCloudObject(cloudConfigDirectoryPath, cloudOverridesPerService);
 
@@ -1138,18 +1140,34 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
     }
 
     private String findCloudConfigDirectoryPath() {
-        String cloudConfigDirectoryPath = properties
-                .get(CloudifyConstants.ELASTIC_PROPERTIES_CLOUD_CONFIGURATION_DIRECTORY);
-        if (cloudConfigDirectoryPath == null) {
-            logger.severe("[findCloudConfigDirectoryPath] - Missing cloud configuration property. Properties are: "
-                    + this.properties);
-            throw new IllegalArgumentException("Cloud configuration directory was not set!");
-        }
+
+    	String cloudFilePath = System.getenv(CloudifyConstants.CLOUD_FILE_ENV_VAR);
+    	logger.fine("Cloud file environment variable: " + cloudFilePath);
+    	if (StringUtils.isBlank(cloudFilePath)) {
+    		logger.severe("The environment variable " + CloudifyConstants.CLOUD_FILE_ENV_VAR + " was not set");
+    		throw new IllegalArgumentException("The environment variable " + CloudifyConstants.CLOUD_FILE_ENV_VAR 
+    				+ " was not set");
+    	}
+    	
+    	File cloudFile = new File(cloudFilePath);
+    	if (!cloudFile.exists()) {
+    		logger.severe("The configured cloud file doesn't exist: " + cloudFile.getAbsolutePath());
+    		throw new IllegalArgumentException("The configured cloud file doesn't exist: " 
+    				+ cloudFile.getAbsolutePath());
+    	}
+    	
+    	if (!cloudFile.isFile()) {
+    		logger.severe("The configured cloud file path does not denote a file: " + cloudFile.getAbsolutePath());
+    		throw new IllegalArgumentException("The configured cloud file path does not denote a file: " 
+    				+ cloudFile.getAbsolutePath());
+    	}
+    	
+    	String cloudConfigDirectoryPath = cloudFile.getParentFile().getAbsolutePath();
+    	
         if (ServiceUtils.isWindows()) {
             cloudConfigDirectoryPath = EnvironmentFileBuilder.normalizeCygwinPath(cloudConfigDirectoryPath);
             cloudConfigDirectoryPath = EnvironmentFileBuilder.normalizeLocalAbsolutePath(cloudConfigDirectoryPath);
-        }
-        else {// Linux case
+        } else {	// Linux case
             cloudConfigDirectoryPath = EnvironmentFileBuilder.normalizeLinuxPath(cloudConfigDirectoryPath);
         }
 

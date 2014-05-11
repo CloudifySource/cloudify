@@ -188,6 +188,7 @@ public final class CloudifyConstants {
     public static final String GIGASPACES_AUTH_GROUPS = "GIGASPACES_AUTH_GROUPS";
     public static final String CLOUDIFY_CLOUD_MACHINE_IP_ADDRESS_ENV = "MACHINE_IP_ADDRESS";
     public static final String CLOUDIFY_OPEN_FILES_LIMIT = "CLOUDIFY_OPEN_FILES_LIMIT";
+    public static final String CLOUD_FILE_ENV_VAR = "CLOUD_FILE";
 
     /***********************************
      * Duplicate of Key names for environment variables available to agent in a cloudify
