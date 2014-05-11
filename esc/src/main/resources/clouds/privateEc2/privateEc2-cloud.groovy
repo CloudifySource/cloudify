@@ -86,6 +86,9 @@ cloud {
                 machineMemoryMB 2048   // must be bigger than reservedMemoryCapacityPerMachineInMB+100                
                 localDirectory "upload"
 				remoteDirectory "/home/ubuntu/gs-files"
+				custom ([
+					"cfnTemplate":"privateEc2-cfn.template"
+				])
             },
             CFN_MANAGER_TEMPLATE : computeTemplate{
                 imageId ""             // For template validation, defined in CFN templates
@@ -106,5 +109,23 @@ cloud {
         ])
     
     }
-	custom (["endpoint":"ec2.us-east-1.amazonaws.com"])
+	custom ([
+		// Optional. Path to an override file for the region metadata that maps service/region pairs to endpoints and vice versa.
+		// If not set, the Amazon SDK will attempt to download an up-to-date set of region metadata from CloudFront
+		// If a specific endpoint wasn't set, the endpoint will be selected according to location, using the region metadata.
+		// "regionsFile":regionsFile,
+		
+		// Optional. Sets the requested protocol for accessing EC2 and S3. Defaults to HTTPS. The protocol must be supported by the 
+		// relevant endpoint (as defined in the regions metadata). This setting can be overridden by specific endpoint settings, shown below.
+		// "protocol":"HTTPS",
+
+		// Optional. Specific endpoints for both the EC2 service.
+		// If the URL contains a protocol (http/https) - it overrides the above protocol setting.
+		// "endpoint":"http://ec2.us-east-1.amazonaws.com",
+		
+		// Optional. Specific endpoints for both the S3 service.
+		// If the URL contains a protocol (http/https) - it overrides the above protocol setting.
+		// "s3endpoint":"https://s3-eu-west-1.amazonaws.com"
+		
+	])
 }
