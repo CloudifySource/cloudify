@@ -1100,12 +1100,7 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
         final ServiceNetwork network = createNetworkObject();
         configuration.setNetwork(network);
         
-        try {
-        	this.cloudifyProvisioning.setConfig(configuration);
-        } catch (Exception e) {
-        	logger.fine("Cloud driver configuration failed with error: " + e.getMessage());
-        	throw new CloudProvisioningException(e);
-        }
+       	this.cloudifyProvisioning.setConfig(configuration);
         
         // initialize the storage driver
         if (this.storageProvisioning != null) {
@@ -1376,9 +1371,11 @@ public class ElasticMachineProvisioningCloudifyAdapter implements ElasticMachine
         try {
             configureDrivers();
         } catch (final CloudProvisioningException e) {
-            throw new ElasticMachineProvisioningException("Failed to configure cloud driver for first use: "
+        	logger.log(Level.WARNING, e.getMessage(), e);
+            throw new ElasticMachineProvisioningException("Failed to configure compute cloud driver for first use: "
                     + e.getMessage(), e);
         } catch (final StorageProvisioningException e) {
+        	logger.log(Level.WARNING, e.getMessage(), e);
             throw new ElasticMachineProvisioningException("Failed to configure storage driver for first use: "
                     + e.getMessage(), e);
         }
