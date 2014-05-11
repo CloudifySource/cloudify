@@ -168,6 +168,7 @@ public class TimedAdmin {
 			public Thread newThread(Runnable runnable) {
 				Thread thread = Executors.defaultThreadFactory().newThread(runnable);
 				thread.setDaemon(true);
+				thread.setName("AdminTimingThread");
 				return thread;
 			}
 		});
