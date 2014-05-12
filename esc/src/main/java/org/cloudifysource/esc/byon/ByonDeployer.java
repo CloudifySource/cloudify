@@ -83,6 +83,10 @@ public class ByonDeployer {
 		List<CustomNode> parsedNodes = ByonUtils.parseCloudNodes(nodesList);
 		parsedNodes = removeDuplicates(parsedNodes);
 
+		// avoid duplicate machines in different templates (compare by IP)
+		logger.fine("Attempting to set template " + templateName + " with the following pool: " 
+				+ getNodesListForPrint(parsedNodes));
+		
 		// the infrastructure is based on machine IPs, they need to be unique.
 		// we set the resolved IP address on each node for an easy machine
 		// comparison from this point on
@@ -101,8 +105,7 @@ public class ByonDeployer {
 				unresolvedNodes.add(node);
 			}
 		}
-
-		// avoid duplicate machines in different templates (compare by IP)
+		
 		final Set<String> duplicateNodes = getDuplicateIPs(getAllNodes(), parsedNodes);
 		if (duplicateNodes.size() > 0) {
 			throw new CloudProvisioningException(
