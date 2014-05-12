@@ -489,7 +489,7 @@ public class PrivateEC2CloudifyDriver extends CloudDriverSupport implements
 	}
 	
 
-	private PrivateEc2Template getPrivateEc2TemplateFromFile(final File cloudDirectory, final String templateFileName)
+	public PrivateEc2Template getPrivateEc2TemplateFromFile(final File cloudDirectory, final String templateFileName)
 			throws PrivateEc2ParserException, IOException {
 		final File file = new File(cloudDirectory, templateFileName);
 
