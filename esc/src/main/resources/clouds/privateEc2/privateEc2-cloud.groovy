@@ -109,6 +109,7 @@ cloud {
         ])
     
     }
+	
 	custom ([
 		// Optional. Path to an override file for the region metadata that maps service/region pairs to endpoints and vice versa.
 		// If not set, the Amazon SDK will attempt to download an up-to-date set of region metadata from CloudFront
@@ -119,13 +120,12 @@ cloud {
 		// relevant endpoint (as defined in the regions metadata). This setting can be overridden by specific endpoint settings, shown below.
 		// "protocol":"HTTPS",
 
-		// Optional. Specific endpoints for both the EC2 service.
-		// If the URL contains a protocol (http/https) - it overrides the above protocol setting.
-		// "endpoint":"http://ec2.us-east-1.amazonaws.com",
-		
 		// Optional. Specific endpoints for both the S3 service.
 		// If the URL contains a protocol (http/https) - it overrides the above protocol setting.
-		// "s3endpoint":"https://s3-eu-west-1.amazonaws.com"
+		// "s3endpoint":"https://s3-eu-west-1.amazonaws.com",
 		
+		// Optional. Specific endpoints for both the EC2 service.
+		// If the URL contains a protocol (http/https) - it overrides the above protocol setting.
+		"endpoint":"http://ec2.us-east-1.amazonaws.com"		
 	])
 }
