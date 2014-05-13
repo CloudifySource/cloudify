@@ -84,7 +84,7 @@ cloud {
 									path "/storage"
 									namePrefix "cloudify-storage-volume"
 									deviceName "/dev/vdc"
-									fileSystemType "ext3"
+									fileSystemType "ext4"
 									custom (["openstack.storage.volume.zone":availabilityZone])
 					}
 			])
