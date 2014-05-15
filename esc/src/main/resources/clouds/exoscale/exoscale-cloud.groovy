@@ -62,9 +62,60 @@ cloud {
 			SMALL_LINUX : computeTemplate{
 				locationId zoneId
 				// Mandatory. Image ID.
-				imageId tamplateId
+				imageId templateId
 				// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
 				remoteDirectory remoteUploadDirectory
+				// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
+				localDirectory localUploadDirectory
+				// Mandatory. Amount of RAM available to machine.
+				machineMemoryMB 1600 
+				// Mandatory. Hardware ID.
+				hardwareId computeOfferingId
+				
+				//The SSH username and password for Cloudify to use when installing and configuring created VMs. 
+				//This configuration assumes you're using simple SSH authentication without a keypair. Uncomment
+				//the two lines below if this is the case
+				//username sshUsername
+				//password sshPassword
+
+				//Name of key file to use for authenticating to the remot machine. Comment out this line 
+				//if your using plain username/password SSH authentication for the created VMs
+				keyFile sshKeypairFile
+				
+				javaUrl "http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-x64.bin"
+				
+				privileged true
+
+				overrides ([
+					"securityGroups" : [securityGroup] as String[],
+					//"diskOfferingsId":["c870503d-d0f2-4e0d-b62c-1303b7411850"],
+					"jclouds.endpoint" : cloudStackAPIEndpoint
+				])
+				options ([
+					//Comment out this line if you're using plain username/password SSH authentication into the created VM. 
+					"keyPair" : sshKeypairName
+
+				])
+				installer {
+					connectionTestRouteResolutionTimeoutMillis 120000
+					connectionTestIntervalMillis 5000
+					connectionTestConnectTimeoutMillis 10000
+
+					fileTransferConnectionTimeoutMillis 10000
+					fileTransferRetries 2
+					//fileTransferPort -1
+					fileTransferConnectionRetryIntervalMillis 5000
+
+					//remoteExecutionPort -1
+					remoteExecutionConnectionTimeoutMillis 10000
+				}
+			},
+			SMALL_UBUNTU : computeTemplate{
+				locationId zoneId
+				// Mandatory. Image ID.
+				imageId ubuntuTemplateId
+				// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
+				remoteDirectory "/home/ubuntu/gs-files"
 				// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
 				localDirectory localUploadDirectory
 				// Mandatory. Amount of RAM available to machine.
