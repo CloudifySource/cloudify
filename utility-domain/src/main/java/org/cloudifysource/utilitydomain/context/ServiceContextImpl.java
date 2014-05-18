@@ -273,7 +273,7 @@ public class ServiceContextImpl implements ServiceContext {
 	 * @return the admin.
 	 */
 	public Admin getAdmin() {
-		logger.warning("Using an admin object directly is not recommended. This action is bypasses the admin"
+		logger.warning("Using an admin object directly is not recommended. This action bypasses the admin"
 				+ " timing mechanism and might hinder performace");
 		return getOpenAdmin();
 	}

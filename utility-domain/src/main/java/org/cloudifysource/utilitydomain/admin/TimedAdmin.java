@@ -38,7 +38,7 @@ import java.util.concurrent.ThreadFactory;
  * This is intended to minimize memory and network utilization by unused {@link Admin} objects.
  * 
  * @author noak
- * @since 9.7.1
+ * @since 2.7.1
  */
 public class TimedAdmin {
 
@@ -230,11 +230,27 @@ public class TimedAdmin {
 	 * @return The processing unit, if found in the given time frame; null otherwise
 	 */
 	public ProcessingUnit waitForPU(final String puName, final long timeout, final TimeUnit timeunit) {
-		validateTimeout(timeout, timeunit, "waiting for PU instance");
+		validateTimeout(timeout, timeunit, "waiting for PU");
 		initAdmin();
 		return admin.getProcessingUnits().waitFor(puName, timeout, timeunit);
 	}
 	
+	
+	/**
+	 * Waits until at least the provided number of Processing Unit Instances are found, or the timeout is reached.
+	 * @param pu The processing unit object
+	 * @param numberOfProcessingUnitInstances The required number of instances
+	 * @param timeout the timeout length
+	 * @param timeunit The timeout length time unit
+	 * @return true if the numbers of PUIs found is equal or more than required, false otherwise
+	 */
+	public boolean waitForPUI(final ProcessingUnit pu, int numberOfPUInstances, long timeout, 
+			TimeUnit timeunit) {
+		validateTimeout(timeout, timeunit, "waiting for PU instance");
+		initAdmin();
+		return pu.waitFor(numberOfPUInstances, timeout, timeunit);
+	}
+
 	
 	/**
 	 * Waits until all lookup services are found, or the timeout is reached.

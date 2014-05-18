@@ -874,35 +874,36 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		if (dependencies.length > 0) {
 			logger.info("waitForDependencies is getting timed admin");
 			final TimedAdmin timedAdmin = USMUtils.getTimedAdmin();
-			for (final String dependantService : this.dependencies) {
-				logger.info("Waiting for dependency: " + dependantService);
-				final ProcessingUnit pu = waitForPU(endTime, timedAdmin, dependantService);
-				waitForPUI(endTime, dependantService, pu);
-				logger.info("Dependency " + dependantService + " is available");
+			for (final String dependencyService : this.dependencies) {
+				logger.info("Waiting for dependency: " + dependencyService);
+				final ProcessingUnit pu = waitForPU(endTime, timedAdmin, dependencyService);
+				waitForPUI(endTime, timedAdmin, dependencyService, pu);
+				logger.info("Dependency " + dependencyService + " is available");
 			}
 		}
 
 		logger.info("All dependencies are available");
 	}
 
-	private void waitForPUI(final long endTime, final String dependantService,
+	private void waitForPUI(final long endTime, final TimedAdmin timedAdmin, final String dependencyService, 
 			final ProcessingUnit pu) {
+		
 		while (true) {
 			final long waitForPUIPeriod = endTime - System.currentTimeMillis();
 			if (waitForPUIPeriod <= 0) {
 				throw new IllegalStateException("Could not find dependency "
-						+ dependantService + " required for this service");
+						+ dependencyService + " required for this service");
 			}
 
-			logger.info("Waiting for PUI of service: " + dependantService
-					+ " for " + waitForPUIPeriod + " Milliseconds");
+			logger.info("Waiting for PUI of service: " + dependencyService + " for " + waitForPUIPeriod 
+					+ " Milliseconds");
 			// TODO: Switch to waitFor using waitForPUPeriod. this admin
 			// sampling routine is a workaround for a
 			// possible bug in the admin api where the admin does not recognize
 			// the PUI.
-			final boolean found = pu.waitFor(1, 2, TimeUnit.MILLISECONDS);
+			final boolean found = timedAdmin.waitForPUI(pu, 1, 1, TimeUnit.SECONDS);
 
-			logger.info("Timeout ended. processing unit " + dependantService
+			logger.info("Timeout ended. processing unit " + dependencyService
 					+ " found result is " + found);
 			if (found) {
 				final ProcessingUnitInstance[] puis = pu.getInstances();
@@ -922,8 +923,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 							final USMState usmState = USMState.values()[stateIndex];
 							logger.info("PUI is in state: " + usmState);
 							if (usmState == USMState.RUNNING) {
-								logger.info("Found a running instance of dependant service: "
-										+ dependantService);
+								logger.info("Found a running instance of dependency service: " + dependencyService);
 								return;
 							}
 						}
@@ -932,7 +932,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 				}
 			} else {
 				logger.info("Could not find a running instance of service: "
-						+ dependantService + ". Sleeping before trying again");
+						+ dependencyService + ". Sleeping before trying again");
 			}
 			try {
 				Thread.sleep(WAIT_FOR_DEPENDENCIES_INTERVAL_MILLIS);
