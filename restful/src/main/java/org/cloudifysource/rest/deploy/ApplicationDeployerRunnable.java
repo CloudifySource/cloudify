@@ -120,6 +120,7 @@ public class ApplicationDeployerRunnable implements Runnable {
 				merger.merge();
 				
 				// Pack the folder and name it absolutePuName
+				logger.fine("[installServices] packing absolutePUName");
 				final File packedFile = Packager.pack(service, 
 						serviceDir, 
 						absolutePUName, 
