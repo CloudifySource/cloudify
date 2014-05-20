@@ -728,6 +728,10 @@ public class DeploymentsController extends BaseRestController {
 			@RequestBody final InstallApplicationRequest request)
 			throws RestErrorException {
 		
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("[installApplication] starting deployment of application: " + appName);
+		}
+		
 		// get the application file
 		final String applcationFileUploadKey = request.getApplcationFileUploadKey();
 		final File applicationFile = getFromRepo(applcationFileUploadKey,
@@ -778,17 +782,29 @@ public class DeploymentsController extends BaseRestController {
 
 		// install
 		if (installer.isAsyncInstallPossibleForApplication()) {
+			if (logger.isLoggable(Level.FINE)) {
+				logger.fine("[installApplication] Async install is possible for the application, running the installer");
+			}
 			installer.run();
 		} else {
+			if (logger.isLoggable(Level.FINE)) {
+				logger.fine("[installApplication] Async install not possible for the application, calling the installer on another thread");
+			}
 			restConfig.getExecutorService().execute(installer);
 		}
 		// we wait for the pu so that after this method returns 
 		// we would be able to poll for events safely using the deployment-id. 
 		String firstServiceName = services.get(0).getName();
 		String firstPuName = ServiceUtils.getAbsolutePUName(appName, firstServiceName);
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("[installApplication] waiting for PU: " + firstPuName);
+		}
 		final boolean firstPuCreated = waitForPu(appName, firstServiceName, WAIT_FOR_PU_SECONDS, TimeUnit.SECONDS);
 		if (!firstPuCreated) {
 			throw new RestErrorException(CloudifyErrorMessages.FAILED_WAIT_FOR_PU.getName(), firstPuName);
+		}
+		if (logger.isLoggable(Level.FINE)) {
+			logger.fine("[installApplication] found PU: " + firstPuName);
 		}
 		// creating response
 		final InstallApplicationResponse response = new InstallApplicationResponse();
@@ -1194,6 +1210,8 @@ public class DeploymentsController extends BaseRestController {
 			final File packedFile)
 			throws RestErrorException {
 
+		logger.fine("[installServiceInternal] started internal service install of: " + serviceName);
+		
 		final String absolutePuName = ServiceUtils.getAbsolutePUName(appName, serviceName);
 
 		// update template name
@@ -1257,10 +1275,12 @@ public class DeploymentsController extends BaseRestController {
 		}
 
 		try {
+			logger.fine("[installServiceInternal] deploying and waiting for : " + serviceName);
 			ProcessingUnit processingUnit = deployAndWait(serviceName, deployment);
 
 			// save a reference to the processing unit in the events cache.
 			// this is for easy container discovery during events polling from clients.
+			logger.fine("[installServiceInternal] populating events cache with deployment ID: " + deploymentID);
 			populateEventsCache(deploymentID, processingUnit);
 		} catch (final TimeoutException e) {
 			throw new RestErrorException("Timed out waiting for deployment.", e);
@@ -1268,6 +1288,8 @@ public class DeploymentsController extends BaseRestController {
 
 		final InstallServiceResponse installServiceResponse = new InstallServiceResponse();
 		installServiceResponse.setDeploymentID(deploymentID);
+		logger.fine("[installServiceInternal] installServiceInternal completed PU deployment for " + serviceName 
+				+ ", the service deployment is just starting!");
 		return installServiceResponse;
 	}
 
