@@ -408,6 +408,7 @@ public final class CloudifyConstants {
      */
     public static final int DEFAULT_HTTP_CONNECTION_TIMEOUT = 60 * 1000; // one minute
     public static final int DEFAULT_HTTP_READ_TIMEOUT = 60 * 1000 * 2; // two minutes per request
+    public static final String SYSTEM_PROPERTY_REST_CLIENT_SOCKET_TIMEOUT_MILLIS = "org.cloudifysource.cli.restclient.socket-timeout";
 
 
     /**

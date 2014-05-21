@@ -74,6 +74,7 @@ import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
+
 /**
  * This class performs all the calls to the REST API, using the {@link RestClientExecutor}.
  * 
@@ -590,8 +591,11 @@ public class RestClient {
 			httpClient = new SystemDefaultHttpClient();
 		}
 		final HttpParams httpParams = httpClient.getParams();
+		
 		HttpConnectionParams.setConnectionTimeout(httpParams, CloudifyConstants.DEFAULT_HTTP_CONNECTION_TIMEOUT);
-		HttpConnectionParams.setSoTimeout(httpParams, CloudifyConstants.DEFAULT_HTTP_READ_TIMEOUT);
+		int socketTimeout = getSocketTimeout();
+		logger.fine("setting rest client socket timeout to: " + socketTimeout);
+		HttpConnectionParams.setSoTimeout(httpParams, socketTimeout);
 		return new RestClientExecutor(httpClient, url);
 	}
 
@@ -921,6 +925,34 @@ public class RestClient {
 		if (logger.isLoggable(level)) {
 			logger.log(level, msg);
 		}
+	}
+	
+	/*********
+	 * Resolves the configured rest client socket timeout or the default
+	 * @return the the configured rest client socket timeout or the default
+	 */
+	public int getSocketTimeout() {
+		
+		int restClientSocketTimeout;
+		final String restClientSocketTimeoutSysProp = 
+				System.getProperty(CloudifyConstants.SYSTEM_PROPERTY_REST_CLIENT_SOCKET_TIMEOUT_MILLIS);
+		
+		if (StringUtils.isNotBlank(restClientSocketTimeoutSysProp)) {
+			try {
+				restClientSocketTimeout = Integer.parseInt(restClientSocketTimeoutSysProp);
+			} catch (final NumberFormatException nfe) {
+				restClientSocketTimeout = CloudifyConstants.DEFAULT_HTTP_READ_TIMEOUT;
+				logger.severe("Failed to parse integer system property: "
+						+ CloudifyConstants.SYSTEM_PROPERTY_REST_CLIENT_SOCKET_TIMEOUT_MILLIS + ". Value was: " 
+						+ restClientSocketTimeoutSysProp + ". Using default value "
+						+ CloudifyConstants.DEFAULT_HTTP_READ_TIMEOUT + " instead");
+			}
+		} else {
+			// use the default socket timeout
+			restClientSocketTimeout = CloudifyConstants.DEFAULT_HTTP_READ_TIMEOUT;
+		}
+		
+		return restClientSocketTimeout;
 	}
 
 }

@@ -41,7 +41,7 @@ goto :END
 		set LRMI_PORT_RANGE=%GSC_LRMI_PORT_RANGE_ENVIRONMENT_VAR%
 	)
 	
-	set CLOUDIFY_JAVA_OPTIONS=-Xmx500m -Dcom.gigaspaces.logger.RollingFileHandler.debug-level=WARNING -Dcom.gs.transport_protocol.lrmi.bind-port=%LRMI_PORT_RANGE% %PROXY_JAVA_OPTIONS% %CLOUDIFY_VERSION_OPTIONS% %EXT_JAVA_OPTIONS%
+	set CLOUDIFY_JAVA_OPTIONS=-Xmx500m -Dcom.gigaspaces.logger.RollingFileHandler.debug-level=WARNING -Dcom.gs.transport_protocol.lrmi.bind-port=%LRMI_PORT_RANGE% %PROXY_JAVA_OPTIONS% %CLOUDIFY_VERSION_OPTIONS% %REST_CLIENT_OPTIONS% %EXT_JAVA_OPTIONS%
 	
 goto :END
 
