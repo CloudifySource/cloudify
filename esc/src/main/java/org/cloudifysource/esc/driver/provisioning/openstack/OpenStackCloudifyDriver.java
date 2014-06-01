@@ -622,8 +622,8 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 	private void cleanAllNetworks() throws OpenstackException {
 
 		// Clean external router
+		Router router = null;
 		if (!this.networkHelper.skipExternalNetworking()) {
-			final Router router;
 			if (this.networkHelper.isCreateExternalRouter()) {
 				// The driver has created an external router
 				router = networkApi.getRouterByName(this.openstackPrefixes.getPrefix()
@@ -667,11 +667,28 @@ public class OpenStackCloudifyDriver extends BaseProvisioningDriver {
 		}
 
 		// Delete all remaining application networks
-		final List<Network> appliNetworks = networkApi.getNetworkByPrefix(this.openstackPrefixes.getPrefix());
-		if (appliNetworks != null) {
-			for (final Network n : appliNetworks) {
-				networkApi.deleteNetwork(n.getId());
-
+		final List<Network> appNetworks = networkApi.getNetworkByPrefix(this.openstackPrefixes.getPrefix());
+		if (appNetworks != null) {
+			for (final Network network : appNetworks) {
+				if (router != null) {
+					final String[] privateNetSubnetIds = network.getSubnets();
+					if (privateNetSubnetIds != null && privateNetSubnetIds.length > 0) {
+						final List<Port> ports = networkApi.getPortsByDeviceId(router.getId());
+						if (ports != null) {
+							for (final Port port : ports) {
+								for (final RouteFixedIp fixedIp : port.getFixedIps()) {
+									for (final String id : privateNetSubnetIds) {
+										if (id.equals(fixedIp.getSubnetId())) {
+											networkApi.deleteRouterInterface(router.getId(), fixedIp.getSubnetId());
+										}
+									}
+								}
+							}
+						}
+					}
+				}				
+				
+				networkApi.deleteNetwork(network.getId());
 			}
 		}
 	}
