@@ -25,7 +25,7 @@
         <module>../dsl-backwards</module>
 	</modules>
 	<properties>
-		<gsVersion>9.1.0-SNAPSHOT</gsVersion>
+		<gsVersion>9.7.1-SNAPSHOT</gsVersion>
 		<junitVersion>4.8.2</junitVersion>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<cloudifyVersion>${project.version}</cloudifyVersion>
