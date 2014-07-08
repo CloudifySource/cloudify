@@ -149,9 +149,8 @@ cloud {
 							"jclouds.so-timeout" : 600000 ,
 							"jclouds.connection-timeout" : 600000,
 							"jclouds.request-timeout":600000,
-							//"jclouds.max-retries":5,
-							"jclouds.max-retries":1,
-							//"jclouds.retries-delay-start":300000
+							"jclouds.max-retries":5,
+							"jclouds.retries-delay-start":300000
 						])
 						
 						env ([
