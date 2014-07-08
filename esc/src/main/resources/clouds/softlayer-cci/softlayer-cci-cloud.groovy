@@ -154,7 +154,7 @@ cloud {
 						])
 						
 						env ([
-							"ESM_JAVA_OPTIONS" : "-Dorg.openspaces.grid.start-agent-timeout-seconds=72000000"
+							"ESM_JAVA_OPTIONS" : "-Dorg.openspaces.grid.start-agent-timeout-seconds=10800000"
 						])
 
 						
