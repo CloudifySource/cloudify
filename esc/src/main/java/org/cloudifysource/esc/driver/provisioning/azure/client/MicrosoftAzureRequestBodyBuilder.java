@@ -270,7 +270,7 @@ public class MicrosoftAzureRequestBodyBuilder {
 		}
 		else {
 			LinuxProvisioningConfigurationSet linuxProvisioningSet = new LinuxProvisioningConfigurationSet();
-			linuxProvisioningSet.setDisableSshPasswordAuthentication(true);
+//			linuxProvisioningSet.setDisableSshPasswordAuthentication(true);
 			linuxProvisioningSet.setHostName(roleName);
 			linuxProvisioningSet.setUserName(userName);
 			linuxProvisioningSet.setUserPassword(password);
