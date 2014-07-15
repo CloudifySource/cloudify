@@ -386,14 +386,13 @@ public class EbsStorageDriver extends BaseStorageDriver implements StorageProvis
 		String availabilityZone = volume.getAvailabilityZone();
 		String id = volume.getId();
 		int size = volume.getSize();
-		String volumeName = ""; 
+		String volumeName = "";
 		try {
 			volumeName = getVolumeName(id);
 		} catch (StorageProvisioningException e) {
 			// Native volumes do not have a name only id.
-			logger.info("Could not obtain volume name for node with id: " + id + ". Reason: " + e.getMessage());
+			logger.fine("Could not obtain volume name for node with id: " + id + ". Reason: " + e.getMessage());
 		}
-		
 		VolumeDetails volumeDetails = new VolumeDetails();
 		volumeDetails.setLocation(availabilityZone);
 		volumeDetails.setId(id);
