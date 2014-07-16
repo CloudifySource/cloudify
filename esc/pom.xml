@@ -28,7 +28,7 @@
 	<dependencies>
         <dependency>
             <groupId>org.apache.jclouds.provider</groupId>
-            <artifactId>softlayer</artifactId>
+            <artifactId>softlayer-all</artifactId>
             <version>${jcloudsVersion}</version>
         </dependency>
         <dependency>
