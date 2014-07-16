@@ -28,7 +28,7 @@
 	<dependencies>
         <dependency>
             <groupId>org.apache.jclouds.provider</groupId>
-            <artifactId>softlayer-all</artifactId>
+            <artifactId>softlayer</artifactId>
             <version>${jcloudsVersion}</version>
         </dependency>
         <dependency>
@@ -250,6 +250,6 @@
 		</plugins>
 	</build>
 	<properties>
-		<jcloudsVersion>1.6.2-incubating</jcloudsVersion>
+		<jcloudsVersion>1.6.4-SNAPSHOT</jcloudsVersion>
 	</properties>
 </project>
