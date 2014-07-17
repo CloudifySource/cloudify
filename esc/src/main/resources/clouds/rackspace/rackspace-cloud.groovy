@@ -158,9 +158,44 @@ cloud {
 	
 						// optional. A native command line to be executed before the cloudify agent is started.
 						// initializationCommand "echo Cloudify agent is about to start"
-					}
+					},
+				
+					MEDIUM_UBUNTU : computeTemplate{
+						// Mandatory. Image ID.
+						imageId ubuntuImageId
+						locationId locationId
+					
+						// file transfer protocol
+						fileTransfer org.cloudifysource.domain.cloud.FileTransferModes.SFTP
+					
+						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
+						remoteDirectory "/home/root/gs-files"
+						// Mandatory. Amount of RAM available to machine.
+						machineMemoryMB 4096
+						// Mandatory. Hardware ID.
+						hardwareId mediumHardwareId
+						// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
+						localDirectory "upload"
+
+						username "root"
+					
+						// when set to 'true', agent will automatically start after reboot.
+						autoRestartAgent true
+
+						// Optional. Overrides to default cloud driver behavior.
+						// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
+						overrides ([
+							"jclouds.keystone.credential-type":"RAX-KSKEY:apiKeyCredentials"
+						])
+					
+						// enable sudo.
+						privileged true
+
+						// optional. A native command line to be executed before the cloudify agent is started.
+						// initializationCommand "echo Cloudify agent is about to start"
+				}
 	
-				])
+			])
 	
 	}
 

@@ -150,7 +150,7 @@ cloud {
 						machineMemoryMB 1900
 
 						// Mandatory. Hardware ID.
-						hardwareId hardwareId
+						hardwareId smallHardwareId
 
 						// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
 						localDirectory "upload"
@@ -228,7 +228,7 @@ cloud {
 						machineMemoryMB 1900
 
 						// Mandatory. Hardware ID.
-						hardwareId hardwareId
+						hardwareId smallHardwareId
 
 						// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
 						localDirectory "upload"
@@ -288,6 +288,83 @@ cloud {
 						// optional. A native command line to be executed before the cloudify agent is started.
 						initializationCommand "#!/bin/sh\ncp /etc/hosts /tmp/hosts\necho 127.0.0.1 `hostname` > /etc/hosts\ncat  /tmp/hosts >> /etc/hosts"
 
+						// optional - set a list of availability zones to use
+						// availabilityZones (["az1","az2","az3"])
+					},
+					MEDIUM_UBUNTU : computeTemplate{
+						// Mandatory. Image ID.
+						imageId ubuntuImageId
+						
+						// file transfer protocol
+						fileTransfer org.cloudifysource.domain.cloud.FileTransferModes.SFTP
+						
+						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
+						remoteDirectory "/root/gs-files"
+	
+						// Mandatory. Amount of RAM available to machine.
+						machineMemoryMB 4096
+	
+						// Mandatory. Hardware ID.
+						hardwareId mediumHardwareId
+	
+						// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
+						localDirectory "upload"
+	
+						// Optional. Name of key file to use for authenticating to the remote machine.
+						// Remove this line if key files are not used.
+						keyFile keyFile
+	
+						// Mandatory. Username to use for authenticating to the remote machine.
+						username "root"
+	
+						// Additional template options
+						options ([// Optional. Set the name to search to find openstack compute endpoint.
+							// "computeServiceName" : "nova",
+	
+							// Optional. Set the name to search to find openstack compute endpoint.
+							// "networkServiceName" : "neutron",
+		
+							// Optional. Set the network api version .
+							// "networkApiVersion"  : "v2.0",
+		
+							// Optional. This option is relevant only if you use manamgent network.
+							// Specify an existing external router name to use.
+							// "externalRouterName" : "router-ext",
+		
+							// Optional. This option is relevant only if you use manamgent network.
+							// Specify an external network name to use.
+							// "externalNetworkName": "net-ext",
+		
+							// Optional. This option is relevant only if you use manamgent network.
+							// By default (if you use a management network), the driver will create a router and link it to an external network, set to 'false' to ignore this step.
+							// By setting this property to 'false', the properties 'externalRouterName' and 'externalNetworkName' will be ignored.
+							// "skipExternalNetworking": "false",
+							
+							// Optional. Use existing security groups.
+							// "securityGroups" : ["default"] as String[],
+							"keyPairName" : keyPair
+						])
+						
+						// Optional. Use existing networks.
+						// computeNetwork {
+						//	networks (["SOME_INTERNAL_NETWORK"])
+						// }
+						
+						// when set to 'true', agent will automatically start after reboot.
+						autoRestartAgent true
+	
+						// Optional. Overrides to default cloud driver behavior.
+						// When used with the default driver, maps to the overrides properties passed to the ComputeServiceContext a
+						overrides ([
+							"openstack.endpoint": openstackUrl
+						])
+	
+						// enable sudo.
+						privileged true
+	
+						// optional. A native command line to be executed before the cloudify agent is started.
+						initializationCommand "#!/bin/sh\ncp /etc/hosts /tmp/hosts\necho 127.0.0.1 `hostname` > /etc/hosts\ncat  /tmp/hosts >> /etc/hosts"
+	
 						// optional - set a list of availability zones to use
 						// availabilityZones (["az1","az2","az3"])
 					}
