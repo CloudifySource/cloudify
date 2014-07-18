@@ -19,6 +19,7 @@ package org.cloudifysource.esc.installer.remoteExec;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
 
+import org.cloudifysource.domain.cloud.CloudTemplateInstallerConfiguration;
 import org.cloudifysource.esc.installer.AgentlessInstaller;
 import org.cloudifysource.esc.installer.InstallationDetails;
 import org.cloudifysource.esc.installer.InstallerException;
@@ -86,13 +87,31 @@ public class WinrmExecutor implements RemoteExecutor {
 
 			}
 		});
+		
+		CloudTemplateInstallerConfiguration installerConfiguration = details.getInstallerConfiguration();
+		
+		// if "testRemoteExecutionConnection" set to True check the WinRM connection before performing the remote call
+		if (installerConfiguration.isTestRemoteExecutionConnection()) {
+			int connectionTestIntervalMillis = installerConfiguration.getConnectionTestIntervalMillis();
+			int remoteExecConnectionTimeoutMillis = installerConfiguration.getRemoteExecutionConnectionTimeoutMillis();
+			long end = System.currentTimeMillis() + remoteExecConnectionTimeoutMillis;
+			
+			try {
+				client.checkWinrmConnection(targetHost, details.getUsername(), details.getPassword(), 
+						details.getLocalDir(), connectionTestIntervalMillis, end);
+			} catch (final PowershellClientException e) {
+				throw new InstallerException("WinRM connection failed", e);
+			}
+		}
+		
+		logger.fine("Invoking remote powershell command " + fullCommand + " on target host: " + targetHost);
 		try {
-				client.invokeRemotePowershellCommand(targetHost, fullCommand, details.getUsername(), details.getPassword(),
-						details.getLocalDir());
+			client.invokeRemotePowershellCommand(targetHost, fullCommand, details.getUsername(), 
+						details.getPassword(), details.getLocalDir());
 		} catch (final PowershellClientException e) {
 			throw new InstallerException("Failed to execute powershell remote command", e);
 		}
-
+		
 	}
 
 }
