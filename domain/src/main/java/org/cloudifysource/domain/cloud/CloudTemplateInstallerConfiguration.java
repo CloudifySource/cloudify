@@ -59,7 +59,6 @@ public class CloudTemplateInstallerConfiguration {
 
 	private int remoteExecutionPort = DEFAULT_PORT;
 	private int remoteExecutionConnectionTimeoutMillis = DEFAULT_CONNECTION_TIMEOUT;
-	private boolean testRemoteExecutionConnection = false;
 
 
 	public CloudTemplateInstallerConfiguration() {
@@ -127,15 +126,6 @@ public class CloudTemplateInstallerConfiguration {
 	public int getRemoteExecutionConnectionTimeoutMillis() {
 		return remoteExecutionConnectionTimeoutMillis;
 	}
-	
-	/*******
-	 * Gets the value of testRemoteExecutionConnection, which defaults to false.
-	 *
-	 * @return the value of testRemoteExecutionConnection
-	 */
-	public boolean isTestRemoteExecutionConnection() {
-		return testRemoteExecutionConnection;
-	}
 
 	/******
 	 * Interval between consecutive file transfer connection attempts, in milliseconds. Defaults to 5 seconds.
@@ -191,10 +181,6 @@ public class CloudTemplateInstallerConfiguration {
 
 	public void setRemoteExecutionConnectionTimeoutMillis(final int remoteExecutionConnectionTimeoutMillies) {
 		this.remoteExecutionConnectionTimeoutMillis = remoteExecutionConnectionTimeoutMillies;
-	}
-	
-	public void setTestRemoteExecutionConnection(final boolean testRemoteExecutionConnection) {
-		this.testRemoteExecutionConnection = testRemoteExecutionConnection;
 	}
 
 }
