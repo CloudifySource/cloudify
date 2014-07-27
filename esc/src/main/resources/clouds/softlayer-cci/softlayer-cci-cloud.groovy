@@ -126,7 +126,7 @@ cloud {
 						// Mandatory. Files from the local directory will be copied to this directory on the remote machine.
 						remoteDirectory "/tmp/gs-files"
 						// Mandatory. Amount of RAM available to machine.
-						machineMemoryMB 4096
+						machineMemoryMB 3800
 						// Mandatory. Hardware ID.
 						hardwareId smallHardwareId
 						// Mandatory. All files from this LOCAL directory will be copied to the remote machine directory.
