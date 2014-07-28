@@ -90,11 +90,11 @@ public final class ServiceContextFactory {
 
 	private static synchronized TimedAdmin getTimedAdmin() {
 		if (timedAdmin != null) {
-			logger.info("using a cached instance of TimedAdmin");
+			logger.fine("using a cached instance of TimedAdmin");
 			return timedAdmin;
 		}
 		
-		logger.info("creating a new instance of TimedAdmin");
+		logger.fine("creating a new instance of TimedAdmin");
 		timedAdmin = new TimedAdmin();
 		timedAdmin.setStatisticsHistorySize(0);
 		logger.fine("Created new Admin Object with groups: " + Arrays.toString(timedAdmin.getAdminGroups()) 
