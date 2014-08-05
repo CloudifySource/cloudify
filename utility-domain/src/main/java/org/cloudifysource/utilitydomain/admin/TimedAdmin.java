@@ -112,14 +112,14 @@ public class TimedAdmin {
 		if (admin == null) {
 			createAdmin();
 		} else {
-			logger.info("Using a cached Admin object");
+			logger.finest("Using a cached Admin object");
 		}
 		updateTimestamp();
 	}
 	
 	
 	private void createAdmin() {
-		logger.info("Creating a new Admin object...");
+		logger.finest("Creating a new Admin object...");
 		
 		final AdminFactory factory = new AdminFactory();
 		factory.useDaemonThreads(true);
@@ -147,7 +147,7 @@ public class TimedAdmin {
 		this.admin = factory.createAdmin();		
 		this.admin.setStatisticsHistorySize(statisticsHistorySize);
 				
-		logger.info("Created new Admin Object with groups: " + Arrays.toString(this.admin.getGroups()) + " and Locators: "
+		logger.finest("Created new Admin Object with groups: " + Arrays.toString(this.admin.getGroups()) + " and Locators: "
 				+ Arrays.toString(this.admin.getLocators()));
 		
 		updateTimestamp();
@@ -180,7 +180,7 @@ public class TimedAdmin {
 				while (running) {
 					try {
 						if (admin != null && (lastUsed + MAX_IDLE_TIME_MILLIS < System.currentTimeMillis())) {
-							logger.info("Closing expired admin object");
+							logger.fine("Closing expired admin object");
 							admin.close();
 							admin = null;
 							running = false;
@@ -280,7 +280,7 @@ public class TimedAdmin {
 	 * Closes the admin object and stops the timing thread.
 	 */
 	public void close() {
-		logger.info("Closing the admin object and stopping the timing thread");
+		logger.finest("Closing the admin object and stopping the timing thread");
 		if (admin != null) {
 			admin.close();
 			admin = null;

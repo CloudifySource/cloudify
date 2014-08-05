@@ -252,11 +252,11 @@ public final class USMUtils {
 	 */
 	public static synchronized TimedAdmin getTimedAdmin() {
 		if (timedAdmin != null) {
-			logger.info("using a cached instance of TimedAdmin");
+			logger.fine("using a cached instance of TimedAdmin");
 			return timedAdmin;
 		}
 			
-		logger.info("creating a new instance of TimedAdmin");
+		logger.fine("creating a new instance of TimedAdmin");
 		timedAdmin = new TimedAdmin();
 		// useful for unit tests
 		timedAdmin.discoverUnmanagedSpaces();

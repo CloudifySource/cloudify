@@ -872,7 +872,7 @@ public class UniversalServiceManagerBean implements ApplicationContextAware,
 		final long startTime = System.currentTimeMillis();
 		final long endTime = startTime + WAIT_FOR_DEPENDENCIES_TIMEOUT_MILLIS;
 		if (dependencies.length > 0) {
-			logger.info("waitForDependencies is getting timed admin");
+			logger.fine("waitForDependencies is getting timed admin");
 			final TimedAdmin timedAdmin = USMUtils.getTimedAdmin();
 			for (final String dependencyService : this.dependencies) {
 				logger.info("Waiting for dependency: " + dependencyService);
