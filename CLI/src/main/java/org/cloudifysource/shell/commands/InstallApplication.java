@@ -349,6 +349,7 @@ public class InstallApplication extends AdminAwareCommand implements NewRestClie
 	public Object doExecuteNewRestClient() 
 			throws Exception {
 		//resolve the path for the given app input
+		logger.fine("Installing application " + applicationFile + " using the new rest client");
 		final RecipePathResolver pathResolver = new RecipePathResolver();
 		if (pathResolver.resolveApplication(applicationFile)) {
 			applicationFile = pathResolver.getResolved();

@@ -458,7 +458,7 @@ public class InstallService extends AdminAwareCommand implements NewRestClientCo
 
 	@Override
 	public Object doExecuteNewRestClient() throws Exception {
-		logger.fine("Installing service " + serviceName + " using the new rest client");
+		logger.fine("Installing service " + recipe + " using the new rest client");
 		RestClient newRestClient = ((RestAdminFacade) getRestAdminFacade()).getNewRestClient();
         NameAndPackedFileResolver nameAndPackedFileResolver = getResolver(recipe);
         serviceName = nameAndPackedFileResolver.getName();

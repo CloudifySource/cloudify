@@ -114,6 +114,7 @@ public class UninstallApplication extends AdminAwareCommand implements NewRestCl
 	@Override
 	public Object doExecuteNewRestClient() 
 			throws Exception {
+		logger.fine("uninstalling application " + applicationName + ", cli timeout is set to " + timeoutInMinutes + " minutes.");
 		if (!askUninstallConfirmationQuestion()) {
 			return getFormattedMessage("uninstall_aborted");
 		}
@@ -131,6 +132,7 @@ public class UninstallApplication extends AdminAwareCommand implements NewRestCl
 
 		session.put(Constants.ACTIVE_APP, CloudifyConstants.DEFAULT_APPLICATION_NAME);
 		GigaShellMain.getInstance().setCurrentApplicationName(CloudifyConstants.DEFAULT_APPLICATION_NAME);
+		logger.fine("Application " + applicationName + " was uninstalled successfully");
 		return getFormattedMessage("application_uninstalled_successfully", Color.GREEN, this.applicationName);
 	
 	}

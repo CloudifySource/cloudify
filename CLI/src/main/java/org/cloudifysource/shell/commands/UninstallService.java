@@ -108,6 +108,9 @@ public class UninstallService extends AdminAwareCommand implements NewRestClient
         if (!askUninstallConfirmationQuestion()) {
             return getFormattedMessage("uninstall_aborted");
         }
+        
+        logger.fine("uninstalling service " + serviceName + ", cli timeout is set to " + timeoutInMinutes + " minutes.");
+        
         CLIServiceUninstaller uninstaller = new CLIServiceUninstaller();
         uninstaller.setApplicationName(getCurrentApplicationName());
         uninstaller.setAskOnTimeout(true);
@@ -117,6 +120,7 @@ public class UninstallService extends AdminAwareCommand implements NewRestClient
         uninstaller.setSession(session);
         uninstaller.uninstall();
 
+        logger.fine("Service " + serviceName + " was uninstalled successfully");
         return getFormattedMessage("undeployed_successfully", Color.GREEN, serviceName);
 	}
 }
