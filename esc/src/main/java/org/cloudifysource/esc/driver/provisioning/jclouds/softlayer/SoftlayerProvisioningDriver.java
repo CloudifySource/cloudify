@@ -31,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.commons.lang.StringUtils;
 import org.cloudifysource.domain.cloud.compute.ComputeTemplate;
 import org.cloudifysource.esc.driver.provisioning.CloudProvisioningException;
 import org.cloudifysource.esc.driver.provisioning.MachineDetails;
@@ -167,7 +168,14 @@ public class SoftlayerProvisioningDriver extends DefaultProvisioningDriver {
 
         // apply additional environment variables if set
         for (Entry<String, String> envVar : envVars.entrySet()) {
-        	pb.environment().put(envVar.getKey(), envVar.getValue());
+        	if (envVar.getValue() == null) {
+        		// setting null env vars as "" to avoid a NPE
+        		logger.fine("script environment variable " + envVar.getKey() + ": \"\"");
+        		pb.environment().put(envVar.getKey(), "");
+        	} else {
+        		logger.fine("script environment variable " + envVar.getKey() + ": \"" + envVar.getValue() + "\"");
+        		pb.environment().put(envVar.getKey(), envVar.getValue());        		
+        	}
         }
         
     	logger.info("command " + command + " will be executed with env: \"" + pb.environment() + "\"");
@@ -254,7 +262,13 @@ public class SoftlayerProvisioningDriver extends DefaultProvisioningDriver {
     
     
     public static boolean isWindows() {
-		return System.getProperty("os.name").toLowerCase().startsWith("win");
+    	boolean isWindows = false;
+    	String osNameProp = System.getProperty("os.name");
+    	if (StringUtils.isNotBlank(osNameProp)) {
+    		isWindows = osNameProp.toLowerCase().startsWith("win");
+    	}
+    	
+		return isWindows;
 	}
     
 }
