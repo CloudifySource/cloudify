@@ -1,3 +1,5 @@
+PLEASE NOTE: This repo is for Cloudify version 2.7 and earlier only. You can find the latest repo at http://github.com/cloudify-cosmo.
+
 [![Build Status](https://secure.travis-ci.org/CloudifySource/cloudify.png)](http://travis-ci.org/CloudifySource/cloudify)
 Welcome to Cloudify
 ======================
