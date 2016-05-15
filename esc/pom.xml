@@ -4,7 +4,6 @@
 	<artifactId>esc</artifactId>
 	<packaging>jar</packaging>
 	<name>esc</name>
-
 	<parent>
 		<groupId>org.cloudifysource</groupId>
 		<artifactId>cloudify</artifactId>
@@ -22,16 +21,45 @@
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
-
 	</repositories>
-
 	<dependencies>
-        <dependency>
-            <groupId>org.apache.jclouds.provider</groupId>
-            <artifactId>softlayer-all</artifactId>
-            <version>${jcloudsVersion}</version>
-        </dependency>
-        <dependency>
+		<dependency>
+			<groupId>org.apache.jclouds.provider</groupId>
+			<artifactId>softlayer-all</artifactId>
+			<version>1.6.2-incubating</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.jclouds</groupId>
+			<artifactId>jclouds-compute</artifactId>
+			<version>${jcloudsVersion}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.jclouds</groupId>
+			<artifactId>jclouds-core</artifactId>
+			<version>${jcloudsVersion}</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.jclouds</groupId>
+			<artifactId>jclouds-compute</artifactId>
+			<version>${jcloudsVersion}</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.jclouds.driver</groupId>
+			<artifactId>jclouds-log4j</artifactId>
+			<version>${jcloudsVersion}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.jclouds.driver</groupId>
+			<artifactId>jclouds-sshj</artifactId>
+			<version>${jcloudsVersion}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
 		</dependency>
@@ -53,10 +81,10 @@
 					<artifactId>ant</artifactId>
 					<groupId>org.apache.ant</groupId>
 				</exclusion>
-                <exclusion>
-                    <groupId>commons-httpclient</groupId>
-                    <artifactId>commons-httpclient</artifactId>
-                </exclusion>
+				<exclusion>
+					<groupId>commons-httpclient</groupId>
+					<artifactId>commons-httpclient</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -99,12 +127,12 @@
 			<groupId>org.apache.jclouds</groupId>
 			<artifactId>jclouds-allcompute</artifactId>
 			<version>${jcloudsVersion}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.jclouds.provider</groupId>
-                    <artifactId>softlayer</artifactId>
-                </exclusion>
-            </exclusions>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.jclouds.provider</groupId>
+					<artifactId>softlayer</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.cloudifysource</groupId>
@@ -153,7 +181,6 @@
 			<artifactId>jclouds-bouncycastle</artifactId>
 			<version>${jcloudsVersion}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>jcifs</groupId>
 			<artifactId>jcifs</artifactId>
@@ -165,14 +192,11 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-
-
 		<dependency>
 			<groupId>net.schmizz</groupId>
 			<artifactId>sshj</artifactId>
 			<version>0.8.1</version>
 		</dependency>
-
 		<dependency>
 			<groupId>commons-net</groupId>
 			<artifactId>commons-net</artifactId>
@@ -200,14 +224,10 @@
 			<version>${cloudifyVersion}</version>
 			<scope>compile</scope>
 		</dependency>
-
 	</dependencies>
-
-
 	<build>
 		<finalName>esc</finalName>
 		<plugins>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-install-plugin</artifactId>
@@ -250,6 +270,6 @@
 		</plugins>
 	</build>
 	<properties>
-		<jcloudsVersion>1.6.2-incubating</jcloudsVersion>
+		<jcloudsVersion>1.6.4-SNAPSHOT</jcloudsVersion>
 	</properties>
 </project>
